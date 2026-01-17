@@ -639,6 +639,14 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            z-index: 1;
+            max-width: 180px;
+            text-align: center;
+        }
+
+        /* Ajouter du padding au titre pour éviter qu'il soit masqué par le badge */
+        .job-card:has(.job-card-badge) .job-title {
+            padding-right: 200px;
         }
 
         .job-card.application-pending .job-card-badge {
@@ -790,8 +798,26 @@
 
         .job-actions {
             display: flex;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
             align-items: center;
+        }
+
+        /* Quand candidature en cours, organiser verticalement pour plus d'espace */
+        .job-actions.pending-layout {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+
+        .job-actions.pending-layout .job-apply-btn,
+        .job-actions.pending-layout .job-cancel-btn {
+            width: 100%;
+        }
+
+        .job-actions.pending-layout .job-link {
+            width: 100%;
+            text-align: center;
         }
 
         .job-apply-btn {
@@ -2964,7 +2990,7 @@
             })() : ''}
             <div class="job-footer">
                 <div class="job-date">Publiée le ${job.publication_date || 'date inconnue'}</div>
-                <div class="job-actions">
+                <div class="job-actions ${isPending ? 'pending-layout' : ''}">
                     ${isAuthenticated ? (() => {
                         const isPending = pendingApplications[job.job_id];
                         const status = applicationStatuses.get(job.job_id);
@@ -2975,8 +3001,10 @@
                             const minutes = Math.floor(remainingSeconds / 60);
                             const seconds = remainingSeconds % 60;
                             const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                            // Layout vertical pour avoir plus d'espace
                             return `<button class="job-apply-btn applied" disabled>⏳ Candidature en cours (${timeStr})</button>
-                                    <button class="job-cancel-btn" onclick="cancelApplication('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">✕ Annuler</button>`;
+                                    <button class="job-cancel-btn" onclick="cancelApplication('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">✕ Annuler</button>
+                                    <a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
                         } else if (isSubmitted || (hasApplied && !isPending)) {
                             // Candidature envoyée (ou ancienne candidature sans timer)
                             return `<button class="job-apply-btn applied sent" disabled>✅ Candidature envoyée</button>`;
@@ -2986,8 +3014,7 @@
                         } else {
                             return `<button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">📝 Candidater</button>`;
                         }
-                    })() : ''}
-                    <a href="${job.job_url}" target="_blank" class="job-link">Voir l'offre →</a>
+                    })() : `<a href="${job.job_url}" target="_blank" class="job-link">Voir l'offre →</a>`}
                 </div>
             </div>
         </div>

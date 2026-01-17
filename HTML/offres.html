@@ -2676,22 +2676,51 @@
 
                         const userId = currentUser.uid;
 
-                        // Trouver et supprimer la candidature dans Firestore
+                        // Vérifier d'abord si la candidature est en cours (dans pendingApplications)
+                        // Si oui, annuler le timer et retirer de pendingApplications sans toucher à Firestore
+                        if (pendingApplications[jobId]) {
+                            console.log('🔄 Annulation d\'une candidature en cours (timer actif)');
+                            
+                            // Arrêter le timer
+                            if (pendingApplications[jobId].intervalId) {
+                                clearInterval(pendingApplications[jobId].intervalId);
+                            }
+                            
+                            // Retirer de pendingApplications
+                            delete pendingApplications[jobId];
+                            
+                            // Retirer de la liste locale
+                            userApplications.delete(jobId);
+                            applicationStatuses.delete(jobId);
+                            
+                            // Mettre à jour l'UI
+                            updateJobCardButtons(jobId);
+                            updateJobCardStyles(jobId);
+                            
+                            showToast('Candidature annulée', 'La candidature a été annulée avec succès.', 'success', 2000);
+                            return;
+                        }
+
+                        // Si pas dans pendingApplications, chercher dans Firestore (candidature déjà envoyée)
                         const applicationsRef = db.collection('profiles').doc(userId).collection('job_applications');
                         const existingApp = await applicationsRef.where('jobId', '==', jobId).get();
                         
                         if (existingApp.empty) {
-                            showToast('Introuvable', 'Cette candidature n\'existe pas.', 'warning');
+                            console.warn('⚠️ Candidature introuvable dans pendingApplications et Firestore');
+                            // Nettoyer les données locales si elles existent
                             userApplications.delete(jobId);
+                            applicationStatuses.delete(jobId);
                             updateJobCardButtons(jobId);
+                            updateJobCardStyles(jobId);
+                            showToast('Candidature annulée', 'La candidature a été retirée de la liste locale.', 'info', 2000);
                             return;
                         }
 
-                        // Supprimer le document
+                        // Supprimer le document de Firestore
                         const docId = existingApp.docs[0].id;
                         await applicationsRef.doc(docId).delete();
                         
-                        console.log('✅ Candidature annulée dans Firestore');
+                        console.log('✅ Candidature annulée dans Firestore:', docId);
                         
                         // Retirer de la liste locale
                         userApplications.delete(jobId);
@@ -2700,6 +2729,8 @@
                         // Mettre à jour uniquement cette carte (sans notification)
                         updateJobCardButtons(jobId);
                         updateJobCardStyles(jobId);
+                        
+                        showToast('Candidature annulée', 'La candidature a été supprimée avec succès.', 'success', 2000);
                         
                     } catch (error) {
                         console.error('❌ Erreur lors de l\'annulation:', error);

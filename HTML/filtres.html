@@ -932,11 +932,26 @@
                 const db = firebase.firestore();
                 console.log('🔄 [loadAccordions] Chargement depuis Firestore pour user:', currentUserId);
                 
-                const snapshot = await db.collection('profiles')
-                    .doc(currentUserId)
-                    .collection('advanced_searches')
-                    .orderBy('order', 'asc')
-                    .get();
+                let snapshot;
+                try {
+                    // Essayer avec orderBy d'abord
+                    snapshot = await db.collection('profiles')
+                        .doc(currentUserId)
+                        .collection('advanced_searches')
+                        .orderBy('order', 'asc')
+                        .get();
+                } catch (orderError) {
+                    // Si erreur d'index, charger sans orderBy et trier manuellement
+                    if (orderError.code === 'failed-precondition') {
+                        console.warn('⚠️ [loadAccordions] Index Firestore manquant pour "order", chargement sans tri');
+                        snapshot = await db.collection('profiles')
+                            .doc(currentUserId)
+                            .collection('advanced_searches')
+                            .get();
+                    } else {
+                        throw orderError; // Re-lancer si ce n'est pas un problème d'index
+                    }
+                }
 
                 const loadedAccordions = [];
                 snapshot.forEach(doc => {
@@ -960,6 +975,12 @@
                     loadedAccordions.push(accordion);
                     console.log('📦 [loadAccordions] Accordéon chargé:', accordion.id, accordion.name);
                 });
+                
+                // Trier manuellement si on a chargé sans orderBy
+                if (loadedAccordions.length > 0 && !snapshot.query.orderBy) {
+                    loadedAccordions.sort((a, b) => (a.order || 0) - (b.order || 0));
+                    console.log('🔢 [loadAccordions] Tri manuel effectué par order');
+                }
 
                 console.log(`✅ [loadAccordions] ${loadedAccordions.length} accordéon(s) trouvé(s) dans Firestore`);
                 

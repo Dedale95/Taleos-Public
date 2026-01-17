@@ -468,6 +468,7 @@
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
             padding: 25px 0;
+            align-items: stretch; /* Force toutes les cartes à avoir la même hauteur dans une rangée */
         }
 
         @media (max-width: 1200px) {
@@ -615,6 +616,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+            min-height: 380px; /* Hauteur minimale pour harmoniser les cartes */
         }
 
         /* États de candidature */
@@ -712,6 +714,7 @@
             flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 16px;
+            min-height: 48px; /* Hauteur minimale pour harmoniser l'espace tags */
         }
 
         .tag {
@@ -749,6 +752,7 @@
             font-weight: 500;
             margin-bottom: 12px;
             padding: 8px 0;
+            min-height: 66px; /* Hauteur minimale pour harmoniser (logo 50px + padding) */
         }
 
         .company-logo {

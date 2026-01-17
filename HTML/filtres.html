@@ -894,6 +894,8 @@
 
             try {
                 const db = firebase.firestore();
+                console.log('🔄 Chargement des accordéons depuis Firestore pour user:', currentUserId);
+                
                 const snapshot = await db.collection('profiles')
                     .doc(currentUserId)
                     .collection('advanced_searches')
@@ -903,7 +905,7 @@
                 accordions = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    accordions.push({ 
+                    const accordion = { 
                         id: doc.id, 
                         name: data.name || `Recherche ${doc.id}`,
                         filters: data.filters || {
@@ -918,10 +920,15 @@
                         },
                         order: data.order !== undefined ? data.order : 0,
                         expanded: data.expanded !== undefined ? data.expanded : false
-                    });
+                    };
+                    accordions.push(accordion);
+                    console.log('📦 Accordéon chargé:', accordion.id, accordion.name, accordion.filters);
                 });
 
                 console.log(`✅ ${accordions.length} accordéon(s) chargé(s) depuis Firestore`);
+                if (accordions.length === 0) {
+                    console.warn('⚠️ Aucun accordéon trouvé dans Firestore');
+                }
                 renderAccordions();
             } catch (error) {
                 console.error('Erreur lors du chargement des accordéons:', error);
@@ -942,13 +949,15 @@
                 const isTemporaryId = accordion.id && accordion.id.startsWith('temp_');
                 
                 if (accordion.id && !isTemporaryId) {
-                    // ID réel : mettre à jour le document existant
+                    // ID réel : utiliser .set() avec merge pour créer ou mettre à jour
+                    // Cela fonctionne même si le document n'existe pas encore
+                    const { id, ...dataToSave } = accordion; // Exclure l'ID des données
                     await db.collection('profiles')
                         .doc(currentUserId)
                         .collection('advanced_searches')
                         .doc(accordion.id)
-                        .update(accordion);
-                    console.log('✅ Accordéon mis à jour:', accordion.id);
+                        .set(dataToSave, { merge: true });
+                    console.log('✅ Accordéon sauvegardé:', accordion.id, dataToSave);
                 } else {
                     // Pas d'ID ou ID temporaire : créer un nouveau document
                     // Exclure l'ID temporaire des données à sauvegarder
@@ -960,13 +969,18 @@
                     
                     // Mettre à jour l'ID dans l'objet accordéon
                     accordion.id = docRef.id;
-                    console.log('✅ Nouvel accordéon créé avec ID:', docRef.id);
+                    console.log('✅ Nouvel accordéon créé avec ID:', docRef.id, dataToSave);
                 }
             } catch (error) {
                 console.error('❌ Erreur lors de la sauvegarde:', error);
+                console.error('Détails de l\'erreur:', error.code, error.message);
                 // Afficher l'erreur à l'utilisateur si possible
                 if (error.code === 'permission-denied') {
                     console.error('⚠️ Erreur de permissions Firestore. Vérifiez les règles de sécurité.');
+                    alert('Erreur de permissions. Vérifiez que vous êtes connecté et que les règles Firestore permettent l\'écriture.');
+                } else if (error.code === 'unavailable') {
+                    console.error('⚠️ Firestore indisponible. Vérifiez votre connexion internet.');
+                    alert('Firestore indisponible. Vérifiez votre connexion internet.');
                 }
                 throw error; // Re-lancer pour permettre la gestion d'erreur en amont
             }

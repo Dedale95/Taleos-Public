@@ -3046,7 +3046,8 @@
                                     <a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
                         } else if (isSubmitted || (hasApplied && !isPending)) {
                             // Candidature envoyée (ou ancienne candidature sans timer)
-                            return `<button class="job-apply-btn applied sent" disabled>✅ Candidature envoyée</button>`;
+                            return `<button class="job-apply-btn applied sent" disabled>✅ Candidature envoyée</button>
+                                    <a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
                         } else if (hasApplied) {
                             // Candidature en cours avec statut explicite "En cours"
                             return `<button class="job-apply-btn applied" disabled>⏳ Candidature en cours</button>`;

@@ -3057,9 +3057,12 @@
                                     <a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
                         } else if (hasApplied) {
                             // Candidature en cours avec statut explicite "En cours"
-                            return `<button class="job-apply-btn applied" disabled>⏳ Candidature en cours</button>`;
+                            return `<button class="job-apply-btn applied" disabled>⏳ Candidature en cours</button>
+                                    <a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
                         } else {
-                            return `<button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">📝 Candidater</button>`;
+                            // Pas encore candidaté : Candidater + Voir l'offre
+                            return `<button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">📝 Candidater</button>
+                                    <a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
                         }
                     })() : `<a href="${job.job_url}" target="_blank" class="job-link">Voir l'offre →</a>`}
                 </div>

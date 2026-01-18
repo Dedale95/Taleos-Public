@@ -930,7 +930,7 @@
             try {
                 isLoadingAccordions = true;
                 const db = firebase.firestore();
-                console.log('🔄 [loadAccordions] Chargement depuis Firestore pour user:', currentUserId);
+                console.log('🔄 [loadAccordions] Lecture Firestore: profiles/' + currentUserId + '/advanced_searches');
                 
                 let snapshot;
                 try {
@@ -1005,39 +1005,35 @@
 
         async function saveAccordion(accordion, showErrorAlert = false) {
             if (!currentUserId) {
-                console.warn('⚠️ [saveAccordion] Impossible de sauvegarder: utilisateur non connecté');
-                // Retourner une Promise résolue pour ne pas casser la chaîne Promise
+                console.warn('⚠️ [saveAccordion] Impossible de sauvegarder: utilisateur non connecté (currentUserId=null). Connectez-vous.');
                 return Promise.resolve();
             }
 
+            const path = `profiles/${currentUserId}/advanced_searches`;
+            console.log('💾 [saveAccordion] Tentative d\'écriture Firestore →', path);
+
             try {
                 const db = firebase.firestore();
-                
-                // Si l'ID est temporaire (commence par temp_) ou n'existe pas, créer un nouveau document
                 const isTemporaryId = accordion.id && accordion.id.startsWith('temp_');
                 
                 if (accordion.id && !isTemporaryId) {
-                    // ID réel : utiliser .set() avec merge pour créer ou mettre à jour
-                    // Cela fonctionne même si le document n'existe pas encore
-                    const { id, ...dataToSave } = accordion; // Exclure l'ID des données
+                    const { id, ...dataToSave } = accordion;
                     await db.collection('profiles')
                         .doc(currentUserId)
                         .collection('advanced_searches')
                         .doc(accordion.id)
                         .set(dataToSave, { merge: true });
-                    console.log('✅ [saveAccordion] Accordéon sauvegardé:', accordion.id);
+                    console.log('✅ [saveAccordion] Sauvegardé dans Firestore:', path + '/' + accordion.id);
                 } else {
-                    // Pas d'ID ou ID temporaire : créer un nouveau document
-                    // Exclure l'ID temporaire des données à sauvegarder
+                    // Création : add() crée le 1er document. Firestore n'affiche la sous-collection
+                    // advanced_searches dans la console qu'après au moins un document créé avec succès.
                     const { id: tempId, ...dataToSave } = accordion;
                     const docRef = await db.collection('profiles')
                         .doc(currentUserId)
                         .collection('advanced_searches')
                         .add(dataToSave);
-                    
-                    // Mettre à jour l'ID dans l'objet accordéon
                     accordion.id = docRef.id;
-                    console.log('✅ [saveAccordion] Nouvel accordéon créé avec ID:', docRef.id);
+                    console.log('✅ [saveAccordion] Nouveau document Firestore:', path + '/' + docRef.id, '→ Vérifiez dans Firebase Console > Firestore > Data >', path);
                 }
             } catch (error) {
                 console.error('❌ [saveAccordion] Erreur lors de la sauvegarde:', error);
@@ -1067,10 +1063,13 @@
                     }
                     throw error; // Re-lancer uniquement si on a montré une alert
                 } else {
-                    // Pour les sauvegardes silencieuses, ne pas re-lancer l'erreur
-                    // L'accordéon reste en mémoire localement, même si la sauvegarde échoue
-                    console.warn('⚠️ [saveAccordion] Sauvegarde silencieuse échouée, accordéon conservé en mémoire locale');
-                    // Ne pas re-lancer l'erreur pour les mises à jour non-critiques
+                    // Sauvegardes silencieuses (filtres, renommage) : ne pas re-lancer.
+                    // En cas de permission-denied, orienter explicitement vers les règles Firestore.
+                    if (error.code === 'permission-denied') {
+                        console.warn('⚠️ [saveAccordion] permission-denied : les règles Firestore n\'autorisent pas l\'écriture dans', path, '→ Firebase Console > Firestore > Règles. La sous-collection advanced_searches doit être autorisée explicitement.');
+                    } else {
+                        console.warn('⚠️ [saveAccordion] Sauvegarde silencieuse échouée, accordéon conservé en mémoire locale');
+                    }
                 }
             }
         }
@@ -1173,7 +1172,10 @@
                 } catch (error) {
                     console.error('❌ [createNewAccordion] Erreur lors de la création:', error);
                     console.error('Détails:', error.code, error.message);
-                    // Ne pas retirer l'accordéon en cas d'erreur (il restera visible mais non sauvegardé)
+                    // Retirer l'accordéon de l'affichage : il a un ID temporaire et n'existe pas dans
+                    // Firebase. Évite l'impression que "ça a marché" alors que add() a échoué.
+                    accordions = accordions.filter(a => a.id !== newAccordion.id);
+                    renderAccordions();
                     // L'alert a déjà été affichée par saveAccordion avec showErrorAlert=true
                 } finally {
                     // Réactiver le chargement des accordéons après un délai pour laisser le temps à la sauvegarde

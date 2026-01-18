@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Profil principal
+    match /profiles/{userId} {
+      
+      allow read, create, update, delete: if request.auth != null
+                                         && request.auth.uid == userId;
+
+      // Sous-collection pour les candidatures
+      match /job_applications/{appId} {
+        allow read, create, update, delete: if request.auth != null
+                                           && request.auth.uid == userId;
+      }
+
+      // Sous-collection pour les connexions bancaires
+      match /career_connections/{connectionId} {
+        allow read, create, update, delete: if request.auth != null
+                                           && request.auth.uid == userId;
+      }
+
+      // Sous-collection pour les recherches avancées (accordéons) — indispensable :
+      // sans ce bloc, add() et set() échouent en permission-denied et la sous-collection
+      // n'est jamais créée (Firestore ne crée une sous-collection qu'au 1er doc écrit).
+      match /advanced_searches/{searchId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Sous-collection pour les préférences utilisateur (filtres Offres, etc.)
+      match /user_preferences/{prefId} {
+        allow read, create, update, delete: if request.auth != null
+                                           && request.auth.uid == userId;
+      }
+    }
+  }
+}

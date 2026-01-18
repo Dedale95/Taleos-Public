@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarifs et Abonnements - Taleos</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex: 1;
+        }
+
+        nav {
+            background: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 10000;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-link-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .logout-btn {
+            background: transparent;
+            margin-left: 10px;
+            color: #666 !important;
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #f3f4f6;
+            color: #374151 !important;
+            border-color: #d1d5db;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+        }
+
+        .pricing-header h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .pricing-header p {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .pricing-plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-card.featured {
+            border: 3px solid #667eea;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::before {
+            content: '⭐ Populaire';
+            position: absolute;
+            top: -12px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .plan-price-period {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .plan-features {
+            flex: 1;
+            margin-bottom: 30px;
+        }
+
+        .plan-features ul {
+            list-style: none;
+        }
+
+        .plan-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            color: #34c759;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .feature-icon.limited {
+            color: #f59e0b;
+        }
+
+        .feature-icon.cross {
+            color: #ef4444;
+        }
+
+        .subscribe-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .subscribe-btn:hover:not(.coming-soon) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .subscribe-btn.coming-soon {
+            background: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
+            position: relative;
+        }
+
+        .subscribe-btn.coming-soon::after {
+            content: 'Bientôt disponible';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 50px;
+            overflow-x: auto;
+        }
+
+        .comparison-table h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #1a1a1a;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 700;
+            color: #1a1a1a;
+            border-bottom: 3px solid #667eea;
+        }
+
+        thead th:first-child {
+            border-bottom: none;
+        }
+
+        tbody td {
+            padding: 18px 20px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .feature-name {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .feature-value {
+            text-align: center;
+            color: #666;
+        }
+
+        .check-mark {
+            color: #34c759;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .cross-mark {
+            color: #ef4444;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-left: 4px solid #667eea;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin: 30px 0;
+        }
+
+        .info-box h3 {
+            color: #0369a1;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .info-box p {
+            color: #075985;
+            line-height: 1.6;
+        }
+
+        footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        footer .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        footer p {
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        .footer-love {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-container,
+            .nav-links {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-link {
+                width: 100%;
+                text-align: center;
+            }
+
+            .pricing-header h1 {
+                font-size: 2rem;
+            }
+
+            .pricing-plans {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            .comparison-table {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            thead th,
+            tbody td {
+                padding: 12px 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="landing_page_finance.html" class="logo">
+                <div class="logo-icon">T</div>
+                <div class="logo-text">Taleos</div>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="offres.html" class="nav-link">Offres</a>
+                <a href="filtres.html" class="nav-link">Recherche avancée</a>
+                <a href="mes-candidatures.html" class="nav-link">Mes candidatures</a>
+                <a href="connexions.html" class="nav-link">Connexions</a>
+                <a href="tarifs.html" class="nav-link nav-link-primary">Tarifs</a>
+                <a href="profile.html" class="nav-link">Profil</a>
+                <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="handleLogout()">Déconnexion</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="pricing-header">
+                <h1>Choisissez votre formule</h1>
+                <p>Tous nos abonnements sont mensuels. Paiement chaque mois avec un nombre de candidatures renouvelé mensuellement.</p>
+            </div>
+
+            <div class="pricing-plans">
+                <!-- Plan Basique -->
+                <div class="pricing-card">
+                    <div class="plan-name">Basique</div>
+                    <div class="plan-price">10€</div>
+                    <div class="plan-price-period">par mois</div>
+                    <div class="plan-features">
+                        <ul>
+                            <li>
+                                <span class="feature-icon">✓</span>
+                                <span><strong>50 candidatures</strong> par mois</span>
+                            </li>
+                            <li>
+                                <span class="feature-icon limited">⚠</span>
+                                <span>Limitations sur les institutions financières (pas de boîte mail dédiée)</span>
+                            </li>
+                            <li>
+                                <span class="feature-icon cross">✗</span>
+                                <span>Lettres de motivation non personnalisées</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <button class="subscribe-btn coming-soon" disabled>S'abonner</button>
+                </div>
+
+                <!-- Plan Intermédiaire -->
+                <div class="pricing-card featured">
+                    <div class="plan-name">Intermédiaire</div>
+                    <div class="plan-price">25€</div>
+                    <div class="plan-price-period">par mois</div>
+                    <div class="plan-features">
+                        <ul>
+                            <li>
+                                <span class="feature-icon">✓</span>
+                                <span><strong>100 candidatures</strong> par mois</span>
+                            </li>
+                            <li>
+                                <span class="feature-icon">✓</span>
+                                <span><strong>Aucune limitation</strong> sur les institutions financières</span>
+                            </li>
+                            <li>
+                                <span class="feature-icon">✓</span>
+                                <span>Boîte mail dédiée incluse</span>
+                            </li>
+                            <li>
+                                <span class="feature-icon">✓</span>
+                                <span><strong>30%</strong> de lettres de motivation personnalisées par IA</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <button class="subscribe-btn coming-soon" disabled>S'abonner</button>
+                </div>
+
+                <!-- Plan Pro -->
+                <div class="pricing-card">
+                    <div class="plan-name">Pro</div>
+                    <div class="plan-price">50€</div>
+                    <div class="plan-price-period">par mois</div>
+                    <div class="plan-features">
+                        <ul>
+                            <li>
+                                <span class="feature-icon">✓</span>
+                                <span><strong>200 candidatures</strong> par mois</span>
+                            </li>
+                            <li>
+                                <span class="feature-icon">✓</span>
+                                <span><strong>Aucune limitation</strong> sur les institutions financières</span>
+                            </li>
+                            <li>
+                                <span class="feature-icon">✓</span>
+                                <span>Boîte mail dédiée incluse</span>
+                            </li>
+                            <li>
+                                <span class="feature-icon">✓</span>
+                                <span><strong>100%</strong> de lettres de motivation personnalisées par IA</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <button class="subscribe-btn coming-soon" disabled>S'abonner</button>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h3>💡 Crédits supplémentaires</h3>
+                <p>Vous pouvez acheter des crédits supplémentaires avant le renouvellement mensuel de votre abonnement pour augmenter votre nombre de candidatures disponibles.</p>
+            </div>
+
+            <div class="comparison-table">
+                <h2>Tableau comparatif</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fonctionnalités</th>
+                            <th>Basique</th>
+                            <th>Intermédiaire</th>
+                            <th>Pro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="feature-name">Prix mensuel</td>
+                            <td class="feature-value">10€</td>
+                            <td class="feature-value">25€</td>
+                            <td class="feature-value">50€</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Candidatures par mois</td>
+                            <td class="feature-value">50</td>
+                            <td class="feature-value">100</td>
+                            <td class="feature-value">200</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Accès aux institutions financières</td>
+                            <td class="feature-value">
+                                <span class="limited" style="color: #f59e0b;">⚠ Limité</span>
+                            </td>
+                            <td class="feature-value">
+                                <span class="check-mark">✓</span>
+                            </td>
+                            <td class="feature-value">
+                                <span class="check-mark">✓</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Boîte mail dédiée</td>
+                            <td class="feature-value">
+                                <span class="cross-mark">✗</span>
+                            </td>
+                            <td class="feature-value">
+                                <span class="check-mark">✓</span>
+                            </td>
+                            <td class="feature-value">
+                                <span class="check-mark">✓</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Lettres de motivation IA personnalisées</td>
+                            <td class="feature-value">
+                                <span class="cross-mark">✗</span>
+                            </td>
+                            <td class="feature-value">30%</td>
+                            <td class="feature-value">100%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Taleos. Tous droits réservés.</p>
+            <div class="footer-love">
+                <span>Conçu avec ❤️ pour les futurs talents de la finance</span>
+                <span>•</span>
+                <span>🇫🇷 Fièrement Made in France</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Firebase config (identique aux autres pages)
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9hYkfK-2hJV0J8R9L8BxJzJZJZJZJZJZ",
+            authDomain: "taleos-app.firebaseapp.com",
+            projectId: "taleos-app",
+            storageBucket: "taleos-app.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890"
+        };
+
+        if (!firebase.apps || firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        // Gérer l'affichage du bouton de déconnexion
+        firebase.auth().onAuthStateChanged((user) => {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (user) {
+                logoutBtn.style.display = 'block';
+            } else {
+                logoutBtn.style.display = 'none';
+            }
+        });
+
+        function handleLogout() {
+            firebase.auth().signOut().then(() => {
+                window.location.href = 'landing_page_finance.html';
+            }).catch((error) => {
+                console.error('Erreur lors de la déconnexion:', error);
+            });
+        }
+
+        // Désactiver les boutons "Bientôt disponible"
+        document.querySelectorAll('.coming-soon').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+            });
+        });
+    </script>
+</body>
+
+</html>

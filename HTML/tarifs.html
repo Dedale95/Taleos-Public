@@ -281,6 +281,7 @@
             cursor: not-allowed;
             box-shadow: none;
             position: relative;
+            color: transparent; /* Masquer le texte "S'abonner" */
         }
 
         .subscribe-btn.coming-soon::after {
@@ -289,6 +290,11 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            pointer-events: none;
+            white-space: nowrap;
         }
 
         .comparison-table {

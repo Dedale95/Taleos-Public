@@ -497,29 +497,113 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
+            align-items: stretch; /* Uniformiser les hauteurs de cartes */
         }
 
         .job-card {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s;
-            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
             cursor: pointer;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 380px; /* Hauteur minimale pour harmoniser les cartes */
+        }
+
+        /* États de candidature */
+        .job-card.application-pending {
+            background: linear-gradient(to right, #fff5e6 0%, #ffffff 100%);
+            border-color: #ff9500;
+            box-shadow: 0 4px 20px rgba(255, 149, 0, 0.15);
+        }
+
+        .job-card.application-submitted {
+            background: linear-gradient(to right, #e6f7ed 0%, #ffffff 100%);
+            border-color: #34c759;
+            box-shadow: 0 4px 20px rgba(52, 199, 89, 0.15);
+        }
+
+        /* Badge d'état dans le coin */
+        .job-card-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 1;
+            max-width: 220px;
+            text-align: center;
+        }
+
+        /* Ajouter du padding au titre pour éviter qu'il soit masqué par le badge */
+        .job-card:has(.job-card-badge) .job-title {
+            padding-right: 200px;
+        }
+
+        .job-card.application-pending .job-card-badge {
+            background: #ff9500;
+            color: white;
+        }
+
+        .job-card.application-submitted .job-card-badge {
+            background: #34c759;
+            color: white;
+        }
+        
+        /* Empêcher le tremblement quand on clique sur les boutons */
+        .job-card:active {
+            transition: none;
+        }
+
+        .job-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scaleY(0);
+            transition: transform 0.3s;
+        }
+
+        .job-card:hover::before {
+            transform: scaleY(1);
         }
 
         .job-card:hover {
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Effet de survol seulement si on ne survole pas les boutons d'action */
+        .job-card:hover:not(:has(.job-actions:hover)) {
             transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-            border-color: #667eea;
         }
 
         .job-title {
-            font-size: 1.1rem;
+            font-size: 1.35rem;
             font-weight: 700;
             color: #1a1a1a;
             margin-bottom: 8px;
+        }
+
+        .job-id {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
         }
 
         .job-tags {
@@ -527,6 +611,7 @@
             flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 16px;
+            min-height: 48px; /* Hauteur minimale pour harmoniser l'espace tags */
         }
 
         .tag {
@@ -534,13 +619,11 @@
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 500;
-            white-space: nowrap;
-            transition: all 0.2s;
         }
 
         .tag-location {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            color: #1e40af;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            color: #0369a1;
         }
 
         .tag-contract {
@@ -558,14 +641,18 @@
             color: #065f46;
         }
 
+        .job-bottom-block {
+            margin-top: auto;
+        }
+
         .job-company {
             display: flex;
             align-items: center;
             gap: 12px;
             color: #666;
             font-weight: 500;
-            margin-bottom: 12px;
-            padding: 8px 0;
+            padding: 0 0 10px 0;
+            min-height: 58px;
         }
 
         .company-logo {
@@ -580,15 +667,255 @@
         }
 
         .company-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             flex: 1;
         }
 
-        .job-tag {
-            padding: 4px 10px;
+        .job-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 2px solid #f3f4f6;
+        }
+
+        .job-date {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        /* Harmoniser Candidater, Voir l'offre, Annuler : même taille, centrés à droite */
+        .job-actions {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-end;
+            min-width: 300px;
+        }
+
+        .job-apply-btn,
+        .job-link,
+        .job-cancel-btn {
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 10px;
+            min-width: 140px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .job-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.35);
+        }
+
+        .job-link:hover {
+            background: #5a6fd6;
+            transform: translateX(4px);
+            box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+        }
+
+        .job-apply-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .job-apply-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .job-apply-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .job-apply-btn.applied {
+            background: #f59e0b;
+            color: white;
+            border-color: #f59e0b;
+            cursor: default;
+        }
+
+        .job-apply-btn.applied:hover {
+            background: #d97706;
+            border-color: #d97706;
+            transform: none;
+        }
+
+        /* Style pour candidature envoyée - vert subtil harmonisé avec la vignette */
+        .job-apply-btn.applied.sent {
+            background: #34c759;
+            border-color: #34c759;
+        }
+
+        .job-apply-btn.applied.sent:hover {
+            background: #30b853;
+            border-color: #30b853;
+        }
+
+        .job-cancel-btn {
+            background: white;
+            color: #ef4444;
+            border: 2px solid #ef4444;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .job-cancel-btn:hover:not(:disabled) {
+            background: #ef4444;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .job-cancel-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            max-width: 400px;
+            pointer-events: auto;
+            animation: slideInRight 0.3s ease-out;
+            border-left: 4px solid #667eea;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .toast-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #1f2937;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast.removing {
+            animation: slideOutRight 0.3s ease-in forwards;
+        }
+
+        .toast.confirm {
+            border-left-color: #f59e0b;
+        }
+
+        .toast-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .toast-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .toast-btn-confirm {
+            background: #ef4444;
+            color: white;
+        }
+
+        .toast-btn-confirm:hover {
+            background: #dc2626;
+        }
+
+        .toast-btn-cancel {
             background: #f3f4f6;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            color: #666;
+            color: #374151;
+        }
+
+        .toast-btn-cancel:hover {
+            background: #e5e7eb;
         }
 
         .no-results {
@@ -828,6 +1155,21 @@
         let accordionsLoaded = false; // Flag pour éviter les rechargements multiples
         let isLoadingAccordions = false; // Flag pour éviter les chargements simultanés
 
+        // Variables pour la gestion des candidatures (synchronisées avec offres.html)
+        let currentAuthState = false;
+        let userApplications = new Set();
+        let applicationStatuses = new Map();
+        let pendingApplications = {};
+
+        // Fonction pour nettoyer le titre d'une offre (retirer les balises HTML si présentes)
+        function cleanJobTitle(title) {
+            if (!title) return 'Titre non disponible';
+            // Retirer les balises HTML si présentes
+            const temp = document.createElement('div');
+            temp.innerHTML = title;
+            return temp.textContent || temp.innerText || title;
+        }
+
         // Mapping ville -> région (depuis offres.html)
         const cityToRegion = {
             "paris": "Île-de-France", "montrouge": "Île-de-France", "villejuif": "Île-de-France",
@@ -967,8 +1309,15 @@
 
         async function checkAuthAndInit() {
             const auth = firebase.auth();
+            
+            // Charger les candidatures au démarrage
+            await loadUserApplications();
+            
             auth.onAuthStateChanged(async (user) => {
                 console.log('🔄 onAuthStateChanged déclenché, user:', user ? user.uid : 'null');
+                
+                // Recharger les candidatures quand l'état d'authentification change
+                await loadUserApplications();
                 
                 if (user) {
                     const newUserId = user.uid;
@@ -1723,6 +2072,530 @@
             return null;
         }
 
+        // Fonction pour afficher un toast notification
+        function showToast(title, message, type = 'success', duration = 4000) {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️',
+                confirm: '⚠️'
+            };
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type] || icons.info}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    ${message ? `<div class="toast-message">${message}</div>` : ''}
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            if (duration > 0) {
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.classList.add('removing');
+                        setTimeout(() => {
+                            if (toast.parentNode) {
+                                container.removeChild(toast);
+                            }
+                        }, 300);
+                    }
+                }, duration);
+            }
+            
+            return toast;
+        }
+
+        // Fonction pour afficher un toast de confirmation avec actions
+        function showConfirmToast(title, message, onConfirm, onCancel) {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = 'toast confirm';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'toast-content';
+            contentDiv.innerHTML = `
+                <div class="toast-icon">⚠️</div>
+                <div style="flex: 1;">
+                    <div class="toast-title">${title}</div>
+                    ${message ? `<div class="toast-message">${message}</div>` : ''}
+                    <div class="toast-actions">
+                        <button class="toast-btn toast-btn-confirm">Confirmer</button>
+                        <button class="toast-btn toast-btn-cancel">Annuler</button>
+                    </div>
+                </div>
+            `;
+            
+            toast.appendChild(contentDiv);
+            container.appendChild(toast);
+            
+            const confirmBtn = toast.querySelector('.toast-btn-confirm');
+            confirmBtn.addEventListener('click', () => {
+                toast.classList.add('removing');
+                setTimeout(() => {
+                    if (toast.parentNode) container.removeChild(toast);
+                }, 300);
+                if (onConfirm) onConfirm();
+            });
+            
+            const cancelBtn = toast.querySelector('.toast-btn-cancel');
+            cancelBtn.addEventListener('click', () => {
+                toast.classList.add('removing');
+                setTimeout(() => {
+                    if (toast.parentNode) container.removeChild(toast);
+                }, 300);
+                if (onCancel) onCancel();
+            });
+            
+            return toast;
+        }
+
+        // Charger les candidatures de l'utilisateur depuis Firestore
+        async function loadUserApplications() {
+            if (!firebase.auth || !firebase.firestore) return;
+            
+            const auth = firebase.auth();
+            const currentUser = auth.currentUser;
+            
+            if (!currentUser) {
+                userApplications.clear();
+                applicationStatuses.clear();
+                return;
+            }
+            
+            try {
+                const db = firebase.firestore();
+                const applicationsRef = db.collection('profiles').doc(currentUser.uid).collection('job_applications');
+                const snapshot = await applicationsRef.get();
+                
+                userApplications.clear();
+                applicationStatuses.clear();
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.jobId) {
+                        userApplications.add(data.jobId);
+                        let status = data.status || 'envoyée';
+                        if (status === 'En cours' && !pendingApplications[data.jobId]) {
+                            status = 'envoyée';
+                        }
+                        applicationStatuses.set(data.jobId, status);
+                    }
+                });
+                
+                console.log(`📋 ${userApplications.size} candidature(s) chargée(s)`);
+            } catch (error) {
+                console.error('❌ Erreur lors du chargement des candidatures:', error);
+            }
+        }
+
+        // Vérifier si l'utilisateur est connecté
+        function checkIsAuthenticated() {
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+                try {
+                    const auth = firebase.auth();
+                    const currentUser = auth.currentUser;
+                    if (currentUser) {
+                        currentAuthState = true;
+                        return true;
+                    }
+                } catch (e) {}
+            }
+            
+            const token = localStorage.getItem('authToken');
+            const isAuthenticated = !!token;
+            currentAuthState = isAuthenticated;
+            return isAuthenticated;
+        }
+
+        // Gérer la candidature à une offre
+        async function applyToJob(jobId, jobTitle, buttonElement) {
+            const btn = buttonElement || event.target;
+            
+            try {
+                if (!firebase.auth || !firebase.firestore) {
+                    showToast('Erreur', 'Firebase non initialisé. Veuillez rafraîchir la page.', 'error');
+                    return;
+                }
+
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+                const currentUser = auth.currentUser;
+
+                if (!currentUser) {
+                    showToast('Non connecté', 'Veuillez vous connecter pour candidater.', 'warning');
+                    setTimeout(() => window.location.href = 'auth.html', 1500);
+                    return;
+                }
+
+                const userId = currentUser.uid;
+                const job = allJobs.find(j => j.job_id === jobId);
+                if (!job) {
+                    showToast('Erreur', 'Offre introuvable.', 'error');
+                    return;
+                }
+
+                const applicationsRef = db.collection('profiles').doc(userId).collection('job_applications');
+                const existingApp = await applicationsRef.where('jobId', '==', jobId).get();
+                
+                if (!existingApp.empty) {
+                    showToast('Déjà candidaté', 'Vous avez déjà postulé à cette offre.', 'info', 3000);
+                    userApplications.add(jobId);
+                    updateJobCardButtons(jobId);
+                    return;
+                }
+
+                if (pendingApplications[jobId]) {
+                    showToast('Candidature en attente', 'Une candidature est déjà en cours pour cette offre.', 'info', 3000);
+                    return;
+                }
+
+                let remainingSeconds = 300;
+                
+                pendingApplications[jobId] = {
+                    job: job,
+                    remainingSeconds: remainingSeconds,
+                    intervalId: null
+                };
+
+                showToast('Candidature en attente', 'Vous avez 5 minutes pour annuler avant l\'envoi.', 'info', 5000);
+
+                updateJobCardButtons(jobId);
+                updateJobCardStyles(jobId);
+
+                const intervalId = setInterval(() => {
+                    remainingSeconds--;
+                    pendingApplications[jobId].remainingSeconds = remainingSeconds;
+                    updateJobCardButtons(jobId);
+
+                    if (remainingSeconds <= 0) {
+                        clearInterval(intervalId);
+                        submitApplication(jobId, job);
+                    }
+                }, 1000);
+
+                pendingApplications[jobId].intervalId = intervalId;
+                
+            } catch (error) {
+                console.error('❌ Erreur lors de la candidature:', error);
+                showToast('Erreur', 'Une erreur est survenue. Réessayez.', 'error');
+            }
+        }
+
+        // Soumettre la candidature après le timer
+        async function submitApplication(jobId, job) {
+            try {
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+                const currentUser = auth.currentUser;
+                const userId = currentUser.uid;
+
+                const applicationData = {
+                    jobId: jobId,
+                    jobTitle: cleanJobTitle(job.job_title),
+                    jobUrl: job.job_url,
+                    companyName: job.company_name || 'Non spécifié',
+                    location: job.location || 'Non spécifié',
+                    contractType: job.contract_type || 'Non spécifié',
+                    experienceLevel: job.experience_level || 'Non spécifié',
+                    jobFamily: job.job_family || 'Non spécifié',
+                    publicationDate: job.publication_date || 'Non spécifié',
+                    appliedDate: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'envoyée'
+                };
+
+                const applicationsRef = db.collection('profiles').doc(userId).collection('job_applications');
+                await applicationsRef.add(applicationData);
+                
+                console.log('✅ Candidature enregistrée dans Firestore:', applicationData);
+                
+                delete pendingApplications[jobId];
+                userApplications.add(jobId);
+                applicationStatuses.set(jobId, 'envoyée');
+                
+                showToast('Candidature envoyée !', cleanJobTitle(job.job_title).substring(0, 50) + '...', 'success', 3000);
+                
+                updateJobCardButtons(jobId);
+                updateJobCardStyles(jobId);
+                
+            } catch (error) {
+                console.error('❌ Erreur lors de l\'envoi de la candidature:', error);
+                showToast('Erreur', 'Une erreur est survenue lors de l\'envoi.', 'error');
+                delete pendingApplications[jobId];
+                updateJobCardButtons(jobId);
+            }
+        }
+
+        // Annuler une candidature
+        function cancelApplication(jobId, jobTitle, buttonElement) {
+            const btn = buttonElement || event.target;
+            
+            showConfirmToast(
+                'Annuler votre candidature ?',
+                jobTitle,
+                async () => {
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.textContent = '⏳ Annulation...';
+                    }
+
+                    try {
+                        if (!firebase.auth || !firebase.firestore) {
+                            showToast('Erreur', 'Firebase non initialisé. Veuillez rafraîchir la page.', 'error');
+                            return;
+                        }
+
+                        const auth = firebase.auth();
+                        const db = firebase.firestore();
+                        const currentUser = auth.currentUser;
+
+                        if (!currentUser) {
+                            showToast('Non connecté', 'Vous devez être connecté.', 'warning');
+                            return;
+                        }
+
+                        const userId = currentUser.uid;
+
+                        if (pendingApplications[jobId]) {
+                            console.log('🔄 Annulation d\'une candidature en cours (timer actif)');
+                            
+                            if (pendingApplications[jobId].intervalId) {
+                                clearInterval(pendingApplications[jobId].intervalId);
+                            }
+                            
+                            delete pendingApplications[jobId];
+                            userApplications.delete(jobId);
+                            applicationStatuses.delete(jobId);
+                            
+                            updateJobCardButtons(jobId);
+                            updateJobCardStyles(jobId);
+                            
+                            showToast('Candidature annulée', 'La candidature a été annulée avec succès.', 'success', 2000);
+                            return;
+                        }
+
+                        const applicationsRef = db.collection('profiles').doc(userId).collection('job_applications');
+                        const existingApp = await applicationsRef.where('jobId', '==', jobId).get();
+                        
+                        if (existingApp.empty) {
+                            userApplications.delete(jobId);
+                            applicationStatuses.delete(jobId);
+                            updateJobCardButtons(jobId);
+                            updateJobCardStyles(jobId);
+                            showToast('Candidature annulée', 'La candidature a été retirée de la liste locale.', 'info', 2000);
+                            return;
+                        }
+
+                        const docId = existingApp.docs[0].id;
+                        await applicationsRef.doc(docId).delete();
+                        
+                        userApplications.delete(jobId);
+                        applicationStatuses.delete(jobId);
+                        
+                        updateJobCardButtons(jobId);
+                        updateJobCardStyles(jobId);
+                        
+                        showToast('Candidature annulée', 'La candidature a été supprimée avec succès.', 'success', 2000);
+                        
+                    } catch (error) {
+                        console.error('❌ Erreur lors de l\'annulation:', error);
+                        showToast('Erreur', 'Une erreur est survenue. Réessayez.', 'error');
+                        
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.textContent = '✕ Annuler';
+                        }
+                    }
+                },
+                () => {
+                    console.log('❌ Annulation annulée');
+                }
+            );
+        }
+
+        // Fonction pour mettre à jour les styles CSS de la carte
+        function updateJobCardStyles(jobId) {
+            const cards = document.querySelectorAll('.job-card');
+            cards.forEach(card => {
+                const cardJobId = card.querySelector('.job-id')?.textContent;
+                if (cardJobId === jobId) {
+                    const isApplied = userApplications.has(jobId);
+                    const isPending = pendingApplications[jobId];
+                    const status = applicationStatuses.get(jobId);
+                    const isSubmitted = status === 'envoyée' || (isApplied && !isPending);
+                    
+                    card.classList.remove('application-pending', 'application-submitted');
+                    
+                    let existingBadge = card.querySelector('.job-card-badge');
+                    
+                    if (isPending) {
+                        card.classList.add('application-pending');
+                        if (!existingBadge) {
+                            existingBadge = document.createElement('div');
+                            existingBadge.className = 'job-card-badge';
+                            card.insertBefore(existingBadge, card.firstChild);
+                        }
+                        const rem = pendingApplications[cardJobId]?.remainingSeconds;
+                        const mm = rem != null ? Math.floor(rem / 60) : 0;
+                        const ss = rem != null ? rem % 60 : 0;
+                        existingBadge.textContent = '⏳ Candidature en cours (' + String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0') + ')';
+                    } else if (isSubmitted) {
+                        card.classList.add('application-submitted');
+                        if (!existingBadge) {
+                            existingBadge = document.createElement('div');
+                            existingBadge.className = 'job-card-badge';
+                            card.insertBefore(existingBadge, card.firstChild);
+                        }
+                        existingBadge.textContent = '✓ Candidature envoyée';
+                    } else {
+                        if (existingBadge) {
+                            existingBadge.remove();
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fonction pour mettre à jour les boutons d'une carte spécifique
+        function updateJobCardButtons(jobId) {
+            const cards = document.querySelectorAll('.job-card');
+            cards.forEach(card => {
+                const cardJobId = card.querySelector('.job-id')?.textContent;
+                if (cardJobId === jobId) {
+                    const actionsDiv = card.querySelector('.job-actions');
+                    if (actionsDiv) {
+                        const isApplied = userApplications.has(jobId);
+                        const isPending = pendingApplications[jobId];
+                        const status = applicationStatuses.get(jobId);
+                        const isSubmitted = status === 'envoyée' || (isApplied && !isPending);
+                        const job = allJobs.find(j => j.job_id === jobId);
+                        if (job) {
+                            const jobTitle = cleanJobTitle(job.job_title);
+                            
+                            let buttonHTML = '';
+                            let jobLinkHTML = `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                            
+                            if (isPending) {
+                                buttonHTML = `
+                                    <button class="job-cancel-btn" onclick="cancelApplication('${jobId}', '${jobTitle.replace(/'/g, "\\'")}', this)">✕ Annuler</button>
+                                    ${jobLinkHTML}
+                                `;
+                                const badge = card.querySelector('.job-card-badge');
+                                if (badge) {
+                                    const rs = pendingApplications[jobId]?.remainingSeconds ?? 0;
+                                    const m = Math.floor(rs / 60), s = rs % 60;
+                                    badge.textContent = '⏳ Candidature en cours (' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + ')';
+                                }
+                            } else {
+                                if (isSubmitted || (isApplied && !isPending)) {
+                                    buttonHTML = jobLinkHTML;
+                                } else if (isApplied) {
+                                    buttonHTML = jobLinkHTML;
+                                } else {
+                                    buttonHTML = `<button class="job-apply-btn" onclick="applyToJob('${jobId}', '${jobTitle.replace(/'/g, "\\'")}', this)">📝 Candidater</button>`;
+                                    buttonHTML += jobLinkHTML;
+                                }
+                            }
+                            
+                            actionsDiv.innerHTML = buttonHTML;
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fonction pour générer le HTML d'une carte d'offre (identique à offres.html)
+        function renderJobCard(job) {
+            const hasApplied = userApplications.has(job.job_id);
+            const isPending = pendingApplications[job.job_id];
+            const status = applicationStatuses.get(job.job_id);
+            const isSubmitted = status === 'envoyée';
+            const isAuthenticated = checkIsAuthenticated();
+            
+            let cardClass = 'job-card';
+            let badgeHTML = '';
+            
+            if (isPending) {
+                cardClass += ' application-pending';
+                const rs = pendingApplications[job.job_id]?.remainingSeconds ?? 300;
+                const m = Math.floor(rs / 60), s = rs % 60;
+                const t = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+                badgeHTML = '<div class="job-card-badge">⏳ Candidature en cours (' + t + ')</div>';
+            } else if (isSubmitted || (hasApplied && !isPending)) {
+                cardClass += ' application-submitted';
+                badgeHTML = '<div class="job-card-badge">✓ Candidature envoyée</div>';
+            } else if (hasApplied) {
+                cardClass += ' application-pending';
+                badgeHTML = '<div class="job-card-badge">⏳ Candidature en cours</div>';
+            }
+            
+            return `
+        <div class="${cardClass}" data-job-url="${job.job_url}">
+            ${badgeHTML}
+            <div class="job-title">${cleanJobTitle(job.job_title)}</div>
+            <div class="job-id">${job.job_id}</div>
+            <div class="job-tags">
+                ${job.location ? `<span class="tag tag-location">📍 ${job.location}</span>` : ''}
+                ${job.contract_type ? `<span class="tag tag-contract">📄 ${job.contract_type}</span>` : ''}
+                ${job.experience_level ? `<span class="tag tag-experience">💼 ${job.experience_level}</span>` : ''}
+                ${job.job_family ? `<span class="tag tag-family">🎯 ${job.job_family}</span>` : ''}
+            </div>
+            <div class="job-bottom-block">
+                ${job.company_name ? (() => {
+                    const logoPath = getCompanyLogo(job.company_name);
+                    return `
+                <div class="job-company">
+                    ${logoPath ? `<img src="${logoPath}" alt="${job.company_name}" class="company-logo" onerror="this.style.display='none'">` : ''}
+                    <div class="company-name-wrapper">
+                        <span>${job.company_name}</span>
+                    </div>
+                </div>`;
+                })() : ''}
+                <div class="job-footer">
+                    <div class="job-date">Publiée le ${job.publication_date || 'date inconnue'}</div>
+                    <div class="job-actions">
+                    ${isAuthenticated ? (() => {
+                        const isPending = pendingApplications[job.job_id];
+                        const status = applicationStatuses.get(job.job_id);
+                        const isSubmitted = status === 'envoyée';
+                        
+                        if (isPending) {
+                            return `<button class="job-cancel-btn" onclick="cancelApplication('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">✕ Annuler</button>
+                                    <a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                        } else if (isSubmitted || (hasApplied && !isPending)) {
+                            return `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                        } else if (hasApplied) {
+                            return `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                        } else {
+                            return `<button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">📝 Candidater</button>
+                                    <a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                        }
+                    })() : `<a href="${job.job_url}" target="_blank" class="job-link">Voir l'offre →</a>`}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+        }
+
         function renderResults(accordionId, jobs) {
             if (jobs.length === 0) {
                 return '<div class="no-results">Aucune offre ne correspond aux filtres sélectionnés.</div>';
@@ -1734,28 +2607,7 @@
                         <div class="accordion-results-title">Résultats (${jobs.length} offres)</div>
                     </div>
                     <div class="jobs-grid">
-                        ${jobs.slice(0, 50).map(job => `
-                            <div class="job-card" onclick="window.open('${job.job_url}', '_blank')">
-                                <div class="job-title">${job.job_title || 'Sans titre'}</div>
-                                <div class="job-tags">
-                                    ${job.location ? `<span class="tag tag-location">📍 ${job.location}</span>` : ''}
-                                    ${job.contract_type ? `<span class="tag tag-contract">📄 ${job.contract_type}</span>` : ''}
-                                    ${job.experience_level ? `<span class="tag tag-experience">💼 ${job.experience_level}</span>` : ''}
-                                    ${job.job_family ? `<span class="tag tag-family">🎯 ${job.job_family}</span>` : ''}
-                                </div>
-                                ${job.company_name ? (() => {
-                                    const logoPath = getCompanyLogo(job.company_name);
-                                    return `
-                                    <div class="job-company">
-                                        ${logoPath ? `<img src="${logoPath}" alt="${job.company_name}" class="company-logo" onerror="this.style.display='none'">` : ''}
-                                        <div class="company-name-wrapper">
-                                            <span>${job.company_name}</span>
-                                        </div>
-                                    </div>
-                                `;
-                                })() : ''}
-                            </div>
-                        `).join('')}
+                        ${jobs.slice(0, 50).map(job => renderJobCard(job)).join('')}
                     </div>
                     ${jobs.length > 50 ? `<div style="text-align: center; margin-top: 20px; color: #666;">... et ${jobs.length - 50} autres offres</div>` : ''}
                 </div>

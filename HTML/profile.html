@@ -1127,7 +1127,13 @@
 
                     <div class="form-group">
                         <label for="availableFrom">Disponible à partir de</label>
-                        <input type="date" id="availableFrom" name="availableFrom" placeholder="jj/mm/yyyy">
+                        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                            <input type="date" id="availableFrom" name="availableFrom" placeholder="jj/mm/yyyy" style="flex: 1; min-width: 200px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; margin: 0;">
+                                <input type="checkbox" id="availableImmediately" name="availableImmediately">
+                                <span>Immédiatement</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -1970,24 +1976,26 @@
             }
             
             // Charger la date de disponibilité
-            if (profile.available_from_raw) {
-                // Utiliser le format YYYY-MM-DD pour l'input date
-                const availableFromInput = document.getElementById('availableFrom');
-                if (availableFromInput) {
+            const availableFromInput = document.getElementById('availableFrom');
+            if (availableFromInput) {
+                if (profile.available_from_raw) {
+                    // Utiliser le format YYYY-MM-DD pour l'input date
                     availableFromInput.value = profile.available_from_raw;
-                }
-            } else if (profile.available_from) {
-                // Convertir depuis le format jj/mm/yyyy vers YYYY-MM-DD
-                const dateParts = profile.available_from.split('/');
-                if (dateParts.length === 3) {
-                    const day = dateParts[0];
-                    const month = dateParts[1];
-                    const year = dateParts[2];
-                    const availableFromInput = document.getElementById('availableFrom');
-                    if (availableFromInput) {
+                } else if (profile.available_from) {
+                    // Convertir depuis le format jj/mm/yyyy vers YYYY-MM-DD
+                    const dateParts = profile.available_from.split('/');
+                    if (dateParts.length === 3) {
+                        const day = dateParts[0];
+                        const month = dateParts[1];
+                        const year = dateParts[2];
                         availableFromInput.value = `${year}-${month}-${day}`;
                     }
                 }
+                
+                // Déclencher l'événement change pour mettre à jour la case "Immédiatement"
+                setTimeout(() => {
+                    availableFromInput.dispatchEvent(new Event('change'));
+                }, 100);
             }
         }
 
@@ -2735,6 +2743,79 @@
         // Initialisation - attendre que Firebase soit prêt
         // La fonction onAuthStateChanged sera appelée automatiquement
         // et gérera le chargement du profil et la mise à jour de la navigation
+
+        // Gestion de la date de disponibilité et de la case "Immédiatement"
+        (function() {
+            const availableFromInput = document.getElementById('availableFrom');
+            const availableImmediatelyCheckbox = document.getElementById('availableImmediately');
+
+            if (!availableFromInput || !availableImmediatelyCheckbox) {
+                return;
+            }
+
+            // Fonction pour obtenir la date d'aujourd'hui au format YYYY-MM-DD (toujours la date actuelle)
+            function getTodayDateString() {
+                const today = new Date();
+                return today.toISOString().split('T')[0];
+            }
+
+            // Définir la date minimale (aujourd'hui) pour empêcher les dates passées
+            const todayStr = getTodayDateString();
+            availableFromInput.setAttribute('min', todayStr);
+
+            // Fonction pour comparer deux dates (retourne 0 si égales, -1 si date1 < date2, 1 si date1 > date2)
+            function compareDates(dateStr1, dateStr2) {
+                const date1 = new Date(dateStr1);
+                const date2 = new Date(dateStr2);
+                if (date1 < date2) return -1;
+                if (date1 > date2) return 1;
+                return 0;
+            }
+
+            // Quand la date change
+            availableFromInput.addEventListener('change', function() {
+                const selectedDate = this.value;
+                const todayStr = getTodayDateString();
+
+                if (!selectedDate) {
+                    // Date vide : décocher "Immédiatement"
+                    availableImmediatelyCheckbox.checked = false;
+                    availableImmediatelyCheckbox.disabled = false;
+                    return;
+                }
+
+                // Vérifier si la date sélectionnée est aujourd'hui
+                if (compareDates(selectedDate, todayStr) === 0) {
+                    // Date d'aujourd'hui : cocher "Immédiatement"
+                    availableImmediatelyCheckbox.checked = true;
+                    availableImmediatelyCheckbox.disabled = false;
+                } else if (compareDates(selectedDate, todayStr) > 0) {
+                    // Date future : décocher "Immédiatement" et le désactiver
+                    availableImmediatelyCheckbox.checked = false;
+                    availableImmediatelyCheckbox.disabled = true;
+                }
+            });
+
+            // Quand la case "Immédiatement" est cochée/décochée
+            availableImmediatelyCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Si "Immédiatement" est coché : mettre la date d'aujourd'hui
+                    const todayStr = getTodayDateString();
+                    availableFromInput.value = todayStr;
+                } else {
+                    // Si décoché et que la date est aujourd'hui : vider le champ
+                    const todayStr = getTodayDateString();
+                    if (availableFromInput.value === todayStr) {
+                        availableFromInput.value = '';
+                    }
+                }
+            });
+
+            // Vérification initiale si une date est déjà présente
+            if (availableFromInput.value) {
+                availableFromInput.dispatchEvent(new Event('change'));
+            }
+        })();
     </script>
 
     <footer>

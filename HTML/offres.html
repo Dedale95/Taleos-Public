@@ -787,18 +787,32 @@
             font-size: 0.9rem;
         }
 
-        /* Harmoniser Candidater et Voir l'offre : même taille */
+        /* Harmoniser Candidater, Voir l'offre, Annuler : même taille, centrés à droite */
+        .job-actions {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-end;
+            min-width: 300px;
+        }
+
         .job-apply-btn,
-        .job-link {
+        .job-link,
+        .job-cancel-btn {
             padding: 10px 18px;
             font-size: 0.95rem;
             font-weight: 600;
             border-radius: 10px;
+            min-width: 140px;
+            text-align: center;
+            flex-shrink: 0;
         }
 
         .job-link {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: 2px solid transparent;
@@ -812,41 +826,14 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .job-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
-
-        /* Quand candidature en cours, organiser verticalement pour plus d'espace */
-        .job-actions.pending-layout {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 10px;
-        }
-
-        .job-actions.pending-layout .job-cancel-btn {
-            width: 100%;
-        }
-
-        .job-actions.pending-layout .job-link {
-            width: 100%;
-            text-align: center;
-        }
-
         .job-apply-btn {
             background: white;
             color: #667eea;
-            padding: 10px 20px;
             border: 2px solid #667eea;
-            border-radius: 10px;
             text-decoration: none;
-            font-weight: 600;
             transition: all 0.3s;
             cursor: pointer;
             font-family: inherit;
-            font-size: inherit;
         }
 
         .job-apply-btn:hover:not(:disabled) {
@@ -888,15 +875,11 @@
         .job-cancel-btn {
             background: white;
             color: #ef4444;
-            padding: 10px 20px;
             border: 2px solid #ef4444;
-            border-radius: 10px;
             text-decoration: none;
-            font-weight: 600;
             transition: all 0.3s;
             cursor: pointer;
             font-family: inherit;
-            font-size: inherit;
         }
 
         .job-cancel-btn:hover:not(:disabled) {
@@ -2836,13 +2819,11 @@
                             let jobLinkHTML = `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
                             
                             if (isPending) {
-                                // Candidature en cours : badge en haut (avec timer), en bas seulement Annuler + Voir l'offre
-                                actionsDiv.classList.add('pending-layout');
+                                // Même emplacement que Candidater : remplacer par Annuler + Voir l'offre (pas de décalage)
                                 buttonHTML = `
                                     <button class="job-cancel-btn" onclick="cancelApplication('${jobId}', '${jobTitle.replace(/'/g, "\\'")}', this)">✕ Annuler</button>
                                     ${jobLinkHTML}
                                 `;
-                                // Mettre à jour le badge avec le timer (MM:SS)
                                 const badge = card.querySelector('.job-card-badge');
                                 if (badge) {
                                     const rs = pendingApplications[jobId]?.remainingSeconds ?? 0;
@@ -2850,7 +2831,6 @@
                                     badge.textContent = '⏳ Candidature en cours (' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + ')';
                                 }
                             } else {
-                                actionsDiv.classList.remove('pending-layout');
                                 if (isSubmitted || (isApplied && !isPending)) {
                                     // Candidature envoyée : pas de bouton vert (déjà en badge), seulement Voir l'offre
                                     buttonHTML = jobLinkHTML;
@@ -3048,7 +3028,7 @@
             })() : ''}
             <div class="job-footer">
                 <div class="job-date">Publiée le ${job.publication_date || 'date inconnue'}</div>
-                <div class="job-actions ${isPending ? 'pending-layout' : ''}">
+                <div class="job-actions">
                     ${isAuthenticated ? (() => {
                         const isPending = pendingApplications[job.job_id];
                         const status = applicationStatuses.get(job.job_id);

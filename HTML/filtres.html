@@ -656,6 +656,86 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Modal pro pour confirmer / renommer */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.is-open { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            max-width: 420px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 20px 24px 0;
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .modal-body {
+            padding: 20px 24px;
+        }
+        .modal-message {
+            color: #555;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-top: 8px;
+        }
+        .modal-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding: 0 24px 24px;
+        }
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .modal-btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .modal-btn-secondary:hover { background: #e5e7eb; }
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .modal-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .modal-btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .modal-btn-danger:hover { background: #dc2626; transform: translateY(-1px); }
     </style>
 </head>
 <body>
@@ -708,6 +788,20 @@
             </div>
         </div>
     </footer>
+
+    <!-- Modal pro : suppression / renommage -->
+    <div class="modal-overlay" id="appModal" role="dialog" aria-modal="true" aria-labelledby="appModalTitle">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title" id="appModalTitle">Titre</h2>
+            </div>
+            <div class="modal-body" id="appModalBody">
+                <p class="modal-message" id="appModalMessage"></p>
+                <input type="text" class="modal-input" id="appModalInput" placeholder="" style="display: none;">
+            </div>
+            <div class="modal-actions" id="appModalActions"></div>
+        </div>
+    </div>
 
     <script>
         // Configuration Firebase
@@ -1743,49 +1837,94 @@
             }
         }
 
+        function openAppModal(opts) {
+            const { title, message, inputValue, confirmLabel = 'Valider', danger = false, onConfirm, onCancel } = opts;
+            const overlay = document.getElementById('appModal');
+            const titleEl = document.getElementById('appModalTitle');
+            const messageEl = document.getElementById('appModalMessage');
+            const inputEl = document.getElementById('appModalInput');
+            const actionsEl = document.getElementById('appModalActions');
+
+            titleEl.textContent = title;
+            messageEl.textContent = message || '';
+            messageEl.style.display = message ? 'block' : 'none';
+            inputEl.style.display = inputValue !== undefined ? 'block' : 'none';
+            inputEl.value = inputValue !== undefined ? inputValue : '';
+            if (inputValue !== undefined) setTimeout(() => inputEl.focus(), 50);
+
+            actionsEl.innerHTML = '';
+            const btnAnnuler = document.createElement('button');
+            btnAnnuler.className = 'modal-btn modal-btn-secondary';
+            btnAnnuler.textContent = 'Annuler';
+            btnAnnuler.onclick = () => { closeAppModal(); if (onCancel) onCancel(); };
+            actionsEl.appendChild(btnAnnuler);
+
+            const btnOk = document.createElement('button');
+            btnOk.className = 'modal-btn ' + (danger ? 'modal-btn-danger' : 'modal-btn-primary');
+            btnOk.textContent = confirmLabel;
+            btnOk.onclick = () => {
+                const v = inputValue !== undefined ? inputEl.value.trim() : null;
+                closeAppModal();
+                if (onConfirm) onConfirm(v);
+            };
+            actionsEl.appendChild(btnOk);
+            inputEl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); btnOk.click(); } };
+
+            overlay.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeAppModal() {
+            document.getElementById('appModal').classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+        document.getElementById('appModal')?.addEventListener('click', function(e) {
+            if (e.target === this) closeAppModal();
+        });
+
         function renameAccordion(accordionId) {
             let accordion = accordions.find(a => a.id === accordionId);
             if (!accordion) {
                 const index = parseInt(accordionId.replace('temp_', ''));
-                if (!isNaN(index) && accordions[index]) {
-                    accordion = accordions[index];
-                }
+                if (!isNaN(index) && accordions[index]) accordion = accordions[index];
             }
-            
             if (!accordion) return;
 
-            const newName = prompt('Nouveau nom de la recherche:', accordion.name);
-            if (newName && newName.trim()) {
-                accordion.name = newName.trim();
-                saveAccordion(accordion);
-                renderAccordions();
-            }
+            openAppModal({
+                title: 'Renommer la recherche',
+                message: null,
+                inputValue: accordion.name,
+                confirmLabel: 'Enregistrer',
+                onConfirm: (newName) => {
+                    if (newName) {
+                        accordion.name = newName;
+                        saveAccordion(accordion);
+                        renderAccordions();
+                    }
+                }
+            });
         }
 
         function deleteAccordionPrompt(accordionId) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer cette recherche ?')) return;
-
-            let index = accordions.findIndex(a => a.id === accordionId);
-            if (index === -1) {
-                // Fallback
-                const fallbackIndex = parseInt(accordionId.replace('temp_', ''));
-                if (!isNaN(fallbackIndex) && accordions[fallbackIndex]) {
-                    index = fallbackIndex;
+            openAppModal({
+                title: 'Supprimer la recherche',
+                message: 'Cette recherche sera définitivement supprimée. Cette action est irréversible.',
+                confirmLabel: 'Supprimer',
+                danger: true,
+                onConfirm: () => {
+                    let index = accordions.findIndex(a => a.id === accordionId);
+                    if (index === -1) {
+                        const fallback = parseInt(accordionId.replace('temp_', ''));
+                        if (!isNaN(fallback) && accordions[fallback]) index = fallback;
+                    }
+                    if (index === -1) return;
+                    const accordion = accordions[index];
+                    if (accordion.id && !accordion.id.startsWith('temp_')) deleteAccordion(accordion.id);
+                    accordions.splice(index, 1);
+                    accordions.forEach((a, i) => { a.order = i; });
+                    reorderAccordions();
+                    renderAccordions();
                 }
-            }
-            
-            if (index === -1) return;
-
-            const accordion = accordions[index];
-            if (accordion.id && !accordion.id.startsWith('temp_')) {
-                deleteAccordion(accordion.id);
-            }
-            accordions.splice(index, 1);
-            
-            // Réorganiser l'ordre
-            accordions.forEach((a, i) => { a.order = i; });
-            reorderAccordions();
-            renderAccordions();
+            });
         }
 
         function addSearchKeyword(accordionId, keyword) {

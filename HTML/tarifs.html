@@ -468,13 +468,15 @@
                 <div class="logo-text">Taleos</div>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link">Recherche avancée</a>
-                <a href="mes-candidatures.html" class="nav-link">Mes candidatures</a>
-                <a href="connexions.html" class="nav-link">Connexions</a>
-                <a href="tarifs.html" class="nav-link nav-link-primary">Tarifs</a>
-                <a href="profile.html" class="nav-link">Profil</a>
-                <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="handleLogout()">Déconnexion</button>
+                <a href="landing_page_finance.html" class="nav-link">🏠 Présentation</a>
+                <a href="offres.html" class="nav-link">💼 Offres</a>
+                <a href="filtres.html" class="nav-link">🔍 Recherche avancée</a>
+                <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">📋 Mes candidatures</a>
+                <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">🔗 Connexions</a>
+                <a href="tarifs.html" class="nav-link nav-link-primary">💰 Tarifs</a>
+                <a href="auth.html" class="nav-link" id="authLink">🔐 Inscription / Connexion</a>
+                <a href="profile.html" class="nav-link" id="profileLink" style="display: none;">👤 Mon Profil</a>
+                <button class="nav-link logout-btn" id="logoutBtn" onclick="handleLogout()" style="display: none;">🚪 Déconnexion</button>
             </div>
         </div>
     </nav>
@@ -661,13 +663,26 @@
             firebase.initializeApp(firebaseConfig);
         }
 
-        // Gérer l'affichage du bouton de déconnexion
+        // Gérer l'affichage des liens selon l'authentification
         firebase.auth().onAuthStateChanged((user) => {
             const logoutBtn = document.getElementById('logoutBtn');
+            const authLink = document.getElementById('authLink');
+            const applicationsLink = document.getElementById('applicationsLink');
+            const connexionsLink = document.getElementById('connexionsLink');
+            const profileLink = document.getElementById('profileLink');
+            
             if (user) {
                 logoutBtn.style.display = 'block';
+                if (authLink) authLink.style.display = 'none';
+                if (applicationsLink) applicationsLink.style.display = 'block';
+                if (connexionsLink) connexionsLink.style.display = 'block';
+                if (profileLink) profileLink.style.display = 'block';
             } else {
                 logoutBtn.style.display = 'none';
+                if (authLink) authLink.style.display = 'block';
+                if (applicationsLink) applicationsLink.style.display = 'none';
+                if (connexionsLink) connexionsLink.style.display = 'none';
+                if (profileLink) profileLink.style.display = 'none';
             }
         });
 

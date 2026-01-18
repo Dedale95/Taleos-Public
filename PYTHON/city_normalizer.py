@@ -180,11 +180,8 @@ def normalize_city(city_raw):
         'finlande', 'finland', 'danemark', 'denmark', 'pays-bas', 'netherlands', 'hollande'
     }
     
-    # Rejeter si c'est un pays ou une région italienne
+    # Rejeter si c'est un pays
     if city_clean in known_countries_lower:
-        return None
-    
-    if city_clean in italian_regions:
         return None
     
     # EN PRIORITÉ : Extraire la ville depuis un format "Code postal + Ville" AVANT les autres vérifications

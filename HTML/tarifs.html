@@ -651,12 +651,13 @@
     <script>
         // Firebase config (identique aux autres pages)
         const firebaseConfig = {
-            apiKey: "AIzaSyB9hYkfK-2hJV0J8R9L8BxJzJZJZJZJZJZ",
-            authDomain: "taleos-app.firebaseapp.com",
-            projectId: "taleos-app",
-            storageBucket: "taleos-app.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890"
+            apiKey: "AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",
+            authDomain: "project-taleos.firebaseapp.com",
+            projectId: "project-taleos",
+            storageBucket: "project-taleos.firebasestorage.app",
+            messagingSenderId: "974062127016",
+            appId: "1:974062127016:web:b6cffae44f1bae56f03f9d",
+            measurementId: "G-4PZJ4QXMJ0"
         };
 
         if (!firebase.apps || firebase.apps.length === 0) {
@@ -686,15 +687,9 @@
             }
         }
 
-        // Vérifier l'état d'authentification au chargement de la page
-        const auth = firebase.auth();
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-            updateNavigation(currentUser);
-        }
-
-        // Gérer l'affichage des liens selon l'authentification (changements futurs)
-        auth.onAuthStateChanged((user) => {
+        // Gérer l'affichage des liens selon l'authentification
+        // onAuthStateChanged se déclenche immédiatement même pour un utilisateur déjà connecté
+        firebase.auth().onAuthStateChanged((user) => {
             updateNavigation(user);
         });
 

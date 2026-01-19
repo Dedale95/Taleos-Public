@@ -682,8 +682,11 @@
         }
 
         .job-date {
-            color: #9ca3af;
-            font-size: 0.9rem;
+            color: #6b7280;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            margin-top: 4px;
         }
 
         /* Harmoniser Candidater, Voir l'offre, Annuler : même taille, centrés à droite */
@@ -2568,6 +2571,7 @@
             ${badgeHTML}
             <div class="job-title">${cleanJobTitle(job.job_title)}</div>
             <div class="job-id">${job.job_id}</div>
+            <div class="job-date">Publiée le ${job.publication_date || 'date inconnue'}</div>
             <div class="job-tags">
                 ${job.location ? `<span class="tag tag-location">📍 ${job.location}</span>` : ''}
                 ${job.contract_type ? `<span class="tag tag-contract">📄 ${job.contract_type}</span>` : ''}
@@ -2586,7 +2590,6 @@
                 </div>`;
                 })() : ''}
                 <div class="job-footer">
-                    <div class="job-date">Publiée le ${job.publication_date || 'date inconnue'}</div>
                     <div class="job-actions">
                     ${isAuthenticated ? (() => {
                         const isPending = pendingApplications[job.job_id];

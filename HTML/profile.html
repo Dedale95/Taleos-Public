@@ -3102,6 +3102,30 @@
             }
         })();
 
+        // Validation en temps réel lors des modifications
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ajouter des listeners sur tous les champs pour valider en temps réel
+            const form = document.getElementById('profileForm');
+            if (form) {
+                // Écouter les changements sur les inputs et selects
+                form.addEventListener('change', function(e) {
+                    // Valider après un court délai pour éviter trop de validations
+                    clearTimeout(window.validationTimeout);
+                    window.validationTimeout = setTimeout(() => {
+                        validateProfile();
+                    }, 500);
+                });
+
+                // Écouter aussi les inputs (pour les champs texte)
+                form.addEventListener('input', function(e) {
+                    clearTimeout(window.validationTimeout);
+                    window.validationTimeout = setTimeout(() => {
+                        validateProfile();
+                    }, 500);
+                });
+            }
+        });
+
         // Gestion des langues parlées
         (function() {
             const languagesList = [

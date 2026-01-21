@@ -373,6 +373,15 @@
             }
         }
 
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         .search-tag-remove {
             cursor: pointer;
             display: flex;
@@ -2591,8 +2600,16 @@
                     return;
                 }
 
-                // Démarrer le timer de 5 minutes (300 secondes)
-                let remainingSeconds = 300; // 5 minutes
+                // Mode DEBUG : si ?debug=true dans l'URL, timer de 10 secondes au lieu de 5 minutes
+                const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === 'true';
+                const TIMER_DURATION = DEBUG_MODE ? 10 : 300; // 10s vs 5min
+                
+                // Démarrer le timer
+                let remainingSeconds = TIMER_DURATION;
+                
+                if (DEBUG_MODE) {
+                    console.log('[DEBUG] Mode debug activé - Timer réduit à 10 secondes');
+                }
                 
                 // Stocker les données de la candidature pour plus tard
                 pendingApplications[jobId] = {
@@ -2636,13 +2653,105 @@
             }
         }
 
+        // Fonction helper pour détecter si c'est une offre Crédit Agricole
+        function isCreditAgricoleOffer(job) {
+            if (!job || !job.company_name) return false;
+            const companyName = job.company_name.toLowerCase();
+            return companyName.includes('crédit agricole') || 
+                   companyName.includes('credit agricole') ||
+                   companyName.includes('lcl') ||
+                   companyName.includes('amundi') ||
+                   companyName.includes('bforbank') ||
+                   companyName.includes('caceis') ||
+                   companyName.includes('indosuez') ||
+                   companyName.includes('idia');
+        }
+
+        // Fonction pour envoyer la candidature vers le backend AWS
+        async function sendApplicationToBackend(userId, offerUrl, bankName = 'credit_agricole') {
+            try {
+                console.log('[API] Envoi candidature vers backend:', { userId, offerUrl, bankName });
+                
+                const response = await fetch('https://api.taleos.co/apply', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'Thibault_Secure_987654321_Validator'
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        offer_url: offerUrl,
+                        bank_name: bankName,
+                        submit: true
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Erreur serveur' }));
+                    throw new Error(errorData.message || `Erreur HTTP ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('[API] Réponse:', result);
+
+                if (result.status === 'success') {
+                    return { success: true, data: result };
+                } else {
+                    return { success: false, error: result.message || 'Erreur inconnue', data: result };
+                }
+
+            } catch (error) {
+                console.error('[API] Erreur réseau:', error);
+                return { 
+                    success: false, 
+                    error: error.message || 'Impossible de contacter le serveur. Veuillez réessayer.',
+                    isNetworkError: true
+                };
+            }
+        }
+
         // Soumettre la candidature après le timer
         async function submitApplication(jobId, job) {
             try {
                 const auth = firebase.auth();
                 const db = firebase.firestore();
                 const currentUser = auth.currentUser;
+                
+                if (!currentUser) {
+                    showToast('Non connecté', 'Vous devez être connecté pour postuler.', 'warning');
+                    delete pendingApplications[jobId];
+                    updateJobCardButtons(jobId);
+                    return;
+                }
+
                 const userId = currentUser.uid;
+
+                // Afficher l'état de chargement
+                showApplicationSendingState(jobId);
+
+                // Vérifier si c'est une offre Crédit Agricole (ou filiale)
+                const isCA = isCreditAgricoleOffer(job);
+                let apiResult = null;
+
+                // Si c'est Crédit Agricole, envoyer vers le backend AWS
+                if (isCA) {
+                    console.log('[TIMER] Timer terminé pour offre Crédit Agricole, envoi vers backend');
+                    apiResult = await sendApplicationToBackend(userId, job.job_url, 'credit_agricole');
+                    
+                    if (!apiResult.success) {
+                        // Erreur lors de l'envoi vers le backend
+                        showToast(
+                            'Erreur d\'envoi',
+                            apiResult.error || 'Impossible d\'envoyer la candidature. Veuillez réessayer.',
+                            'error',
+                            5000
+                        );
+                        delete pendingApplications[jobId];
+                        updateJobCardButtons(jobId);
+                        updateJobCardStyles(jobId);
+                        return;
+                    }
+                }
 
                 // Créer la candidature avec toutes les informations de l'offre
                 const applicationData = {
@@ -2659,6 +2768,13 @@
                     status: 'envoyée'
                 };
 
+                // Ajouter les données de l'API si disponible
+                if (apiResult && apiResult.data) {
+                    applicationData.apiResponse = apiResult.data;
+                    applicationData.offerId = apiResult.data.offer_id;
+                    applicationData.executionTime = apiResult.data.execution_time;
+                }
+
                 // Sauvegarder dans Firestore
                 const applicationsRef = db.collection('profiles').doc(userId).collection('job_applications');
                 await applicationsRef.add(applicationData);
@@ -2673,11 +2789,15 @@
                 applicationStatuses.set(jobId, 'envoyée');
                 
                 // Message de confirmation
+                const successMessage = apiResult && apiResult.data 
+                    ? `Candidature envoyée avec succès${apiResult.data.offer_id ? ` (Réf: ${apiResult.data.offer_id})` : ''}`
+                    : 'Candidature envoyée !';
+                
                 showToast(
                     'Candidature envoyée !',
-                    cleanJobTitle(job.job_title).substring(0, 50) + '...',
+                    successMessage,
                     'success',
-                    3000
+                    5000
                 );
                 
                 // Mettre à jour l'UI (boutons + classes CSS de la carte)
@@ -2689,7 +2809,27 @@
                 showToast('Erreur', 'Une erreur est survenue lors de l\'envoi.', 'error');
                 delete pendingApplications[jobId];
                 updateJobCardButtons(jobId);
+                updateJobCardStyles(jobId);
             }
+        }
+
+        // Fonction pour afficher l'état "Envoi en cours"
+        function showApplicationSendingState(jobId) {
+            const cards = document.querySelectorAll('.job-card');
+            cards.forEach(card => {
+                const cardJobId = card.querySelector('.job-id')?.textContent;
+                if (cardJobId === jobId) {
+                    const badge = card.querySelector('.job-card-badge');
+                    if (badge) {
+                        badge.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="spinner" style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <span>📤 Envoi en cours...</span>
+                            </div>
+                        `;
+                    }
+                }
+            });
         }
 
         // Annuler une candidature

@@ -910,6 +910,108 @@
         }
 
         /* Toast notifications */
+        /* Styles pour la modale de profil incomplet */
+        .profile-incomplete-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 100000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .profile-incomplete-modal.active {
+            display: flex;
+        }
+
+        .profile-incomplete-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            position: relative;
+        }
+
+        .profile-incomplete-modal-content h3 {
+            font-size: 1.5rem;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-incomplete-modal-content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            font-size: 1rem;
+        }
+
+        .profile-incomplete-modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .profile-incomplete-modal-btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .profile-incomplete-modal-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .profile-incomplete-modal-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .profile-incomplete-modal-btn-secondary {
+            background: #f3f4f6;
+            color: #666;
+        }
+
+        .profile-incomplete-modal-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
         .toast-container {
             position: fixed;
             top: 20px;
@@ -2357,6 +2459,105 @@
         let applicationStatuses = new Map();
 
         // Fonction pour afficher un toast notification
+        // Fonction pour vérifier si le profil utilisateur est complet
+        async function checkProfileCompleteness() {
+            try {
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+                const currentUser = auth.currentUser;
+
+                if (!currentUser) {
+                    return false;
+                }
+
+                const userId = currentUser.uid;
+                const profileDoc = await db.collection('profiles').doc(userId).get();
+
+                if (!profileDoc.exists) {
+                    return false;
+                }
+
+                const profile = profileDoc.data();
+
+                // Vérifier les champs obligatoires (même logique que dans profile.html)
+                const requiredFields = {
+                    civility: profile.civility,
+                    firstName: profile.first_name,
+                    lastName: profile.last_name,
+                    phone: profile.phone,
+                    address: profile.address,
+                    postalCode: profile.postal_code,
+                    city: profile.city,
+                    country: profile.country,
+                    jobs: profile.jobs && Array.isArray(profile.jobs) && profile.jobs.length > 0,
+                    contractType: profile.contract_type,
+                    availableFrom: profile.available_from || profile.available_from_raw,
+                    continents: profile.continents && Array.isArray(profile.continents) && profile.continents.length > 0,
+                    preferredCountries: profile.preferred_countries && Array.isArray(profile.preferred_countries) && profile.preferred_countries.length > 0,
+                    experienceLevel: profile.experience_level,
+                    educationLevel: profile.education_level,
+                    institutionType: profile.institution_type,
+                    diplomaStatus: profile.diploma_status
+                };
+
+                // Vérifier chaque champ
+                for (const [key, value] of Object.entries(requiredFields)) {
+                    if (value === undefined || value === null || value === '' || 
+                        (typeof value === 'string' && value.trim() === '')) {
+                        console.log(`[PROFILE CHECK] Champ manquant: ${key}`);
+                        return false;
+                    }
+                }
+
+                return true;
+            } catch (error) {
+                console.error('[PROFILE CHECK] Erreur lors de la vérification du profil:', error);
+                return false;
+            }
+        }
+
+        // Fonction pour afficher la modale de profil incomplet
+        function showProfileIncompleteModal() {
+            let modal = document.getElementById('profileIncompleteModal');
+            if (!modal) {
+                // Créer la modale si elle n'existe pas
+                modal = document.createElement('div');
+                modal.id = 'profileIncompleteModal';
+                modal.className = 'profile-incomplete-modal';
+                modal.innerHTML = `
+                    <div class="profile-incomplete-modal-content">
+                        <h3>⚠️ Profil incomplet</h3>
+                        <p>Pour maximiser vos chances de succès auprès des recruteurs, votre profil doit être complet. Veuillez finaliser les sections manquantes avant de postuler.</p>
+                        <div class="profile-incomplete-modal-actions">
+                            <button class="profile-incomplete-modal-btn profile-incomplete-modal-btn-secondary" onclick="closeProfileIncompleteModal()">Fermer</button>
+                            <button class="profile-incomplete-modal-btn profile-incomplete-modal-btn-primary" onclick="goToProfile()">Compléter mon profil</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Fermer en cliquant sur le fond
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeProfileIncompleteModal();
+                    }
+                });
+            }
+            modal.classList.add('active');
+        }
+
+        function closeProfileIncompleteModal() {
+            const modal = document.getElementById('profileIncompleteModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        function goToProfile() {
+            closeProfileIncompleteModal();
+            window.location.href = 'profile.html';
+        }
+
         function showToast(title, message, type = 'success', duration = 4000) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -2598,6 +2799,13 @@
                 if (pendingApplications[jobId]) {
                     showToast('Candidature en attente', 'Une candidature est déjà en cours pour cette offre.', 'info', 3000);
                     return;
+                }
+
+                // Vérifier si le profil est complet avant de lancer le timer
+                const isProfileComplete = await checkProfileCompleteness();
+                if (!isProfileComplete) {
+                    showProfileIncompleteModal();
+                    return; // Ne pas lancer le timer si le profil est incomplet
                 }
 
                 // Mode DEBUG : si ?debug=true dans l'URL, timer de 10 secondes au lieu de 5 minutes

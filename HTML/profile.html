@@ -390,6 +390,108 @@
             transform: translateY(-1px);
         }
 
+        /* Styles pour la modale de profil incomplet */
+        .profile-incomplete-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 100000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .profile-incomplete-modal.active {
+            display: flex;
+        }
+
+        .profile-incomplete-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            position: relative;
+        }
+
+        .profile-incomplete-modal-content h3 {
+            font-size: 1.5rem;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-incomplete-modal-content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            font-size: 1rem;
+        }
+
+        .profile-incomplete-modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .profile-incomplete-modal-btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .profile-incomplete-modal-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .profile-incomplete-modal-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .profile-incomplete-modal-btn-secondary {
+            background: #f3f4f6;
+            color: #666;
+        }
+
+        .profile-incomplete-modal-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
         /* Styles pour champs/sections incomplets */
         .accordion-section.incomplete .accordion-header {
             background: #fee2e2;
@@ -412,6 +514,23 @@
         .accordion-section.incomplete.active .accordion-header h2,
         .accordion-section.incomplete.active .accordion-icon {
             color: white;
+        }
+
+        /* Styles pour les sections complètes (check vert) */
+        .accordion-section.complete .accordion-header {
+            border-left: 4px solid #34c759;
+            background: rgba(52, 199, 89, 0.05);
+        }
+
+        .accordion-section.complete .accordion-header h2::after {
+            content: ' ✓';
+            color: #34c759;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .accordion-section.complete .accordion-header:hover {
+            background: rgba(52, 199, 89, 0.1);
         }
 
         .form-group.incomplete label {
@@ -1899,6 +2018,12 @@
                             const profileKey = `profile_${userEmail}`;
                             localStorage.setItem(profileKey, JSON.stringify(profile));
                         }
+                        
+                        // Valider le profil après chargement pour afficher les indicateurs visuels
+                        setTimeout(() => {
+                            validateProfile();
+                        }, 500);
+                        
                         return;
                     } else {
                         console.log('ℹ️ Aucun profil trouvé dans Firestore, vérification localStorage...');
@@ -1941,6 +2066,11 @@
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
                         loadFileInfo('letter', profile);
+                        
+                        // Valider le profil après chargement pour afficher les indicateurs visuels
+                        setTimeout(() => {
+                            validateProfile();
+                        }, 500);
                         
                         // Si Firestore est disponible, synchroniser les données vers Firestore
                         if (db && userId && currentUser) {
@@ -2435,12 +2565,69 @@
 
         // Sauvegarder le profil dans Firestore (avec fallback localStorage)
         // Fonction de validation du profil
+        // Fonction réutilisable pour vérifier si le profil est complet (sans afficher de messages)
+        function isProfileComplete() {
+            // Définir les champs requis par section (même structure que validateProfile)
+            const requiredFields = {
+                'Informations personnelles': [
+                    { id: 'civility', section: 'Informations personnelles' },
+                    { id: 'firstName', section: 'Informations personnelles' },
+                    { id: 'lastName', section: 'Informations personnelles' },
+                    { id: 'phone', section: 'Informations personnelles' }
+                ],
+                'Adresse': [
+                    { id: 'address', section: 'Adresse' },
+                    { id: 'postalCode', section: 'Adresse' },
+                    { id: 'city', section: 'Adresse' },
+                    { id: 'country', section: 'Adresse' }
+                ],
+                'Les métiers qui m\'intéressent': [
+                    { name: 'jobs', section: 'Les métiers qui m\'intéressent', isCheckbox: true }
+                ],
+                'Contrat et disponibilité': [
+                    { id: 'contractType', section: 'Contrat et disponibilité' },
+                    { id: 'availableFrom', section: 'Contrat et disponibilité' }
+                ],
+                'Préférences géographiques': [
+                    { name: 'continents', section: 'Préférences géographiques', isCheckbox: true },
+                    { name: 'preferredCountries', section: 'Préférences géographiques', isCheckbox: true }
+                ],
+                'Niveau d\'expérience': [
+                    { id: 'experienceLevel', section: 'Niveau d\'expérience' }
+                ],
+                'Formation': [
+                    { id: 'educationLevel', section: 'Formation' },
+                    { id: 'institutionType', section: 'Formation' },
+                    { id: 'diplomaStatus', section: 'Formation' }
+                ]
+            };
+
+            // Vérifier chaque champ requis
+            for (const field of Object.values(requiredFields).flat()) {
+                if (field.isCheckbox) {
+                    const checkboxes = document.querySelectorAll(`input[name="${field.name}"]:checked`);
+                    if (checkboxes.length === 0) {
+                        return false;
+                    }
+                } else {
+                    const element = document.getElementById(field.id);
+                    if (!element || !element.value || element.value.trim() === '') {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         function validateProfile() {
-            // Réinitialiser toutes les classes "incomplete"
+            // Réinitialiser toutes les classes "incomplete" et "complete"
             document.querySelectorAll('.incomplete').forEach(el => el.classList.remove('incomplete'));
+            document.querySelectorAll('.complete').forEach(el => el.classList.remove('complete'));
 
             const incompleteFields = [];
             const incompleteSections = new Set();
+            const completeSections = new Set();
 
             // Définir les champs requis par section
             const requiredFields = {
@@ -2507,36 +2694,49 @@
                 }
             });
 
-            // Marquer les sections incomplètes (seulement celles qui ont réellement des champs incomplets)
-            incompleteSections.forEach(sectionName => {
-                // Vérifier que cette section a vraiment des champs incomplets avant de la marquer
-                const sectionHasIncompleteFields = Object.values(requiredFields)
-                    .flat()
-                    .some(field => {
-                        if (field.section === sectionName) {
-                            if (field.isCheckbox) {
-                                const checkboxes = document.querySelectorAll(`input[name="${field.name}"]:checked`);
-                                return checkboxes.length === 0;
-                            } else {
-                                const element = document.getElementById(field.id);
-                                return element && (!element.value || element.value.trim() === '');
-                            }
-                        }
-                        return false;
-                    });
+            // Marquer les sections incomplètes et complètes
+            const allSections = Object.keys(requiredFields);
+            
+            allSections.forEach(sectionName => {
+                const sectionFields = requiredFields[sectionName];
+                let isComplete = true;
                 
-                // Marquer la section seulement si elle a réellement des champs incomplets
-                if (sectionHasIncompleteFields) {
-                    const accordionHeaders = document.querySelectorAll('.accordion-header h2');
-                    accordionHeaders.forEach(header => {
-                        if (header.textContent.trim() === sectionName) {
-                            const section = header.closest('.accordion-section');
-                            if (section) {
+                // Vérifier si tous les champs de cette section sont remplis
+                for (const field of sectionFields) {
+                    if (field.isCheckbox) {
+                        const checkboxes = document.querySelectorAll(`input[name="${field.name}"]:checked`);
+                        if (checkboxes.length === 0) {
+                            isComplete = false;
+                            incompleteSections.add(sectionName);
+                            break;
+                        }
+                    } else {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value || element.value.trim() === '') {
+                            isComplete = false;
+                            incompleteSections.add(sectionName);
+                            break;
+                        }
+                    }
+                }
+                
+                // Marquer la section comme complète ou incomplète
+                const accordionHeaders = document.querySelectorAll('.accordion-header h2');
+                accordionHeaders.forEach(header => {
+                    if (header.textContent.trim() === sectionName) {
+                        const section = header.closest('.accordion-section');
+                        if (section) {
+                            if (isComplete) {
+                                section.classList.remove('incomplete');
+                                section.classList.add('complete');
+                                completeSections.add(sectionName);
+                            } else {
+                                section.classList.remove('complete');
                                 section.classList.add('incomplete');
                             }
                         }
-                    });
-                }
+                    }
+                });
             });
 
             // Si des champs sont incomplets, afficher un toast et retourner false
@@ -2575,7 +2775,7 @@
 
             // Valider le profil avant de sauvegarder
             if (!validateProfile()) {
-                return; // Arrêter si validation échoue
+                return; // Arrêter si validation échoue - la fonction affiche déjà les erreurs
             }
 
             // Vérifier l'utilisateur avec plusieurs fallbacks
@@ -3040,6 +3240,52 @@
                 return languagesData;
             };
         })();
+
+        // Fonction pour afficher la modale de profil incomplet
+        function showProfileIncompleteModal() {
+            let modal = document.getElementById('profileIncompleteModal');
+            if (!modal) {
+                // Créer la modale si elle n'existe pas
+                modal = document.createElement('div');
+                modal.id = 'profileIncompleteModal';
+                modal.className = 'profile-incomplete-modal';
+                modal.innerHTML = `
+                    <div class="profile-incomplete-modal-content">
+                        <h3>⚠️ Profil incomplet</h3>
+                        <p>Pour maximiser vos chances de succès auprès des recruteurs, votre profil doit être complet. Veuillez finaliser les sections manquantes avant de postuler.</p>
+                        <div class="profile-incomplete-modal-actions">
+                            <button class="profile-incomplete-modal-btn profile-incomplete-modal-btn-secondary" onclick="closeProfileIncompleteModal()">Fermer</button>
+                            <button class="profile-incomplete-modal-btn profile-incomplete-modal-btn-primary" onclick="goToProfile()">Compléter mon profil</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Fermer en cliquant sur le fond
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeProfileIncompleteModal();
+                    }
+                });
+            }
+            modal.classList.add('active');
+        }
+
+        function closeProfileIncompleteModal() {
+            const modal = document.getElementById('profileIncompleteModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        function goToProfile() {
+            closeProfileIncompleteModal();
+            window.location.href = 'profile.html';
+        }
+
+        // Exposer isProfileComplete globalement pour être accessible depuis d'autres pages
+        window.isProfileComplete = isProfileComplete;
+        window.showProfileIncompleteModal = showProfileIncompleteModal;
     </script>
 
     <footer>

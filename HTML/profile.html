@@ -2168,12 +2168,21 @@
                 const languagesContainer = document.getElementById('languagesContainer');
                 if (languagesContainer) {
                     languagesContainer.innerHTML = '';
-                    profile.languages.forEach((langObj, index) => {
-                        if (langObj && langObj.language && langObj.level) {
-                            addLanguageItem(langObj.language, langObj.level);
+                    // Attendre que les fonctions soient disponibles (si l'IIFE n'est pas encore exécutée)
+                    const loadLanguages = () => {
+                        if (typeof window.addLanguageItem === 'function' && typeof window.updateLanguageOptions === 'function') {
+                            profile.languages.forEach((langObj, index) => {
+                                if (langObj && langObj.language && langObj.level) {
+                                    window.addLanguageItem(langObj.language, langObj.level);
+                                }
+                            });
+                            window.updateLanguageOptions();
+                        } else {
+                            // Réessayer après un court délai si les fonctions ne sont pas encore disponibles
+                            setTimeout(loadLanguages, 100);
                         }
-                    });
-                    updateLanguageOptions();
+                    };
+                    loadLanguages();
                 }
             }
         }
@@ -2927,8 +2936,8 @@
                 return selected;
             }
 
-            // Fonction pour mettre à jour les options disponibles dans chaque select
-            function updateLanguageOptions() {
+            // Fonction pour mettre à jour les options disponibles dans chaque select (globale)
+            window.updateLanguageOptions = function() {
                 const selectedLanguages = getSelectedLanguages();
                 const languageSelects = languagesContainer.querySelectorAll('select.language-select');
                 
@@ -2954,8 +2963,8 @@
                 });
             }
 
-            // Fonction pour créer un élément de langue
-            function addLanguageItem(language = '', level = '') {
+            // Fonction pour créer un élément de langue (globale pour être accessible depuis loadEducationInfo)
+            window.addLanguageItem = function(language = '', level = '') {
                 const itemId = `language-${languageCounter++}`;
                 const languageItem = document.createElement('div');
                 languageItem.className = 'language-item';

@@ -145,7 +145,8 @@
 
         /* Hero Section */
         .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.88) 0%, rgba(118, 75, 162, 0.88) 100%),
+                url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat;
             color: white;
             padding: 80px 20px 120px;
             text-align: center;
@@ -161,7 +162,8 @@
             right: 0;
             bottom: 0;
             background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            opacity: 0.3;
+            opacity: 0.25;
+            pointer-events: none;
         }
 
         .container {
@@ -338,6 +340,37 @@
         .problem {
             padding: 80px 20px;
             background: white;
+        }
+
+        .problem-visual {
+            max-width: 1000px;
+            margin: 0 auto 50px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+        }
+
+        .problem-visual img {
+            width: 100%;
+            height: auto;
+            display: block;
+            vertical-align: middle;
+        }
+
+        .problem-visual-credit {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        .problem-visual-credit a {
+            color: #999;
+            text-decoration: none;
+        }
+
+        .problem-visual-credit a:hover {
+            text-decoration: underline;
         }
 
         .problem h2 {
@@ -646,6 +679,56 @@
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
+        .about-contact-inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .about-contact-image {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .about-contact-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .about-contact-text h2 {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .about-contact-text .about-contact-intro {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .about-contact-text .about-contact-cta {
+            text-align: left;
+        }
+
+        .about-contact-credit {
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        .about-contact-credit a {
+            color: #999;
+            text-decoration: none;
+        }
+
+        .about-contact-credit a:hover {
+            text-decoration: underline;
+        }
+
         /* CTA Final */
         .cta-final {
             padding: 80px 20px;
@@ -807,6 +890,17 @@
                 grid-template-columns: 1fr;
             }
 
+            .about-contact-inner {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .about-contact-text h2,
+            .about-contact-text .about-contact-intro,
+            .about-contact-text .about-contact-cta {
+                text-align: center;
+            }
+
             .nav-container {
                 flex-direction: column;
                 gap: 15px;
@@ -868,6 +962,10 @@
     <!-- Problem Section -->
     <section class="problem">
         <div class="container">
+            <div class="problem-visual">
+                <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1000&q=80" alt="Professionnel au travail sur ordinateur" loading="lazy" />
+                <p class="problem-visual-credit">Photo : <a href="https://unsplash.com/fr/?utm_source=taleos&utm_medium=referral" target="_blank" rel="noopener noreferrer">Unsplash</a></p>
+            </div>
             <h2>Chercher un job en finance, c'est épuisant</h2>
             <p class="problem-intro">Entre vos études, vos examens et vos stages, vous n'avez pas le temps de passer des
                 heures à postuler. Nous le savons.</p>
@@ -1014,10 +1112,18 @@
     <!-- Qui sommes-nous / Contact -->
     <section class="about-contact">
         <div class="container">
-            <h2>Qui sommes-nous ?</h2>
-            <p class="about-contact-intro">Taleos accompagne les futurs talents de la finance pour décrocher le poste qui leur correspond. Une équipe passionnée, une technologie au service de votre carrière.</p>
-            <div class="about-contact-cta">
-                <a href="contact.html" class="about-contact-link">Nous contacter</a>
+            <div class="about-contact-inner">
+                <div class="about-contact-image">
+                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" alt="Équipe professionnelle au travail" loading="lazy" />
+                </div>
+                <div class="about-contact-text">
+                    <h2>Qui sommes-nous ?</h2>
+                    <p class="about-contact-intro">Taleos accompagne les futurs talents de la finance pour décrocher le poste qui leur correspond. Une équipe passionnée, une technologie au service de votre carrière.</p>
+                    <div class="about-contact-cta">
+                        <a href="contact.html" class="about-contact-link">Nous contacter</a>
+                    </div>
+                    <p class="about-contact-credit">Photo : <a href="https://unsplash.com/fr/?utm_source=taleos&utm_medium=referral" target="_blank" rel="noopener noreferrer">Unsplash</a></p>
+                </div>
             </div>
         </div>
     </section>

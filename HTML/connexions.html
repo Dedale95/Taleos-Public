@@ -411,6 +411,29 @@
             outline: none;
         }
 
+        .password-toggle .pwd-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-toggle .pwd-icon-hide {
+            display: none;
+        }
+
+        .password-toggle.is-visible .pwd-icon-show {
+            display: none;
+        }
+
+        .password-toggle.is-visible .pwd-icon-hide {
+            display: inline-flex;
+        }
+
+        .password-toggle svg {
+            width: 22px;
+            height: 22px;
+        }
+
         /* Modale de confirmation personnalisée */
         .modal-overlay {
             position: fixed;
@@ -883,14 +906,14 @@
         // Fonction pour afficher/masquer le mot de passe
         function togglePassword(inputId, button) {
             const input = document.getElementById(inputId);
-            const toggleIcon = button.querySelector('span');
-
             if (input.type === 'password') {
                 input.type = 'text';
-                toggleIcon.textContent = '🙈';
+                button.classList.add('is-visible');
+                button.setAttribute('aria-label', 'Masquer le mot de passe');
             } else {
                 input.type = 'password';
-                toggleIcon.textContent = '👁️';
+                button.classList.remove('is-visible');
+                button.setAttribute('aria-label', 'Afficher le mot de passe');
             }
         }
 
@@ -1311,11 +1334,12 @@
                                                    required>
                                         </div>
                                         <div class="form-group">
-                                            <label for="password-${bank.id}">🔒 Mot de passe</label>
+                                            <label for="password-${bank.id}">Mot de passe</label>
                                             <div class="password-input-wrapper">
                                                 <input type="password" id="password-${bank.id}" placeholder="Votre mot de passe" required>
-                                                <button type="button" class="password-toggle" onclick="togglePassword('password-${bank.id}', this)" aria-label="Afficher/Masquer le mot de passe">
-                                                    <span>👁️</span>
+                                                <button type="button" class="password-toggle" onclick="togglePassword('password-${bank.id}', this)" aria-label="Afficher le mot de passe">
+                                                    <span class="pwd-icon pwd-icon-show" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                                                    <span class="pwd-icon pwd-icon-hide" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
                                                 </button>
                                             </div>
                                         </div>

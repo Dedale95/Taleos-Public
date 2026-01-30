@@ -20,6 +20,7 @@
             line-height: 1.6;
             color: #1a1a1a;
             overflow-x: hidden;
+            background: #f0f2f5;
         }
 
         /* Navigation */
@@ -400,7 +401,7 @@
             transition: max-height 0.4s ease;
         }
 
-        .problem-card.expanded .card-detail {
+        .problem-card:hover .card-detail {
             max-height: 280px;
         }
 
@@ -412,20 +413,7 @@
         }
 
         .problem-card .card-toggle {
-            display: block;
-            margin-top: 12px;
-            font-size: 0.9rem;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .problem-card .card-toggle .chevron {
-            display: inline-block;
-            transition: transform 0.3s;
-        }
-
-        .problem-card.expanded .card-toggle .chevron {
-            transform: rotate(180deg);
+            display: none;
         }
 
         .problem-icon {
@@ -487,7 +475,7 @@
             transition: max-height 0.4s ease;
         }
 
-        .solution-card.expanded .card-detail {
+        .solution-card:hover .card-detail {
             max-height: 320px;
         }
 
@@ -500,20 +488,7 @@
         }
 
         .solution-card .card-toggle {
-            display: block;
-            margin-top: 12px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            opacity: 0.95;
-        }
-
-        .solution-card .card-toggle .chevron {
-            display: inline-block;
-            transition: transform 0.3s;
-        }
-
-        .solution-card.expanded .card-toggle .chevron {
-            transform: rotate(180deg);
+            display: none;
         }
 
         .solution-card h3 {
@@ -602,7 +577,7 @@
         /* FAQ Section */
         .faq {
             padding: 80px 20px;
-            background: #f8f9fa;
+            background: #f0f2f5;
         }
 
         .faq h2 {
@@ -702,7 +677,7 @@
         /* Qui sommes-nous / Contact */
         .about-contact {
             padding: 60px 20px;
-            background: #f8f9fa;
+            background: #f0f2f5;
             text-align: center;
         }
 
@@ -813,6 +788,12 @@
             color: white;
             padding: 40px 20px;
             text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        footer .container {
+            background: transparent;
         }
 
         footer p {
@@ -932,11 +913,11 @@
                 grid-template-columns: 1fr;
             }
 
-            .problem-card.expanded .card-detail {
+            .problem-card:hover .card-detail {
                 max-height: 380px;
             }
 
-            .solution-card.expanded .card-detail {
+            .solution-card:hover .card-detail {
                 max-height: 420px;
             }
 
@@ -1019,34 +1000,30 @@
             <p class="problem-intro">Entre vos études, vos examens et vos stages, vous n'avez pas le temps de passer des
                 heures à postuler. Nous le savons.</p>
 
-            <div class="problem-grid" id="problemGrid">
-                <div class="problem-card" tabindex="0" role="button" onclick="toggleExpandableCard(this, 'problemGrid')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); toggleExpandableCard(this, 'problemGrid'); }">
+            <div class="problem-grid">
+                <div class="problem-card">
                     <div class="problem-icon">⏰</div>
                     <h3>Des heures perdues</h3>
                     <p>Créer un compte sur chaque site d'entreprise, remplir des formulaires répétitifs, adapter chaque lettre de motivation...</p>
                     <div class="card-detail"><p>Chaque grand groupe demande un identifiant, un mot de passe, une re-saisie de votre parcours. Résultat : des soirées entières à copier-coller des informations que vous avez déjà sur votre CV. Taleos centralise tout une fois pour toutes.</p></div>
-                    <span class="card-toggle">En savoir plus <span class="chevron">▼</span></span>
                 </div>
-                <div class="problem-card" tabindex="0" role="button" onclick="toggleExpandableCard(this, 'problemGrid')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); toggleExpandableCard(this, 'problemGrid'); }">
+                <div class="problem-card">
                     <div class="problem-icon">🔍</div>
                     <h3>Offres éparpillées</h3>
                     <p>BNP, Société Générale, Rothschild, Lazard... Chaque entreprise a son propre site carrière avec ses propres filtres.</p>
                     <div class="card-detail"><p>Pas de portail unique en finance : il faut surveiller une dizaine de sites, chacun avec ses dates de mise à jour et ses critères. Notre plateforme agrège les offres des principaux acteurs (banques, cabinets d'audit, conseil, asset management) en un seul flux.</p></div>
-                    <span class="card-toggle">En savoir plus <span class="chevron">▼</span></span>
                 </div>
-                <div class="problem-card" tabindex="0" role="button" onclick="toggleExpandableCard(this, 'problemGrid')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); toggleExpandableCard(this, 'problemGrid'); }">
+                <div class="problem-card">
                     <div class="problem-icon">😫</div>
                     <h3>Processus frustrant</h3>
                     <p>Captchas à n'en plus finir, bugs de formulaires, et cette sensation de toujours recommencer à zéro.</p>
                     <div class="card-detail"><p>Les sites carrière ne sont pas faits pour les candidats en série : timeouts, champs obligatoires absurdes, pièces jointes qui ne passent pas. Taleos s'adapte à chaque interface et envoie vos candidatures de façon fiable, sans que vous ayez à subir le parcours du combattant.</p></div>
-                    <span class="card-toggle">En savoir plus <span class="chevron">▼</span></span>
                 </div>
-                <div class="problem-card" tabindex="0" role="button" onclick="toggleExpandableCard(this, 'problemGrid')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); toggleExpandableCard(this, 'problemGrid'); }">
+                <div class="problem-card">
                     <div class="problem-icon">📊</div>
                     <h3>Impossible à suivre</h3>
                     <p>Où en êtes-vous avec telle candidature ? Avez-vous postulé chez Deloitte ou EY ? Difficile de s'y retrouver.</p>
                     <div class="card-detail"><p>Un tableau de bord Taleos récapitule toutes vos candidatures : statut (envoyée, relue, entretien), date, entreprise. Plus de trou de mémoire ni de doublons. Vous pilotez votre recherche comme un vrai projet.</p></div>
-                    <span class="card-toggle">En savoir plus <span class="chevron">▼</span></span>
                 </div>
             </div>
         </div>
@@ -1057,34 +1034,30 @@
         <div class="container">
             <h2>Comment ça marche ?</h2>
 
-            <div class="solution-grid" id="solutionGrid">
-                <div class="solution-card" tabindex="0" role="button" onclick="toggleExpandableCard(this, 'solutionGrid')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); toggleExpandableCard(this, 'solutionGrid'); }">
+            <div class="solution-grid">
+                <div class="solution-card">
                     <div class="solution-number">1</div>
                     <h3>Configurez votre profil</h3>
                     <p>Importez votre CV, définissez vos préférences (secteur, localisation, type de poste). Notre IA comprend vos ambitions et adapte sa recherche.</p>
                     <div class="card-detail"><p>Une seule configuration : vous uploadez votre CV, vous indiquez vos critères (stage, alternance, CDI, zones géographiques, familles de métiers). L'IA extrait vos compétences et préférences pour ne vous proposer que des offres cohérentes avec votre projet.</p></div>
-                    <span class="card-toggle">En savoir plus <span class="chevron">▼</span></span>
                 </div>
-                <div class="solution-card" tabindex="0" role="button" onclick="toggleExpandableCard(this, 'solutionGrid')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); toggleExpandableCard(this, 'solutionGrid'); }">
+                <div class="solution-card">
                     <div class="solution-number">2</div>
                     <h3>L'IA trouve pour vous</h3>
                     <p>Nous scannons quotidiennement des milliers d'offres chez les acteurs majeurs de la finance. Notre algorithme sélectionne celles qui vous correspondent vraiment.</p>
                     <div class="card-detail"><p>Nous surveillons les sites carrière des banques, cabinets d'audit, conseil et asset managers. Chaque jour, les nouvelles offres sont comparées à votre profil. Vous recevez une sélection personnalisée, sans bruit ni spam : uniquement les opportunités pertinentes.</p></div>
-                    <span class="card-toggle">En savoir plus <span class="chevron">▼</span></span>
                 </div>
-                <div class="solution-card" tabindex="0" role="button" onclick="toggleExpandableCard(this, 'solutionGrid')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); toggleExpandableCard(this, 'solutionGrid'); }">
+                <div class="solution-card">
                     <div class="solution-number">3</div>
                     <h3>Validation et envoi</h3>
                     <p>Vous validez les opportunités qui vous intéressent. Notre système postule automatiquement avec une lettre de motivation personnalisée pour chaque offre.</p>
                     <div class="card-detail"><p>Vous choisissez les offres auxquelles postuler. Pour chacune, notre IA rédige une lettre de motivation sur mesure à partir de votre CV et du descriptif du poste. Une fois validée par vous, la candidature est envoyée directement sur le site de l'entreprise. Vous gardez la main, nous gérons l'exécution.</p></div>
-                    <span class="card-toggle">En savoir plus <span class="chevron">▼</span></span>
                 </div>
-                <div class="solution-card" tabindex="0" role="button" onclick="toggleExpandableCard(this, 'solutionGrid')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); toggleExpandableCard(this, 'solutionGrid'); }">
+                <div class="solution-card">
                     <div class="solution-number">4</div>
                     <h3>Suivez vos candidatures</h3>
                     <p>Tableau de bord intuitif, notifications par email, historique complet. Vous gardez le contrôle, sans le stress.</p>
                     <div class="card-detail"><p>Votre espace Taleos affiche toutes vos candidatures : envoyées, en cours de lecture, entretiens planifiés. Des alertes email vous tiennent informé des mises à jour. Plus besoin de tenir un Excel à jour : tout est centralisé et traçable.</p></div>
-                    <span class="card-toggle">En savoir plus <span class="chevron">▼</span></span>
                 </div>
             </div>
             <div class="section-cta">
@@ -1296,23 +1269,6 @@
     </footer>
 
     <script>
-        // Tuiles dépliables (Problème & Comment ça marche)
-        function toggleExpandableCard(card, gridId) {
-            const grid = document.getElementById(gridId);
-            if (!grid) return;
-            const wasExpanded = card.classList.contains('expanded');
-            grid.querySelectorAll('.problem-card, .solution-card').forEach(function(c) {
-                c.classList.remove('expanded');
-                const toggle = c.querySelector('.card-toggle');
-                if (toggle && toggle.firstChild) toggle.firstChild.textContent = 'En savoir plus ';
-            });
-            if (!wasExpanded) {
-                card.classList.add('expanded');
-                const toggle = card.querySelector('.card-toggle');
-                if (toggle && toggle.firstChild) toggle.firstChild.textContent = 'Réduire ';
-            }
-        }
-
         // Attendre que le DOM soit complètement chargé
         document.addEventListener('DOMContentLoaded', function() {
             // Form submission - AJAX to Formspree (seulement si le formulaire existe)

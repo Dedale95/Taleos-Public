@@ -151,7 +151,6 @@
         }
 
         .accordion-section {
-            margin-bottom: 16px;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -159,13 +158,9 @@
             background: white;
         }
 
-        /* Espacement garanti entre deux accordéons (évite les sections "collées") */
+        /* Espacement garanti entre deux accordéons (padding ne collapse pas) */
         .accordion-section + .accordion-section {
             margin-top: 16px;
-        }
-
-        .accordion-section:last-child {
-            margin-bottom: 0;
         }
 
         .accordion-header {

@@ -31,28 +31,23 @@
             margin: 0;
         }
 
+        /* Nav en premier dans le flux : aucun bandeau au-dessus possible */
+        nav {
+            flex-shrink: 0;
+            width: 100%;
+            padding: max(20px, env(safe-area-inset-top, 0)) max(40px, env(safe-area-inset-right, 0)) 20px max(40px, env(safe-area-inset-left, 0));
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
         .main-content {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding-top: 100px;
+            padding-top: 24px;
+            padding-bottom: 24px;
             background: transparent;
-        }
-
-        /* Navigation - fixe tout en haut, au-dessus de tout (évite le bandeau blanc) */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
-            padding: max(20px, env(safe-area-inset-top, 0)) max(40px, env(safe-area-inset-right, 0)) 20px max(40px, env(safe-area-inset-left, 0));
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            z-index: 9999;
-            isolation: isolate;
-            transform: translateZ(0);
         }
 
         .nav-container {

@@ -159,6 +159,11 @@
             background: white;
         }
 
+        /* Espacement garanti entre deux accordéons (évite les sections "collées") */
+        .accordion-section + .accordion-section {
+            margin-top: 16px;
+        }
+
         .accordion-section:last-child {
             margin-bottom: 0;
         }
@@ -1056,8 +1061,8 @@
                     const style = document.createElement('style');
                     style.id = 'initialNavState';
                     style.textContent = isAuthenticated 
-                        ? '#authLink { display: none !important; } #profileLink { display: block !important; } #logoutBtn { display: block !important; }'
-                        : '#authLink { display: block !important; } #profileLink { display: none !important; } #logoutBtn { display: none !important; }';
+                        ? '#authLink { display: none !important; } #profileLink { display: block !important; } #logoutBtn { display: block !important; } #rechercheLink { display: inline-block !important; }'
+                        : '#authLink { display: block !important; } #profileLink { display: none !important; } #logoutBtn { display: none !important; } #rechercheLink { display: none !important; }';
                     document.head.appendChild(style);
                 }
             } catch (e) {
@@ -1076,7 +1081,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link">Recherche avancée</a>
+                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
@@ -1884,6 +1889,7 @@
             const logoutBtn = document.getElementById('logoutBtn');
             const applicationsLink = document.getElementById('applicationsLink');
             const connexionsLink = document.getElementById('connexionsLink');
+            const rechercheLink = document.getElementById('rechercheLink');
 
             if (!profileLink || !authLink || !logoutBtn) {
                 return;
@@ -1895,7 +1901,7 @@
             const isAuthenticated = !!(token && email);
 
             if (isAuthenticated) {
-                // Utilisateur connecté - afficher le profil, mes candidatures et le bouton déconnexion, masquer l'auth
+                // Utilisateur connecté - afficher le profil, mes candidatures, recherche avancée et le bouton déconnexion, masquer l'auth
                 profileLink.style.display = 'block';
                 profileLink.classList.remove('nav-link-primary');
                 if (window.location.pathname.includes('profile.html')) {
@@ -1906,11 +1912,13 @@
                 authLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'block';
                 if (connexionsLink) connexionsLink.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
             } else {
-                // Utilisateur non connecté - masquer le profil, mes candidatures et le bouton déconnexion, afficher l'auth
+                // Utilisateur non connecté - masquer le profil, mes candidatures, recherche avancée et le bouton déconnexion, afficher l'auth
                 profileLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 profileLink.classList.remove('nav-link-primary');
                 logoutBtn.style.display = 'none';
                 logoutBtn.classList.remove('nav-link-primary');
@@ -3022,6 +3030,7 @@
             const applicationsLink = document.getElementById('applicationsLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const logoutBtn = document.getElementById('logoutBtn');
+            const rechercheLink = document.getElementById('rechercheLink');
 
             if (!profileLink || !authLink || !logoutBtn) {
                 return;
@@ -3042,7 +3051,7 @@
             }
 
             if (isAuthenticated) {
-                // Utilisateur connecté - afficher le profil, mes candidatures et le bouton déconnexion, masquer l'auth
+                // Utilisateur connecté - afficher le profil, mes candidatures, recherche avancée et le bouton déconnexion, masquer l'auth
                 profileLink.style.display = 'block';
                 if (window.location.pathname.includes('profile.html')) {
                     profileLink.classList.add('nav-link-primary');
@@ -3054,8 +3063,9 @@
                 authLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'block';
                 if (connexionsLink) connexionsLink.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
             } else {
-                // Utilisateur non connecté - masquer le profil, mes candidatures et le bouton déconnexion, afficher l'auth
+                // Utilisateur non connecté - masquer le profil, mes candidatures, recherche avancée et le bouton déconnexion, afficher l'auth
                 profileLink.style.display = 'none';
                 profileLink.classList.remove('nav-link-primary');
                 logoutBtn.style.display = 'none';
@@ -3063,6 +3073,7 @@
                 authLink.style.display = 'block';
                 if (applicationsLink) applicationsLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 authLink.classList.remove('nav-link-primary');
             }
 

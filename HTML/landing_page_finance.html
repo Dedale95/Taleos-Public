@@ -962,7 +962,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link nav-link-primary">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link">Recherche avancée</a>
+                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
@@ -1450,6 +1450,7 @@
             const logoutBtn = document.getElementById('logoutBtn');
             const applicationsLink = document.getElementById('applicationsLink');
             const connexionsLink = document.getElementById('connexionsLink');
+            const rechercheLink = document.getElementById('rechercheLink');
 
             if (!profileLink || !authLink || !logoutBtn) {
                 console.warn('Éléments de navigation non trouvés');
@@ -1491,7 +1492,7 @@
             console.log('État authentification:', isAuthenticated ? 'connecté' : 'non connecté');
             
             if (isAuthenticated) {
-                // Utilisateur connecté - afficher le profil, mes candidatures et le bouton déconnexion, masquer l'auth
+                // Utilisateur connecté - afficher le profil, mes candidatures, recherche avancée et le bouton déconnexion, masquer l'auth
                 profileLink.style.display = 'block';
                 profileLink.classList.remove('nav-link-primary');
                 logoutBtn.style.display = 'block';
@@ -1499,14 +1500,16 @@
                 authLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'block';
                 if (connexionsLink) connexionsLink.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
             } else {
-                // Utilisateur non connecté - masquer le profil, mes candidatures et le bouton déconnexion, afficher l'auth
+                // Utilisateur non connecté - masquer le profil, mes candidatures, recherche avancée et le bouton déconnexion, afficher l'auth
                 profileLink.style.display = 'none';
                 profileLink.classList.remove('nav-link-primary');
                 logoutBtn.style.display = 'none';
                 logoutBtn.classList.remove('nav-link-primary');
                 if (applicationsLink) applicationsLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 authLink.style.display = 'block';
                 authLink.classList.remove('nav-link-primary');
             }

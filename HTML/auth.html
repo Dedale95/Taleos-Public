@@ -24,7 +24,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            padding: 0 20px 20px 20px;
         }
 
         .main-content {
@@ -32,9 +32,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            /* Espace sous la nav fixe pour éviter qu'un bandeau masque les onglets */
+            padding-top: 100px;
         }
 
-        /* Navigation */
+        /* Navigation - fixe au-dessus, z-index élevé pour ne jamais être masquée */
         nav {
             position: fixed;
             top: 0;
@@ -43,7 +45,8 @@
             background: white;
             padding: 20px 40px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            z-index: 100;
+            z-index: 1000;
+            isolation: isolate;
         }
 
         .nav-container {
@@ -109,7 +112,7 @@
             overflow: hidden;
             max-width: 900px;
             width: 100%;
-            margin-top: 100px;
+            margin-top: 0;
         }
 
         .auth-tabs {
@@ -831,7 +834,7 @@
 
         @media (max-width: 768px) {
             .auth-container {
-                margin-top: 80px;
+                margin-top: 0;
             }
 
             .auth-content {
@@ -860,7 +863,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link">Recherche avancée</a>
+                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
                 <a href="auth.html" class="nav-link" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">Inscription / Connexion</a>
             </div>
         </div>
@@ -1311,6 +1314,8 @@
         // Écouter les changements d'état d'authentification (seulement si auth est défini)
         if (auth) {
             auth.onAuthStateChanged((user) => {
+                const rechercheLink = document.getElementById('rechercheLink');
+                if (rechercheLink) rechercheLink.style.display = user ? 'inline-block' : 'none';
                 if (user) {
                     console.log('Utilisateur connecté:', user.email);
                     // Si l'utilisateur est connecté et vérifié, rediriger vers les offres

@@ -735,7 +735,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link">Recherche avancée</a>
+                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link nav-link-primary">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
@@ -1001,16 +1001,19 @@
             const profileLink = document.getElementById('profileLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const logoutLink = document.getElementById('logoutLink');
+            const rechercheLink = document.getElementById('rechercheLink');
 
             if (user) {
                 authLink.style.display = 'none';
                 profileLink.style.display = 'block';
                 if (connexionsLink) connexionsLink.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 logoutLink.style.display = 'block';
             } else {
                 authLink.style.display = 'block';
                 profileLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 logoutLink.style.display = 'none';
             }
         }
@@ -1022,6 +1025,7 @@
             const connexionsLink = document.getElementById('connexionsLink');
             const logoutLink = document.getElementById('logoutLink');
             const applicationsLink = document.getElementById('applicationsLink');
+            const rechercheLink = document.getElementById('rechercheLink');
 
             if (!authLink || !profileLink || !logoutLink) {
                 return;
@@ -1038,6 +1042,7 @@
                 profileLink.style.display = 'block';
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (applicationsLink) applicationsLink.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 logoutLink.style.display = 'block';
             } else {
                 // Utilisateur non connecté
@@ -1045,6 +1050,7 @@
                 profileLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 logoutLink.style.display = 'none';
             }
         }

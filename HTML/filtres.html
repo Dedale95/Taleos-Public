@@ -165,6 +165,32 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
+        /* Bouton Réinitialiser les filtres (identique à offres.html) */
+        .reset-btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .advanced-search-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
         /* Container des accordéons */
         .accordions-container {
             display: flex;
@@ -1224,7 +1250,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link nav-link-primary">Recherche avancée</a>
+                <a href="filtres.html" class="nav-link nav-link-primary" id="rechercheLink" style="display: none;">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
@@ -1238,8 +1264,11 @@
     <div class="main-content">
         <div class="container">
             <div class="advanced-search-header">
-                <h1>Recherche avancée</h1>
-                <button class="btn-add-accordion" onclick="createNewAccordion()">+ Nouvelle recherche</button>
+                <h1>Plusieurs recherches, des filtres sur mesure pour chacune</h1>
+                <div class="advanced-search-header-actions">
+                    <button type="button" class="reset-btn" onclick="resetAllFiltersRecherche()">🔄 Réinitialiser tous les filtres</button>
+                    <button class="btn-add-accordion" onclick="createNewAccordion()">+ Nouvelle recherche</button>
+                </div>
             </div>
 
             <div class="accordions-container" id="accordionsContainer">
@@ -1758,6 +1787,31 @@
             } catch (error) {
                 console.error('Erreur lors du réordonnancement:', error);
             }
+        }
+
+        const DEFAULT_FILTERS = {
+            searchKeywords: [],
+            countries: [],
+            regions: [],
+            contracts: [],
+            experiences: [],
+            families: [],
+            companies: [],
+            educations: []
+        };
+
+        async function resetAllFiltersRecherche() {
+            if (accordions.length === 0) return;
+            if (!confirm('Réinitialiser tous les filtres de toutes vos recherches ?')) return;
+            for (const accordion of accordions) {
+                accordion.filters = JSON.parse(JSON.stringify(DEFAULT_FILTERS));
+                try {
+                    await saveAccordion(accordion);
+                } catch (e) {
+                    console.warn('Erreur sauvegarde après reset:', e);
+                }
+            }
+            renderAccordions();
         }
 
         function createNewAccordion() {
@@ -3326,6 +3380,7 @@
             const logoutBtn = document.getElementById('logoutBtn');
             const applicationsLink = document.getElementById('applicationsLink');
             const connexionsLink = document.getElementById('connexionsLink');
+            const rechercheLink = document.getElementById('rechercheLink');
 
             if (!authLink || !profileLink || !logoutBtn) {
                 return;
@@ -3342,6 +3397,7 @@
                 profileLink.style.display = 'block';
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (applicationsLink) applicationsLink.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 logoutBtn.style.display = 'block';
             } else {
                 // Utilisateur non connecté
@@ -3349,6 +3405,7 @@
                 profileLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 logoutBtn.style.display = 'none';
             }
         }
@@ -3364,6 +3421,7 @@
                 const logoutBtn = document.getElementById('logoutBtn');
                 const applicationsLink = document.getElementById('applicationsLink');
                 const connexionsLink = document.getElementById('connexionsLink');
+                const rechercheLink = document.getElementById('rechercheLink');
 
                 if (user) {
                     if (profileLink) profileLink.style.display = 'block';
@@ -3371,12 +3429,14 @@
                     if (logoutBtn) logoutBtn.style.display = 'block';
                     if (applicationsLink) applicationsLink.style.display = 'block';
                     if (connexionsLink) connexionsLink.style.display = 'block';
+                    if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 } else {
                     if (profileLink) profileLink.style.display = 'none';
                     if (authLink) authLink.style.display = 'block';
                     if (logoutBtn) logoutBtn.style.display = 'none';
                     if (applicationsLink) applicationsLink.style.display = 'none';
                     if (connexionsLink) connexionsLink.style.display = 'none';
+                    if (rechercheLink) rechercheLink.style.display = 'none';
                 }
             });
         }

@@ -683,7 +683,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link">Recherche avancée</a>
+                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="navCandidatures" style="display: none;">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link active" id="navConnexions" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
@@ -797,18 +797,21 @@
             const navCandidatures = document.getElementById('navCandidatures');
             const navConnexions = document.getElementById('navConnexions');
             const btnLogout = document.getElementById('btnLogout');
+            const rechercheLink = document.getElementById('rechercheLink');
 
             if (user && user.emailVerified) {
                 navAuth.style.display = 'none';
                 navProfile.style.display = 'block';
                 navCandidatures.style.display = 'block';
                 navConnexions.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 btnLogout.style.display = 'block';
             } else {
                 navAuth.style.display = 'block';
                 navProfile.style.display = 'none';
                 navCandidatures.style.display = 'none';
                 navConnexions.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 btnLogout.style.display = 'none';
             }
         }
@@ -830,12 +833,14 @@
             const email = localStorage.getItem('userEmail');
             const isAuthenticated = !!(token && email);
 
+            const rechercheLink = document.getElementById('rechercheLink');
             if (isAuthenticated) {
                 // Utilisateur connecté - afficher les liens appropriés
                 navAuth.style.display = 'none';
                 navProfile.style.display = 'block';
                 if (navCandidatures) navCandidatures.style.display = 'block';
                 if (navConnexions) navConnexions.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 btnLogout.style.display = 'block';
             } else {
                 // Utilisateur non connecté
@@ -843,6 +848,7 @@
                 navProfile.style.display = 'none';
                 if (navCandidatures) navCandidatures.style.display = 'none';
                 if (navConnexions) navConnexions.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 btnLogout.style.display = 'none';
             }
         }

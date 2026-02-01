@@ -508,7 +508,7 @@
             <div class="nav-links" id="navLinks">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link">Recherche avancée</a>
+                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link nav-link-primary">Tarifs</a>
@@ -727,6 +727,7 @@
             const applicationsLink = document.getElementById('applicationsLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const profileLink = document.getElementById('profileLink');
+            const rechercheLink = document.getElementById('rechercheLink');
 
             if (!authLink || !profileLink || !logoutBtn) {
                 return;
@@ -743,6 +744,7 @@
                 profileLink.style.display = 'block';
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (applicationsLink) applicationsLink.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 logoutBtn.style.display = 'block';
             } else {
                 // Utilisateur non connecté
@@ -750,6 +752,7 @@
                 profileLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 logoutBtn.style.display = 'none';
             }
         }
@@ -761,6 +764,7 @@
             const applicationsLink = document.getElementById('applicationsLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const profileLink = document.getElementById('profileLink');
+            const rechercheLink = document.getElementById('rechercheLink');
             
             if (user) {
                 if (logoutBtn) logoutBtn.style.display = 'block';
@@ -768,12 +772,14 @@
                 if (applicationsLink) applicationsLink.style.display = 'block';
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (profileLink) profileLink.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
             } else {
                 if (logoutBtn) logoutBtn.style.display = 'none';
                 if (authLink) authLink.style.display = 'block';
                 if (applicationsLink) applicationsLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (profileLink) profileLink.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
             }
         }
 

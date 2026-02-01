@@ -1280,7 +1280,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link nav-link-primary">Offres</a>
-                <a href="filtres.html" class="nav-link">Recherche avancée</a>
+                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
@@ -3649,6 +3649,7 @@
             const connexionsLink = document.getElementById('connexionsLink');
             const authLink = document.getElementById('authLink');
             const logoutBtn = document.getElementById('logoutBtn');
+            const rechercheLink = document.getElementById('rechercheLink');
             
             // Vérifier à la fois localStorage et Firebase auth
             const token = localStorage.getItem('authToken');
@@ -3682,6 +3683,7 @@
                     connexionsLink.style.display = 'block';
                     connexionsLink.classList.remove('nav-link-primary');
                 }
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 if (logoutBtn) {
                     logoutBtn.style.display = 'block';
                     logoutBtn.classList.remove('nav-link-primary');
@@ -3700,6 +3702,7 @@
                     connexionsLink.style.display = 'none';
                     connexionsLink.classList.remove('nav-link-primary');
                 }
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 if (logoutBtn) {
                     logoutBtn.style.display = 'none';
                     logoutBtn.classList.remove('nav-link-primary');

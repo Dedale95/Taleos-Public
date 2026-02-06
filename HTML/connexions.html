@@ -758,7 +758,8 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Configuration de l'API backend (AWS)
+        // Configuration de l'API backend AWS
+        // Remplacez par l'URL de votre serveur AWS, ex: 'http://VOTRE_IP_AWS:443' ou 'https://api.taleos.co'
         const API_BASE_URL = 'https://api.taleos.co';
         const API_KEY = 'Thibault_Secure_987654321_Validator';
 
@@ -1023,8 +1024,8 @@
                     throw new Error('Veuillez entrer une adresse email valide (format: nom@domaine.com)');
                 }
 
-                // Appeler l'API backend AWS Selenium
-                console.log("🚀 Envoi de la requête à l'API...");
+                // Appel du backend AWS (endpoint /validate, format: bank_name, email, password)
+                console.log("🚀 Envoi de la requête au backend AWS...");
                 const response = await fetch(`${API_BASE_URL}/validate`, {
                     method: 'POST',
                     headers: {
@@ -1032,21 +1033,21 @@
                         'X-API-Key': API_KEY
                     },
                     body: JSON.stringify({
-                        bank_name: bank.id,  // Format: "credit_agricole" ou "societe_generale"
+                        bank_name: bank.id,
                         email: email,
                         password: password
                     })
                 });
 
+                const data = await response.json().catch(() => ({}));
+
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.message || 'Erreur de réponse serveur');
+                    throw new Error(data.message || `Erreur serveur (${response.status})`);
                 }
 
-                const data = await response.json();
-
-                // Si la validation réussit (vérifier le "status" envoyé par AWS)
-                if (data.status === "success") {
+                // Réponse AWS : success (booléen) et message (string)
+                const isSuccess = data.success === true;
+                if (isSuccess) {
                     // RÉCUPÉRER l'ID de l'utilisateur actuel
                     const uid = firebase.auth().currentUser.uid;
                     
@@ -1099,11 +1100,10 @@
                         statusDiv.innerHTML = '❌ Vous devez être connecté pour enregistrer la connexion.';
                     }
                 } else {
-                    // Validation échouée
+                    // Validation échouée (success: false)
                     statusDiv.className = 'connection-status show error';
                     statusDiv.innerHTML = `❌ ${data.message || 'La connexion a échoué'}<br><small style="color: #dc2626;">Vérifiez vos identifiants et réessayez.</small>`;
 
-                    // Réactiver le bouton
                     btn.disabled = false;
                     btn.innerHTML = '🔗 Lier mon compte';
                 }

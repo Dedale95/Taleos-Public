@@ -119,6 +119,14 @@ class BankConnectionResponse(BaseModel):
     message: str = Field(..., description="Message descriptif")
     details: Optional[dict] = Field(None, description="Détails additionnels")
 
+
+class ValidateRequest(BaseModel):
+    """Format attendu par l'onglet Connexions (frontend) : bank_name, email, password."""
+    bank_name: str = Field(..., description="Identifiant de la banque (credit_agricole, societe_generale, etc.)")
+    email: str = Field(..., description="Email ou identifiant de connexion")
+    password: str = Field(..., min_length=1, description="Mot de passe")
+
+
 # Dépendance pour vérifier l'API Key
 async def verify_api_key(request: Request):
     """Vérifie que l'API Key est présente et valide"""
@@ -164,98 +172,82 @@ async def get_metrics():
     """Récupère les métriques de l'API (protégé par API Key)"""
     return metrics.get_stats()
 
-@app.post("/test-bank-connection", response_model=BankConnectionResponse, dependencies=[Depends(verify_api_key)])
-@limiter.limit("10/minute")  # Max 10 requêtes par minute par IP
-async def test_bank_connection(request: Request, data: BankConnectionRequest):
-    """
-    Teste la connexion à un site carrière bancaire
-    
-    Headers requis:
-        X-API-Key: Votre clé API
-    
-    Body (JSON):
-        {
-            "bank_id": "credit_agricole",
-            "email": "user@example.com",
-            "password": "motdepasse"
-        }
-    
-    Réponse:
-        {
-            "success": true | false,
-            "message": "...",
-            "details": {...}
-        }
-    """
+
+async def _do_validate(bank_id: str, email: str, password: str) -> BankConnectionResponse:
+    """Logique commune de validation (utilisée par /validate et /test-bank-connection)."""
     start_time = time.time()
-    client_ip = request.client.host
-    
-    logger.info(f"Test connexion demandé pour {data.bank_id} - {data.email} depuis {client_ip}")
-    
-    # Vérifier que la banque est supportée
-    if data.bank_id != 'credit_agricole':
-        logger.warning(f"Banque non supportée: {data.bank_id}")
+
+    if bank_id != 'credit_agricole':
+        logger.warning(f"Banque non supportée: {bank_id}")
         return BankConnectionResponse(
             success=False,
-            message=f'Banque non supportée: {data.bank_id}. Seul "credit_agricole" est disponible.',
-            details={'bank_id': data.bank_id}
+            message=f'Banque non supportée: {bank_id}. Seul "credit_agricole" est disponible.',
+            details={'bank_id': bank_id}
         )
-    
+
     try:
-        # Initialiser le validateur
         validator = CreditAgricoleValidator(headless=True)
-        
-        # Valider les identifiants
-        result = validator.validate(data.email, data.password)
-        
+        result = validator.validate(email, password)
         execution_time = time.time() - start_time
-        
-        # Enregistrer les métriques
+
         metrics.record_request(
             success=result.get('success', False),
             execution_time=execution_time
         )
-        
-        # Logger le résultat
+
         status_log = "SUCCÈS" if result.get('success', False) else "ÉCHEC"
-        logger.info(f"{status_log} pour {data.email} ({data.bank_id}) - {execution_time:.2f}s")
-        
-        # Construire les détails de la réponse
+        logger.info(f"{status_log} pour {email} ({bank_id}) - {execution_time:.2f}s")
+
         response_details = {
-            'bank_id': data.bank_id,
+            'bank_id': bank_id,
             'execution_time': round(execution_time, 2)
         }
-        
-        # Ajouter l'URL si disponible dans les détails du résultat
-        if 'details' in result and isinstance(result['details'], dict):
-            if 'url' in result['details']:
-                response_details['url'] = result['details']['url']
-        
-        # Retourner la réponse au format attendu par le frontend
+        if 'details' in result and isinstance(result.get('details'), dict) and 'url' in result['details']:
+            response_details['url'] = result['details']['url']
+
         return BankConnectionResponse(
             success=result.get('success', False),
             message=result.get('message', 'Connexion échouée'),
             details=response_details
         )
-    
+
     except Exception as e:
         execution_time = time.time() - start_time
-        
-        # Enregistrer l'erreur dans les métriques
         metrics.record_request(success=False, execution_time=execution_time, error=True)
-        
-        logger.error(f"Erreur lors de la validation pour {data.email} ({data.bank_id}): {e}", exc_info=True)
-        
-        # Retourner une réponse d'erreur au format attendu
+        logger.error(f"Erreur lors de la validation pour {email} ({bank_id}): {e}", exc_info=True)
         return BankConnectionResponse(
             success=False,
             message=f'Erreur serveur: {str(e)}',
             details={
-                'bank_id': data.bank_id,
+                'bank_id': bank_id,
                 'error': str(e),
                 'execution_time': round(execution_time, 2)
             }
         )
+
+
+@app.post("/validate", response_model=BankConnectionResponse, dependencies=[Depends(verify_api_key)])
+@limiter.limit("10/minute")
+async def validate(request: Request, data: ValidateRequest):
+    """
+    Endpoint utilisé par l'onglet Connexions (frontend).
+    Body: { "bank_name": "credit_agricole", "email": "...", "password": "..." }
+    Réponse: { "success": true|false, "message": "...", "details": {...} }
+    """
+    logger.info(f"Validation /validate pour {data.bank_name} - {data.email} depuis {request.client.host}")
+    return await _do_validate(data.bank_name, data.email, data.password)
+
+
+@app.post("/test-bank-connection", response_model=BankConnectionResponse, dependencies=[Depends(verify_api_key)])
+@limiter.limit("10/minute")
+async def test_bank_connection(request: Request, data: BankConnectionRequest):
+    """
+    Teste la connexion à un site carrière bancaire.
+    Body: { "bank_id": "credit_agricole", "email": "...", "password": "..." }
+    Réponse: { "success": true|false, "message": "...", "details": {...} }
+    """
+    logger.info(f"Test connexion pour {data.bank_id} - {data.email} depuis {request.client.host}")
+    return await _do_validate(data.bank_id, data.email, data.password)
 
 # Gestion globale des erreurs
 @app.exception_handler(Exception)

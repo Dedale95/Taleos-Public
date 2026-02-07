@@ -2934,16 +2934,18 @@
                 const result = await response.json();
                 console.log('[API] Réponse:', result);
 
-                // Succès : top-level ou dans result.data (bool ou string "true")
-                const raw = result.data != null ? result.data : result;
-                const successVal = raw.success;
-                const isSuccess = successVal === true || successVal === 'true' || result.status === 'success' || raw.status === 'success';
-                const message = raw.message ?? result.message;
-                if (isSuccess) {
-                    return { success: true, data: result, message: message };
-                } else {
-                    return { success: false, error: message || 'Erreur inconnue', data: result };
+                const raw = result && typeof result === 'object' && result.data != null ? result.data : result;
+                const successVal = raw && typeof raw === 'object' ? raw.success : result.success;
+                const message = (raw && raw.message != null ? raw.message : result && result.message) ?? '';
+
+                // Succès : flag true (bool ou string "true") OU message indiquant clairement un succès
+                const flagSuccess = successVal === true || successVal === 'true' || (result && result.status === 'success') || (raw && raw.status === 'success');
+                const messageSuccess = typeof message === 'string' && /succès|lancée avec succès|envoyée avec succès|candidature lancée/i.test(message);
+
+                if (flagSuccess || messageSuccess) {
+                    return { success: true, data: result, message: message || 'Candidature envoyée.' };
                 }
+                return { success: false, error: message || 'Erreur inconnue', data: result };
 
             } catch (error) {
                 console.error('[API] Erreur réseau:', error);
@@ -2984,17 +2986,23 @@
                     apiResult = await sendApplicationToBackend(userId, job.job_url, 'credit_agricole');
                     
                     if (!apiResult.success) {
-                        // Erreur lors de l'envoi vers le backend
-                        showToast(
-                            'Erreur d\'envoi',
-                            apiResult.error || 'Impossible d\'envoyer la candidature. Veuillez réessayer.',
-                            'error',
-                            5000
-                        );
-                        delete pendingApplications[jobId];
-                        updateJobCardButtons(jobId);
-                        updateJobCardStyles(jobId);
-                        return;
+                        // Ne pas afficher "Erreur d'envoi" si le message de l'API indique un succès (réponse mal formée)
+                        const errMsg = apiResult.error || '';
+                        const messageIndicatesSuccess = typeof errMsg === 'string' && /succès|lancée avec succès|envoyée avec succès|candidature lancée/i.test(errMsg);
+                        if (messageIndicatesSuccess) {
+                            apiResult = { success: true, data: apiResult.data, message: errMsg };
+                        } else {
+                            showToast(
+                                'Erreur d\'envoi',
+                                errMsg || 'Impossible d\'envoyer la candidature. Veuillez réessayer.',
+                                'error',
+                                5000
+                            );
+                            delete pendingApplications[jobId];
+                            updateJobCardButtons(jobId);
+                            updateJobCardStyles(jobId);
+                            return;
+                        }
                     }
                 }
 

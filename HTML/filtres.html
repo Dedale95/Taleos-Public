@@ -2724,7 +2724,8 @@
         }
 
         // Envoi candidature vers l'API /apply (vignettes Crédit Agricole).
-        // Payload attendu : bank_id, user_id, offer_url.
+        // Payload attendu : bank_id, user_id, offer_url. Pas de mode: 'no-cors' (empêche de lire la réponse).
+        // Si erreur 404 : essayer 'https://api.taleos.co/apply/' (avec slash final) ou inversement.
         async function sendApplicationToBackend(userId, offerUrl, bankId = 'credit_agricole') {
             try {
                 console.log('[API] Envoi candidature vers backend:', { bank_id: bankId, user_id: userId, offer_url: offerUrl });

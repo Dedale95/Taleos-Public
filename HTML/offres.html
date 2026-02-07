@@ -2842,15 +2842,14 @@
                     return; // Ne pas lancer le timer si le profil est incomplet
                 }
 
-                // Mode DEBUG : si ?debug=true dans l'URL, timer de 10 secondes au lieu de 30
                 const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === 'true';
-                const TIMER_DURATION = DEBUG_MODE ? 10 : 30; // 10s vs 30s (offres Crédit Agricole)
+                const TIMER_DURATION = DEBUG_MODE ? 5 : 10; // 5s en debug, 10s en normal
                 
                 // Démarrer le timer
                 let remainingSeconds = TIMER_DURATION;
                 
                 if (DEBUG_MODE) {
-                    console.log('[DEBUG] Mode debug activé - Timer réduit à 10 secondes');
+                    console.log('[DEBUG] Mode debug activé - Timer réduit à 5 secondes');
                 }
                 
                 // Stocker les données de la candidature pour plus tard
@@ -2863,7 +2862,7 @@
                 // Afficher toast de confirmation
                 showToast(
                     'Candidature en attente',
-                    'Vous avez 30 secondes pour annuler avant l\'envoi.',
+                    'Vous avez 10 secondes pour annuler avant l\'envoi.',
                     'info',
                     5000
                 );
@@ -3422,7 +3421,7 @@
                 if (isPending) {
                     // Candidature en cours avec timer (orange) : badge avec MM:SS
                     cardClass += ' application-pending';
-                    const rs = pendingApplications[job.job_id]?.remainingSeconds ?? 30;
+                    const rs = pendingApplications[job.job_id]?.remainingSeconds ?? 10;
                     const m = Math.floor(rs / 60), s = rs % 60;
                     const t = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
                     badgeHTML = '<div class="job-card-badge">⏳ Candidature en cours (' + t + ')</div>';

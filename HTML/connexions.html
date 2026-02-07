@@ -1098,12 +1098,9 @@
                             // On cache le bouton pour éviter les doubles clics
                             btn.style.display = 'none';
 
-                            // Rafraîchir l'affichage de manière élégante sans recharger la page
+                            // Mettre à jour uniquement cette carte (ne pas toucher aux autres formulaires en cours)
                             setTimeout(() => {
-                                // Mettre à jour l'UI de manière fluide
-                                renderBanks();
-                                
-                                // Réouvrir le module pour montrer l'état connecté
+                                updateBankCard(bankId);
                                 const bankModule = document.getElementById(`bank-${bankId}`);
                                 if (bankModule) {
                                     bankModule.classList.add('expanded');
@@ -1304,80 +1301,91 @@
             }
         }
 
-        // Render des modules banques
-        function renderBanks() {
-            const container = document.getElementById('banksContainer');
-            
-            container.innerHTML = banks.map(bank => {
-                const isConnected = userConnections[bank.id]?.connected || false;
-                const connectedEmail = userConnections[bank.id]?.email || '';
-
-                return `
-                    <div class="bank-module" id="bank-${bank.id}">
-                        <div class="bank-header" onclick="toggleBank('${bank.id}')">
-                            <div class="bank-header-left">
-                                <img src="${bank.logo}" alt="${bank.name}" class="bank-logo" onerror="this.style.display='none'">
-                                <div class="bank-info">
-                                    <h3>${bank.name}</h3>
-                                    <p>${bank.description}</p>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <div class="bank-status ${isConnected ? 'connected' : 'disconnected'}">
-                                    ${isConnected ? '✓ Connecté' : '○ Non connecté'}
-                                </div>
-                                <span class="toggle-icon">🔽</span>
+        // Retourne le HTML d'une seule carte banque (pour mise à jour ciblée sans toucher aux autres formulaires).
+        function getBankCardHTML(bank) {
+            const isConnected = userConnections[bank.id]?.connected || false;
+            const connectedEmail = userConnections[bank.id]?.email || '';
+            return `
+                <div class="bank-module" id="bank-${bank.id}">
+                    <div class="bank-header" onclick="toggleBank('${bank.id}')">
+                        <div class="bank-header-left">
+                            <img src="${bank.logo}" alt="${bank.name}" class="bank-logo" onerror="this.style.display='none'">
+                            <div class="bank-info">
+                                <h3>${bank.name}</h3>
+                                <p>${bank.description}</p>
                             </div>
                         </div>
-                        <div class="bank-content">
-                            <div class="bank-content-inner">
-                                ${isConnected ? `
-                                    <div style="padding: 20px; background: #d1fae5; border-radius: 8px; margin-bottom: 20px;">
-                                        <p style="color: #065f46; font-weight: 600; margin-bottom: 5px;">✓ Compte lié</p>
-                                        <p style="color: #065f46; font-size: 0.9rem;">
-                                            ${bank.id === 'societe_generale' ? 'Identifiant' : 'Email'}: ${connectedEmail}
-                                        </p>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="bank-status ${isConnected ? 'connected' : 'disconnected'}">
+                                ${isConnected ? '✓ Connecté' : '○ Non connecté'}
+                            </div>
+                            <span class="toggle-icon">🔽</span>
+                        </div>
+                    </div>
+                    <div class="bank-content">
+                        <div class="bank-content-inner">
+                            ${isConnected ? `
+                                <div style="padding: 20px; background: #d1fae5; border-radius: 8px; margin-bottom: 20px;">
+                                    <p style="color: #065f46; font-weight: 600; margin-bottom: 5px;">✓ Compte lié</p>
+                                    <p style="color: #065f46; font-size: 0.9rem;">
+                                        ${bank.id === 'societe_generale' ? 'Identifiant' : 'Email'}: ${connectedEmail}
+                                    </p>
+                                </div>
+                                <div class="connection-status" id="status-${bank.id}"></div>
+                                <div class="form-actions">
+                                    <button class="btn btn-danger" id="btn-disconnect-${bank.id}" onclick="disconnectBank('${bank.id}', event)">✕ Délier ce compte</button>
+                                </div>
+                            ` : `
+                                <p style="color: #666; margin-bottom: 20px;">
+                                    Connectez votre compte <strong>${bank.name}</strong> pour postuler automatiquement aux offres.
+                                    ${bank.id === 'societe_generale' ? '<br><small style="color: #f59e0b; font-weight: 500;">ℹ️ Société Générale utilise un identifiant (sans @) plutôt qu\'un email.</small>' : ''}
+                                </p>
+                                <form onsubmit="testConnection('${bank.id}', document.getElementById('${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}').value, document.getElementById('password-${bank.id}').value, event); return false;">
+                                    <div class="form-group">
+                                        <label for="${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}">
+                                            ${bank.id === 'societe_generale' ? '👤 Identifiant' : '📧 Email'}
+                                        </label>
+                                        <input type="${bank.id === 'societe_generale' ? 'text' : 'email'}" 
+                                               id="${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}" 
+                                               placeholder="${bank.id === 'societe_generale' ? 'Votre identifiant (sans @)' : 'votre.email@exemple.com'}" 
+                                               required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="password-${bank.id}">Mot de passe</label>
+                                        <div class="password-input-wrapper">
+                                            <input type="password" id="password-${bank.id}" placeholder="Votre mot de passe" required>
+                                            <button type="button" class="password-toggle" onclick="togglePassword('password-${bank.id}', this)" aria-label="Afficher le mot de passe">
+                                                <span class="pwd-icon pwd-icon-show" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                                                <span class="pwd-icon pwd-icon-hide" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="connection-status" id="status-${bank.id}"></div>
                                     <div class="form-actions">
-                                        <button class="btn btn-danger" id="btn-disconnect-${bank.id}" onclick="disconnectBank('${bank.id}', event)">✕ Délier ce compte</button>
+                                        <button type="submit" class="btn btn-primary" id="btn-${bank.id}">🔗 Lier mon compte</button>
                                     </div>
-                                ` : `
-                                    <p style="color: #666; margin-bottom: 20px;">
-                                        Connectez votre compte <strong>${bank.name}</strong> pour postuler automatiquement aux offres.
-                                        ${bank.id === 'societe_generale' ? '<br><small style="color: #f59e0b; font-weight: 500;">ℹ️ Société Générale utilise un identifiant (sans @) plutôt qu\'un email.</small>' : ''}
-                                    </p>
-                                    <form onsubmit="testConnection('${bank.id}', document.getElementById('${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}').value, document.getElementById('password-${bank.id}').value, event); return false;">
-                                        <div class="form-group">
-                                            <label for="${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}">
-                                                ${bank.id === 'societe_generale' ? '👤 Identifiant' : '📧 Email'}
-                                            </label>
-                                            <input type="${bank.id === 'societe_generale' ? 'text' : 'email'}" 
-                                                   id="${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}" 
-                                                   placeholder="${bank.id === 'societe_generale' ? 'Votre identifiant (sans @)' : 'votre.email@exemple.com'}" 
-                                                   required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="password-${bank.id}">Mot de passe</label>
-                                            <div class="password-input-wrapper">
-                                                <input type="password" id="password-${bank.id}" placeholder="Votre mot de passe" required>
-                                                <button type="button" class="password-toggle" onclick="togglePassword('password-${bank.id}', this)" aria-label="Afficher le mot de passe">
-                                                    <span class="pwd-icon pwd-icon-show" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
-                                                    <span class="pwd-icon pwd-icon-hide" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="connection-status" id="status-${bank.id}"></div>
-                                        <div class="form-actions">
-                                            <button type="submit" class="btn btn-primary" id="btn-${bank.id}">🔗 Lier mon compte</button>
-                                        </div>
-                                    </form>
-                                `}
-                            </div>
+                                </form>
+                            `}
                         </div>
                     </div>
-                `;
-            }).join('');
+                </div>
+            `;
+        }
+
+        // Met à jour une seule carte (évite de re-render tout le conteneur et de vider les formulaires des autres banques).
+        function updateBankCard(bankId) {
+            const bank = banks.find(b => b.id === bankId);
+            if (!bank) return;
+            const el = document.getElementById('bank-' + bankId);
+            if (!el) return;
+            el.outerHTML = getBankCardHTML(bank);
+        }
+
+        // Render de tous les modules banques
+        function renderBanks() {
+            const container = document.getElementById('banksContainer');
+            if (!container) return;
+            container.innerHTML = banks.map(bank => getBankCardHTML(bank)).join('');
         }
 
         // Vérification immédiate de l'authentification (avant Firebase)

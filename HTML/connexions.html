@@ -878,26 +878,23 @@
             }
         }
 
-        // Charger les connexions de l'utilisateur
+        // Charger les connexions : profiles/{uid}/career_connections/{bankId}
         async function loadUserConnections() {
             if (!currentUser) return;
 
             try {
-                // Charger tous les documents de la sous-collection career_connections
                 const snapshot = await db.collection('profiles')
                     .doc(currentUser.uid)
                     .collection('career_connections')
-                    .where('status', '==', 'connected')
                     .get();
 
-                // Réinitialiser userConnections
                 userConnections = {};
 
-                // Parcourir les documents et les indexer par bankId
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.bankId) {
-                        userConnections[data.bankId] = {
+                    const bankId = data.bankId || doc.id;
+                    if (data.status === 'connected' || !data.status) {
+                        userConnections[bankId] = {
                             email: data.email,
                             connected: true,
                             connectedAt: data.timestamp ? data.timestamp.toDate().toISOString() : new Date().toISOString()
@@ -1071,18 +1068,19 @@
                     
                     if (uid) {
                         try {
-                            // ÉCRIRE au bon endroit pour valider les règles
+                            // Arborescence : profiles/{uid}/career_connections/{bankId}
                             await db.collection('profiles')
                                     .doc(uid)
                                     .collection('career_connections')
-                                    .add({
+                                    .doc(bankId)
+                                    .set({
                                         bankName: bank.name,
                                         bankId: bankId,
                                         email: emailValue,
                                         password: encryptData(passwordValue),
                                         status: 'connected',
                                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                                    });
+                                    }, { merge: true });
                             
                             // Mettre à jour l'état local
                             userConnections[bankId] = {
@@ -1235,31 +1233,25 @@
             try {
                 console.log(`🗑️ Suppression de la connexion ${bankId} pour l'utilisateur ${currentUser.uid}`);
 
-                // Trouver et supprimer le document correspondant à bankId dans la sous-collection
-                const snapshot = await db.collection('profiles')
+                const docRef = db.collection('profiles')
                     .doc(currentUser.uid)
                     .collection('career_connections')
-                    .where('bankId', '==', bankId)
-                    .get();
+                    .doc(bankId);
 
-                if (snapshot.empty) {
+                const docSnap = await docRef.get();
+                if (!docSnap.exists) {
                     console.warn(`⚠️ Aucun document trouvé pour bankId: ${bankId}`);
                     delete userConnections[bankId];
                     if (statusDiv) {
                         statusDiv.className = 'connection-status show success';
                         statusDiv.innerHTML = '✅ Compte délié avec succès';
                     }
-                    setTimeout(() => {
-                        renderBanks();
-                    }, 1500);
+                    setTimeout(() => renderBanks(), 1500);
                     return;
                 }
 
-                // Supprimer tous les documents trouvés (normalement il n'y en a qu'un)
-                const deletePromises = snapshot.docs.map(doc => doc.ref.delete());
-                await Promise.all(deletePromises);
-
-                console.log(`✅ Connexion ${bankId} supprimée avec succès (${snapshot.docs.length} document(s) supprimé(s))`);
+                await docRef.delete();
+                console.log(`✅ Connexion ${bankId} supprimée avec succès`);
 
                 // Mettre à jour l'objet local
                 delete userConnections[bankId];

@@ -1535,7 +1535,7 @@
                 .trim();
         }
 
-        /** ID du document Firestore job_applications : companyName / jobTitle / dd-mm-yyyy _ jobId (lisible dans la console Firebase). */
+        /** ID du document Firestore job_applications : companyName / jobTitle / dd-mm-yyyy / jobId (séparateur ／ car / interdit dans les ID Firestore). */
         function getJobApplicationDocId(companyName, jobTitle, jobId) {
             const now = new Date();
             const dd = String(now.getDate()).padStart(2, '0');
@@ -1546,7 +1546,8 @@
             const company = safe(companyName || 'Non spécifié');
             const title = safe(jobTitle || 'sans-titre');
             const suffix = (jobId || '').trim() || 'unknown';
-            return (company + '_' + title + '_' + datePart + '_' + suffix).slice(0, 1500);
+            const sep = '\uFF0F'; // ／ (fullwidth solidus, autorisé dans les ID Firestore)
+            return (company + sep + title + sep + datePart + sep + suffix).slice(0, 1500);
         }
 
 

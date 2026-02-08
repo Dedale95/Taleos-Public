@@ -1418,13 +1418,18 @@
             return temp.textContent || temp.innerText || title;
         }
 
-        /** ID du document Firestore job_applications : basé sur le titre du poste + jobId pour unicité (pas d'ID aléatoire). */
-        function getJobApplicationDocId(jobTitle, jobId) {
-            const raw = (jobTitle || 'sans-titre').trim();
-            const base = raw.replace(/[/\\.]/g, '_').replace(/\s+/g, ' ').trim().slice(0, 200);
-            const safe = (base || 'sans-titre').replace(/\s/g, '_');
+        /** ID du document Firestore job_applications : companyName / jobTitle / dd-mm-yyyy _ jobId (lisible dans la console Firebase). */
+        function getJobApplicationDocId(companyName, jobTitle, jobId) {
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+            const datePart = dd + '-' + mm + '-' + yyyy;
+            const safe = (s) => (s || '').trim().replace(/[/\\.]/g, '_').replace(/\s+/g, '_').slice(0, 150) || 'inconnu';
+            const company = safe(companyName || 'Non spécifié');
+            const title = safe(jobTitle || 'sans-titre');
             const suffix = (jobId || '').trim() || 'unknown';
-            return (safe + '_' + suffix).slice(0, 1500);
+            return (company + '_' + title + '_' + datePart + '_' + suffix).slice(0, 1500);
         }
 
         // Mapping ville -> région (depuis offres.html)
@@ -2657,10 +2662,9 @@
                 }
 
                 const applicationsRef = db.collection('profiles').doc(userId).collection('job_applications');
-                const docId = getJobApplicationDocId(cleanJobTitle(job.job_title), jobId);
-                const existingDoc = await applicationsRef.doc(docId).get();
+                const existingApp = await applicationsRef.where('jobId', '==', jobId).get();
                 
-                if (existingDoc.exists) {
+                if (!existingApp.empty) {
                     showToast('Déjà candidaté', 'Vous avez déjà postulé à cette offre.', 'info', 3000);
                     userApplications.add(jobId);
                     updateJobCardButtons(jobId);
@@ -2855,7 +2859,7 @@
                 }
 
                 const applicationsRef = db.collection('profiles').doc(userId).collection('job_applications');
-                const docId = getJobApplicationDocId(applicationData.jobTitle, jobId);
+                const docId = getJobApplicationDocId(applicationData.companyName, applicationData.jobTitle, jobId);
                 try {
                     await applicationsRef.doc(docId).set(applicationData);
                     console.log('✅ Candidature enregistrée dans Firestore (doc:', docId + '):', applicationData);
@@ -2959,10 +2963,9 @@
                         }
 
                         const applicationsRef = db.collection('profiles').doc(userId).collection('job_applications');
-                        const docId = getJobApplicationDocId(jobTitle, jobId);
-                        const existingDoc = await applicationsRef.doc(docId).get();
+                        const existingApp = await applicationsRef.where('jobId', '==', jobId).get();
                         
-                        if (!existingDoc.exists) {
+                        if (existingApp.empty) {
                             userApplications.delete(jobId);
                             applicationStatuses.delete(jobId);
                             updateJobCardButtons(jobId);
@@ -2971,6 +2974,7 @@
                             return;
                         }
 
+                        const docId = existingApp.docs[0].id;
                         await applicationsRef.doc(docId).delete();
                         
                         userApplications.delete(jobId);

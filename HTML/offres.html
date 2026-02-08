@@ -1535,19 +1535,20 @@
                 .trim();
         }
 
-        /** ID du document Firestore job_applications : companyName / jobTitle / dd-mm-yyyy / jobId (séparateur ／ car / interdit dans les ID Firestore). */
+        /** ID Firestore job_applications : date (dd/mm/yyyy) › company › title › jobId — breadcrumb, date en premier. */
         function getJobApplicationDocId(companyName, jobTitle, jobId) {
             const now = new Date();
             const dd = String(now.getDate()).padStart(2, '0');
             const mm = String(now.getMonth() + 1).padStart(2, '0');
             const yyyy = now.getFullYear();
-            const datePart = dd + '-' + mm + '-' + yyyy;
+            const slash = '\uFF0F'; // ／ (affichage dd/mm/yyyy, / interdit dans les ID Firestore)
+            const datePart = dd + slash + mm + slash + yyyy;
             const safe = (s) => (s || '').trim().replace(/[/\\.]/g, '_').replace(/\s+/g, '_').slice(0, 150) || 'inconnu';
             const company = safe(companyName || 'Non spécifié');
             const title = safe(jobTitle || 'sans-titre');
             const suffix = (jobId || '').trim() || 'unknown';
-            const sep = '\uFF0F'; // ／ (fullwidth solidus, autorisé dans les ID Firestore)
-            return (company + sep + title + sep + datePart + sep + suffix).slice(0, 1500);
+            const arrow = ' \u203A '; // › (breadcrumb)
+            return (datePart + arrow + company + arrow + title + arrow + suffix).slice(0, 1500);
         }
 
 

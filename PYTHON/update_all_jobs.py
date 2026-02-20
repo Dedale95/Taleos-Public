@@ -27,7 +27,7 @@ CA_DB = PYTHON_DIR / "credit_agricole_jobs.db"
 SG_DB = PYTHON_DIR / "societe_generale_jobs.db"
 DELOITTE_DB = PYTHON_DIR / "deloitte_jobs.db"
 
-def run_script(script_name, cwd=PYTHON_DIR, timeout=900):
+def run_script(script_name, cwd=PYTHON_DIR, timeout=3600):
     print(f"🚀 Lancement de {script_name}...")
     try:
         result = subprocess.run([sys.executable, script_name], 

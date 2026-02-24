@@ -21,14 +21,15 @@
 
   function safeFill(id, value, label) {
     const el = document.getElementById(id);
-    if (!el || !value) return Promise.resolve();
+    if (!el) return Promise.resolve();
     const current = (el.value || '').trim();
-    const target = String(value).trim();
+    const target = value != null ? String(value).trim() : '';
+    if (!target) return Promise.resolve();
     if (current === target) {
-      log(`   ✅ ${label} : Déjà correct -> Skip`);
+      log(`   ✅ ${label} : Déjà correct (Firebase identique) -> Skip`);
       return Promise.resolve();
     }
-    log(`   ✏️  ${label} : '${current}' -> '${target}'`);
+    log(`   ✏️  ${label} : Remplacer '${current || '(vide)'}' par '${target}' (Firebase)`);
     el.value = target;
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
@@ -45,11 +46,13 @@
     const trigger = document.querySelector(`div[aria-controls="${ariaId}"], button[aria-controls="${ariaId}"]`);
     if (!trigger) return;
     const current = (trigger.textContent || '').trim();
-    if (expectedVal.toLowerCase().includes(current.toLowerCase()) && !current.includes('Sélectionnez')) {
-      log(`   ✅ ${label} : Déjà correct -> Skip`);
+    const exp = expectedVal.toLowerCase();
+    const cur = current.toLowerCase();
+    if (exp && cur && (exp.includes(cur) || cur.includes(exp)) && !current.includes('Sélectionnez')) {
+      log(`   ✅ ${label} : Déjà correct (${current} = Firebase) -> Skip`);
       return;
     }
-    log(`   ✏️  ${label} : '${current}' -> '${expectedVal}'`);
+    log(`   ✏️  ${label} : Remplacer '${current || 'Sélectionnez'}' par '${expectedVal}' (Firebase)`);
     trigger.click();
     await delay(500);
     const panel = document.getElementById(ariaId);
@@ -76,10 +79,10 @@
     const curSel = getCleanListFromText(currentText || '');
     const expClean = expectedList.map(x => String(x).toLowerCase());
     if (new Set(curSel).size === new Set(expClean).size && curSel.every(c => expClean.includes(c))) {
-      log(`   ✅ ${label} : Déjà synchronisé -> Skip`);
+      log(`   ✅ ${label} : Déjà synchronisé (${curSel.join(', ')} = Firebase) -> Skip`);
       return;
     }
-    log(`   ⚙️  ${label} : ${curSel.join(',')} -> ${expClean.join(',')}`);
+    log(`   ⚙️  ${label} : Actuel [${curSel.join(', ') || 'vide'}] -> Cible [${expClean.join(', ')}] (Firebase)`);
     btn.click();
     await delay(1000);
     const dropdown = btn.nextElementSibling;
@@ -95,9 +98,11 @@
       const isChecked = input.checked;
       const shouldBe = expClean.includes(val);
       if (isChecked && !shouldBe) {
+        log(`      🗑️ Retrait : ${val}`);
         lbl.click();
         await delay(100);
       } else if (!isChecked && shouldBe) {
+        log(`      ➕ Ajout : ${val}`);
         lbl.click();
         await delay(100);
       }
@@ -126,8 +131,15 @@
 
   async function runAuditAndFill(p) {
     const nextBtn = () => document.querySelector('button.cta.next-step');
+    const firstnameEl = document.getElementById('form-apply-firstname');
+    const valPrenom = (firstnameEl?.value || '').trim();
+    if (valPrenom) {
+      log(`🔵 MODE : VÉRIFICATION (Prénom détecté: '${valPrenom}')`);
+    } else {
+      log('🟢 MODE : REMPLISSAGE NEUF (Formulaire vide)');
+    }
 
-    log('📂 [1/4] Infos Personnelles');
+    log('📂 [1/4] Mes informations');
     await safeFill('form-apply-firstname', p.firstname, 'Prénom');
     await safeFill('form-apply-lastname', p.lastname, 'Nom');
     await safeFill('form-apply-address', p.address, 'Adresse');
@@ -139,7 +151,7 @@
     const nb = nextBtn();
     if (nb) { nb.click(); await delay(2000); }
 
-    log('📂 [2/4] Documents');
+    log('📂 [2/4] Mes documents');
     const acc1 = document.querySelector("button[aria-controls='accordion-item-1']");
     if (acc1 && acc1.getAttribute('aria-expanded') === 'false') {
       acc1.click();
@@ -147,23 +159,34 @@
     }
     const cvInput = document.getElementById('form-apply-cv');
     const cvContainer = cvInput?.parentElement;
-    const hasCv = cvInput?.files?.length > 0 || (cvContainer?.textContent || '').toLowerCase().includes('.pdf');
+    const cvText = (cvContainer?.textContent || '').toLowerCase();
+    const hasCvInput = cvInput?.files?.length > 0;
+    const hasCvUi = /\.pdf|\.doc/.test(cvText) || cvContainer?.querySelector('.uploaded-file, .file-name');
+    const hasCv = hasCvInput || !!hasCvUi;
     if (p.cv_url && !hasCv) {
-      log('   ⚠️ CV manquant. Upload...');
+      log('   ✏️  CV : Manquant -> Upload depuis Firebase');
       await setFileInput('form-apply-cv', p.cv_url);
       await delay(3000);
-    } else log('   ✅ CV : Présent -> Skip');
+    } else {
+      log(`   ✅ CV : ${hasCv ? 'Présent (Firebase identique ou déjà uploadé) -> Skip' : 'Non requis'}`);
+    }
     const lmInput = document.getElementById('form-apply-lm');
-    const hasLm = lmInput?.files?.length > 0 || (lmInput?.parentElement?.textContent || '').toLowerCase().includes('.pdf');
+    const lmContainer = lmInput?.parentElement;
+    const lmText = (lmContainer?.textContent || '').toLowerCase();
+    const hasLmInput = lmInput?.files?.length > 0;
+    const hasLmUi = /\.pdf|\.doc/.test(lmText) || lmContainer?.querySelector('.uploaded-file, .file-name');
+    const hasLm = hasLmInput || !!hasLmUi;
     if (p.lm_url && !hasLm) {
-      log('   ⚠️ LM manquante. Upload...');
+      log('   ✏️  LM : Manquante -> Upload depuis Firebase');
       await setFileInput('form-apply-lm', p.lm_url);
       await delay(2000);
-    } else log('   ✅ LM : Présente -> Skip');
+    } else {
+      log(`   ✅ LM : ${hasLm ? 'Présente (Firebase identique ou déjà uploadée) -> Skip' : 'Non requise'}`);
+    }
     const nb2 = nextBtn();
     if (nb2) { nb2.click(); await delay(2000); }
 
-    log('📂 [3/4] Critères');
+    log('📂 [3/4] Mon profil');
     const acc2 = document.querySelector("button[aria-controls='accordion-item-2']");
     if (acc2 && acc2.getAttribute('aria-expanded') === 'false') {
       acc2.click();
@@ -181,7 +204,7 @@
     const nb3 = nextBtn();
     if (nb3) { nb3.click(); await delay(2000); }
 
-    log('📂 [4/4] Formation');
+    log('📂 [4/4] Mes formations');
     const acc3 = document.querySelector("button[aria-controls='accordion-item-3']");
     if (acc3 && acc3.getAttribute('aria-expanded') === 'false') {
       acc3.click();
@@ -193,6 +216,7 @@
     await safeFill('form-apply-diploma-date-obtained', p.diploma_year, 'Année Diplôme');
     window.scrollTo(0, document.body.scrollHeight);
     await delay(500);
+    log('   🗣️  Gestion des langues (Firebase vs formulaire)...');
     for (let i = 0; i < (p.languages || []).length; i++) {
       const lang = p.languages[i];
       if (!lang?.name) continue;
@@ -200,29 +224,39 @@
       const levelTrigger = document.querySelector(`div[aria-controls='customSelect-language-level-${i + 1}']`);
       if (i > 0 && !langTrigger) {
         const addBtn = document.getElementById('add-language-btn');
-        if (addBtn) { addBtn.click(); await delay(1000); }
+        if (addBtn) {
+          log(`      ➕ Clic 'Ajouter langue' pour Slot ${i + 1}`);
+          addBtn.click();
+          await delay(1000);
+        }
       }
       if (langTrigger) {
         const cur = (langTrigger.textContent || '').trim();
-        if (!cur.includes(lang.name) || cur.includes('Sélectionnez')) {
+        if (cur && cur.toLowerCase().includes(lang.name.toLowerCase()) && !cur.includes('Sélectionnez')) {
+          log(`      ✅ Langue ${i + 1} : Déjà correct (${cur} = Firebase) -> Skip`);
+        } else {
+          log(`      ✏️  Langue ${i + 1} : '${cur || 'Sélectionnez'}' -> '${lang.name}' (Firebase)`);
           langTrigger.click();
           await delay(500);
           const panel = document.getElementById(`customSelect-language-${i + 1}`);
           const labels = panel?.querySelectorAll('label') || [];
           for (const lbl of labels) {
-            if ((lbl.textContent || '').includes(lang.name)) { lbl.click(); break; }
+            if ((lbl.textContent || '').toLowerCase().includes(lang.name.toLowerCase())) { lbl.click(); break; }
           }
         }
       }
       if (levelTrigger) {
         const cur = (levelTrigger.textContent || '').trim();
-        if (!cur.includes(lang.level) || cur.includes('Sélectionnez')) {
+        if (cur && cur.toLowerCase().includes((lang.level || '').toLowerCase()) && !cur.includes('Sélectionnez')) {
+          log(`      ✅ Niveau ${i + 1} : Déjà correct (${cur} = Firebase) -> Skip`);
+        } else {
+          log(`      ✏️  Niveau ${i + 1} : '${cur || 'Sélectionnez'}' -> '${lang.level || ''}' (Firebase)`);
           levelTrigger.click();
           await delay(500);
           const panel = document.getElementById(`customSelect-language-level-${i + 1}`);
           const opts = panel?.querySelectorAll('label') || [];
           for (const o of opts) {
-            if ((o.textContent || '').includes(lang.level)) { o.click(); break; }
+            if ((o.textContent || '').toLowerCase().includes((lang.level || '').toLowerCase())) { o.click(); break; }
           }
         }
       }

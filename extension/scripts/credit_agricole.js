@@ -241,6 +241,16 @@
     return false;
   }
 
+  async function waitForLoginForm(maxWait = 10000) {
+    const start = Date.now();
+    while (Date.now() - start < maxWait) {
+      const el = document.querySelector('#form-login-email, input[id*="login-email"], input[type="email"][name*="mail"]');
+      if (el && el.offsetParent !== null) return true;
+      await delay(300);
+    }
+    return false;
+  }
+
   async function main(profile) {
     const phase = profile.__phase;
     const p = { ...profile };
@@ -268,19 +278,33 @@
         const loginBtn = document.querySelector('a.cta.secondary.arrow[href*="connexion"]');
         if (loginBtn) {
           log('🔑 Connexion de l\'utilisateur...');
-          loginBtn.click();
-          await delay(2000);
-          const emailInput = document.querySelector('#form-login-email');
-          const passInput = document.querySelector('#form-login-password');
-          const submitBtn = document.querySelector('#form-login-submit');
-          if (emailInput && passInput && submitBtn) {
-            emailInput.value = profile.auth_email;
-            passInput.value = profile.auth_password;
-            emailInput.dispatchEvent(new Event('input', { bubbles: true }));
-            passInput.dispatchEvent(new Event('input', { bubbles: true }));
-            submitBtn.click();
-            log('   ✅ Login envoyé. Attente 20s...');
-            await delay(20000);
+          if (!p.auth_email || !p.auth_password) {
+            log('   ❌ Identifiants CA manquants. Configurez-les sur la page Connexions de Taleos.');
+          } else {
+            log(`   📧 Identifiants récupérés : ${p.auth_email}`);
+            loginBtn.click();
+            const formReady = await waitForLoginForm(10000);
+            if (formReady) {
+              const emailInput = document.querySelector('#form-login-email') || document.querySelector('input[id*="login-email"]') || document.querySelector('input[type="email"]');
+              const passInput = document.querySelector('#form-login-password') || document.querySelector('input[id*="login-password"]') || document.querySelector('input[type="password"]');
+              const submitBtn = document.querySelector('#form-login-submit') || document.querySelector('button[type="submit"]');
+              if (emailInput && passInput && submitBtn) {
+                emailInput.value = p.auth_email;
+                passInput.value = p.auth_password;
+                emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+                passInput.dispatchEvent(new Event('change', { bubbles: true }));
+                passInput.dispatchEvent(new Event('input', { bubbles: true }));
+                submitBtn.click();
+                log('   ✅ Login envoyé. Attente 20s...');
+                await delay(20000);
+              } else {
+                log('   ✅ Login envoyé (attente 20s)...');
+                await delay(20000);
+              }
+            } else {
+              log('   ⚠️ Formulaire connexion non trouvé, attente 20s...');
+              await delay(20000);
+            }
           }
         } else {
           log('   ℹ️  Déjà connecté ou bouton connexion absent.');

@@ -86,19 +86,29 @@ async function fetchProfile(uid, bankId, token) {
   const base = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
   const headers = { Authorization: `Bearer ${token}` };
 
-  const [profileRes, credsRes] = await Promise.all([
-    fetch(`${base}/profiles/${uid}`, { headers }),
-    fetch(`${base}/profiles/${uid}/career_connections/${bankId}`, { headers })
-  ]);
-
+  const profileRes = await fetch(`${base}/profiles/${uid}`, { headers });
   if (!profileRes.ok) throw new Error('Profil introuvable');
-  if (!credsRes.ok) throw new Error(`Identifiants ${bankId} introuvables`);
+  const profile = parseFirestoreDoc(await profileRes.json());
 
-  const profileJson = await profileRes.json();
-  const credsJson = await credsRes.json();
-
-  const profile = parseFirestoreDoc(profileJson);
-  const creds = parseFirestoreDoc(credsJson);
+  let creds = null;
+  const directRes = await fetch(`${base}/profiles/${uid}/career_connections/${bankId}`, { headers });
+  if (directRes.ok) {
+    creds = parseFirestoreDoc(await directRes.json());
+  } else {
+    const listRes = await fetch(`${base}/profiles/${uid}/career_connections`, { headers });
+    if (listRes.ok) {
+      const listJson = await listRes.json();
+      const docs = listJson.documents || [];
+      for (const d of docs) {
+        const data = parseFirestoreDoc(d);
+        if ((data.bankId || '').toLowerCase() === bankId.toLowerCase()) {
+          creds = data;
+          break;
+        }
+      }
+    }
+  }
+  if (!creds || !creds.email) throw new Error(`Identifiants ${bankId} introuvables. Configurez-les sur la page Connexions.`);
 
   const authPassword = creds.password ? decodeBase64(creds.password) : '';
 

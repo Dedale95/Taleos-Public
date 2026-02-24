@@ -74,8 +74,8 @@ Le CV/LM sont récupérés depuis Firebase Storage (URL) puis convertis en `File
 
 1. **Offre** → Clic "Je postule" → Clic "Connexion" (stocke profil, navigue vers /connexion/)
 2. **Page connexion** → `ca-connexion-filler.js` remplit email/mot de passe, envoie
-3. **Attente 20s** (comme le notebook Python) → Retour forcé à l’URL de l’offre
-4. **Phase 2** → Attente 15s → Clic "Je postule" → Attente formulaire (45s) → Remplissage
+3. **Redirection** : le site envoie vers /candidature/ ou reste sur l'offre
+4. **Phase 3** (si /candidature/) : pas de reload, remplissage direct. **Phase 2** (si offre) : clic "Je postule" → formulaire
 
 ## Debug : identifiants non renseignés
 

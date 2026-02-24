@@ -323,13 +323,17 @@
     const p = { ...profile };
     delete p.__phase;
 
-    log(phase === 2 ? '🚀 PHASE 2 : Formulaire (après reload)' : '🚀 DÉMARRAGE BOT CRÉDIT AGRICOLE');
+    const phaseLabels = { 2: 'Formulaire (après reload)', 3: 'Formulaire direct (redirection /candidature/)' };
+    log(phaseLabels[phase] ? `🚀 PHASE ${phase} : ${phaseLabels[phase]}` : '🚀 DÉMARRAGE BOT CRÉDIT AGRICOLE');
     log(`🔗 URL : ${offerUrl}`);
 
     try {
       if (phase === 2) {
         log('⏳ Attente 15s (chargement page après login)...');
         await delay(15000);
+      } else if (phase === 3) {
+        log('   ✅ Page formulaire directe détectée (pas de reload)');
+        await delay(5000);
       } else {
         await delay(3000);
 
@@ -373,6 +377,38 @@
           bankId: 'credit_agricole',
           profile: { ...p, __phase: 2 }
         });
+        return;
+      }
+
+      if (phase === 3) {
+        log('⏳ Attente chargement formulaire (45s)...');
+        const formReady = await waitForForm(45000);
+        if (!formReady) {
+          log('❌ Timeout: Le formulaire ne s\'est pas affiché.');
+          return;
+        }
+        log('   ✅ Formulaire détecté.');
+        log('   ⏳ Pause 20s (hydration)...');
+        await delay(20000);
+        await runAuditAndFill(p);
+        window.scrollTo(0, document.body.scrollHeight);
+        await delay(1000);
+        const rgpdLabel = Array.from(document.querySelectorAll('label')).find(l => (l.textContent || '').includes('Je déclare avoir lu'));
+        if (rgpdLabel) {
+          const chk = rgpdLabel.querySelector('.checkbox-btn') || document.querySelector('.checkbox-btn:last-of-type');
+          if (chk && !chk.classList.contains('checked') && !chk.classList.contains('active')) {
+            chk.click();
+            log('   ✅ RGPD coché.');
+          }
+        }
+        await delay(3000);
+        const submitBtn = document.getElementById('applyBtn');
+        if (submitBtn && !submitBtn.disabled) {
+          log('🚀 ENVOI CANDIDATURE...');
+          submitBtn.click();
+        } else {
+          log('❌ Bouton Envoyer introuvable ou grisé.');
+        }
         return;
       }
 

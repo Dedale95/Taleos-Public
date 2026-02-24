@@ -16,22 +16,52 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const { offerUrl, bankId, profile } = msg;
     chrome.storage.local.remove('taleos_pending_offer');
     const tabId = sender.tab?.id;
-    if (tabId && offerUrl) {
-      setTimeout(() => {
-        chrome.tabs.update(tabId, { url: offerUrl });
-        chrome.tabs.onUpdated.addListener(function listener(id, info) {
-          if (id !== tabId || info.status !== 'complete') return;
+    if (tabId) {
+      const scriptPath = BANK_SCRIPT_MAP[bankId] || BANK_SCRIPT_MAP.credit_agricole;
+      const injectAndRun = (phase) => {
+        const p = { ...profile, __phase: phase };
+        chrome.scripting.executeScript({ target: { tabId }, files: [scriptPath] }).then(() =>
+          chrome.scripting.executeScript({
+            target: { tabId },
+            func: (data) => { if (window.__taleosRun) window.__taleosRun(data); },
+            args: [p]
+          })
+        ).catch(e => console.error('[Taleos] Inject après login:', e));
+      };
+      let done = false;
+      const handleUrl = (url) => {
+        if (done) return;
+        if (url.includes('/candidature/')) { done = true; injectAndRun(3); return; }
+        if (url.includes('/nos-offres-emploi/')) { done = true; injectAndRun(2); return; }
+        if (offerUrl && !done) {
+          done = true;
+          chrome.tabs.update(tabId, { url: offerUrl });
+          chrome.tabs.onUpdated.addListener(function rel(id, inf) {
+            if (id !== tabId || inf.status !== 'complete') return;
+            chrome.tabs.onUpdated.removeListener(rel);
+            injectAndRun(2);
+          });
+        }
+      };
+      chrome.tabs.get(tabId).then(t => {
+        const url = t?.url || '';
+        if (!url.includes('/connexion')) handleUrl(url);
+      }).catch(() => {});
+      const listener = async (id, info) => {
+        if (id !== tabId || info.status !== 'complete') return;
+        try {
+          const t = await chrome.tabs.get(tabId);
+          const url = t?.url || '';
+          if (url.includes('/connexion')) return;
           chrome.tabs.onUpdated.removeListener(listener);
-          const scriptPath = BANK_SCRIPT_MAP[bankId] || BANK_SCRIPT_MAP.credit_agricole;
-          chrome.scripting.executeScript({ target: { tabId }, files: [scriptPath] }).then(() =>
-            chrome.scripting.executeScript({
-              target: { tabId },
-              func: (data) => { if (window.__taleosRun) window.__taleosRun(data); },
-              args: [profile]
-            })
-          ).catch(e => console.error('[Taleos] Re-inject après login:', e));
-        });
-      }, 20000);
+          handleUrl(url);
+        } catch (_) {}
+      };
+      chrome.tabs.onUpdated.addListener(listener);
+      setTimeout(() => {
+        chrome.tabs.onUpdated.removeListener(listener);
+        if (!done) chrome.tabs.get(tabId).then(t => handleUrl(t?.url || '')).catch(() => {});
+      }, 25000);
     }
     sendResponse({ ok: true });
     return true;

@@ -72,7 +72,7 @@ async function reloadAndContinue(tabId, offerUrl, bankId, profile) {
 }
 
 async function handleApply(offerUrl, bankId, jobId) {
-  const tab = await chrome.tabs.create({ url: offerUrl, active: true });
+  const tab = await chrome.tabs.create({ url: offerUrl, active: false });
   const tabId = tab.id;
 
   const listener = async (id, info) => {

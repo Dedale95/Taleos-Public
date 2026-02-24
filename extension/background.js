@@ -12,6 +12,10 @@ const BANK_SCRIPT_MAP = {
 const PROJECT_ID = 'project-taleos';
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.action === 'test_credentials') {
+    testCredentials(msg.bankId).then(sendResponse).catch(e => sendResponse({ ok: false, error: e.message }));
+    return true;
+  }
   if (msg.action === 'taleos_apply') {
     handleApply(msg.offerUrl, msg.bankId, msg.jobId)
       .then(() => sendResponse({ ok: true }))
@@ -80,6 +84,13 @@ async function handleApply(offerUrl, bankId, jobId) {
   };
 
   chrome.tabs.onUpdated.addListener(listener);
+}
+
+async function testCredentials(bankId) {
+  const { taleosUserId, taleosIdToken } = await chrome.storage.local.get(['taleosUserId', 'taleosIdToken']);
+  if (!taleosUserId || !taleosIdToken) throw new Error('Non connecté. Connectez-vous d\'abord.');
+  const profile = await fetchProfile(taleosUserId, bankId, taleosIdToken);
+  return { ok: true, email: profile.auth_email || '(vide)' };
 }
 
 async function fetchProfile(uid, bankId, token) {

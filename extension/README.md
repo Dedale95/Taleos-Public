@@ -69,3 +69,11 @@ Le CV/LM sont récupérés depuis Firebase Storage (URL) puis convertis en `File
 
 - `activeTab`, `scripting`, `storage`, `tabs` : orchestration
 - `host_permissions` : Taleos, Firebase, sites carrières des banques
+
+## Debug : identifiants non renseignés
+
+1. **Vérifier Firebase** : Connectez-vous à l’extension → cliquez sur « Vérifier identifiants CA ». Si ✅, Firebase est OK. Si ❌, configurez les identifiants sur la page Connexions de Taleos.
+
+2. **Console de la page CA** : Sur la page groupecreditagricole.jobs, F12 → onglet Console. Cherchez les logs `[Taleos CA]` pour voir où ça bloque.
+
+3. **Service Worker** : `chrome://extensions` → Taleos → « Service worker » (lien) → Console. Vérifiez les erreurs de récupération du profil.

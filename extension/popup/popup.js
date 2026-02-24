@@ -126,6 +126,27 @@ function init() {
   const doReload = () => { if (chrome?.runtime?.reload) chrome.runtime.reload(); };
   document.getElementById('reload-btn')?.addEventListener('click', doReload);
   document.getElementById('reload-btn-login')?.addEventListener('click', doReload);
+
+  document.getElementById('test-creds-btn')?.addEventListener('click', async () => {
+    const status = document.getElementById('creds-status');
+    if (!status) return;
+    status.textContent = 'Vérification...';
+    status.className = 'loading-text';
+    try {
+      const r = await chrome.runtime.sendMessage({ action: 'test_credentials', bankId: 'credit_agricole' });
+      if (r?.ok) {
+        status.textContent = `✅ Identifiants CA trouvés pour ${r.email}`;
+        status.className = 'error-text';
+        status.style.color = '#059669';
+      } else {
+        status.textContent = `❌ ${r?.error || 'Erreur inconnue'}`;
+        status.className = 'error-text';
+      }
+    } catch (e) {
+      status.textContent = `❌ ${e.message || 'Erreur'}`;
+      status.className = 'error-text';
+    }
+  });
 }
 
 if (document.readyState === 'loading') {

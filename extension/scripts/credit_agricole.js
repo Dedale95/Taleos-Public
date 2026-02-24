@@ -246,9 +246,69 @@
     while (Date.now() - start < maxWait) {
       const el = document.querySelector('#form-login-email, input[id*="login-email"], input[type="email"][name*="mail"]');
       if (el && el.offsetParent !== null) return true;
+      const iframes = document.querySelectorAll('iframe');
+      for (const f of iframes) {
+        try {
+          const doc = f.contentDocument;
+          if (doc) {
+            const ie = doc.querySelector('#form-login-email, input[id*="login"], input[type="email"]');
+            if (ie) return true;
+          }
+        } catch (_) {}
+      }
       await delay(300);
     }
     return false;
+  }
+
+  function forceFillInput(input, value) {
+    if (!input || value == null) return false;
+    input.focus();
+    input.select();
+    try {
+      const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+      if (nativeSetter) {
+        nativeSetter.call(input, value);
+      } else {
+        input.value = value;
+      }
+      ['input', 'change', 'keyup', 'blur'].forEach(ev => {
+        input.dispatchEvent(new Event(ev, { bubbles: true }));
+      });
+      return true;
+    } catch (e) {
+      console.warn('[Taleos CA] forceFillInput:', e);
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    }
+  }
+
+  function findLoginInputs() {
+    const selectors = [
+      ['#form-login-email', '#form-login-password', '#form-login-submit'],
+      ['input[id*="login-email"]', 'input[id*="login-password"]', 'button[id*="login-submit"]'],
+      ['input[type="email"]', 'input[type="password"]', 'button[type="submit"]']
+    ];
+    for (const [eSel, pSel, sSel] of selectors) {
+      const e = document.querySelector(eSel);
+      const p = document.querySelector(pSel);
+      const s = document.querySelector(sSel);
+      if (e && p) return { email: e, pass: p, submit: s };
+    }
+    const iframes = document.querySelectorAll('iframe');
+    for (const f of iframes) {
+      try {
+        const doc = f.contentDocument;
+        if (doc) {
+          const e = doc.querySelector('#form-login-email, input[id*="login"], input[type="email"]');
+          const p = doc.querySelector('#form-login-password, input[id*="password"], input[type="password"]');
+          const s = doc.querySelector('#form-login-submit, button[type="submit"]');
+          if (e && p) return { email: e, pass: p, submit: s };
+        }
+      } catch (_) {}
+    }
+    return null;
   }
 
   async function main(profile) {
@@ -283,26 +343,29 @@
           } else {
             log(`   📧 Identifiants récupérés : ${p.auth_email}`);
             loginBtn.click();
+            await delay(1500);
             const formReady = await waitForLoginForm(10000);
             if (formReady) {
-              const emailInput = document.querySelector('#form-login-email') || document.querySelector('input[id*="login-email"]') || document.querySelector('input[type="email"]');
-              const passInput = document.querySelector('#form-login-password') || document.querySelector('input[id*="login-password"]') || document.querySelector('input[type="password"]');
-              const submitBtn = document.querySelector('#form-login-submit') || document.querySelector('button[type="submit"]');
-              if (emailInput && passInput && submitBtn) {
-                emailInput.value = p.auth_email;
-                passInput.value = p.auth_password;
-                emailInput.dispatchEvent(new Event('input', { bubbles: true }));
-                passInput.dispatchEvent(new Event('change', { bubbles: true }));
-                passInput.dispatchEvent(new Event('input', { bubbles: true }));
-                submitBtn.click();
-                log('   ✅ Login envoyé. Attente 20s...');
+              const inputs = findLoginInputs();
+              if (inputs && inputs.email && inputs.pass) {
+                log('   📝 Remplissage du formulaire avec forceFillInput (compat React/Vue)...');
+                forceFillInput(inputs.email, p.auth_email);
+                await delay(200);
+                forceFillInput(inputs.pass, p.auth_password);
+                await delay(300);
+                if (inputs.submit) {
+                  inputs.submit.click();
+                  log('   ✅ Login envoyé. Attente 20s...');
+                } else {
+                  log('   ⚠️ Bouton submit non trouvé, attente 20s...');
+                }
                 await delay(20000);
               } else {
-                log('   ✅ Login envoyé (attente 20s)...');
-                await delay(20000);
+                log('   ❌ Champs email/password non trouvés. Sélecteurs:', inputs);
+                await delay(5000);
               }
             } else {
-              log('   ⚠️ Formulaire connexion non trouvé, attente 20s...');
+              log('   ⚠️ Formulaire connexion non trouvé après 10s. Vérifiez la console (F12).');
               await delay(20000);
             }
           }

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Taleos",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Automatisation de candidatures bancaires - Taleos",
   "permissions": [
     "activeTab",
@@ -41,6 +41,11 @@
         "https://*.github.io/*"
       ],
       "js": ["content/taleos-injector.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://groupecreditagricole.jobs/*"],
+      "js": ["content/ca-connexion-filler.js"],
       "run_at": "document_idle"
     }
   ],

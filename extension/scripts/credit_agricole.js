@@ -342,32 +342,17 @@
             log('   ❌ Identifiants CA manquants. Configurez-les sur la page Connexions de Taleos.');
           } else {
             log(`   📧 Identifiants récupérés : ${p.auth_email}`);
-            loginBtn.click();
-            await delay(1500);
-            const formReady = await waitForLoginForm(10000);
-            if (formReady) {
-              const inputs = findLoginInputs();
-              if (inputs && inputs.email && inputs.pass) {
-                log('   📝 Remplissage du formulaire avec forceFillInput (compat React/Vue)...');
-                forceFillInput(inputs.email, p.auth_email);
-                await delay(200);
-                forceFillInput(inputs.pass, p.auth_password);
-                await delay(300);
-                if (inputs.submit) {
-                  inputs.submit.click();
-                  log('   ✅ Login envoyé. Attente 20s...');
-                } else {
-                  log('   ⚠️ Bouton submit non trouvé, attente 20s...');
-                }
-                await delay(20000);
-              } else {
-                log('   ❌ Champs email/password non trouvés. Sélecteurs:', inputs);
-                await delay(5000);
+            log('   📌 Stockage état avant navigation (formulaire sur page séparée)...');
+            chrome.storage.local.set({
+              taleos_pending_offer: {
+                offerUrl,
+                bankId: 'credit_agricole',
+                profile: { ...p, __phase: 2 },
+                timestamp: Date.now()
               }
-            } else {
-              log('   ⚠️ Formulaire connexion non trouvé après 10s. Vérifiez la console (F12).');
-              await delay(20000);
-            }
+            });
+            loginBtn.click();
+            return;
           }
         } else {
           log('   ℹ️  Déjà connecté ou bouton connexion absent.');

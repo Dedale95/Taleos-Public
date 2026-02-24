@@ -12,6 +12,30 @@ const BANK_SCRIPT_MAP = {
 const PROJECT_ID = 'project-taleos';
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.action === 'after_login_submit') {
+    const { offerUrl, bankId, profile } = msg;
+    chrome.storage.local.remove('taleos_pending_offer');
+    const tabId = sender.tab?.id;
+    if (tabId && offerUrl) {
+      setTimeout(() => {
+        chrome.tabs.update(tabId, { url: offerUrl });
+        chrome.tabs.onUpdated.addListener(function listener(id, info) {
+          if (id !== tabId || info.status !== 'complete') return;
+          chrome.tabs.onUpdated.removeListener(listener);
+          const scriptPath = BANK_SCRIPT_MAP[bankId] || BANK_SCRIPT_MAP.credit_agricole;
+          chrome.scripting.executeScript({ target: { tabId }, files: [scriptPath] }).then(() =>
+            chrome.scripting.executeScript({
+              target: { tabId },
+              func: (data) => { if (window.__taleosRun) window.__taleosRun(data); },
+              args: [profile]
+            })
+          ).catch(e => console.error('[Taleos] Re-inject après login:', e));
+        });
+      }, 8000);
+    }
+    sendResponse({ ok: true });
+    return true;
+  }
   if (msg.action === 'test_credentials') {
     testCredentials(msg.bankId).then(sendResponse).catch(e => sendResponse({ ok: false, error: e.message }));
     return true;

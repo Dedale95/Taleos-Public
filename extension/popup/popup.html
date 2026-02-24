@@ -4,73 +4,75 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Taleos</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="../vendor/firebase-app-compat.js"></script>
+  <script src="../vendor/firebase-auth-compat.js"></script>
   <style>
-    body { width: 380px; min-height: 420px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 380px; min-height: 420px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; }
     .taleos-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     .taleos-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); }
     .taleos-btn:hover { box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); }
+    .taleos-input { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; }
     .taleos-input:focus { border-color: #667eea; outline: none; }
     .taleos-card { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); }
+    .header { padding: 32px 24px; text-align: center; color: white; }
+    .header-rounded { border-radius: 12px 12px 0 0; }
+    .logo-box { width: 56px; height: 56px; margin: 0 auto 12px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    .logo-box span { font-size: 1.5rem; font-weight: 700; }
+    .form-section { padding: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; color: #374151; font-weight: 500; font-size: 0.9rem; }
+    .btn-submit { width: 100%; padding: 14px; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    .btn-secondary { width: 100%; padding: 10px; margin-top: 12px; background: transparent; border: 1px solid #e5e7eb; border-radius: 8px; color: #6b7280; font-size: 0.85rem; cursor: pointer; }
+    .btn-secondary:hover { background: #f9fafb; }
+    .btn-logout { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; color: #374151; font-weight: 500; cursor: pointer; background: white; }
+    .btn-logout:hover { background: #f9fafb; }
+    .btn-reload { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #c7d2fe; border-radius: 8px; color: #4f46e5; font-size: 0.9rem; cursor: pointer; background: white; }
+    .btn-reload:hover { background: #eef2ff; }
+    .error-text { color: #ef4444; font-size: 0.875rem; text-align: center; margin-top: 8px; }
+    .loading-text { color: #6b7280; font-size: 0.875rem; text-align: center; margin-top: 8px; }
+    .hidden { display: none !important; }
+    .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #f3f4f6; }
+    .card p { font-size: 0.875rem; color: #4b5563; }
   </style>
 </head>
-<body class="bg-[#f0f2f5] p-0 m-0">
+<body>
   <div id="auth-container">
-    <!-- État non connecté -->
     <div id="login-view">
-      <div class="taleos-gradient px-6 py-8 text-white text-center rounded-t-xl">
-        <div class="w-14 h-14 taleos-gradient rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg" style="box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-          <span class="text-2xl font-bold">T</span>
-        </div>
-        <h1 class="text-xl font-bold">Taleos</h1>
-        <p class="text-sm opacity-90 mt-1">Extension d'automatisation</p>
+      <div class="taleos-gradient header header-rounded">
+        <div class="logo-box"><span>T</span></div>
+        <h1 style="font-size: 1.25rem; font-weight: 700;">Taleos</h1>
+        <p style="font-size: 0.875rem; opacity: 0.9; margin-top: 4px;">Extension d'automatisation</p>
       </div>
-      <div class="px-6 py-6">
-        <form id="login-form" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" id="email" placeholder="votre@email.com" required autocomplete="email"
-              class="taleos-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 transition">
+      <div class="form-section">
+        <form id="login-form">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="votre@email.com" required autocomplete="email" class="taleos-input">
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-            <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password"
-              class="taleos-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 transition">
+          <div class="form-group">
+            <label>Mot de passe</label>
+            <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" class="taleos-input">
           </div>
-          <button type="submit" id="login-btn" class="taleos-btn w-full py-3.5 text-white rounded-lg font-semibold transition">
-            Se connecter
-          </button>
-          <p id="login-error" class="text-sm text-red-500 text-center hidden"></p>
-          <p id="login-loading" class="text-sm text-gray-500 text-center hidden">Connexion en cours...</p>
-          <button type="button" id="reload-btn-login" class="mt-3 w-full py-2 text-xs text-gray-500 hover:text-gray-700">
-            🔄 Mettre à jour l'extension
-          </button>
+          <button type="submit" id="login-btn" class="taleos-btn btn-submit">Se connecter</button>
+          <p id="login-error" class="error-text hidden"></p>
+          <p id="login-loading" class="loading-text hidden">Connexion en cours...</p>
+          <button type="button" id="reload-btn-login" class="btn-secondary">🔄 Mettre à jour l'extension</button>
         </form>
       </div>
     </div>
 
-    <!-- État connecté -->
     <div id="logged-view" class="hidden">
-      <div class="taleos-gradient px-6 py-6 text-white text-center">
-        <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
-          <span id="user-initial" class="text-xl font-bold"></span>
-        </div>
-        <p id="user-email" class="text-sm opacity-90 truncate px-2"></p>
+      <div class="taleos-gradient header">
+        <div class="logo-box"><span id="user-initial"></span></div>
+        <p id="user-email" style="font-size: 0.875rem; opacity: 0.9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;"></p>
       </div>
-      <div class="px-6 py-5">
-        <div class="taleos-card bg-white rounded-xl p-4 mb-4 border border-gray-100">
-          <p class="text-sm text-gray-600">
-            Sur <strong>taleos.co</strong> ou <strong>dedale95.github.io</strong>, cliquez sur <strong>Candidater</strong> pour lancer l'automatisation.
-          </p>
+      <div class="form-section">
+        <div class="taleos-card card">
+          <p>Sur <strong>taleos.co</strong> ou <strong>dedale95.github.io</strong>, cliquez sur <strong>Candidater</strong> pour lancer l'automatisation.</p>
         </div>
-        <button id="reload-btn" class="w-full py-2.5 mb-2 text-sm border border-indigo-200 text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition">
-          🔄 Mettre à jour l'extension
-        </button>
-        <button id="logout-btn" class="w-full py-3 border-2 border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition">
-          Se déconnecter
-        </button>
+        <button id="reload-btn" class="btn-reload">🔄 Mettre à jour l'extension</button>
+        <button id="logout-btn" class="btn-logout">Se déconnecter</button>
       </div>
     </div>
   </div>

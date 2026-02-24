@@ -82,6 +82,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       .catch(e => sendResponse({ error: e.message }));
     return true;
   }
+  if (msg.action === 'fetch_storage_file') {
+    fetchStorageFileAsBase64(msg.storagePath).then(sendResponse).catch(e => sendResponse({ error: e.message }));
+    return true;
+  }
 });
 
 async function reloadAndContinue(tabId, offerUrl, bankId, profile) {
@@ -177,12 +181,8 @@ async function fetchProfile(uid, bankId, token) {
 
   const authPassword = creds.password ? decodeBase64(creds.password) : '';
 
-  const cvUrl = profile.cv_storage_path
-    ? await getStorageDownloadUrl(profile.cv_storage_path, token)
-    : null;
-  const lmUrl = profile.letter_storage_path
-    ? await getStorageDownloadUrl(profile.letter_storage_path, token)
-    : null;
+  const cvStoragePath = profile.cv_storage_path || null;
+  const lmStoragePath = profile.letter_storage_path || null;
 
   const cType = profile.contract_type;
   const contractList = Array.isArray(cType) ? cType : (cType ? [cType] : []);
@@ -212,8 +212,8 @@ async function fetchProfile(uid, bankId, token) {
     diploma_status: profile.diploma_status || '',
     diploma_year: String(profile.graduation_year || ''),
     languages,
-    cv_url: cvUrl,
-    lm_url: lmUrl,
+    cv_storage_path: cvStoragePath,
+    lm_storage_path: lmStoragePath,
     auth_email: (creds.email || '').trim(),
     auth_password: authPassword
   };
@@ -258,4 +258,19 @@ async function getStorageDownloadUrl(storagePath, token) {
   } catch {
     return null;
   }
+}
+
+async function fetchStorageFileAsBase64(storagePath) {
+  const { taleosIdToken } = await chrome.storage.local.get(['taleosIdToken']);
+  if (!taleosIdToken) throw new Error('Non connecté');
+  const url = `https://firebasestorage.googleapis.com/v0/b/project-taleos.firebasestorage.app/o/${encodeURIComponent(storagePath)}?alt=media`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${taleosIdToken}` } });
+  if (!res.ok) throw new Error(`Storage ${res.status}`);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve({ base64: r.result.split(',')[1], type: blob.type || 'application/pdf' });
+    r.onerror = () => reject(new Error('Lecture fichier'));
+    r.readAsDataURL(blob);
+  });
 }

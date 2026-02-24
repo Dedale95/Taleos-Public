@@ -111,14 +111,21 @@
     await delay(300);
   }
 
-  async function setFileInput(inputId, fileUrl) {
-    if (!fileUrl) return;
+  async function setFileInputFromStorage(inputId, storagePath, filename) {
+    if (!storagePath) return;
     const input = document.getElementById(inputId);
     if (!input) return;
     try {
-      const res = await fetch(fileUrl, { mode: 'cors' });
-      const blob = await res.blob();
-      const file = new File([blob], 'cv.pdf', { type: blob.type || 'application/pdf' });
+      const r = await new Promise(resolve => {
+        chrome.runtime.sendMessage({ action: 'fetch_storage_file', storagePath }, resolve);
+      });
+      if (r?.error) throw new Error(r.error);
+      if (!r?.base64) return;
+      const bin = atob(r.base64);
+      const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      const blob = new Blob([arr], { type: r.type || 'application/pdf' });
+      const file = new File([blob], filename || 'document.pdf', { type: blob.type });
       const dt = new DataTransfer();
       dt.items.add(file);
       input.files = dt.files;
@@ -163,9 +170,9 @@
     const hasCvInput = cvInput?.files?.length > 0;
     const hasCvUi = /\.pdf|\.doc/.test(cvText) || cvContainer?.querySelector('.uploaded-file, .file-name');
     const hasCv = hasCvInput || !!hasCvUi;
-    if (p.cv_url && !hasCv) {
+    if (p.cv_storage_path && !hasCv) {
       log('   ✏️  CV : Manquant -> Upload depuis Firebase');
-      await setFileInput('form-apply-cv', p.cv_url);
+      await setFileInputFromStorage('form-apply-cv', p.cv_storage_path, 'cv.pdf');
       await delay(3000);
     } else {
       log(`   ✅ CV : ${hasCv ? 'Présent (Firebase identique ou déjà uploadé) -> Skip' : 'Non requis'}`);
@@ -176,9 +183,9 @@
     const hasLmInput = lmInput?.files?.length > 0;
     const hasLmUi = /\.pdf|\.doc/.test(lmText) || lmContainer?.querySelector('.uploaded-file, .file-name');
     const hasLm = hasLmInput || !!hasLmUi;
-    if (p.lm_url && !hasLm) {
+    if (p.lm_storage_path && !hasLm) {
       log('   ✏️  LM : Manquante -> Upload depuis Firebase');
-      await setFileInput('form-apply-lm', p.lm_url);
+      await setFileInputFromStorage('form-apply-lm', p.lm_storage_path, 'lm.pdf');
       await delay(2000);
     } else {
       log(`   ✅ LM : ${hasLm ? 'Présente (Firebase identique ou déjà uploadée) -> Skip' : 'Non requise'}`);

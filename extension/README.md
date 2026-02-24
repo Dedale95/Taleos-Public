@@ -77,6 +77,18 @@ Le CV/LM sont récupérés depuis Firebase Storage (URL) puis convertis en `File
 3. **Redirection** : le site envoie vers /candidature/ ou reste sur l'offre
 4. **Phase 3** (si /candidature/) : pas de reload, remplissage direct. **Phase 2** (si offre) : clic "Je postule" → formulaire
 
+## Compte Taleos vs identifiants banque
+
+- **Compte Taleos** (connexion extension) : l’email avec lequel vous vous connectez à Taleos (ex. thibault.giraudet@outlook.com). C’est lui qui fournit le profil (prénom, nom, CV, etc.).
+- **Identifiants banque** (page Connexions) : l’email/mot de passe utilisés pour se connecter au site de la banque (ex. thibault.parisien@laposte.net pour le Crédit Agricole). C’est ce compte qui reçoit la candidature.
+
+Pour candidater avec thibault.giraudet@outlook.com sur le CA, configurez cet email dans la page Connexions Taleos pour le Crédit Agricole.
+
+## Erreurs courantes
+
+- **403 sur Firebase Storage** : corrigé (fetch via background avec token).
+- **400 sur admin-ajax.php** : provient du site CA (WordPress), pas de l’extension. Souvent sans impact sur la candidature.
+
 ## Debug : identifiants non renseignés
 
 1. **Vérifier Firebase** : Connectez-vous à l’extension → cliquez sur « Vérifier identifiants CA ». Si ✅, Firebase est OK. Si ❌, configurez les identifiants sur la page Connexions de Taleos.

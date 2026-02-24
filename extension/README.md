@@ -70,6 +70,13 @@ Le CV/LM sont récupérés depuis Firebase Storage (URL) puis convertis en `File
 - `activeTab`, `scripting`, `storage`, `tabs` : orchestration
 - `host_permissions` : Taleos, Firebase, sites carrières des banques
 
+## Flux Crédit Agricole (connexion sur page séparée)
+
+1. **Offre** → Clic "Je postule" → Clic "Connexion" (stocke profil, navigue vers /connexion/)
+2. **Page connexion** → `ca-connexion-filler.js` remplit email/mot de passe, envoie
+3. **Attente 20s** (comme le notebook Python) → Retour forcé à l’URL de l’offre
+4. **Phase 2** → Attente 15s → Clic "Je postule" → Attente formulaire (45s) → Remplissage
+
 ## Debug : identifiants non renseignés
 
 1. **Vérifier Firebase** : Connectez-vous à l’extension → cliquez sur « Vérifier identifiants CA ». Si ✅, Firebase est OK. Si ❌, configurez les identifiants sur la page Connexions de Taleos.

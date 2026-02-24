@@ -85,6 +85,7 @@
       log('✅ Envoi login...');
       inputs.submit.click();
       await delay(500);
+      log('⏳ Attente 20s (comme le notebook Python) puis retour à l\'offre...');
       chrome.runtime.sendMessage({
         action: 'after_login_submit',
         offerUrl,

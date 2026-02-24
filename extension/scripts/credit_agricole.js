@@ -231,11 +231,18 @@
     if (nb4) { nb4.click(); await delay(2000); }
   }
 
-  async function waitForForm(maxWait = 35000) {
+  async function waitForForm(maxWait = 45000) {
     const start = Date.now();
+    const formSelectors = [
+      () => document.getElementById('form-apply-firstname'),
+      () => document.querySelector('[id*="form-apply"][id*="firstname"]'),
+      () => document.querySelector('input[name*="firstname"], input[id*="firstname"]')
+    ];
     while (Date.now() - start < maxWait) {
-      const el = document.getElementById('form-apply-firstname');
-      if (el && el.offsetParent !== null) return true;
+      for (const sel of formSelectors) {
+        const el = sel();
+        if (el && el.offsetParent !== null) return true;
+      }
       await delay(500);
     }
     return false;
@@ -321,7 +328,8 @@
 
     try {
       if (phase === 2) {
-        await delay(3000);
+        log('⏳ Attente 15s (chargement page après login)...');
+        await delay(15000);
       } else {
         await delay(3000);
 
@@ -374,17 +382,22 @@
         return;
       }
 
-      const btnPostule2 = findText('*', 'Je postule');
-      if (btnPostule2) {
-        log('🖱️ Clic "Je postule" (2ème fois - après login)');
-        btnPostule2.click();
+      const formAlreadyVisible = document.getElementById('form-apply-firstname')?.offsetParent != null;
+      if (!formAlreadyVisible) {
+        const btnPostule2 = findText('*', 'Je postule');
+        if (btnPostule2) {
+          log('🖱️ Clic "Je postule" (2ème fois - après login)');
+          btnPostule2.click();
+        } else {
+          log('❌ Bouton "Je postule" introuvable.');
+          return;
+        }
       } else {
-        log('❌ Bouton "Je postule" introuvable.');
-        return;
+        log('   ✅ Formulaire déjà visible (redirection directe après login)');
       }
 
-      log('⏳ Attente chargement formulaire...');
-      const formReady = await waitForForm(30000);
+      log('⏳ Attente chargement formulaire (45s)...');
+      const formReady = formAlreadyVisible || await waitForForm(45000);
       if (!formReady) {
         log('❌ Timeout: Le formulaire ne s\'est pas affiché.');
         return;

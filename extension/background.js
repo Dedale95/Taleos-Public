@@ -31,7 +31,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             })
           ).catch(e => console.error('[Taleos] Re-inject après login:', e));
         });
-      }, 8000);
+      }, 20000);
     }
     sendResponse({ ok: true });
     return true;

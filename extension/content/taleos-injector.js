@@ -7,32 +7,15 @@
 (function() {
   'use strict';
 
-  function syncAuthFromPage() {
-    const script = document.createElement('script');
-    script.textContent = `
-      (function() {
-        function sendToken(u) {
-          if (!u) return;
-          u.getIdToken().then(function(t) {
-            window.dispatchEvent(new CustomEvent('__TALEOS_AUTH_SYNC__', {
-              detail: { token: t, uid: u.uid, email: u.email || '' }
-            }));
-          });
-        }
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-          var u = firebase.auth().currentUser;
-          if (u) {
-            sendToken(u);
-          } else {
-            firebase.auth().onAuthStateChanged(function(user) {
-              if (user) sendToken(user);
-            });
-          }
-        }
-      })();
-    `;
-    (document.head || document.documentElement).appendChild(script);
-    script.remove();
+  function syncAuthFromPage(forceRefresh) {
+    try {
+      if (!chrome?.runtime?.id) return;
+      chrome.runtime.sendMessage({ action: 'inject_auth_sync', forceRefresh: !!forceRefresh }).catch(function() {});
+    } catch (_) {}
+  }
+
+  function isExtensionValid() {
+    try { return !!chrome?.runtime?.id; } catch (_) { return false; }
   }
 
   window.addEventListener('__TALEOS_AUTH_SYNC__', function(e) {
@@ -48,15 +31,21 @@
   });
 
   function scheduleSync() {
-    syncAuthFromPage();
-    setTimeout(syncAuthFromPage, 2500);
-    setTimeout(syncAuthFromPage, 6000);
+    syncAuthFromPage(false);
+    setTimeout(function() { syncAuthFromPage(true); }, 2500);
+    setTimeout(function() { syncAuthFromPage(true); }, 6000);
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', scheduleSync);
   } else {
     scheduleSync();
   }
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+      syncAuthFromPage(true);
+    }
+  });
 
   function getBankIdFromUrl(url) {
     if (!url) return null;
@@ -73,6 +62,13 @@
       if (url) return { card: node, jobUrl: url };
       node = node.parentElement;
     }
+    // Fallback : chercher le lien "Voir l'offre" à côté du bouton
+    const actions = el.closest?.('.job-actions, .job-footer');
+    const link = actions?.querySelector?.('a.job-link[href]');
+    if (link?.href) {
+      const card = actions?.closest?.('.job-card') || actions?.parentElement?.closest?.('.job-card') || actions;
+      return { card, jobUrl: link.href };
+    }
     return null;
   }
 
@@ -82,7 +78,7 @@
     return m ? m[1] : null;
   }
 
-  function onApplyClick(e) {
+  async function onApplyClick(e) {
     const btn = e.target.closest?.('.job-apply-btn');
     if (!btn) return;
 
@@ -93,32 +89,54 @@
     const jobId = extractJobIdFromOnClick(btn) || (card.querySelector('.job-id')?.textContent || '').trim();
     const jobTitle = (card.querySelector('.job-title')?.textContent || '').trim();
     const companyName = (card.querySelector('.company-name-wrapper span, .job-company span')?.textContent || '').trim();
+    let bankId = getBankIdFromUrl(jobUrl);
+    if (jobUrl && String(jobUrl).toLowerCase().includes('groupecreditagricole.jobs')) {
+      bankId = 'credit_agricole';
+    }
 
     e.preventDefault();
     e.stopPropagation();
 
-    const bankId = getBankIdFromUrl(jobUrl);
+    if (!isExtensionValid()) {
+      const openUrl = (bankId === 'credit_agricole' || jobUrl.includes('groupecreditagricole.jobs'))
+        ? 'https://groupecreditagricole.jobs/fr/connexion/'
+        : jobUrl;
+      window.open(openUrl, '_blank');
+      return;
+    }
 
-    chrome.runtime.sendMessage({
-      action: 'taleos_apply',
-      offerUrl: jobUrl,
-      bankId,
-      jobId,
-      jobTitle,
-      companyName
-    }).catch(() => {
-      console.warn('[Taleos] Extension non disponible, ouverture normale');
-      window.open(jobUrl, '_blank');
-    });
+    syncAuthFromPage(true);
+
+    try {
+      await chrome.runtime.sendMessage({
+        action: 'taleos_apply',
+        offerUrl: jobUrl,
+        bankId,
+        jobId,
+        jobTitle,
+        companyName
+      });
+    } catch (err) {
+      const openUrl = (bankId === 'credit_agricole' || jobUrl.includes('groupecreditagricole.jobs'))
+        ? 'https://groupecreditagricole.jobs/fr/connexion/'
+        : jobUrl;
+      window.open(openUrl, '_blank');
+    }
   }
 
   document.addEventListener('click', onApplyClick, true);
 
-  chrome.runtime.onMessage.addListener((msg) => {
+  chrome.runtime.onMessage.addListener(function(msg) {
     if (msg.action === 'taleos_candidature_success') {
       window.dispatchEvent(new CustomEvent('taleos-extension-candidature-success', {
         detail: { jobId: msg.jobId, status: msg.status }
       }));
+    }
+    if (msg.action === 'taleos_request_auth') {
+      syncAuthFromPage(true);
+    }
+    if (msg.action === 'taleos_auth_required') {
+      window.dispatchEvent(new CustomEvent('taleos-extension-auth-required'));
     }
   });
 })();

@@ -740,11 +740,13 @@
         .job-apply-btn,
         .job-link,
         .job-cancel-btn {
-            padding: 10px 18px;
-            font-size: 0.95rem;
+            padding: 10px 16px;
+            font-size: 0.9rem;
             font-weight: 600;
             border-radius: 10px;
-            min-width: 140px;
+            width: 150px;
+            min-width: 150px;
+            max-width: 150px;
             text-align: center;
             flex-shrink: 0;
         }
@@ -755,7 +757,6 @@
             justify-content: center;
             background: #667eea;
             color: white;
-            padding: 10px 20px;
             text-decoration: none;
             transition: all 0.3s;
             box-shadow: 0 2px 10px rgba(102, 126, 234, 0.35);
@@ -1470,10 +1471,11 @@
         async function loadJobs() {
             try {
                 const paths = [
-                    'HTML/scraped_jobs_live.json',
-                    './HTML/scraped_jobs_live.json',
+                    'https://raw.githubusercontent.com/Dedale95/mon-site/main/HTML/scraped_jobs_live.json',
+                    './scraped_jobs_live.json',
                     'scraped_jobs_live.json',
-                    'https://raw.githubusercontent.com/Dedale95/mon-site/main/HTML/scraped_jobs_live.json'
+                    'HTML/scraped_jobs_live.json',
+                    './HTML/scraped_jobs_live.json'
                 ];
 
                 for (const path of paths) {
@@ -2616,6 +2618,10 @@
                 console.error('❌ Erreur lors du chargement des candidatures:', error);
             }
         }
+
+        window.addEventListener('taleos-extension-auth-required', () => {
+            if (typeof showToast === 'function') showToast('Extension non connectée', 'Rafraîchissez la page Taleos ou ouvrez l\'extension pour vous connecter.', 'warning', 6000);
+        });
 
         window.addEventListener('taleos-extension-candidature-success', (e) => {
             const jobId = (e.detail?.jobId || '').trim();

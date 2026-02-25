@@ -1114,6 +1114,13 @@
             }
         }
 
+        window.addEventListener('taleos-extension-candidature-success', () => {
+            if (typeof loadApplications === 'function') {
+                loadApplications();
+                if (typeof showToast === 'function') showToast('Candidature envoyée !', 'Liste mise à jour.', 'success', 3000);
+            }
+        });
+
         // Update statistics
         function updateStats() {
             const total = applications.length;

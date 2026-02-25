@@ -1,6 +1,7 @@
 /**
  * Taleos - Automatisation Crédit Agricole (groupecreditagricole.jobs)
  * Logique conforme au notebook Python : Je postule → Connexion → Identifiants → Reload → Je postule → Formulaire
+ * Support multilingue : FR, EN
  */
 
 (function() {
@@ -9,9 +10,46 @@
   const delay = ms => new Promise(r => setTimeout(r, ms));
   const offerUrl = window.location.href;
 
+  const TEXTS = {
+    apply: ['Je postule', 'Apply', 'Apply now', 'I apply'],
+    applyExclude: ['Comment postuler', 'How to apply', 'comment postuler', 'how to apply', 'Étapes de recrutement', 'Recruitment stages'],
+    cookieDismiss: ['Refuser', 'Refuse', 'Accepter', 'Accept', 'Fermer', 'Close', 'Reject', 'Tout accepter', 'Accept all'],
+    loginLinkHref: ['connexion', 'login', 'sign-in', 'signin'],
+    alreadyApplied: [
+      'vous avez déjà postulé', 'désolé.*déjà postulé', 'suivre ma candidature',
+      'you have already applied', 'sorry.*already applied', 'track my application', 'already applied'
+    ],
+    rgpdCheckbox: ['Je déclare avoir lu', 'I declare that I have read', 'I have read', 'J\'accepte', 'I accept'],
+    successMessage: [
+      'votre candidature a été envoyée avec succès', 'envoyée avec succès', 'candidature validée',
+      'your application has been sent', 'application sent successfully', 'application submitted'
+    ],
+    selectPlaceholder: ['Sélectionnez', 'Select', 'Choose', 'Choisir']
+  };
+
   function log(msg) {
     const t = new Date().toLocaleTimeString('fr-FR');
     console.log(`[${t}] [Taleos CA] ${msg}`);
+  }
+
+  const BANNER_ID = 'taleos-ca-automation-banner';
+  function showAutomationBanner() {
+    if (document.getElementById(BANNER_ID)) return;
+    const banner = document.createElement('div');
+    banner.id = BANNER_ID;
+    banner.innerHTML = '⚠️ Automatisation Taleos en cours — Ne touchez à rien, cela pourrait perturber le processus.';
+    Object.assign(banner.style, {
+      position: 'fixed', top: '0', left: '0', right: '0', zIndex: '2147483647',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white',
+      padding: '10px 20px', fontSize: '14px', fontWeight: '600', textAlign: 'center',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+    });
+    const root = document.body || document.documentElement;
+    root.insertBefore(banner, root.firstChild);
+  }
+  function hideAutomationBanner() {
+    document.getElementById(BANNER_ID)?.remove();
   }
 
   function findText(selector, text) {
@@ -19,8 +57,99 @@
     return Array.from(els).find(el => (el.textContent || '').includes(text));
   }
 
+  function findClickablePostule() {
+    const byDataPopin = document.querySelector('button.cta.primary[data-popin="popin-application"], button[data-popin="popin-application"]');
+    if (byDataPopin && byDataPopin.offsetParent !== null) return byDataPopin;
+    const isExcluded = (el) => {
+      const txt = (el.textContent || '').trim().toLowerCase();
+      const href = (el.getAttribute?.('href') || '').toLowerCase();
+      if (TEXTS.applyExclude.some(x => txt.includes(x.toLowerCase()))) return true;
+      if (/comment-postuler|nos-conseils|our-tips|how-to-apply|etapes-de-recrutement/.test(href)) return true;
+      if (el.closest?.('nav, [role="navigation"]')) return true;
+      return false;
+    };
+    const byTag = document.querySelectorAll('button, a, [role="button"], .cta, [class*="cta"]');
+    for (const el of byTag) {
+      if (isExcluded(el)) continue;
+      const txt = (el.textContent || '').trim();
+      if (!/^Je postule$/i.test(txt) && !/^Apply(\s+now)?$/i.test(txt) && !/^I apply$/i.test(txt)) continue;
+      if (el.offsetParent === null) continue;
+      return el;
+    }
+    for (const el of byTag) {
+      if (isExcluded(el)) continue;
+      const txt = (el.textContent || '').trim();
+      if (!TEXTS.apply.some(t => txt === t || txt.includes(t))) continue;
+      if (el.offsetParent === null) continue;
+      return el;
+    }
+    return null;
+  }
+
+  function findCookieDismissButton() {
+    const byClass = document.querySelector('button.rgpd-btn-refuse, button.rgpd-btn-accept, [class*="rgpd"][class*="btn"]');
+    if (byClass && byClass.offsetParent !== null) return byClass;
+    const buttons = document.querySelectorAll('button, a, [role="button"]');
+    for (const btn of buttons) {
+      const txt = (btn.textContent || '').trim().toLowerCase();
+      if (TEXTS.cookieDismiss.some(t => txt === t.toLowerCase() || txt.includes(t.toLowerCase()))) {
+        if (btn.offsetParent !== null) return btn;
+      }
+    }
+    return null;
+  }
+
+  async function waitForPostuleButton(maxWait = 20000) {
+    const start = Date.now();
+    while (Date.now() - start < maxWait) {
+      const btn = findClickablePostule();
+      if (btn && btn.offsetParent !== null) return btn;
+      await delay(500);
+    }
+    return null;
+  }
+
+  /** Attend que l'animation de chargement soit terminée avant d'interagir */
+  async function waitForLoadingComplete(maxWait = 30000) {
+    const loadingSelectors = [
+      '.spinner.is-active',
+      '[class*="loading"][class*="active"]',
+      '[class*="spinner"][class*="active"]',
+      '[class*="loader"][class*="active"]',
+      '[aria-busy="true"]',
+      '[class*="overlay"][class*="loading"]',
+      '.page-loader',
+      '[class*="page-loader"]'
+    ];
+    const isVisible = (el) => el && el.offsetParent !== null && getComputedStyle(el).visibility !== 'hidden' && getComputedStyle(el).opacity !== '0';
+    const hasVisibleLoading = () => {
+      for (const sel of loadingSelectors) {
+        const els = document.querySelectorAll(sel);
+        if (Array.from(els).some(isVisible)) return true;
+      }
+      return false;
+    };
+    let stableCount = 0;
+    const start = Date.now();
+    while (Date.now() - start < maxWait) {
+      if (!hasVisibleLoading()) {
+        stableCount++;
+        if (stableCount >= 4) {
+          log('   ✅ Animation de chargement terminée.');
+          return true;
+        }
+      } else {
+        stableCount = 0;
+      }
+      await delay(500);
+    }
+    log('   ⚠️ Timeout attente chargement (poursuite quand même).');
+    return false;
+  }
+
   function safeFill(id, value, label) {
-    const el = document.getElementById(id);
+    let el = document.getElementById(id);
+    if (!el) el = document.querySelector(`input[name="${id}"], input[name*="${id.replace('form-apply-', '')}"]`);
     if (!el) return Promise.resolve();
     const current = (el.value || '').trim();
     const target = value != null ? String(value).trim() : '';
@@ -30,14 +159,19 @@
       return Promise.resolve();
     }
     log(`   ✏️  ${label} : Remplacer '${current || '(vide)'}' par '${target}' (Firebase)`);
-    el.value = target;
+    const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+    if (nativeSetter) nativeSetter.call(el, target);
+    else el.value = target;
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
+    el.dispatchEvent(new Event('blur', { bubbles: true }));
     return Promise.resolve();
   }
 
   function getCleanListFromText(raw) {
-    if (!raw || raw.includes('Sélectionnez')) return [];
+    if (!raw) return [];
+    const hasPlaceholder = TEXTS.selectPlaceholder.some(p => raw.includes(p));
+    if (hasPlaceholder) return [];
     return raw.split(',').map(p => p.replace(/\s*\(\d+\)/g, '').trim().toLowerCase()).filter(Boolean);
   }
 
@@ -48,11 +182,12 @@
     const current = (trigger.textContent || '').trim();
     const exp = expectedVal.toLowerCase();
     const cur = current.toLowerCase();
-    if (exp && cur && (exp.includes(cur) || cur.includes(exp)) && !current.includes('Sélectionnez')) {
+    const placeholderMatch = TEXTS.selectPlaceholder.some(p => current.includes(p));
+    if (exp && cur && (exp.includes(cur) || cur.includes(exp)) && !placeholderMatch) {
       log(`   ✅ ${label} : Déjà correct (${current} = Firebase) -> Skip`);
       return;
     }
-    log(`   ✏️  ${label} : Remplacer '${current || 'Sélectionnez'}' par '${expectedVal}' (Firebase)`);
+    log(`   ✏️  ${label} : Remplacer '${current || TEXTS.selectPlaceholder[0]}' par '${expectedVal}' (Firebase)`);
     trigger.click();
     await delay(500);
     const panel = document.getElementById(ariaId);
@@ -277,7 +412,9 @@
     const formSelectors = [
       () => document.getElementById('form-apply-firstname'),
       () => document.querySelector('[id*="form-apply"][id*="firstname"]'),
-      () => document.querySelector('input[name*="firstname"], input[id*="firstname"]')
+      () => document.querySelector('input[name*="firstname"], input[id*="firstname"]'),
+      () => document.querySelector('#form-apply-lastname, input[name*="lastname"]'),
+      () => document.querySelector('form[id*="apply"], form[class*="apply"]')
     ];
     while (Date.now() - start < maxWait) {
       for (const sel of formSelectors) {
@@ -418,7 +555,7 @@
 
   async function waitForSuccessMessage(maxWait = 45000) {
     const start = Date.now();
-    const re = /votre candidature a été envoyée avec succès|envoyée avec succès|candidature validée/i;
+    const re = new RegExp(TEXTS.successMessage.join('|'), 'i');
     while (Date.now() - start < maxWait) {
       const txt = document.body?.textContent || '';
       if (re.test(txt)) return true;
@@ -428,6 +565,7 @@
   }
 
   async function main(profile) {
+    showAutomationBanner();
     const phase = profile.__phase;
     const p = { ...profile };
     const jobId = p.__jobId;
@@ -449,31 +587,91 @@
     log(`🔗 URL : ${offerUrl}`);
     log(`🆔 ID  : ${offerId}`);
     console.log('='.repeat(60));
+
+    const alreadyAppliedRe = new RegExp(TEXTS.alreadyApplied.join('|'), 'i');
+    const checkAlreadyApplied = () => alreadyAppliedRe.test(document.body?.textContent || '');
+    for (let i = 0; i < 3; i++) {
+      if (checkAlreadyApplied()) {
+        log('🛑 Déjà candidaté à cette offre (détecté sur la page).');
+        hideAutomationBanner();
+        if (jobId) {
+          chrome.runtime.sendMessage({
+            action: 'candidature_success',
+            jobId,
+            jobTitle,
+            companyName,
+            offerUrl: offerUrlForNotify
+          });
+          log('   ✅ Tuile Taleos mise à jour.');
+        }
+        return;
+      }
+      if (i < 2) await delay(2000);
+    }
+
     log(`🔄 Connexion Firebase PROFILES...`);
     log(`✅ Identifiants trouvés pour : ${p.auth_email || '(vide)'}`);
     dumpProfile(p);
 
     try {
       if (phase === 2) {
-        log('⏳ Attente 15s (chargement page après login)...');
-        await delay(15000);
+        log('⏳ Attente chargement page offre (fin animation)...');
+        await waitForLoadingComplete(30000);
+        const cookieBtn = findCookieDismissButton();
+        if (cookieBtn) { cookieBtn.click(); await delay(300); }
+        const btnPostuleWait = await waitForPostuleButton(25000);
+        if (btnPostuleWait) {
+          log('   ✅ Bouton "Je postule" détecté, clic (même onglet).');
+          btnPostuleWait.scrollIntoView?.({ behavior: 'instant', block: 'center' });
+          await delay(200);
+          btnPostuleWait.click();
+        }
+        return;
       } else if (phase === 3) {
+        const successRe = new RegExp(TEXTS.successMessage.join('|'), 'i');
+        const isSuccessPage = window.location.pathname.includes('candidature-validee') || successRe.test(document.body?.textContent || '');
+        if (isSuccessPage) {
+          hideAutomationBanner();
+          log('🎉 VOTRE CANDIDATURE A ÉTÉ ENVOYÉE AVEC SUCCÈS');
+          log('👉 Fermeture de l\'onglet dans 5 secondes...');
+          if (jobId) {
+            chrome.runtime.sendMessage({
+              action: 'candidature_success',
+              jobId,
+              jobTitle,
+              companyName,
+              offerUrl: offerUrlForNotify
+            });
+          }
+          return;
+        }
         log('   ✅ Page formulaire directe détectée (pas de reload)');
-        await delay(5000);
       } else {
         await delay(3000);
 
-        const rgpd = document.querySelector('button.rgpd-btn-refuse');
-        if (rgpd) { rgpd.click(); await delay(500); }
+        const cookieBtn = findCookieDismissButton();
+        if (cookieBtn) { cookieBtn.click(); await delay(500); }
 
-        const btnPostule1 = findText('*', 'Je postule');
+        const btnPostule1 = findClickablePostule();
         if (btnPostule1) {
           log('🖱️ Clic "Je postule" (1ère fois)');
+          btnPostule1.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+          await delay(300);
           btnPostule1.click();
-          await delay(2000);
+          for (let i = 0; i < 6; i++) {
+            await delay(500);
+            const p = document.getElementById('popin-application');
+            if (p && (p.classList.contains('open') || p.offsetParent !== null)) break;
+          }
+          await delay(500);
         }
 
-        const loginBtn = document.querySelector('a.cta.secondary.arrow[href*="connexion"]');
+        const popin = document.getElementById('popin-application');
+        const searchRoot = (popin && (popin.classList.contains('open') || popin.offsetParent !== null)) ? popin : document;
+        const loginBtn = searchRoot.querySelector('a.cta.secondary.arrow[href*="connexion"]') ||
+          searchRoot.querySelector('a[href*="connexion"]') ||
+          searchRoot.querySelector('a[href*="login"]') ||
+          searchRoot.querySelector('a[href*="sign-in"]');
         if (loginBtn) {
           log('🔑 Connexion de l\'utilisateur...');
           if (!p.auth_email || !p.auth_password) {
@@ -485,7 +683,7 @@
               taleos_pending_offer: {
                 offerUrl,
                 bankId: 'credit_agricole',
-                profile: { ...p, __phase: 2, __jobId: p.__jobId, __jobTitle: p.__jobTitle, __companyName: p.__companyName, __offerUrl: offerUrl },
+                profile: { ...p, __phase: 2, __jobId: jobId, __jobTitle: jobTitle, __companyName: companyName, __offerUrl: offerUrlForNotify },
                 timestamp: Date.now()
               }
             });
@@ -507,20 +705,29 @@
       }
 
       if (phase === 3) {
-        log('⏳ Attente chargement formulaire (45s)...');
-        const formReady = await waitForForm(45000);
+        log('⏳ Attente chargement formulaire...');
+        await delay(5000);
+        await waitForLoadingComplete(20000);
+        let formReady = await waitForForm(30000);
+        if (!formReady) {
+          formReady = !!document.querySelector('input[id*="firstname"], input[name*="firstname"], #form-apply-firstname');
+        }
         if (!formReady) {
           log('❌ Timeout: Le formulaire ne s\'est pas affiché.');
           return;
         }
         log('   ✅ Formulaire détecté (DOM).');
         log('   ⏳ Attente formulaire prêt (hydration)...');
-        await waitForFormReady(25000);
-        log('   ✅ Formulaire prêt.');
+        const hydrated = await waitForFormReady(15000);
+        if (!hydrated) log('   ⚠️ Hydration partielle, remplissage quand même.');
+        else log('   ✅ Formulaire prêt.');
         await runAuditAndFill(p);
         window.scrollTo(0, document.body.scrollHeight);
         await delay(1000);
-        const rgpdLabel = Array.from(document.querySelectorAll('label')).find(l => (l.textContent || '').includes('Je déclare avoir lu'));
+        const rgpdLabel = Array.from(document.querySelectorAll('label')).find(l => {
+          const t = (l.textContent || '').toLowerCase();
+          return TEXTS.rgpdCheckbox.some(p => t.includes(p.toLowerCase()));
+        });
         if (rgpdLabel) {
           const chk = rgpdLabel.querySelector('.checkbox-btn') || document.querySelector('.checkbox-btn:last-of-type');
           if (chk && !chk.classList.contains('checked') && !chk.classList.contains('active')) {
@@ -531,6 +738,7 @@
         await delay(3000);
         const submitBtn = document.getElementById('applyBtn');
         if (submitBtn && !submitBtn.disabled) {
+          await chrome.storage.local.set({ taleos_success_pending: { jobId, jobTitle: jobTitle || '', companyName: companyName || 'Crédit Agricole', offerUrl: offerUrlForNotify } });
           log('🚀 FINALISATION');
           log('   🔎 Recherche RGPD (Méthode Robuste)...');
           log('   ⏳ Attente de sécurité de 3 SECONDES avant envoi...');
@@ -540,8 +748,8 @@
           const success = await waitForSuccessMessage(45000);
           if (success) {
             console.log('\n' + '✅'.repeat(35));
-            log('🎉 VICTOIRE ! CANDIDATURE VALIDÉE PAR LE SITE');
-            log('👉 Message détecté : \'Votre candidature a été envoyée avec succès\'');
+            log('🎉 VOTRE CANDIDATURE A ÉTÉ ENVOYÉE AVEC SUCCÈS');
+            log('👉 Fermeture de l\'onglet dans 5 secondes...');
             console.log('✅'.repeat(35) + '\n');
             if (jobId) {
               chrome.runtime.sendMessage({
@@ -562,7 +770,7 @@
         return;
       }
 
-      const dejaCandidat = document.body.textContent.includes('Suivre ma candidature');
+      const dejaCandidat = TEXTS.alreadyApplied.some(t => document.body.textContent.toLowerCase().includes(t.toLowerCase()));
       if (dejaCandidat) {
         log('🛑 Déjà candidaté à cette offre.');
         return;
@@ -570,10 +778,13 @@
 
       const formAlreadyVisible = document.getElementById('form-apply-firstname')?.offsetParent != null;
       if (!formAlreadyVisible) {
-        const btnPostule2 = findText('*', 'Je postule');
+        const btnPostule2 = findClickablePostule();
         if (btnPostule2) {
           log('🖱️ Clic "Je postule" (2ème fois - après login)');
+          btnPostule2.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+          await delay(500);
           btnPostule2.click();
+          await delay(2000);
         } else {
           log('❌ Bouton "Je postule" introuvable.');
           return;
@@ -582,8 +793,20 @@
         log('   ✅ Formulaire déjà visible (redirection directe après login)');
       }
 
-      log('⏳ Attente chargement formulaire (45s)...');
-      const formReady = formAlreadyVisible || await waitForForm(45000);
+      log('⏳ Attente chargement formulaire (fin animation)...');
+      await waitForLoadingComplete(30000);
+      let formReady = formAlreadyVisible || await waitForForm(15000);
+      if (!formReady) {
+        log('   ⚠️ Formulaire non détecté. Nouveau clic "Je postule"...');
+        const btnRetry = findClickablePostule();
+        if (btnRetry) {
+          btnRetry.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+          await delay(500);
+          btnRetry.click();
+          await delay(2000);
+          formReady = await waitForForm(30000);
+        }
+      }
       if (!formReady) {
         log('❌ Timeout: Le formulaire ne s\'est pas affiché.');
         return;
@@ -598,9 +821,12 @@
       window.scrollTo(0, document.body.scrollHeight);
       await delay(1000);
 
-      const rgpdLabel = Array.from(document.querySelectorAll('label')).find(l => (l.textContent || '').includes('Je déclare avoir lu'));
-      if (rgpdLabel) {
-        const chk = rgpdLabel.querySelector('.checkbox-btn') || document.querySelector('.checkbox-btn:last-of-type');
+      const rgpdLabel2 = Array.from(document.querySelectorAll('label')).find(l => {
+        const t = (l.textContent || '').toLowerCase();
+        return TEXTS.rgpdCheckbox.some(p => t.includes(p.toLowerCase()));
+      });
+      if (rgpdLabel2) {
+        const chk = rgpdLabel2.querySelector('.checkbox-btn') || document.querySelector('.checkbox-btn:last-of-type');
         if (chk && !chk.classList.contains('checked') && !chk.classList.contains('active')) {
           chk.click();
           log('   ✅ RGPD Coché (Via Label Texte)');
@@ -610,6 +836,7 @@
       await delay(3000);
       const submitBtn = document.getElementById('applyBtn');
       if (submitBtn && !submitBtn.disabled) {
+        await chrome.storage.local.set({ taleos_success_pending: { jobId, jobTitle: jobTitle || '', companyName: companyName || 'Crédit Agricole', offerUrl: offerUrlForNotify } });
         log('🚀 FINALISATION');
         log('   🔎 Recherche RGPD (Méthode Robuste)...');
         log('   ⏳ Attente de sécurité de 3 SECONDES avant envoi...');
@@ -619,7 +846,7 @@
         const success = await waitForSuccessMessage(45000);
         if (success) {
           console.log('\n' + '✅'.repeat(35));
-          log('🎉 VICTOIRE ! CANDIDATURE VALIDÉE PAR LE SITE');
+          log('🎉 VOTRE CANDIDATURE A ÉTÉ ENVOYÉE AVEC SUCCÈS');
           log('👉 Message détecté : \'Votre candidature a été envoyée avec succès\'');
           console.log('✅'.repeat(35) + '\n');
           if (jobId) {
@@ -641,6 +868,8 @@
     } catch (e) {
       log(`❌ Erreur: ${e.message}`);
       console.error(e);
+    } finally {
+      hideAutomationBanner();
     }
   }
 

@@ -65,15 +65,21 @@ async def main():
         with open(out, "w", encoding="utf-8") as f:
             f.write(html)
         print("HTML sauvegardé dans", out)
-        for sel in ['input[id*="legalDisclaimerContinueButton"]', 'input[id*="saveContinueCmdBottom"]', 'input[value*="Continue"]']:
-            try:
-                el = target.locator(sel).first
-                if await el.count() > 0 and await el.is_visible():
-                    print("Trouvé:", sel)
-                    await el.click()
-                    await asyncio.sleep(5)
-            except Exception:
-                pass
+        for attempt in range(6):
+            clicked = False
+            for sel in ['input[id*="legalDisclaimerContinueButton"]', 'input[id*="saveContinueCmdBottom"]', 'input[value*="Continue"]', 'input[value*="Save and Continue"]']:
+                try:
+                    el = target.locator(sel).first
+                    if await el.count() > 0 and await el.is_visible():
+                        print(f"Clic disclaimer {attempt + 1}:", sel)
+                        await el.click()
+                        await asyncio.sleep(5)
+                        clicked = True
+                        break
+                except Exception:
+                    pass
+            if not clicked:
+                await asyncio.sleep(2)
         print("Attente 20s pour inspection manuelle...")
         await asyncio.sleep(20)
         await browser.close()

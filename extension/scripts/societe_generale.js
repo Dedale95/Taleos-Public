@@ -157,8 +157,8 @@
         return null;
       }
 
-      log('📋 Validation du disclaimer de candidature...');
-      for (let i = 0; i < 20; i++) {
+      log('📋 Validation du disclaimer de candidature (peut apparaître 2 fois)...');
+      for (let i = 0; i < 25; i++) {
         const firstNameInput = findByIdContains('personal_info_FirstName') || findByIdContains('FirstName');
         if (firstNameInput && firstNameInput.offsetParent !== null) {
           log('   ✅ Formulaire profil atteint.');
@@ -172,13 +172,13 @@
         }
         const btn = findDisclaimerOrContinueBtn();
         if (btn) {
-          log(`   🖱️ Clic sur le bouton (${btn.value || btn.textContent || 'disclaimer/continue'})...`);
+          log(`   🖱️ Clic disclaimer ${i + 1} (${(btn.value || btn.textContent || '').trim().slice(0, 30)})...`);
           btn.scrollIntoView({ behavior: 'instant', block: 'center' });
           await delay(300);
           btn.click();
-          await delay(3000);
+          await delay(4500);
         } else {
-          await delay(1500);
+          await delay(2000);
         }
       }
 

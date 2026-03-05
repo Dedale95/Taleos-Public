@@ -1,0 +1,8 @@
+# Dépendances pour les scrapeurs d'offres (CA, SG, Deloitte)
+# Utilisé par GitHub Actions pour la mise à jour quotidienne
+
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+pandas>=1.5.0
+tqdm>=4.64.0
+playwright>=1.40.0

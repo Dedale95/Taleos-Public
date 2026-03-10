@@ -28,7 +28,7 @@
       loginUrl: 'https://fina.wd103.myworkdayjobs.com/fr-FR/DeloitteRecrute',
       emailSel: 'input[data-automation-id="email"]',
       passwordSel: 'input[data-automation-id="password"]',
-      submitSel: 'button[data-automation-id="signInSubmitButton"]',
+      submitSel: '[data-automation-id="click_filter"][aria-label="Connexion"], [aria-label="Connexion"][role="button"], button[data-automation-id="signInSubmitButton"]',
       cookieSel: null,
       successCheck: (url, content) => {
         const html = (document.body?.innerHTML || '').toLowerCase();

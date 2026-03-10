@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Taleos",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Automatisation de candidatures bancaires - Taleos",
   "permissions": [
     "activeTab",
@@ -91,6 +91,16 @@
       ],
       "run_at": "document_idle",
       "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.myworkdayjobs.com/*",
+        "https://www.deloitte.com/*"
+      ],
+      "js": [
+        "content/deloitte-careers-filler.js"
+      ],
+      "run_at": "document_idle"
     }
   ],
   "icons": {

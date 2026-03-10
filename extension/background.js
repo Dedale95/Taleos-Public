@@ -690,6 +690,30 @@ async function handleApply(offerUrl, bankId, jobId, jobTitle, companyName, taleo
     };
     chrome.tabs.onUpdated.addListener(listener);
     setTimeout(() => chrome.tabs.onUpdated.removeListener(listener), 120000);
+  } else if (bankId === 'deloitte' || (offerUrl && (String(offerUrl).includes('myworkdayjobs.com') && String(offerUrl).toLowerCase().includes('deloitte')))) {
+    chrome.storage.local.set({ taleos_pending_tab: taleosTabId });
+    const deloitteCreateOpts = { url: offerUrl, active: false };
+    if (taleosTabId) {
+      try {
+        const taleosTab = await chrome.tabs.get(taleosTabId);
+        if (taleosTab?.index != null) deloitteCreateOpts.index = taleosTab.index + 1;
+      } catch (_) {}
+    }
+    const tab = await chrome.tabs.create(deloitteCreateOpts);
+    chrome.storage.local.set({
+      taleos_pending_deloitte: {
+        profile: { ...profile, auth_email: profile.auth_email || profile.email, auth_password: profile.auth_password },
+        tabId: tab.id,
+        jobId,
+        jobTitle,
+        companyName,
+        offerUrl,
+        timestamp: Date.now()
+      }
+    });
+    if (taleosTabId) {
+      chrome.tabs.update(taleosTabId, { active: true }).catch(() => {});
+    }
   } else if (bankId === 'societe_generale' || (offerUrl && String(offerUrl).toLowerCase().includes('careers.societegenerale.com')) || (offerUrl && String(offerUrl).toLowerCase().includes('socgen.taleo.net'))) {
     chrome.storage.local.set({ taleos_pending_tab: taleosTabId });
     const createOpts = { url: offerUrl, active: true };

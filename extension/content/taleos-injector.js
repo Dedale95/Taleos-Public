@@ -79,7 +79,7 @@
     if (!url) return null;
     if (url.includes('groupecreditagricole.jobs') || url.includes('creditagricole')) return 'credit_agricole';
     if (url.includes('careers.societegenerale.com') || url.includes('societegenerale') || url.includes('socgen.taleo.net')) return 'societe_generale';
-    if (url.includes('deloitte.com')) return 'deloitte';
+    if (url.includes('deloitte.com') || (url.includes('myworkdayjobs.com') && url.toLowerCase().includes('deloitte'))) return 'deloitte';
     return 'credit_agricole'; // défaut
   }
 

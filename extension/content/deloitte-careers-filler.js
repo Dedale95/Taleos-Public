@@ -9,8 +9,10 @@
   const MAX_PENDING_AGE = 10 * 60 * 1000;
   const SITE_DELOITTE_CAREERS = 'Site Deloitte Careers';
 
-  function log(msg) {
-    console.log(`[${new Date().toLocaleTimeString('fr-FR')}] [Taleos Deloitte] ${msg}`);
+  const STEP = (n, msg) => `[STEP ${n}] ${msg}`;
+  function log(msg, stepNum) {
+    const prefix = stepNum != null ? STEP(stepNum, '') : '';
+    console.log(`[${new Date().toLocaleTimeString('fr-FR')}] [Taleos Deloitte] ${prefix}${msg}`);
   }
 
   function showBanner() {
@@ -129,19 +131,22 @@
   }
 
   async function runAutomation() {
-    const { taleos_pending_deloitte } = await chrome.storage.local.get('taleos_pending_deloitte');
+    const { taleos_pending_deloitte, taleos_deloitte_did_login_click } = await chrome.storage.local.get(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
     if (!taleos_pending_deloitte) {
-      log('runAutomation: taleos_pending_deloitte absent, skip');
+      log('Pending absent → skip', 0);
       return;
     }
 
     const age = Date.now() - (taleos_pending_deloitte.timestamp || 0);
     if (age > MAX_PENDING_AGE) {
-      log('runAutomation: pending expiré (>10min), skip');
-      chrome.storage.local.remove('taleos_pending_deloitte');
+      log('Pending expiré (>10 min) → skip', 0);
+      chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
       return;
     }
-    log('runAutomation: URL=' + window.location.href);
+
+    window.__taleosDeloitteDidLoginClick = !!taleos_deloitte_did_login_click;
+    const url = window.location.href;
+    log('URL: ' + url.replace(/^https?:\/\/[^/]+/, ''), 0);
 
     const { profile, tabId } = taleos_pending_deloitte;
     const jobId = taleos_pending_deloitte.jobId || '';
@@ -152,25 +157,24 @@
     // Détection "Offre introuvable"
     const pageText = (document.body?.innerText || '').toLowerCase();
     if (pageText.includes('offre introuvable') || pageText.includes('job not found') || pageText.includes('this position is no longer available') || pageText.includes('cette offre est peut-être expirée')) {
-      log('Offre introuvable détectée, notification Taleos...');
+      log('Offre introuvable → notification Taleos', 0);
       await notifyOfferUnavailable(jobId, jobTitle);
       return;
     }
 
     if (!email || !password) {
-      log('Identifiants Deloitte manquants');
+      log('Identifiants manquants → arrêt', 0);
       chrome.storage.local.remove('taleos_pending_deloitte');
       return;
     }
 
     showBanner();
-    const url = window.location.href;
 
     // Sur deloitte.com : redirection vers myworkdayjobs
     if (url.includes('deloitte.com') && !url.includes('myworkdayjobs.com')) {
       const workdayLink = document.querySelector('a[href*="myworkdayjobs.com"][href*="apply"]');
       if (workdayLink?.href) {
-        log('Redirection vers Workday apply...');
+        log('Redirection vers Workday apply', 1);
         window.location.href = workdayLink.href;
         return;
       }
@@ -181,9 +185,9 @@
       const postulerBtn = document.querySelector('a.deloitte-green-button.deloitte-banner-apply-button, a[href*="/apply"]');
       const postulerByText = Array.from(document.querySelectorAll('a')).find(a => /^postuler$/i.test((a.textContent || '').trim()));
       const btn = postulerBtn || postulerByText;
-      if (btn?.offsetParent !== null) {
-        log('Clic sur Postuler...');
-        btn.click();
+      if (btn && btn.offsetParent !== null) {
+        log('Clic sur Postuler', 1);
+        try { btn.click(); } catch (e) { log('Erreur clic Postuler: ' + e.message, 1); }
         setTimeout(runAutomation, 2000);
         return;
       }
@@ -193,37 +197,38 @@
     const emailInput = document.querySelector('input[data-automation-id="email"]');
     const passwordInput = document.querySelector('input[data-automation-id="password"]');
 
-    // 2a. Si le formulaire est visible → on le remplit et on envoie, puis on reviendra plus tard
+    // 2a. Si le formulaire est visible → on le remplit et on envoie
     if (emailInput && passwordInput) {
+      log('Formulaire connexion visible → remplissage email/mot de passe', 2);
       fillInput(emailInput, email);
       fillInput(passwordInput, password);
 
       const submitBtn = document.querySelector('[data-automation-id="click_filter"][aria-label="Connexion"], [aria-label="Connexion"][role="button"], button[data-automation-id="signInSubmitButton"]');
-      if (submitBtn?.offsetParent !== null) {
-        log('Clic sur Connexion (submit)...');
+      if (submitBtn && submitBtn.offsetParent !== null) {
+        log('Clic sur Connexion (soumission formulaire)', 2);
+        chrome.storage.local.set({ taleos_deloitte_did_login_click: true });
         window.__taleosDeloitteDidLoginClick = true;
-        submitBtn.click();
+        try { submitBtn.click(); } catch (e) { log('Erreur clic submit: ' + e.message, 2); }
         setTimeout(runAutomation, 3000);
         return;
       }
     } else {
-      // 2b. Sinon, on cherche d'abord le bouton / lien "Connexion" et on le clique
+      // 2b. Sinon, on cherche le bouton / span "Connexion" pour afficher le formulaire
       const connexionSpan = Array.from(document.querySelectorAll('span')).find(s => /^connexion$/i.test((s.textContent || '').trim()));
       const connexionBtn = document.querySelector('[aria-label="Connexion"][role="button"], [data-automation-id="click_filter"][aria-label="Connexion"]');
       const btn = connexionSpan || connexionBtn;
       if (btn && btn.offsetParent !== null) {
-        log('Clic sur bouton Connexion (avant toute réutilisation de candidature)...');
+        log('Clic sur bouton Connexion (affichage formulaire)', 2);
+        chrome.storage.local.set({ taleos_deloitte_did_login_click: true });
         window.__taleosDeloitteDidLoginClick = true;
-        btn.click();
+        try { btn.click(); } catch (e) { log('Erreur clic Connexion: ' + e.message, 2); }
         setTimeout(runAutomation, 2000);
         return;
-      } else {
-        log('STEP 2: aucun bouton Connexion visible');
       }
+      log('Aucun bouton Connexion visible', 2);
     }
 
-    // Étape 4 : Utiliser ma dernière candidature — pour l'instant, **OBSERVATION SEULEMENT**
-    // On NE clique plus automatiquement pour éviter d'atterrir sur le flux de création de compte.
+    // Étape 4 : Utiliser ma dernière candidature (uniquement si on a déjà fait Connexion)
     const hasConnexionUi = document.querySelector('input[data-automation-id="email"]') ||
       document.querySelector('input[data-automation-id="password"]') ||
       document.querySelector('[aria-label="Connexion"][role="button"], [data-automation-id="click_filter"][aria-label="Connexion"]') ||
@@ -233,23 +238,25 @@
       document.querySelector('a[href*="useMyLastApplication"]') ||
       document.querySelector('a[role="button"][href*="useMyLastApplication"]');
 
-    log(`[STEP 4] hasConnexionUi=${!!hasConnexionUi}, hasUseMyLastApplication=${!!useLastAppBtn}, didLoginClick=${!!window.__taleosDeloitteDidLoginClick}, url="${url}"`);
+    const didLogin = !!window.__taleosDeloitteDidLoginClick;
+    log(`Connexion visible=${!!hasConnexionUi}, bouton "Utiliser ma dernière candidature"=${!!useLastAppBtn}, déjà connecté (flag)=${didLogin}`, 4);
 
-    // Si on a déjà cliqué au moins une fois sur Connexion ET qu'il n'y a plus d'UI de connexion,
-    // on peut cliquer automatiquement sur "Utiliser ma dernière candidature".
-    if (!hasConnexionUi && useLastAppBtn && window.__taleosDeloitteDidLoginClick) {
-      log('[STEP 4] Clic auto sur "Utiliser ma dernière candidature" (après Connexion)');
+    if (!hasConnexionUi && useLastAppBtn && didLogin) {
+      log('Clic sur "Utiliser ma dernière candidature"', 4);
       try {
         useLastAppBtn.scrollIntoView({ behavior: 'instant', block: 'center' });
-      } catch(e) {}
-      useLastAppBtn.click();
+      } catch (e) {}
+      try {
+        useLastAppBtn.click();
+      } catch (e) {
+        log('Erreur clic useMyLastApplication: ' + e.message, 4);
+      }
       setTimeout(runAutomation, 2500);
       return;
     }
 
-    // Si on est sur /apply, sans UI de connexion et sans bouton de réutilisation, on tente un petit retry.
     if (url.includes('/apply') && !hasConnexionUi && !useLastAppBtn) {
-      log('[STEP 4] Pas de connexion visible et pas de bouton "Utiliser ma dernière candidature" → retry léger');
+      log('Attente bouton "Utiliser ma dernière candidature" → retry', 4);
       maybeRetryForUseLastApp();
       return;
     }
@@ -374,19 +381,18 @@
     }
 
     if (filled) {
-      log('Champs remplis. Réessai dans 2s pour vérifier...');
+      log('Champs remplis → réessai dans 2s', 5);
       setTimeout(runAutomation, 2000);
       return;
     }
 
-    // Si on a fait du remplissage ou qu'on est passé par le login, garder le pending pour les prochaines navigations
     if (url.includes('/apply') && (emailInput || filled)) {
-      log('Formulaire en cours. Pending conservé.');
+      log('Formulaire en cours → pending conservé', 5);
       setTimeout(runAutomation, 3000);
       return;
     }
 
-    chrome.storage.local.remove('taleos_pending_deloitte');
+    chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
     setTimeout(hideBanner, 2000);
   }
 
@@ -424,7 +430,7 @@
     if (runCount >= MAX_RETRIES) return;
     if (!window.location.href.includes('/apply')) return;
     runCount++;
-    log('Retry ' + runCount + '/' + MAX_RETRIES + ' pour "Utiliser ma dernière candidature"...');
+    log('Retry ' + runCount + '/' + MAX_RETRIES + ' (attente bouton)', 4);
     setTimeout(runAutomation, 2000);
   }
 })();

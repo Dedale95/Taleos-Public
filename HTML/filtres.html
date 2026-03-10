@@ -526,11 +526,22 @@
             background: rgba(102, 126, 234, 0.08);
         }
         .company-group-expand {
-            margin-right: 6px;
-            font-size: 10px;
+            margin-right: 8px;
+            padding: 8px 12px;
+            min-width: 36px;
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
             transition: transform 0.2s;
             color: #667eea;
             user-select: none;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .company-group-expand:hover {
+            background: rgba(102, 126, 234, 0.15);
         }
         .company-group-expand.expanded {
             transform: rotate(90deg);

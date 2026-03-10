@@ -319,6 +319,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     testCredentials(msg.bankId).then(sendResponse).catch(e => sendResponse({ ok: false, error: e.message }));
     return true;
   }
+  if (msg.action === 'test_connection') {
+    runTestConnection(msg).then(sendResponse).catch(e => sendResponse({ success: false, message: e.message || 'Erreur' }));
+    return true;
+  }
   if (msg.action === 'taleos_apply') {
     const taleosTabId = sender.tab?.id;
     handleApply(msg.offerUrl, msg.bankId, msg.jobId, msg.jobTitle, msg.companyName, taleosTabId)
@@ -405,6 +409,167 @@ async function reloadAndContinue(tabId, offerUrl, bankId, profile) {
 }
 
 const CA_CONNEXION_URL = 'https://groupecreditagricole.jobs/fr/connexion/';
+
+const CONNECTION_TEST_URLS = {
+  credit_agricole: 'https://groupecreditagricole.jobs/fr/connexion/',
+  societe_generale: 'https://socgen.taleo.net/careersection/iam/accessmanagement/login.jsf?lang=fr-FR&redirectionURI=https%3A%2F%2Fsocgen.taleo.net%2Fcareersection%2Fsgcareers%2Fprofile.ftl%3Flang%3Dfr-FR%26src%3DCWS-1%26pcid%3Dmjlsx8hz6i4vn92z&TARGET=https%3A%2F%2Fsocgen.taleo.net%2Fcareersection%2Fsgcareers%2Fprofile.ftl%3Flang%3Dfr-FR%26src%3DCWS-1%26pcid%3Dmjlsx8hz6i4vn92z',
+  deloitte: 'https://fina.wd103.myworkdayjobs.com/fr-FR/DeloitteRecrute'
+};
+
+async function saveCareerConnectionToFirestore(uid, token, bankId, bankName, email, passwordEncoded) {
+  const base = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+  const docPath = `profiles/${uid}/career_connections/${bankId}`;
+  const body = {
+    fields: {
+      bankName: { stringValue: bankName || '' },
+      bankId: { stringValue: bankId || '' },
+      email: { stringValue: email || '' },
+      password: { stringValue: passwordEncoded || '' },
+      status: { stringValue: 'connected' },
+      timestamp: { timestampValue: new Date().toISOString() }
+    }
+  };
+  let res = await fetch(`${base}/${docPath}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  if (res.status === 404) {
+    const parentPath = `profiles/${uid}/career_connections`;
+    res = await fetch(`${base}/${parentPath}?documentId=${encodeURIComponent(bankId)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
+  }
+  if (!res.ok) throw new Error(await res.text());
+}
+
+async function runTestConnection(msg) {
+  const { bankId, email, password, firebaseUserId, taleosTabId, bankName } = msg;
+  const loginUrl = CONNECTION_TEST_URLS[bankId];
+  if (!loginUrl || !email || !password || !firebaseUserId) {
+    return { success: false, message: 'Paramètres manquants' };
+  }
+
+  const { taleosIdToken } = await chrome.storage.local.get(['taleosIdToken']);
+  if (!taleosIdToken) {
+    return { success: false, message: 'Vous devez être connecté à Taleos' };
+  }
+
+  const tab = await chrome.tabs.create({ url: loginUrl, active: true });
+  const tabId = tab.id;
+
+  await chrome.storage.local.set({
+    taleos_connection_test: { bankId, tabId, firebaseUserId, taleosTabId, bankName, timestamp: Date.now() }
+  });
+
+  const params = { bankId, email, password }
+  const runFill = (phase) => chrome.scripting.executeScript({
+    target: { tabId },
+    func: (p, ph) => {
+      window.__taleosConnectionTestParams = { ...p, phase: ph };
+      if (typeof window.__taleosConnectionTestFill === 'function') {
+        return window.__taleosConnectionTestFill();
+      }
+      return { done: false, error: 'Script non chargé' };
+    },
+    args: [params, phase || 0]
+  });
+
+  const runCheck = () => chrome.scripting.executeScript({
+    target: { tabId },
+    func: (bkId) => {
+      window.__taleosConnectionTestParams = { bankId: bkId };
+      if (typeof window.__taleosConnectionTestCheck === 'function') {
+        return window.__taleosConnectionTestCheck();
+      }
+      return null;
+    },
+    args: [bankId]
+  });
+
+  const waitForLoad = () => new Promise((resolve) => {
+    const listener = (id, info) => {
+      if (id === tabId && info.status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(listener);
+        resolve();
+      }
+    };
+    chrome.tabs.onUpdated.addListener(listener);
+    setTimeout(() => {
+      chrome.tabs.onUpdated.removeListener(listener);
+      resolve();
+    }, 15000);
+  });
+
+  try {
+    await waitForLoad();
+    await new Promise(r => setTimeout(r, 1500));
+
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['scripts/connection-test-runner.js']
+    });
+
+    if (bankId === 'deloitte') {
+      const r1 = await runFill(1);
+      if (r1?.[0]?.result?.needPhase2) {
+        await new Promise(r => setTimeout(r, 2500));
+      }
+    }
+
+    const fillRes = await runFill(bankId === 'deloitte' ? 2 : 0);
+    if (fillRes?.[0]?.result?.error && !fillRes[0].result?.submitted) {
+      await chrome.tabs.remove(tabId).catch(() => {});
+      chrome.storage.local.remove('taleos_connection_test');
+      return { success: false, message: fillRes[0].result.error };
+    }
+
+    await new Promise(r => setTimeout(r, 8000));
+
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        files: ['scripts/connection-test-runner.js']
+      });
+    } catch (_) {}
+
+    const checkRes = await runCheck();
+    const result = checkRes?.[0]?.result?.success !== undefined ? checkRes[0].result : null;
+
+    await chrome.tabs.remove(tabId).catch(() => {});
+    chrome.storage.local.remove('taleos_connection_test');
+
+    if (result && result.success) {
+      const encryptedPassword = btoa(password);
+      await saveCareerConnectionToFirestore(
+        firebaseUserId,
+        taleosIdToken,
+        bankId,
+        bankName || bankId,
+        email,
+        encryptedPassword
+      );
+      return { success: true, message: result.message || 'Connexion réussie' };
+    }
+
+    return {
+      success: false,
+      message: (result && result.message) || 'Échec de connexion (état inconnu).'
+    };
+  } catch (e) {
+    await chrome.tabs.remove(tabId).catch(() => {});
+    chrome.storage.local.remove('taleos_connection_test');
+    return { success: false, message: e.message || 'Erreur technique' };
+  }
+}
 
 async function handleApply(offerUrl, bankId, jobId, jobTitle, companyName, taleosTabId) {
   let { taleosUserId, taleosIdToken } = await chrome.storage.local.get(['taleosUserId', 'taleosIdToken']);

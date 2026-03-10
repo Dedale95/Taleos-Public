@@ -1038,78 +1038,47 @@
                 if (!firebaseUserId || typeof firebaseUserId !== 'string' || firebaseUserId.trim() === '') {
                     throw new Error('Vous devez être connecté pour lier un compte. Rechargez la page si le problème persiste.');
                 }
-                console.log("Envoi de l'ID Firebase au backend:", firebaseUserId);
+                console.log("Test de connexion via extension Taleos:", firebaseUserId);
 
-                // 3. Clé attendue par app.py : user_id (avec underscore)
-                const payload = {
-                    user_id: firebaseUserId,
-                    email: emailValue,
-                    password: passwordValue,
-                    bank_id: bank.id
-                };
-
-                const response = await fetch('https://api.taleos.co/validate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                // Utiliser l'extension Taleos pour tester la connexion (ouvre un onglet, teste, sauvegarde Firebase)
+                const data = await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        window.removeEventListener('taleos-test-connection-result', handler);
+                        resolve({ success: false, message: 'Extension Taleos non détectée ou timeout. Installez l\'extension et réessayez.' });
+                    }, 40000);
+                    const handler = (e) => {
+                        clearTimeout(timeout);
+                        window.removeEventListener('taleos-test-connection-result', handler);
+                        resolve(e.detail || {});
+                    };
+                    window.addEventListener('taleos-test-connection-result', handler);
+                    window.dispatchEvent(new CustomEvent('taleos-request-test-connection', {
+                        detail: {
+                            bankId: bankId,
+                            email: emailValue,
+                            password: passwordValue,
+                            firebaseUserId: firebaseUserId,
+                            bankName: bank.name
+                        }
+                    }));
                 });
 
-                const data = await response.json().catch(() => ({}));
-
-                if (!response.ok) {
-                    throw new Error(data.message || `Erreur serveur (${response.status})`);
-                }
-
-                // Réponse AWS : success (booléen) et message (string)
                 const isSuccess = data.success === true;
                 if (isSuccess) {
-                    const uid = firebaseUserId;
-                    if (uid) {
-                        try {
-                            // Arborescence : profiles/{uid}/career_connections/{bankId}
-                            await db.collection('profiles')
-                                    .doc(uid)
-                                    .collection('career_connections')
-                                    .doc(bankId)
-                                    .set({
-                                        bankName: bank.name,
-                                        bankId: bankId,
-                                        email: emailValue,
-                                        password: encryptData(passwordValue),
-                                        status: 'connected',
-                                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                                    }, { merge: true });
-                            
-                            // Mettre à jour l'état local
-                            userConnections[bankId] = {
-                                email: emailValue,
-                                connected: true,
-                                connectedAt: new Date().toISOString()
-                            };
-                            
-                            // ✅ Utiliser la div de statut existante
-                            statusDiv.className = 'connection-status show success';
-                            statusDiv.innerHTML = `✅ <strong>Succès !</strong> Votre compte ${bank.name} est maintenant lié.`;
-                            
-                            // On cache le bouton pour éviter les doubles clics
-                            btn.style.display = 'none';
-
-                            // Mettre à jour uniquement cette carte (ne pas toucher aux autres formulaires en cours)
-                            setTimeout(() => {
-                                updateBankCard(bankId);
-                                const bankModule = document.getElementById(`bank-${bankId}`);
-                                if (bankModule) {
-                                    bankModule.classList.add('expanded');
-                                }
-                            }, 1000);
-                        } catch (firebaseError) {
-                            console.error("Erreur Firebase:", firebaseError);
-                            alert("⚠️ Connexion validée, mais erreur d'enregistrement Firebase.");
-                        }
-                    } else {
-                        statusDiv.className = 'connection-status show error';
-                        statusDiv.innerHTML = '❌ Vous devez être connecté pour enregistrer la connexion.';
-                    }
+                    // L'extension a déjà sauvegardé dans Firebase
+                    userConnections[bankId] = {
+                        email: emailValue,
+                        connected: true,
+                        connectedAt: new Date().toISOString()
+                    };
+                    statusDiv.className = 'connection-status show success';
+                    statusDiv.innerHTML = `✅ <strong>Succès !</strong> Votre compte ${bank.name} est maintenant lié.`;
+                    btn.style.display = 'none';
+                    setTimeout(() => {
+                        updateBankCard(bankId);
+                        const bankModule = document.getElementById(`bank-${bankId}`);
+                        if (bankModule) bankModule.classList.add('expanded');
+                    }, 1000);
                 } else {
                     // Validation échouée (success: false)
                     statusDiv.className = 'connection-status show error';

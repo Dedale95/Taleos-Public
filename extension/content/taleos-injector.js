@@ -41,11 +41,39 @@
     scheduleSync();
   }
 
+  let lastHealthCheck = 0;
+  const HEALTH_CHECK_INTERVAL = 90000;
+  function isContextInvalidated(err) {
+    const msg = (err?.message || String(err)).toLowerCase();
+    return /context invalidated|receiving end does not exist|extension.*invalid/i.test(msg);
+  }
+  function showReloadToast() {
+    const toast = document.createElement('div');
+    toast.textContent = 'Extension déconnectée. Rechargement de la page...';
+    Object.assign(toast.style, {
+      position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 2147483647,
+      background: '#dc2626', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontSize: '14px',
+      fontFamily: 'sans-serif', boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+    });
+    document.body.appendChild(toast);
+    setTimeout(function() { window.location.reload(); }, 2000);
+  }
+  async function healthCheck() {
+    if (Date.now() - lastHealthCheck < HEALTH_CHECK_INTERVAL) return;
+    lastHealthCheck = Date.now();
+    try {
+      await chrome.runtime.sendMessage({ action: 'ping' });
+      syncAuthFromPage(true);
+    } catch (e) {
+      if (isContextInvalidated(e)) showReloadToast();
+    }
+  }
   document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
-      syncAuthFromPage(true);
+      healthCheck();
     }
   });
+  setInterval(healthCheck, HEALTH_CHECK_INTERVAL);
 
   function getBankIdFromUrl(url) {
     if (!url) return null;
@@ -147,21 +175,72 @@
     setButtonProcessing(btn, jobId);
     syncAuthFromPage(true);
 
-    try {
-      await chrome.runtime.sendMessage({
-        action: 'taleos_apply',
-        offerUrl: jobUrl,
-        bankId,
-        jobId,
-        jobTitle,
-        companyName
-      });
-    } catch (err) {
+    const openUrl = (bankId === 'credit_agricole' || jobUrl.includes('groupecreditagricole.jobs'))
+      ? 'https://groupecreditagricole.jobs/fr/connexion/'
+      : jobUrl;
+
+    const fallbackOpen = () => {
       clearProcessing(jobId, true);
-      const openUrl = (bankId === 'credit_agricole' || jobUrl.includes('groupecreditagricole.jobs'))
-        ? 'https://groupecreditagricole.jobs/fr/connexion/'
-        : jobUrl;
+      if (bankId === 'societe_generale' || jobUrl.includes('careers.societegenerale.com') || jobUrl.includes('socgen.taleo.net')) {
+        chrome.storage.local.set({
+          taleos_apply_fallback: {
+            offerUrl: jobUrl,
+            bankId,
+            jobId,
+            jobTitle,
+            companyName,
+            timestamp: Date.now()
+          }
+        });
+      }
       window.open(openUrl, '_blank');
+    };
+
+    async function tryApply() {
+      await chrome.runtime.sendMessage({ action: 'ping' }).catch(() => {});
+      return Promise.race([
+        chrome.runtime.sendMessage({
+          action: 'taleos_apply',
+          offerUrl: jobUrl,
+          bankId,
+          jobId,
+          jobTitle,
+          companyName
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 12000))
+      ]);
+    }
+    try {
+      let response;
+      try {
+        response = await tryApply();
+      } catch (firstErr) {
+        if (!/timeout/i.test(firstErr?.message || '')) throw firstErr;
+        await new Promise(r => setTimeout(r, 2000));
+        response = await tryApply();
+      }
+      if (response?.error) {
+        console.warn('[Taleos] handleApply:', response.error);
+        fallbackOpen();
+      }
+    } catch (err) {
+      const msg = (err?.message || String(err)).toLowerCase();
+      const contextInvalidated = isContextInvalidated(err);
+      if (contextInvalidated) {
+        clearProcessing(jobId, true);
+        const toast = document.createElement('div');
+        toast.textContent = 'Extension déconnectée. Rechargement de la page...';
+        Object.assign(toast.style, {
+          position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 2147483647,
+          background: '#dc2626', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontSize: '14px',
+          fontFamily: 'sans-serif', boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+        });
+        document.body.appendChild(toast);
+        setTimeout(function() { window.location.reload(); }, 2000);
+        return;
+      }
+      console.warn('[Taleos] Extension non disponible ou timeout — ouverture manuelle:', err?.message || err);
+      fallbackOpen();
     }
   }
 
@@ -186,5 +265,26 @@
     if (msg.action === 'taleos_auth_required') {
       window.dispatchEvent(new CustomEvent('taleos-extension-auth-required'));
     }
+  });
+
+  window.addEventListener('taleos-request-test-connection', function(e) {
+    const d = e.detail || {};
+    if (!d.bankId || !d.email || !d.firebaseUserId) return;
+    chrome.runtime.sendMessage({
+      action: 'test_connection',
+      bankId: d.bankId,
+      email: d.email,
+      password: d.password || '',
+      firebaseUserId: d.firebaseUserId,
+      bankName: d.bankName
+    }).then(function(res) {
+      window.dispatchEvent(new CustomEvent('taleos-test-connection-result', {
+        detail: res || {}
+      }));
+    }).catch(function(err) {
+      window.dispatchEvent(new CustomEvent('taleos-test-connection-result', {
+        detail: { success: false, message: err?.message || 'Extension non disponible' }
+      }));
+    });
   });
 })();

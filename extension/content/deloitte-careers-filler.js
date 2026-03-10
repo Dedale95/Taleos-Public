@@ -187,11 +187,9 @@
     // Étape 4 : Utiliser ma dernière candidature / Use My Last Application
     const useLastAppBtn = document.querySelector('[data-automation-id="useMyLastApplication"]') ||
       document.querySelector('a[href*="useMyLastApplication"]');
-    if (useLastAppBtn) {
-      log('Clic sur Utiliser ma dernière candidature...');
-      useLastAppBtn.scrollIntoView({ behavior: 'auto', block: 'center' });
-      useLastAppBtn.click();
-      setTimeout(runAutomation, 2500);
+    if (useLastAppBtn && useLastAppBtn.href) {
+      log('Navigation vers Utiliser ma dernière candidature (lien peut être visuellement désactivé)...');
+      window.location.href = useLastAppBtn.href;
       return;
     }
     if (findAndClickByText(['utiliser ma dernière candidature', 'use my last application', 'use my last application data'])) {

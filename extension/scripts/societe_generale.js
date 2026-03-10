@@ -153,6 +153,7 @@
     for (const root of getSearchRoots()) {
       const txt = (root.body?.innerText || root.body?.innerHTML || '').toLowerCase();
       if (/dans la boîte|votre candidature.*boîte|recruteurs va l'étudier|accéder à votre profil/i.test(txt)) return true;
+      if (/your submission|thank you!|thank you for your submission/i.test(txt)) return true;
     }
     return false;
   }
@@ -796,7 +797,7 @@
           log('   ✅ Candidature envoyée.');
           await delay(8000);
           const successMsg = (document.body?.textContent || '').toLowerCase();
-          if (successMsg.includes('submitted') || successMsg.includes('envoyée') || successMsg.includes('success') || successMsg.includes('merci') || successMsg.includes("c'est dans la boîte")) {
+          if (successMsg.includes('submitted') || successMsg.includes('envoyée') || successMsg.includes('success') || successMsg.includes('merci') || successMsg.includes("c'est dans la boîte") || successMsg.includes('thank you for your submission') || successMsg.includes('your submission')) {
             log('🎉 Candidature envoyée avec succès !');
             if (jobId && offerUrl) {
               try {
@@ -1083,7 +1084,7 @@
       await delay(10000);
 
       const successMsg = document.body?.textContent?.toLowerCase() || '';
-      if (successMsg.includes('submitted') || successMsg.includes('envoyée') || successMsg.includes('success')) {
+      if (successMsg.includes('submitted') || successMsg.includes('envoyée') || successMsg.includes('success') || successMsg.includes('thank you for your submission') || successMsg.includes('your submission')) {
         log('🎉 Candidature envoyée avec succès !');
         if (jobId && offerUrl) {
           chrome.runtime.sendMessage({

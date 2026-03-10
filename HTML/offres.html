@@ -3078,6 +3078,7 @@
         // Gérer la candidature à une offre
         async function applyToJob(jobId, jobTitle, buttonElement) {
             const btn = buttonElement || (typeof event !== 'undefined' && event?.target?.closest?.('.job-apply-btn')) || null;
+            if (btn && btn.getAttribute('data-taleos-processing') === '1') return;
             const reEnableBtn = () => { if (btn && btn.isConnected) { btn.disabled = false; } };
             if (btn) { btn.disabled = true; }
             try {

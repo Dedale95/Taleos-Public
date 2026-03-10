@@ -216,32 +216,35 @@
       }
     }
 
-    // Étape 4 : Utiliser ma dernière candidature (seulement APRÈS être connecté)
-    const useLastAppBtn = document.querySelector('[data-automation-id="useMyLastApplication"]') ||
-      document.querySelector('a[href*="useMyLastApplication"]') ||
-      document.querySelector('a[role="button"][href*="useMyLastApplication"]');
-    if (useLastAppBtn) {
-      const href = useLastAppBtn.getAttribute('href') || useLastAppBtn.href;
-      if (href) {
-        log('Bouton "Utiliser ma dernière candidature" trouvé, clic...');
-        try {
-          useLastAppBtn.scrollIntoView({ behavior: 'instant', block: 'center' });
-          useLastAppBtn.click();
-          setTimeout(runAutomation, 2500);
-          return;
-        } catch (e) {
-          log('Clic échoué, navigation directe: ' + e.message);
-          window.location.href = href.startsWith('http') ? href : new URL(href, window.location.origin).href;
-          return;
+    // Étape 4 : Utiliser ma dernière candidature — uniquement si le formulaire de connexion n’est pas visible
+    const loginVisible = (emailInput && passwordInput) || document.querySelector('[aria-label="Connexion"][role="button"], [data-automation-id="click_filter"][aria-label="Connexion"]') || Array.from(document.querySelectorAll('span')).some(s => /^connexion$/i.test((s.textContent || '').trim()));
+    if (!loginVisible) {
+      const useLastAppBtn = document.querySelector('[data-automation-id="useMyLastApplication"]') ||
+        document.querySelector('a[href*="useMyLastApplication"]') ||
+        document.querySelector('a[role="button"][href*="useMyLastApplication"]');
+      if (useLastAppBtn) {
+        const href = useLastAppBtn.getAttribute('href') || useLastAppBtn.href;
+        if (href) {
+          log('Bouton "Utiliser ma dernière candidature" trouvé (connexion déjà faite), clic...');
+          try {
+            useLastAppBtn.scrollIntoView({ behavior: 'instant', block: 'center' });
+            useLastAppBtn.click();
+            setTimeout(runAutomation, 2500);
+            return;
+          } catch (e) {
+            log('Clic échoué, navigation directe: ' + e.message);
+            window.location.href = href.startsWith('http') ? href : new URL(href, window.location.origin).href;
+            return;
+          }
         }
       }
+      if (findAndClickByText(['utiliser ma dernière candidature', 'use my last application', 'use my last application data'])) {
+        log('Clic sur Utiliser ma dernière candidature (texte)...');
+        setTimeout(runAutomation, 2500);
+        return;
+      }
     }
-    if (findAndClickByText(['utiliser ma dernière candidature', 'use my last application', 'use my last application data'])) {
-      log('Clic sur Utiliser ma dernière candidature (texte)...');
-      setTimeout(runAutomation, 2500);
-      return;
-    }
-    if (url.includes('/apply') && !emailInput) {
+    if (url.includes('/apply') && !emailInput && !document.querySelector('[data-automation-id="useMyLastApplication"]')) {
       maybeRetryForUseLastApp();
       return;
     }

@@ -209,9 +209,12 @@
       return;
     }
 
-    // Bloquer immédiatement le clic (sync) pour éviter le double onglet page+extension
+    // Bloquer immédiatement le clic (sync) pour éviter le double onglet page + extension
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
+    // Marquer tout de suite pour que la page (si elle reçoit l’événement) n’ouvre pas d’onglet
+    btn.dataset.taleosProcessing = '1';
 
     // Ping rapide : si l'extension ne répond pas, ouvrir l'onglet directement ici
     try {

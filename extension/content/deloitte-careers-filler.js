@@ -334,11 +334,11 @@
     setTimeout(hideBanner, 2000);
   }
 
-  chrome.storage.local.get('taleos_pending_deloitte').then((s) => {
-    if (s.taleos_pending_deloitte) {
-      setTimeout(runAutomation, 1500);
-    }
-  });
+  function scheduleRun(delay) {
+    chrome.storage.local.get('taleos_pending_deloitte').then((s) => {
+      if (s.taleos_pending_deloitte) setTimeout(runAutomation, delay || 1500);
+    });
+  }
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && changes.taleos_pending_deloitte?.newValue) {
@@ -347,6 +347,12 @@
   });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(runAutomation, 2000));
+    document.addEventListener('DOMContentLoaded', () => scheduleRun(2000));
+  } else {
+    scheduleRun(1500);
   }
+
+  window.addEventListener('pageshow', function(ev) {
+    if (ev.persisted) scheduleRun(2000);
+  });
 })();

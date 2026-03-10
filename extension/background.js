@@ -78,12 +78,17 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
   const urlLower = url.toLowerCase();
   const isTaleosSite = TALEOS_SITE_PATTERNS.some(p => urlLower.includes(p));
   if (isTaleosSite && (urlLower.startsWith('https://') || urlLower.startsWith('http://'))) {
-    try {
-      await chrome.scripting.executeScript({
-        target: { tabId },
-        files: ['content/taleos-injector.js']
-      });
-    } catch (_) {}
+    const inject = async (retry) => {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: ['content/taleos-injector.js']
+        });
+      } catch (e) {
+        if (retry < 2) setTimeout(() => inject(retry + 1), 800);
+      }
+    };
+    inject(0);
   }
 });
 

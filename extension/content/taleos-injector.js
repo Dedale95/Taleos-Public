@@ -43,12 +43,19 @@
   } else {
     scheduleSync();
   }
+  window.addEventListener('pageshow', function(ev) {
+    if (ev.persisted) {
+      scheduleSync();
+    }
+  });
 
   let lastHealthCheck = 0;
   const HEALTH_CHECK_INTERVAL = 90000;
+  const HEALTH_CHECK_RETRY_DELAY = 1500;
+  const HEALTH_CHECK_RETRIES = 3;
   function isContextInvalidated(err) {
     const msg = (err?.message || String(err)).toLowerCase();
-    return /context invalidated|receiving end does not exist|extension.*invalid/i.test(msg);
+    return /context invalidated|extension.*invalid/i.test(msg);
   }
   function showReloadToast() {
     const toast = document.createElement('div');
@@ -64,16 +71,28 @@
   async function healthCheck() {
     if (Date.now() - lastHealthCheck < HEALTH_CHECK_INTERVAL) return;
     lastHealthCheck = Date.now();
-    try {
-      await chrome.runtime.sendMessage({ action: 'ping' });
-      syncAuthFromPage(true);
-    } catch (e) {
-      if (isContextInvalidated(e)) showReloadToast();
+    for (let i = 0; i < HEALTH_CHECK_RETRIES; i++) {
+      try {
+        await chrome.runtime.sendMessage({ action: 'ping' });
+        syncAuthFromPage(true);
+        return;
+      } catch (e) {
+        const invalidated = isContextInvalidated(e);
+        const receivingEnd = /receiving end does not exist/i.test(e?.message || '');
+        if (invalidated) {
+          showReloadToast();
+          return;
+        }
+        if (receivingEnd && i < HEALTH_CHECK_RETRIES - 1) {
+          await new Promise(function(r) { setTimeout(r, HEALTH_CHECK_RETRY_DELAY); });
+          continue;
+        }
+      }
     }
   }
   document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
-      healthCheck();
+      setTimeout(healthCheck, 2000);
     }
   });
   setInterval(healthCheck, HEALTH_CHECK_INTERVAL);

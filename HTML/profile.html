@@ -1748,6 +1748,44 @@
                     </div>
                 </div>
 
+                <!-- Section Expérience Deloitte -->
+                <div class="form-section accordion-section">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2>Expérience Deloitte</h2>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont nécessaires pour certaines candidatures Deloitte.</p>
+                        
+                        <div class="form-group">
+                            <label for="deloitteWorked">Avez-vous déjà travaillé pour Deloitte ?</label>
+                            <select id="deloitteWorked" name="deloitteWorked" onchange="toggleDeloitteDetails(this.value)">
+                                <option value="">Sélectionnez...</option>
+                                <option value="no">Non</option>
+                                <option value="yes">Oui</option>
+                            </select>
+                        </div>
+
+                        <div id="deloitteDetailsSection" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                            <div class="form-group">
+                                <label for="deloitteOldOffice">Votre ancien bureau</label>
+                                <input type="text" id="deloitteOldOffice" name="deloitteOldOffice" placeholder="Ex. Paris, Lyon...">
+                            </div>
+                            <div class="form-group">
+                                <label for="deloitteOldEmail">Votre ancienne adresse email</label>
+                                <input type="email" id="deloitteOldEmail" name="deloitteOldEmail" placeholder="exemple@deloitte.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="deloitteCountry">Pays</label>
+                                <select id="deloitteCountry" name="deloitteCountry">
+                                    <option value="">Sélectionnez un pays...</option>
+                                    <!-- Options générées par JS -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Section Documents -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -1855,6 +1893,104 @@
         // Variable pour stocker l'utilisateur connecté
         let currentUser = null;
         let authReady = false;
+
+        // Liste des pays : valeur = anglais (pour le site), affichage = français
+        const COUNTRIES_EN_FR = [
+            ["Afghanistan", "Afghanistan"], ["Åland Islands", "Îles Åland"], ["Albania", "Albanie"], ["Algeria", "Algérie"],
+            ["American Samoa", "Samoa américaines"], ["Andorra", "Andorre"], ["Angola", "Angola"], ["Anguilla", "Anguilla"],
+            ["Antigua and Barbuda", "Antigua-et-Barbuda"], ["Argentina", "Argentine"], ["Armenia", "Arménie"], ["Aruba", "Aruba"],
+            ["Australia", "Australie"], ["Austria", "Autriche"], ["Azerbaijan", "Azerbaïdjan"], ["Bahamas", "Bahamas"],
+            ["Bahrain", "Bahreïn"], ["Bangladesh", "Bangladesh"], ["Barbados", "Barbade"], ["Belarus", "Biélorussie"],
+            ["Belgium", "Belgique"], ["Belize", "Belize"], ["Benin", "Bénin"], ["Bermuda", "Bermudes"],
+            ["Bhutan", "Bhoutan"], ["Bolivia", "Bolivie"], ["Bonaire, Sint Eustatius, and Saba", "Bonaire, Saint-Eustache et Saba"],
+            ["Bosnia and Herzegovina", "Bosnie-Herzégovine"], ["Botswana", "Botswana"], ["Bouvet Island", "Île Bouvet"],
+            ["Brazil", "Brésil"], ["British Indian Ocean Territory", "Territoire britannique de l'océan Indien"],
+            ["British Virgin Islands", "Îles Vierges britanniques"], ["Brunei", "Brunei"], ["Bulgaria", "Bulgarie"],
+            ["Burkina Faso", "Burkina Faso"], ["Burundi", "Burundi"], ["Cabo Verde", "Cap-Vert"], ["Cambodia", "Cambodge"],
+            ["Cameroon", "Cameroun"], ["Canada", "Canada"], ["Cayman Islands", "Îles Caïmans"],
+            ["Central African Republic", "République centrafricaine"], ["Chad", "Tchad"], ["Chile", "Chili"],
+            ["China", "Chine"], ["Christmas Island", "Île Christmas"], ["Cocos (Keeling) Islands", "Îles Cocos"],
+            ["Colombia", "Colombie"], ["Comoros", "Comores"], ["Congo", "Congo"],
+            ["Congo, Democratic Republic of the", "République démocratique du Congo"], ["Cook Islands", "Îles Cook"],
+            ["Costa Rica", "Costa Rica"], ["Côte d'Ivoire", "Côte d'Ivoire"], ["Croatia", "Croatie"], ["Cuba", "Cuba"],
+            ["Curaçao", "Curaçao"], ["Cyprus", "Chypre"], ["Czechia", "Tchéquie"], ["Denmark", "Danemark"],
+            ["Djibouti", "Djibouti"], ["Dominica", "Dominique"], ["Dominican Republic", "République dominicaine"],
+            ["Ecuador", "Équateur"], ["Egypt", "Égypte"], ["El Salvador", "Salvador"], ["Equatorial Guinea", "Guinée équatoriale"],
+            ["Eritrea", "Érythrée"], ["Estonia", "Estonie"], ["Eswatini", "Eswatini"], ["Ethiopia", "Éthiopie"],
+            ["Falkland Islands", "Îles Malouines"], ["Faroe Islands", "Îles Féroé"], ["Fiji", "Fidji"], ["Finland", "Finlande"],
+            ["France", "France"], ["French Guiana", "Guyane française"], ["French Polynesia", "Polynésie française"],
+            ["French Southern Territories", "Terres australes françaises"], ["Gabon", "Gabon"], ["Gambia", "Gambie"],
+            ["Georgia", "Géorgie"], ["Germany", "Allemagne"], ["Ghana", "Ghana"], ["Gibraltar", "Gibraltar"],
+            ["Greece", "Grèce"], ["Greenland", "Groenland"], ["Grenada", "Grenade"], ["Guadeloupe", "Guadeloupe"],
+            ["Guam", "Guam"], ["Guatemala", "Guatemala"], ["Guernsey", "Guernesey"], ["Guinea", "Guinée"],
+            ["Guinea-Bissau", "Guinée-Bissau"], ["Guyana", "Guyana"], ["Haiti", "Haïti"],
+            ["Heard Island and McDonald Islands", "Îles Heard-et-MacDonald"], ["Holy See (Vatican City State)", "Saint-Siège (Vatican)"],
+            ["Honduras", "Honduras"], ["Hong Kong", "Hong Kong"], ["Hungary", "Hongrie"], ["Iceland", "Islande"],
+            ["India", "Inde"], ["Indonesia", "Indonésie"], ["Iran", "Iran"], ["Iraq", "Irak"], ["Ireland", "Irlande"],
+            ["Isle of Man", "Île de Man"], ["Israel", "Israël"], ["Italy", "Italie"], ["Jamaica", "Jamaïque"],
+            ["Japan", "Japon"], ["Jersey", "Jersey"], ["Jordan", "Jordanie"], ["Kazakhstan", "Kazakhstan"],
+            ["Kenya", "Kenya"], ["Kiribati", "Kiribati"], ["Korea, Democratic People's Republic of", "Corée du Nord"],
+            ["Korea, Republic of", "Corée du Sud"], ["Kosovo", "Kosovo"], ["Kuwait", "Koweït"], ["Kyrgyzstan", "Kirghizistan"],
+            ["Laos", "Laos"], ["Latvia", "Lettonie"], ["Lebanon", "Liban"], ["Lesotho", "Lesotho"], ["Liberia", "Liberia"],
+            ["Libya", "Libye"], ["Liechtenstein", "Liechtenstein"], ["Lithuania", "Lituanie"], ["Luxembourg", "Luxembourg"],
+            ["Macao", "Macao"], ["Madagascar", "Madagascar"], ["Malawi", "Malawi"], ["Malaysia", "Malaisie"],
+            ["Maldives", "Maldives"], ["Mali", "Mali"], ["Malta", "Malte"], ["Marshall Islands", "Îles Marshall"],
+            ["Martinique", "Martinique"], ["Mauritania", "Mauritanie"], ["Mauritius", "Maurice"], ["Mayotte", "Mayotte"],
+            ["Mexico", "Mexique"], ["Micronesia, Federated States of", "Micronésie"], ["Moldova", "Moldavie"],
+            ["Monaco", "Monaco"], ["Mongolia", "Mongolie"], ["Montenegro", "Monténégro"], ["Montserrat", "Montserrat"],
+            ["Morocco", "Maroc"], ["Mozambique", "Mozambique"], ["Myanmar", "Myanmar"], ["Namibia", "Namibie"],
+            ["Nauru", "Nauru"], ["Nepal", "Népal"], ["Netherlands", "Pays-Bas"], ["New Caledonia", "Nouvelle-Calédonie"],
+            ["New Zealand", "Nouvelle-Zélande"], ["Nicaragua", "Nicaragua"], ["Niger", "Niger"], ["Nigeria", "Nigeria"],
+            ["Niue", "Niue"], ["Norfolk Island", "Île Norfolk"], ["Northern Mariana Islands", "Îles Mariannes du Nord"],
+            ["North Macedonia", "Macédoine du Nord"], ["Norway", "Norvège"], ["Oman", "Oman"], ["Pakistan", "Pakistan"],
+            ["Palau", "Palaos"], ["Panama", "Panama"], ["Papua New Guinea", "Papouasie-Nouvelle-Guinée"], ["Paraguay", "Paraguay"],
+            ["Peru", "Pérou"], ["Philippines", "Philippines"], ["Pitcairn Islands", "Îles Pitcairn"], ["Poland", "Pologne"],
+            ["Portugal", "Portugal"], ["Puerto Rico", "Porto Rico"], ["Qatar", "Qatar"], ["Reunion", "La Réunion"],
+            ["Romania", "Roumanie"], ["Russian Federation", "Russie"], ["Rwanda", "Rwanda"],
+            ["Saint Barthelemy", "Saint-Barthélemy"], ["Saint Helena, Ascension and Tristan da Cunha", "Sainte-Hélène, Ascension et Tristan da Cunha"],
+            ["Saint Kitts and Nevis", "Saint-Kitts-et-Nevis"], ["Saint Lucia", "Sainte-Lucie"], ["Saint Martin", "Saint-Martin"],
+            ["Saint Pierre and Miquelon", "Saint-Pierre-et-Miquelon"], ["Saint Vincent and the Grenadines", "Saint-Vincent-et-les-Grenadines"],
+            ["Samoa", "Samoa"], ["San Marino", "Saint-Marin"], ["Sao Tome and Principe", "Sao Tomé-et-Príncipe"],
+            ["Saudi Arabia", "Arabie saoudite"], ["Senegal", "Sénégal"], ["Serbia", "Serbie"], ["Seychelles", "Seychelles"],
+            ["Sierra Leone", "Sierra Leone"], ["Singapore", "Singapour"], ["Sint Maarten", "Sint Maarten"],
+            ["Slovakia", "Slovaquie"], ["Slovenia", "Slovénie"], ["Solomon Islands", "Îles Salomon"], ["Somalia", "Somalie"],
+            ["South Africa", "Afrique du Sud"], ["South Georgia and the South Sandwich Islands", "Géorgie du Sud-et-les Îles Sandwich du Sud"],
+            ["South Sudan", "Soudan du Sud"], ["Spain", "Espagne"], ["Sri Lanka", "Sri Lanka"],
+            ["State of Palestine", "Palestine"], ["Sudan", "Soudan"], ["Suriname", "Suriname"],
+            ["Svalbard and Jan Mayen", "Svalbard et Jan Mayen"], ["Sweden", "Suède"], ["Switzerland", "Suisse"],
+            ["Syria", "Syrie"], ["Taiwan", "Taïwan"], ["Tajikistan", "Tadjikistan"], ["Tanzania", "Tanzanie"],
+            ["Thailand", "Thaïlande"], ["Timor-Leste", "Timor oriental"], ["Togo", "Togo"], ["Tokelau", "Tokelau"],
+            ["Tonga", "Tonga"], ["Trinidad and Tobago", "Trinité-et-Tobago"], ["Tunisia", "Tunisie"], ["Türkiye", "Turquie"],
+            ["Turkmenistan", "Turkménistan"], ["Turks and Caicos Islands", "Îles Turques-et-Caïques"], ["Tuvalu", "Tuvalu"],
+            ["U. S. Virgin Islands", "Îles Vierges des États-Unis"], ["Uganda", "Ouganda"], ["Ukraine", "Ukraine"],
+            ["United Arab Emirates", "Émirats arabes unis"], ["United Kingdom", "Royaume-Uni"],
+            ["United States Minor Outlying Islands", "Îles mineures éloignées des États-Unis"],
+            ["United States of America", "États-Unis"], ["Uruguay", "Uruguay"], ["Uzbekistan", "Ouzbékistan"],
+            ["Vanuatu", "Vanuatu"], ["Venezuela", "Venezuela"], ["Vietnam", "Vietnam"], ["Wallis and Futuna", "Wallis-et-Futuna"],
+            ["Western Sahara", "Sahara occidental"], ["Yemen", "Yémen"], ["Zambia", "Zambie"], ["Zimbabwe", "Zimbabwe"]
+        ];
+
+        function toggleDeloitteDetails(value) {
+            const section = document.getElementById('deloitteDetailsSection');
+            if (!section) return;
+            section.style.display = (value === 'yes') ? 'block' : 'none';
+            if (value !== 'yes') {
+                document.getElementById('deloitteOldOffice').value = '';
+                document.getElementById('deloitteOldEmail').value = '';
+                document.getElementById('deloitteCountry').value = '';
+            }
+        }
+
+        function initDeloitteCountrySelect() {
+            const select = document.getElementById('deloitteCountry');
+            if (!select || select.options.length > 1) return;
+            COUNTRIES_EN_FR.forEach(([en, fr]) => {
+                const opt = document.createElement('option');
+                opt.value = en;
+                opt.textContent = fr;
+                select.appendChild(opt);
+            });
+        }
 
         // Fonction pour gérer les accordéons
         function toggleAccordion(header) {
@@ -2054,7 +2190,8 @@
                         loadRegions(profile);
                         loadExperienceLevel(profile);
                         loadEducationInfo(profile);
-                        
+                        loadDeloitteInfo(profile);
+
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
                         loadFileInfo('letter', profile);
@@ -2108,7 +2245,8 @@
                         loadRegions(profile);
                         loadExperienceLevel(profile);
                         loadEducationInfo(profile);
-                        
+                        loadDeloitteInfo(profile);
+
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
                         loadFileInfo('letter', profile);
@@ -2360,6 +2498,24 @@
                     };
                     loadLanguages();
                 }
+            }
+        }
+
+        // Fonction pour charger les informations Deloitte
+        function loadDeloitteInfo(profile) {
+            initDeloitteCountrySelect();
+            const workedSelect = document.getElementById('deloitteWorked');
+            if (workedSelect && profile.deloitte_worked) {
+                workedSelect.value = profile.deloitte_worked;
+                toggleDeloitteDetails(profile.deloitte_worked);
+            }
+            if (profile.deloitte_worked === 'yes') {
+                const officeInput = document.getElementById('deloitteOldOffice');
+                const emailInput = document.getElementById('deloitteOldEmail');
+                const countrySelect = document.getElementById('deloitteCountry');
+                if (officeInput && profile.deloitte_old_office) officeInput.value = profile.deloitte_old_office;
+                if (emailInput && profile.deloitte_old_email) emailInput.value = profile.deloitte_old_email;
+                if (countrySelect && profile.deloitte_country) countrySelect.value = profile.deloitte_country;
             }
         }
 
@@ -2912,6 +3068,10 @@
                 diploma_status: document.getElementById('diplomaStatus').value,
                 graduation_year: document.getElementById('graduationYear').value ? parseInt(document.getElementById('graduationYear').value) : null,
                 languages: window.getLanguagesData ? window.getLanguagesData() : [], // Array des langues avec leur niveau
+                deloitte_worked: document.getElementById('deloitteWorked')?.value || '',
+                deloitte_old_office: document.getElementById('deloitteOldOffice')?.value?.trim() || '',
+                deloitte_old_email: document.getElementById('deloitteOldEmail')?.value?.trim() || '',
+                deloitte_country: document.getElementById('deloitteCountry')?.value || '',
                 email: userEmail || '',
                 updated_at: new Date().toISOString(),
                 created_at: null // Sera défini lors de la première création
@@ -3153,6 +3313,7 @@
 
         // Validation en temps réel lors des modifications
         document.addEventListener('DOMContentLoaded', function() {
+            initDeloitteCountrySelect();
             // Ajouter des listeners sur tous les champs pour valider en temps réel
             const form = document.getElementById('profileForm');
             if (form) {

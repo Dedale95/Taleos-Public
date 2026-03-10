@@ -301,18 +301,39 @@
 
     // Comment nous avez-vous connus? → "Site Deloitte Careers"
     let hearAboutFilled = false;
-    const hearAboutSelect = findSelectByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
-    if (hearAboutSelect) {
-      fillSelect(hearAboutSelect, SITE_DELOITTE_CAREERS);
-      hearAboutFilled = true;
-      filled = true;
+
+    // Cas 1 : Workday searchBox spécifique
+    const hearSearchBox = document.querySelector('input[data-automation-id="searchBox"][id="source--source"]');
+    if (hearSearchBox && hearSearchBox.offsetParent !== null) {
+      try {
+        hearSearchBox.focus();
+        hearSearchBox.click();
+      } catch (e) {}
+      const opt = document.querySelector('[data-automation-id="promptOption"][data-automation-label="Site Deloitte Careers"]');
+      if (opt && opt.offsetParent !== null) {
+        opt.click();
+        hearAboutFilled = true;
+        filled = true;
+      }
     }
-    const hearAboutInput = findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
-    if (hearAboutInput) {
-      fillInput(hearAboutInput, SITE_DELOITTE_CAREERS);
-      hearAboutFilled = true;
-      filled = true;
+
+    // Cas 2 : label + select / input génériques
+    if (!hearAboutFilled) {
+      const hearAboutSelect = findSelectByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
+      if (hearAboutSelect) {
+        fillSelect(hearAboutSelect, SITE_DELOITTE_CAREERS);
+        hearAboutFilled = true;
+        filled = true;
+      }
+      const hearAboutInput = findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
+      if (hearAboutInput) {
+        fillInput(hearAboutInput, SITE_DELOITTE_CAREERS);
+        hearAboutFilled = true;
+        filled = true;
+      }
     }
+
+    // Cas 3 : clic direct sur une option Workday
     if (!hearAboutFilled && clickWorkdayOptionByLabelAndValue(['comment nous avez-vous connus', 'how did you hear about us'], SITE_DELOITTE_CAREERS)) {
       filled = true;
     }
@@ -337,6 +358,19 @@
         break;
       }
     }
+
+    // Cas explicite Workday : radios candidateIsPreviousWorker
+    if (!filled) {
+      const selector = workedRaw === 'yes'
+        ? 'input[name="candidateIsPreviousWorker"][type="radio"][value="true"]'
+        : 'input[name="candidateIsPreviousWorker"][type="radio"][value="false"]';
+      const radio = document.querySelector(selector);
+      if (radio && radio.offsetParent !== null) {
+        radio.click();
+        filled = true;
+      }
+    }
+
     if (!filled && clickWorkdayOptionByLabelAndValue(['avez-vous déjà travaillé pour deloitte', 'have you worked for deloitte'], workedYesNo)) {
       filled = true;
     }

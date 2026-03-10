@@ -500,9 +500,14 @@
         .company-group-children.visible {
             max-height: 800px;
         }
-        /* Aligner SG, Deloitte etc. avec le contenu du groupe CA (après la flèche) */
+        /* Aligner SG, Deloitte etc. avec le groupe CA : spacer = même largeur que la flèche */
         .company-filter-other {
-            padding-left: 46px;
+            display: flex;
+            align-items: center;
+        }
+        .company-filter-spacer {
+            width: 44px;
+            flex-shrink: 0;
         }
 
         .reset-btn {
@@ -2196,7 +2201,7 @@
         }
 
         const CREDIT_AGRICOLE_GROUP_KEY = '__CA_GROUP__';
-        let companyGroupCAExpanded = true; // État ouvert/fermé du groupe CA (préservé lors des rebuilds)
+        let companyGroupCAExpanded = localStorage.getItem('companyGroupCAExpanded') !== 'false'; // Persisté dans localStorage
         function isCreditAgricoleSubsidiary(name) {
             if (!name || typeof name !== 'string') return false;
             const n = name.toLowerCase();
@@ -2241,6 +2246,7 @@
                     childrenDiv.classList.toggle('visible');
                     expandSpan.classList.toggle('expanded');
                     companyGroupCAExpanded = childrenDiv.classList.contains('visible');
+                    localStorage.setItem('companyGroupCAExpanded', companyGroupCAExpanded);
                 };
                 const groupLabel = document.createElement('label');
                 groupLabel.style.display = 'flex';
@@ -2306,6 +2312,9 @@
                 const disabled = disabledValues.has(c);
                 const label = document.createElement('label');
                 label.className = 'company-filter-other';
+                const spacer = document.createElement('span');
+                spacer.className = 'company-filter-spacer';
+                label.appendChild(spacer);
                 const cb = document.createElement('input');
                 cb.type = 'checkbox';
                 cb.value = c;

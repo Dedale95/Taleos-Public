@@ -558,9 +558,14 @@
         .company-group-children.visible {
             max-height: 800px;
         }
-        /* Aligner SG, Deloitte etc. avec le contenu du groupe CA (après la flèche) */
+        /* Aligner SG, Deloitte etc. avec le groupe CA : spacer = même largeur que la flèche */
         .company-filter-other {
-            padding-left: 46px;
+            display: flex;
+            align-items: center;
+        }
+        .company-filter-spacer {
+            width: 44px;
+            flex-shrink: 0;
         }
 
         /* Résultats de l'accordéon */
@@ -2057,7 +2062,11 @@
         }
 
         const CREDIT_AGRICOLE_GROUP_KEY = '__CA_GROUP__';
-        const companyGroupCAExpandedByAccordion = {}; // État ouvert/fermé par accordéon (préservé lors des rebuilds)
+        const companyGroupCAExpandedByAccordion = {}; // État ouvert/fermé par accordéon
+        function getCompanyGroupCAExpanded(accordionId) {
+            if (companyGroupCAExpandedByAccordion[accordionId] !== undefined) return companyGroupCAExpandedByAccordion[accordionId];
+            return localStorage.getItem('companyGroupCAExpanded') !== 'false';
+        }
         function isCreditAgricoleSubsidiary(name) {
             if (!name || typeof name !== 'string') return false;
             const n = name.toLowerCase();
@@ -2072,7 +2081,7 @@
             const cv = checkedValues instanceof Set ? checkedValues : new Set(checkedValues || []);
             const prevChildren = container.querySelector('.company-group-children');
             if (prevChildren) companyGroupCAExpandedByAccordion[accordionId] = prevChildren.classList.contains('visible');
-            const wasExpanded = companyGroupCAExpandedByAccordion[accordionId] !== false;
+            const wasExpanded = getCompanyGroupCAExpanded(accordionId);
             container.innerHTML = '';
 
             const caSubs = values.filter(c => isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
@@ -2095,6 +2104,7 @@
                     childrenDiv.classList.toggle('visible');
                     expandSpan.classList.toggle('expanded');
                     companyGroupCAExpandedByAccordion[accordionId] = childrenDiv.classList.contains('visible');
+                    localStorage.setItem('companyGroupCAExpanded', companyGroupCAExpandedByAccordion[accordionId]);
                 };
                 const groupLabel = document.createElement('label');
                 groupLabel.style.display = 'flex';
@@ -2154,6 +2164,9 @@
                 const disabled = disabledValues.has(c);
                 const label = document.createElement('label');
                 label.className = 'company-filter-other';
+                const spacer = document.createElement('span');
+                spacer.className = 'company-filter-spacer';
+                label.appendChild(spacer);
                 const cb = document.createElement('input');
                 cb.type = 'checkbox';
                 cb.value = c;

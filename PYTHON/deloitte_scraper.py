@@ -100,6 +100,25 @@ class JobDatabase:
             cursor = conn.execute("SELECT job_url FROM jobs WHERE status = 'Live' AND is_valid = 1")
             return {row[0] for row in cursor.fetchall()}
 
+    def get_existing_publication_date(self, job_url: str) -> Optional[str]:
+        """Récupère la date de publication existante (pour ne jamais l'écraser au re-scrape).
+        Utilise publication_date si présente, sinon first_seen (date du premier scrape)."""
+        with sqlite3.connect(self.db_path) as conn:
+            row = conn.execute(
+                "SELECT publication_date, first_seen FROM jobs WHERE job_url = ?",
+                (job_url,)
+            ).fetchone()
+            if not row:
+                return None
+            pub_date, first_seen = row[0], row[1]
+            if pub_date and str(pub_date).strip():
+                return pub_date
+            if first_seen:
+                # first_seen est un timestamp (ex: 2026-01-15 12:34:56) -> extraire date
+                s = str(first_seen).strip()
+                return s[:10] if len(s) >= 10 else s
+            return None
+
     def mark_as_expired(self, urls: Set[str]):
         """Marque des offres comme expirées"""
         if not urls:
@@ -133,7 +152,7 @@ class JobDatabase:
                     job_id = excluded.job_id,
                     job_title = excluded.job_title,
                     contract_type = excluded.contract_type,
-                    publication_date = excluded.publication_date,
+                    publication_date = COALESCE(NULLIF(TRIM(COALESCE(excluded.publication_date,'')), ''), jobs.publication_date),
                     location = excluded.location,
                     job_family = excluded.job_family,
                     duration = excluded.duration,
@@ -545,7 +564,12 @@ async def main():
                     await coro
                 
                 # Insérer/mettre à jour les jobs dans la base
+                # Deloitte n'affiche pas la date de parution : on utilise la date du premier scrape.
+                # Si l'offre existe déjà (ex: revenue après expiration), on garde sa date.
+                today = datetime.now().strftime('%Y-%m-%d')
                 for job in new_jobs:
+                    existing_date = db.get_existing_publication_date(job.get('job_url') or '')
+                    job['publication_date'] = existing_date if existing_date else today
                     db.insert_or_update_job(job)
             else:
                 logging.info("\n✓ Aucune nouvelle offre à scraper")

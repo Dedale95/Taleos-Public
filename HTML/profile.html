@@ -506,6 +506,11 @@
             color: #dc2626;
         }
 
+        /* Masquer la coche verte sur les sections incomplètes */
+        .accordion-section.incomplete .accordion-header h2::after {
+            content: none !important;
+        }
+
         .accordion-section.incomplete.active .accordion-header {
             background: #dc2626;
             border-left: 4px solid #991b1b;

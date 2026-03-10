@@ -511,6 +511,43 @@
             cursor: not-allowed;
         }
 
+        /* Groupe Crédit Agricole - accordéon */
+        .company-group-header {
+            display: flex;
+            align-items: center;
+            padding: 4px 8px;
+            margin-bottom: 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 500;
+        }
+        .company-group-header:hover {
+            background: rgba(102, 126, 234, 0.08);
+        }
+        .company-group-expand {
+            margin-right: 6px;
+            font-size: 10px;
+            transition: transform 0.2s;
+            color: #667eea;
+            user-select: none;
+        }
+        .company-group-expand.expanded {
+            transform: rotate(90deg);
+        }
+        .company-group-children {
+            margin-left: 18px;
+            margin-bottom: 8px;
+            padding-left: 8px;
+            border-left: 2px solid #e5e7eb;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .company-group-children.visible {
+            max-height: 800px;
+        }
+
         /* Résultats de l'accordéon */
         .accordion-results {
             margin-top: 24px;
@@ -2003,10 +2040,120 @@
             `;
         }
 
+        const CREDIT_AGRICOLE_GROUP_KEY = '__CA_GROUP__';
+        function isCreditAgricoleSubsidiary(name) {
+            if (!name || typeof name !== 'string') return false;
+            const n = name.toLowerCase();
+            return n.includes('crédit agricole') || n.includes('credit agricole') ||
+                ['lcl', 'caceis', 'amundi', 'bforbank', 'indosuez wealth management',
+                 'gruppo bancario crédit agricole italia', 'idia capital investissement'].some(s => n.includes(s));
+        }
+
+        function populateCompanyFilterAccordionWithGroup(accordionId, values, counts, disabledValues, hideDisabled, checkedValues) {
+            const container = document.getElementById(`companyFilter-${accordionId}`);
+            if (!container) return;
+            const cv = checkedValues instanceof Set ? checkedValues : new Set(checkedValues || []);
+            container.innerHTML = '';
+
+            const caSubs = values.filter(c => isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const others = values.filter(c => !isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+
+            const groupChecked = caSubs.every(c => cv.has(c));
+            const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
+
+            if (caSubs.length > 0) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'company-group-header';
+                const expandSpan = document.createElement('span');
+                expandSpan.className = 'company-group-expand';
+                expandSpan.textContent = '▶';
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'company-group-children';
+                expandSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    childrenDiv.classList.toggle('visible');
+                    expandSpan.classList.toggle('expanded');
+                };
+                const groupLabel = document.createElement('label');
+                groupLabel.style.display = 'flex';
+                groupLabel.style.alignItems = 'center';
+                groupLabel.style.flex = '1';
+                groupLabel.style.cursor = 'pointer';
+                const groupCb = document.createElement('input');
+                groupCb.type = 'checkbox';
+                groupCb.value = CREDIT_AGRICOLE_GROUP_KEY;
+                groupCb.checked = groupChecked;
+                groupLabel.appendChild(groupCb);
+                const span = document.createElement('span');
+                span.textContent = `Groupe Crédit Agricole (${groupCount})`;
+                groupLabel.appendChild(span);
+                groupLabel.onclick = (e) => { if (e.target !== expandSpan) groupCb.click(); };
+                groupDiv.appendChild(expandSpan);
+                groupDiv.appendChild(groupLabel);
+                container.appendChild(groupDiv);
+
+                const renderedCaSubs = [];
+                caSubs.forEach(c => {
+                    const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0) return;
+                    renderedCaSubs.push(c);
+                    const disabled = disabledValues.has(c);
+                    const label = document.createElement('label');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = c;
+                    cb.checked = cv.has(c) || groupChecked;
+                    cb.disabled = disabled;
+                    childCheckboxes.push(cb);
+                    cb.onchange = () => {
+                        updateFilter(accordionId, 'companies', c, cb.checked);
+                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    };
+                    label.appendChild(cb);
+                    const sp = document.createElement('span');
+                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
+                    label.appendChild(sp);
+                    if (disabled) label.classList.add('disabled');
+                    childrenDiv.appendChild(label);
+                });
+                groupCb.onchange = () => {
+                    renderedCaSubs.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                        updateFilter(accordionId, 'companies', c, groupCb.checked);
+                    });
+                };
+                container.appendChild(childrenDiv);
+            }
+
+            others.forEach(c => {
+                const cnt = counts[c] || 0;
+                if (hideDisabled && cnt === 0) return;
+                const disabled = disabledValues.has(c);
+                const label = document.createElement('label');
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = c;
+                cb.checked = cv.has(c);
+                cb.disabled = disabled;
+                cb.onchange = () => updateFilter(accordionId, 'companies', c, cb.checked);
+                label.appendChild(cb);
+                const sp = document.createElement('span');
+                sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
+                label.appendChild(sp);
+                if (disabled) label.classList.add('disabled');
+                container.appendChild(label);
+            });
+        }
+
         // Fonction pour peupler un filtre avec compteurs et état disabled (identique à offres.html)
         function populateCheckboxFilterAccordion(accordionId, filterId, values, disabledValues = new Set(), counts = {}, hideDisabled = false, checkedValues = new Set()) {
             const container = document.getElementById(`${filterId}-${accordionId}`);
             if (!container) return;
+
+            if (filterId === 'companyFilter') {
+                return populateCompanyFilterAccordionWithGroup(accordionId, values, counts, disabledValues, hideDisabled, checkedValues);
+            }
             
             container.innerHTML = '';
             
@@ -2341,10 +2488,10 @@
                 new Set([...allFamilies].filter(f => !availableFamilies.has(f) && !checkedFamilies.has(f))),
                 familyCounts, true, checkedFamilies);
 
-            // Entreprise et Éducation : hideDisabled=false (barre en gris)
+            // Entreprise : hideDisabled=true (masque les 0), Éducation : hideDisabled=false
             populateCheckboxFilterAccordion(accordionId, 'companyFilter', Array.from(allCompanies).sort(),
                 new Set([...allCompanies].filter(c => !availableCompanies.has(c) && !checkedCompanies.has(c))),
-                companyCounts, false, checkedCompanies);
+                companyCounts, true, checkedCompanies);
 
             populateCheckboxFilterAccordion(accordionId, 'educationFilter', Array.from(allEducations).sort(),
                 new Set([...allEducations].filter(e => !availableEducations.has(e) && !checkedEducations.has(e))),

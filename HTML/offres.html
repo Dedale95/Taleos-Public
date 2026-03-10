@@ -2730,23 +2730,32 @@
                 const currentUser = auth.currentUser;
 
                 if (!currentUser) {
-                    return false;
+                    return { complete: false, missingFields: ['Connexion'] };
                 }
 
                 const userId = currentUser.uid;
                 const profileDoc = await db.collection('profiles').doc(userId).get();
 
                 if (!profileDoc.exists) {
-                    return false;
+                    return { complete: false, missingFields: ['Profil'] };
                 }
 
                 const profile = profileDoc.data();
 
-                // Vérifier les champs obligatoires (même logique que dans profile.html)
+                const fieldLabels = {
+                    civility: 'Civilité', firstName: 'Prénom', lastName: 'Nom', phoneCountryCode: 'Indicatif pays', phone: 'Téléphone',
+                    address: 'Adresse', postalCode: 'Code postal', city: 'Ville', country: 'Pays',
+                    jobs: 'Métiers qui m\'intéressent', contractType: 'Type de contrat',
+                    availableFrom: 'Disponible à partir de', continents: 'Continents',
+                    preferredCountries: 'Pays préférés', experienceLevel: 'Niveau d\'expérience',
+                    educationLevel: 'Niveau d\'études', institutionType: 'Type d\'établissement',
+                    diplomaStatus: 'Statut du diplôme', deloitteWorked: 'Avez-vous déjà travaillé pour Deloitte ?'
+                };
                 const requiredFields = {
                     civility: profile.civility,
                     firstName: profile.first_name,
                     lastName: profile.last_name,
+                    phoneCountryCode: profile.phone_country_code,
                     phone: profile.phone,
                     address: profile.address,
                     postalCode: profile.postal_code,
@@ -2764,34 +2773,39 @@
                     deloitteWorked: profile.deloitte_worked === 'yes' || profile.deloitte_worked === 'no'
                 };
 
-                // Vérifier chaque champ
+                const missingFields = [];
                 for (const [key, value] of Object.entries(requiredFields)) {
                     if (value === undefined || value === null || value === '' || value === false ||
                         (typeof value === 'string' && value.trim() === '')) {
                         console.log(`[PROFILE CHECK] Champ manquant: ${key}`);
-                        return false;
+                        missingFields.push(fieldLabels[key] || key);
                     }
                 }
 
-                return true;
+                if (missingFields.length > 0) {
+                    return { complete: false, missingFields };
+                }
+                return { complete: true, missingFields: [] };
             } catch (error) {
                 console.error('[PROFILE CHECK] Erreur lors de la vérification du profil:', error);
-                return false;
+                return { complete: false, missingFields: [] };
             }
         }
 
         // Fonction pour afficher la modale de profil incomplet
-        function showProfileIncompleteModal() {
+        function showProfileIncompleteModal(missingFields) {
+            const msg = (missingFields && missingFields.length > 0)
+                ? 'Pour activer l\'automatisation des candidatures, veuillez compléter tous les champs obligatoires : ' + missingFields.join(', ')
+                : 'Il manque des informations dans votre profil. Vous devez compléter votre profil avant de pouvoir candidater.';
             let modal = document.getElementById('profileIncompleteModal');
             if (!modal) {
-                // Créer la modale si elle n'existe pas
                 modal = document.createElement('div');
                 modal.id = 'profileIncompleteModal';
                 modal.className = 'profile-incomplete-modal';
                 modal.innerHTML = `
                     <div class="profile-incomplete-modal-content">
                         <h3>⚠️ Profil incomplet</h3>
-                        <p>Il manque des informations dans votre profil. Vous devez compléter votre profil avant de pouvoir candidater.</p>
+                        <p class="profile-incomplete-modal-message">${msg}</p>
                         <div class="profile-incomplete-modal-actions">
                             <button class="profile-incomplete-modal-btn profile-incomplete-modal-btn-secondary" onclick="closeProfileIncompleteModal()">Fermer</button>
                             <button class="profile-incomplete-modal-btn profile-incomplete-modal-btn-primary" onclick="goToProfile()">Compléter mon profil</button>
@@ -2799,13 +2813,12 @@
                     </div>
                 `;
                 document.body.appendChild(modal);
-                
-                // Fermer en cliquant sur le fond
                 modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        closeProfileIncompleteModal();
-                    }
+                    if (e.target === modal) closeProfileIncompleteModal();
                 });
+            } else {
+                const p = modal.querySelector('.profile-incomplete-modal-message');
+                if (p) p.textContent = msg;
             }
             modal.classList.add('active');
         }
@@ -3086,9 +3099,10 @@
                 }
 
                 // Vérifier si le profil est complet avant de lancer le timer
-                const isProfileComplete = await checkProfileCompleteness();
+                const profileCheck = await checkProfileCompleteness();
+                const isProfileComplete = profileCheck && (profileCheck.complete === true || profileCheck === true);
                 if (!isProfileComplete) {
-                    showProfileIncompleteModal();
+                    showProfileIncompleteModal(profileCheck?.missingFields || []);
                     reEnableBtn(); return;
                 }
 

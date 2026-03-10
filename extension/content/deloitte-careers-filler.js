@@ -1,12 +1,13 @@
 /**
  * Taleos - Remplissage automatique Deloitte (Workday)
- * Sur fina.wd103.myworkdayjobs.com : Postuler → Connexion → fill email/password → submit
+ * Flux: Connexion → Utiliser ma dernière candidature → Formulaire complet
  */
 (function() {
   'use strict';
 
   const BANNER_ID = 'taleos-deloitte-automation-banner';
-  const MAX_PENDING_AGE = 5 * 60 * 1000;
+  const MAX_PENDING_AGE = 10 * 60 * 1000;
+  const SITE_DELOITTE_CAREERS = 'Site Deloitte Careers';
 
   function log(msg) {
     console.log(`[${new Date().toLocaleTimeString('fr-FR')}] [Taleos Deloitte] ${msg}`);
@@ -32,8 +33,8 @@
   }
 
   function fillInput(el, value) {
-    if (!el || value == null) return;
-    const str = String(value);
+    if (!el || value == null || value === '') return;
+    const str = String(value).trim();
     el.focus();
     const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
     if (nativeSetter) nativeSetter.call(el, str);
@@ -41,6 +42,70 @@
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
     el.blur();
+  }
+
+  function fillSelect(el, value) {
+    if (!el || value == null || value === '') return;
+    const str = String(value).trim().toLowerCase();
+    const opt = Array.from(el.options || []).find(o => {
+      const v = (o.value || '').toLowerCase();
+      const t = (o.textContent || '').trim().toLowerCase();
+      return v === str || t === str || t.includes(str) || str.includes(t);
+    });
+    if (opt) {
+      el.value = opt.value;
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  function findLabelAndInput(labelTexts) {
+    const labels = Array.from(document.querySelectorAll('label, [data-automation-id="label"], span[role="presentation"]'));
+    for (const label of labels) {
+      const text = (label.textContent || '').trim();
+      const match = labelTexts.some(t => text.toLowerCase().includes(t.toLowerCase()));
+      if (match) {
+        const forId = label.getAttribute('for');
+        const input = forId ? document.getElementById(forId) : null;
+        if (input) return input;
+        const parent = label.closest('div[data-automation-id], div[class*="input"], li');
+        if (parent) {
+          const inp = parent.querySelector('input, select, textarea');
+          if (inp) return inp;
+        }
+        const next = label.nextElementSibling || label.parentElement?.querySelector('input, select, textarea');
+        if (next) return next;
+      }
+    }
+    return null;
+  }
+
+  function findAndClickByText(texts) {
+    const all = Array.from(document.querySelectorAll('button, a, span[role="button"], div[role="button"], [data-automation-id="promptOption"], [data-automation-id="compositeHeader"], label'));
+    for (const el of all) {
+      const t = (el.textContent || '').trim();
+      if (texts.some(x => t.toLowerCase().includes(x.toLowerCase()))) {
+        if (el.offsetParent !== null) {
+          el.click();
+          return true;
+        }
+      }
+    }
+    const reuseLink = document.querySelector('a[href*="reuse"], [data-automation-id*="reuse"], [data-automation-id*="lastApplication"]');
+    if (reuseLink?.offsetParent !== null) {
+      reuseLink.click();
+      return true;
+    }
+    return false;
+  }
+
+  function findSelectByLabel(labelTexts) {
+    const inp = findLabelAndInput(labelTexts);
+    return inp && inp.tagName === 'SELECT' ? inp : null;
+  }
+
+  function findInputByLabel(labelTexts) {
+    const inp = findLabelAndInput(labelTexts);
+    return inp && (inp.tagName === 'INPUT' || inp.tagName === 'TEXTAREA') ? inp : null;
   }
 
   async function runAutomation() {
@@ -58,7 +123,7 @@
     const password = profile?.auth_password || '';
 
     if (!email || !password) {
-      log('Identifiants Deloitte manquants (page Connexions)');
+      log('Identifiants Deloitte manquants');
       chrome.storage.local.remove('taleos_pending_deloitte');
       return;
     }
@@ -66,85 +131,209 @@
     showBanner();
     const url = window.location.href;
 
-    // Sur deloitte.com : chercher un lien vers myworkdayjobs.com/apply et y naviguer
+    // Sur deloitte.com : redirection vers myworkdayjobs
     if (url.includes('deloitte.com') && !url.includes('myworkdayjobs.com')) {
       const workdayLink = document.querySelector('a[href*="myworkdayjobs.com"][href*="apply"]');
-      if (workdayLink && workdayLink.href) {
+      if (workdayLink?.href) {
         log('Redirection vers Workday apply...');
         window.location.href = workdayLink.href;
         return;
       }
     }
 
-    // Étape 1 : Si on est sur la page offre (sans /apply), cliquer sur Postuler
+    // Étape 1 : Page offre sans /apply → cliquer Postuler
     if (!url.includes('/apply') && !url.includes('/apply/')) {
-      const postulerBtn = document.querySelector('a.deloitte-green-button.deloitte-banner-apply-button');
-      if (postulerBtn && postulerBtn.offsetParent !== null) {
+      const postulerBtn = document.querySelector('a.deloitte-green-button.deloitte-banner-apply-button, a[href*="/apply"]');
+      const postulerByText = Array.from(document.querySelectorAll('a')).find(a => /^postuler$/i.test((a.textContent || '').trim()));
+      const btn = postulerBtn || postulerByText;
+      if (btn?.offsetParent !== null) {
         log('Clic sur Postuler...');
-        postulerBtn.click();
-        return;
-      }
-      const postulerByHref = document.querySelector('a[href*="/apply"]');
-      if (postulerByHref && postulerByHref.offsetParent !== null) {
-        log('Clic sur Postuler (lien /apply)...');
-        postulerByHref.click();
-        return;
-      }
-      const postulerLink = Array.from(document.querySelectorAll('a')).find(a =>
-        /^postuler$/i.test((a.textContent || '').trim())
-      );
-      if (postulerLink) {
-        log('Clic sur Postuler (fallback)...');
-        postulerLink.click();
+        btn.click();
+        setTimeout(runAutomation, 2000);
         return;
       }
     }
 
-    // Étape 2 : Sur la page apply - cliquer Connexion si le formulaire login n'est pas visible
+    // Étape 2 : Formulaire login visible → remplir et cliquer Connexion
     const emailInput = document.querySelector('input[data-automation-id="email"]');
     const passwordInput = document.querySelector('input[data-automation-id="password"]');
 
-    if (!emailInput || !passwordInput) {
-      const connexionSpan = Array.from(document.querySelectorAll('span.css-1xtbc5b, span')).find(s =>
-        /^connexion$/i.test((s.textContent || '').trim())
-      );
-      if (connexionSpan && connexionSpan.offsetParent !== null) {
-        log('Clic sur Connexion...');
-        connexionSpan.click();
-        setTimeout(runAutomation, 1500);
-        return;
-      }
-      const connexionBtn = document.querySelector('[aria-label="Connexion"][role="button"], [data-automation-id="click_filter"][aria-label="Connexion"], div[aria-label="Connexion"][role="button"]');
-      if (connexionBtn && connexionBtn.offsetParent !== null) {
-        log('Clic sur Connexion (aria-label)...');
-        connexionBtn.click();
-        setTimeout(runAutomation, 1500);
-        return;
-      }
-    }
-
-    // Étape 3 : Remplir email et mot de passe
     if (emailInput && passwordInput) {
       fillInput(emailInput, email);
       fillInput(passwordInput, password);
 
-      const submitBtn = document.querySelector('[data-automation-id="click_filter"][aria-label="Connexion"], [aria-label="Connexion"][role="button"], div[aria-label="Connexion"][role="button"]');
-      if (submitBtn && submitBtn.offsetParent !== null) {
+      const submitBtn = document.querySelector('[data-automation-id="click_filter"][aria-label="Connexion"], [aria-label="Connexion"][role="button"], button[data-automation-id="signInSubmitButton"]');
+      if (submitBtn?.offsetParent !== null) {
         log('Clic sur Connexion (submit)...');
         submitBtn.click();
-        chrome.storage.local.remove('taleos_pending_deloitte');
-        setTimeout(hideBanner, 3000);
-        return;
-      }
-      const signInBtn = document.querySelector('button[data-automation-id="signInSubmitButton"]');
-      if (signInBtn) {
-        log('Clic sur signInSubmitButton...');
-        signInBtn.click();
-        chrome.storage.local.remove('taleos_pending_deloitte');
-        setTimeout(hideBanner, 3000);
+        setTimeout(runAutomation, 3000);
         return;
       }
     }
+
+    // Étape 3 : Bouton Connexion visible (avant affichage formulaire)
+    if (!emailInput || !passwordInput) {
+      const connexionSpan = Array.from(document.querySelectorAll('span.css-1xtbc5b, span')).find(s => /^connexion$/i.test((s.textContent || '').trim()));
+      const connexionBtn = document.querySelector('[aria-label="Connexion"][role="button"], [data-automation-id="click_filter"][aria-label="Connexion"]');
+      const btn = connexionSpan || connexionBtn;
+      if (btn?.offsetParent !== null) {
+        log('Clic sur Connexion...');
+        btn.click();
+        setTimeout(runAutomation, 2000);
+        return;
+      }
+    }
+
+    // Étape 4 : Utiliser ma dernière candidature / Use My Last Application
+    const useLastAppBtn = document.querySelector('[data-automation-id="useMyLastApplication"]') ||
+      document.querySelector('a[href*="useMyLastApplication"]');
+    if (useLastAppBtn) {
+      log('Clic sur Utiliser ma dernière candidature...');
+      useLastAppBtn.scrollIntoView({ behavior: 'auto', block: 'center' });
+      useLastAppBtn.click();
+      setTimeout(runAutomation, 2500);
+      return;
+    }
+    if (findAndClickByText(['utiliser ma dernière candidature', 'use my last application', 'use my last application data'])) {
+      log('Clic sur Utiliser ma dernière candidature (texte)...');
+      setTimeout(runAutomation, 2500);
+      return;
+    }
+
+    // Étape 5 : Remplir le formulaire de candidature
+    let filled = false;
+
+    // Comment nous avez-vous connus? / How Did You Hear About Us?
+    const hearAboutSelect = findSelectByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
+    if (hearAboutSelect) {
+      fillSelect(hearAboutSelect, SITE_DELOITTE_CAREERS);
+      filled = true;
+    }
+    const hearAboutInput = findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
+    if (hearAboutInput) {
+      fillInput(hearAboutInput, SITE_DELOITTE_CAREERS);
+      filled = true;
+    }
+
+    // Avez-vous déjà travaillé pour Deloitte? / Have you worked for Deloitte?
+    const workedYesNo = profile.deloitte_worked === 'yes' ? 'Oui' : 'Non';
+    const workedSelect = findSelectByLabel(['avez-vous déjà travaillé pour deloitte', 'have you worked for deloitte']);
+    if (workedSelect) {
+      fillSelect(workedSelect, workedYesNo);
+      filled = true;
+    }
+    const workedRadioValues = profile.deloitte_worked === 'yes' ? ['yes', '1', 'oui', 'true'] : ['no', '0', 'non', 'false'];
+    const workedRadios = document.querySelectorAll('input[type="radio'][name*="worked"], input[type="radio"][name*="deloitte"], input[type="radio"][name*="previous"]');
+    for (const r of workedRadios) {
+      const v = (r.value || '').toLowerCase();
+      if (workedRadioValues.some(x => v.includes(x))) {
+        r.checked = true;
+        r.dispatchEvent(new Event('change', { bubbles: true }));
+        filled = true;
+        break;
+      }
+    }
+
+    // Si oui : ancien bureau, ancienne adresse email, pays
+    if (profile.deloitte_worked === 'yes') {
+      const oldOffice = findInputByLabel(['votre ancien bureau', 'your previous office', 'ancien bureau']);
+      if (oldOffice && profile.deloitte_old_office) {
+        fillInput(oldOffice, profile.deloitte_old_office);
+        filled = true;
+      }
+      const oldEmail = findInputByLabel(['votre ancienne adresse email', 'your previous email', 'ancienne adresse email']);
+      if (oldEmail && profile.deloitte_old_email) {
+        fillInput(oldEmail, profile.deloitte_old_email);
+        filled = true;
+      }
+      const countryInput = findInputByLabel(['pays', 'country']);
+      const countrySelect = findSelectByLabel(['pays', 'country']);
+      const countryVal = profile.deloitte_country || profile.country || '';
+      if (countryVal) {
+        if (countryInput) fillInput(countryInput, countryVal);
+        if (countrySelect) fillSelect(countrySelect, countryVal);
+        filled = true;
+      }
+    }
+
+    // Titre (civilité) : Madame ou Monsieur
+    const titleSelect = findSelectByLabel(['titre', 'title', 'nom légal']);
+    if (titleSelect && profile.civility) {
+      fillSelect(titleSelect, profile.civility);
+      filled = true;
+    }
+
+    // Prénom(s)
+    const firstnameInput = findInputByLabel(['prénom', 'first name', 'prénoms']);
+    if (firstnameInput && profile.firstname) {
+      fillInput(firstnameInput, profile.firstname);
+      filled = true;
+    }
+
+    // Nom de famille
+    const lastnameInput = findInputByLabel(['nom de famille', 'last name', 'nom']);
+    if (lastnameInput && profile.lastname) {
+      fillInput(lastnameInput, profile.lastname);
+      filled = true;
+    }
+
+    // Nature et nom de la voie (adresse)
+    const addressInput = findInputByLabel(['nature et nom de la voie', 'address', 'adresse', 'street']);
+    if (addressInput && profile.address) {
+      fillInput(addressInput, profile.address);
+      filled = true;
+    }
+
+    // Ville
+    const cityInput = findInputByLabel(['ville', 'city']);
+    if (cityInput && profile.city) {
+      fillInput(cityInput, profile.city);
+      filled = true;
+    }
+
+    // Code postal
+    const zipInput = findInputByLabel(['code postal', 'postal code', 'zip']);
+    if (zipInput && profile.zipcode) {
+      fillInput(zipInput, profile.zipcode);
+      filled = true;
+    }
+
+    // Type d'appareil téléphonique → Mobile Personnel
+    const phoneTypeSelect = findSelectByLabel(['type d\'appareil téléphonique', 'phone type', 'type d\'appareil']);
+    if (phoneTypeSelect) {
+      fillSelect(phoneTypeSelect, 'Mobile Personnel');
+      filled = true;
+    }
+
+    // Indicatif de pays
+    const countryCodeInput = findInputByLabel(['indicatif de pays', 'country code', 'country dial']);
+    if (countryCodeInput && profile.phone_country_code) {
+      fillInput(countryCodeInput, profile.phone_country_code);
+      filled = true;
+    }
+
+    // Numéro de téléphone
+    const phoneInput = findInputByLabel(['numéro de téléphone', 'phone number', 'téléphone']);
+    if (phoneInput && (profile.phone_number || profile['phone-number'] || profile.phone)) {
+      fillInput(phoneInput, profile.phone_number || profile['phone-number'] || profile.phone);
+      filled = true;
+    }
+
+    if (filled) {
+      log('Champs remplis. Réessai dans 2s pour vérifier...');
+      setTimeout(runAutomation, 2000);
+      return;
+    }
+
+    // Si on a fait du remplissage ou qu'on est passé par le login, garder le pending pour les prochaines navigations
+    if (url.includes('/apply') && (emailInput || filled)) {
+      log('Formulaire en cours. Pending conservé.');
+      setTimeout(runAutomation, 3000);
+      return;
+    }
+
+    chrome.storage.local.remove('taleos_pending_deloitte');
+    setTimeout(hideBanner, 2000);
   }
 
   chrome.storage.local.get('taleos_pending_deloitte').then((s) => {

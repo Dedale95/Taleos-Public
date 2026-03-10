@@ -346,7 +346,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.action === 'taleos_check_profile_complete') {
-    checkProfileCompletenessFromFirestore().then((complete) => sendResponse({ complete })).catch(e => sendResponse({ complete: false, error: e.message }));
+    checkProfileCompletenessFromFirestore()
+      .then((res) => sendResponse(typeof res === 'object' ? res : { complete: !!res }))
+      .catch(e => sendResponse({ complete: false, error: e.message, missingFields: [] }));
     return true;
   }
   if (msg.action === 'taleos_apply') {
@@ -886,18 +888,41 @@ async function testCredentials(bankId) {
   return { ok: true, email: profile.auth_email || '(vide)' };
 }
 
+const PROFILE_FIELD_LABELS = {
+  civility: 'Civilité',
+  firstName: 'Prénom',
+  lastName: 'Nom',
+  phoneCountryCode: 'Indicatif pays',
+  phone: 'Téléphone',
+  address: 'Adresse',
+  postalCode: 'Code postal',
+  city: 'Ville',
+  country: 'Pays',
+  jobs: 'Métiers qui m\'intéressent',
+  contractType: 'Type de contrat',
+  availableFrom: 'Disponible à partir de',
+  continents: 'Continents',
+  preferredCountries: 'Pays préférés',
+  experienceLevel: 'Niveau d\'expérience',
+  educationLevel: 'Niveau d\'études',
+  institutionType: 'Type d\'établissement',
+  diplomaStatus: 'Statut du diplôme',
+  deloitteWorked: 'Avez-vous déjà travaillé pour Deloitte ?'
+};
+
 /** Vérifie si le profil utilisateur est complet (même logique que offres.html) */
 async function checkProfileCompletenessFromFirestore() {
   const { taleosUserId, taleosIdToken } = await chrome.storage.local.get(['taleosUserId', 'taleosIdToken']);
-  if (!taleosUserId || !taleosIdToken) return false;
+  if (!taleosUserId || !taleosIdToken) return { complete: false, missingFields: ['Connexion'] };
   const base = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
   const profileRes = await fetch(`${base}/profiles/${taleosUserId}`, { headers: { Authorization: `Bearer ${taleosIdToken}` } });
-  if (!profileRes.ok) return false;
+  if (!profileRes.ok) return { complete: false, missingFields: ['Profil'] };
   const profile = parseFirestoreDoc(await profileRes.json());
   const required = {
     civility: profile.civility,
     firstName: profile.first_name,
     lastName: profile.last_name,
+    phoneCountryCode: profile.phone_country_code,
     phone: profile.phone,
     address: profile.address,
     postalCode: profile.postal_code,
@@ -914,10 +939,13 @@ async function checkProfileCompletenessFromFirestore() {
     diplomaStatus: profile.diploma_status,
     deloitteWorked: profile.deloitte_worked === 'yes' || profile.deloitte_worked === 'no'
   };
+  const missingFields = [];
   for (const [k, v] of Object.entries(required)) {
-    if (v === undefined || v === null || v === '' || v === false || (typeof v === 'string' && v.trim() === '')) return false;
+    if (v === undefined || v === null || v === '' || v === false || (typeof v === 'string' && v.trim() === '')) {
+      missingFields.push(PROFILE_FIELD_LABELS[k] || k);
+    }
   }
-  return true;
+  return { complete: missingFields.length === 0, missingFields };
 }
 
 async function fetchProfile(uid, bankId, token) {
@@ -962,6 +990,22 @@ async function fetchProfile(uid, bankId, token) {
     level: l.level || ''
   }));
 
+  const phone = String(profile.phone || '').trim().replace(/\s/g, '');
+  let phoneCountryCode = profile.phone_country_code || '+33';
+  let phoneNumber = phone;
+  if (!profile.phone_country_code && phone) {
+    if (phone.startsWith('+')) {
+      const match = phone.match(/^(\+\d{1,4})(.*)$/);
+      if (match) {
+        phoneCountryCode = match[1];
+        phoneNumber = (match[2] || '').replace(/\D/g, '') || phone;
+      }
+    } else if (phone.startsWith('0') && phone.length >= 10) {
+      phoneCountryCode = '+33';
+      phoneNumber = phone.slice(1).replace(/\D/g, '');
+    }
+  }
+
   return {
     civility: profile.civility || '',
     firstname: profile.first_name || '',
@@ -971,6 +1015,8 @@ async function fetchProfile(uid, bankId, token) {
     zipcode: String(profile.postal_code || ''),
     city: profile.city || '',
     country: profile.country || '',
+    phone_country_code: phoneCountryCode,
+    phone_number: phoneNumber || phone,
     'phone-number': profile.phone || '',
     job_families: profile.jobs || [],
     contract_types: contractList,
@@ -989,7 +1035,11 @@ async function fetchProfile(uid, bankId, token) {
     cv_filename: cvFilename,
     lm_filename: lmFilename,
     auth_email: (creds.email || '').trim(),
-    auth_password: authPassword
+    auth_password: authPassword,
+    deloitte_worked: profile.deloitte_worked || 'no',
+    deloitte_old_office: profile.deloitte_old_office || '',
+    deloitte_old_email: profile.deloitte_old_email || '',
+    deloitte_country: profile.deloitte_country || ''
   };
 }
 

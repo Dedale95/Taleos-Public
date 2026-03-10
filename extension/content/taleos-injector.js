@@ -128,6 +128,28 @@
     }
   }
 
+  function showProfileIncompletePopup(missingFields) {
+    const msg = missingFields && missingFields.length > 0
+      ? 'Pour activer l\'automatisation des candidatures, veuillez compléter tous les champs obligatoires : ' + missingFields.join(', ')
+      : 'Il manque des informations dans votre profil. Vous devez compléter votre profil avant de pouvoir candidater.';
+    const script = document.createElement('script');
+    script.textContent = `
+      (function() {
+        var m = document.createElement('div');
+        m.id = 'profileIncompleteModal';
+        m.className = 'profile-incomplete-modal';
+        m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999999';
+        m.innerHTML = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:450px;text-align:center"><h3>Profil incomplet</h3><p>' + ${JSON.stringify(msg)} + '</p><button id="taleos-btn-profile" style="margin:8px;padding:10px 20px;background:#667eea;color:#fff;border:none;border-radius:8px;cursor:pointer">Compléter mon profil</button><button id="taleos-btn-close" style="margin:8px;padding:10px 20px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer">Fermer</button></div>';
+        m.onclick = function(e) { if (e.target === m) m.remove(); };
+        document.body.appendChild(m);
+        m.querySelector('#taleos-btn-profile').onclick = function() { m.remove(); window.location.href = 'profile.html'; };
+        m.querySelector('#taleos-btn-close').onclick = function() { m.remove(); };
+      })();
+    `;
+    (document.head || document.documentElement).appendChild(script);
+    script.remove();
+  }
+
   function setButtonProcessing(btn, jobId) {
     if (!btn.dataset.taleosOriginalText) btn.dataset.taleosOriginalText = btn.textContent || '📝 Candidater';
     btn.textContent = '⏳ En cours...';
@@ -155,9 +177,6 @@
       bankId = 'credit_agricole';
     }
 
-    e.preventDefault();
-    e.stopPropagation();
-
     if (!jobId) return;
 
     const now = Date.now();
@@ -168,39 +187,24 @@
     }
 
     if (!isExtensionValid()) {
-      const openUrl = (bankId === 'credit_agricole' || jobUrl.includes('groupecreditagricole.jobs'))
-        ? 'https://groupecreditagricole.jobs/fr/connexion/'
-        : jobUrl;
-      window.open(openUrl, '_blank');
       return;
     }
 
+    e.preventDefault();
+    e.stopPropagation();
+
     try {
-      const checkRes = await chrome.runtime.sendMessage({ action: 'taleos_check_profile_complete' });
-      if (checkRes && checkRes.complete === false) {
-        const script = document.createElement('script');
-        script.textContent = `
-          (function() {
-            if (typeof showProfileIncompleteModal === 'function') {
-              showProfileIncompleteModal();
-            } else {
-              var m = document.createElement('div');
-              m.id = 'profileIncompleteModal';
-              m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999999';
-              m.innerHTML = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:400px;text-align:center"><h3>Profil incomplet</h3><p>Il manque des informations dans votre profil. Vous devez compléter votre profil avant de pouvoir candidater.</p><button id="taleos-btn-profile" style="margin:8px;padding:10px 20px;background:#667eea;color:#fff;border:none;border-radius:8px;cursor:pointer">Compléter mon profil</button><button id="taleos-btn-close" style="margin:8px;padding:10px 20px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer">Fermer</button></div>';
-              m.onclick = function(e) { if (e.target === m) m.remove(); };
-              document.body.appendChild(m);
-              m.querySelector('#taleos-btn-profile').onclick = function() { m.remove(); window.location.href = 'profile.html'; };
-              m.querySelector('#taleos-btn-close').onclick = function() { m.remove(); };
-            }
-          })();
-        `;
-        (document.head || document.documentElement).appendChild(script);
-        script.remove();
+      const checkPromise = chrome.runtime.sendMessage({ action: 'taleos_check_profile_complete' });
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000));
+      const checkRes = await Promise.race([checkPromise, timeoutPromise]);
+      if (!checkRes || checkRes.complete !== true) {
+        showProfileIncompletePopup(checkRes?.missingFields || []);
         return;
       }
     } catch (err) {
       console.warn('[Taleos] Vérification profil:', err);
+      showProfileIncompletePopup([]);
+      return;
     }
 
     setButtonProcessing(btn, jobId);

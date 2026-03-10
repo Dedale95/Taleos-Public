@@ -2953,12 +2953,11 @@
             if (incompleteFields.length > 0) {
                 const fieldsList = incompleteFields.slice(0, 5).join(', ');
                 const moreText = incompleteFields.length > 5 ? ` et ${incompleteFields.length - 5} autre(s)` : '';
-                
+                const suffix = (fieldsList + moreText).match(/[?!]$/) ? '' : '.';
                 showToast(
-                    '⚠️ Profil incomplet',
-                    `Pour activer l'automatisation des candidatures, veuillez compléter tous les champs obligatoires : ${fieldsList}${moreText}.`,
                     'warning',
-                    8000
+                    '⚠️ Profil incomplet',
+                    `Pour activer l'automatisation des candidatures, veuillez compléter tous les champs obligatoires : ${fieldsList}${moreText}${suffix}`
                 );
 
                 // Scroller vers la première section incomplète

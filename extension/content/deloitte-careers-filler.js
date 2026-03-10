@@ -241,7 +241,9 @@
     const didLogin = !!window.__taleosDeloitteDidLoginClick;
     log(`Connexion visible=${!!hasConnexionUi}, bouton "Utiliser ma dernière candidature"=${!!useLastAppBtn}, déjà connecté (flag)=${didLogin}`, 4);
 
-    if (!hasConnexionUi && useLastAppBtn && didLogin) {
+    // Cas 1 : tu arrives déjà connecté sur /apply → pas d'UI de connexion, bouton présent : on clique.
+    // Cas 2 : tu as fait Connexion dans ce flux (didLogin=true) et l'UI n'est plus là → on clique aussi.
+    if (!hasConnexionUi && useLastAppBtn && (!hasConnexionUi || didLogin)) {
       log('Clic sur "Utiliser ma dernière candidature"', 4);
       try {
         useLastAppBtn.scrollIntoView({ behavior: 'instant', block: 'center' });

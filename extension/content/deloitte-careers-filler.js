@@ -357,6 +357,109 @@
     return false;
   }
 
+  /**
+   * Remplir l'étape 2 Workday "Mon expérience" (Études) depuis Firebase.
+   * - Établissement : profile.establishment ou "Autre" → sélection "Autre établissement" si Autre.
+   * - Diplôme : mapping education_level → option listbox (ex. Bac+5 → Master 2 / Master Spé...).
+   * - Domaine d'études : "banque finance assurance" (valeur cohérente avec les offres finance).
+   * - Année de fin : profile.diploma_year (graduation_year Firebase, ex. 2018) ; année de début : diploma_year - 4.
+   */
+  function fillWorkdayStep2Education(profile) {
+    const establishmentVal = (profile.establishment || '').trim() || 'Autre';
+    const diplomaYear = profile.diploma_year ? String(profile.diploma_year).replace(/\D/g, '') : '';
+    const yearEnd = diplomaYear.length === 4 ? parseInt(diplomaYear, 10) : null;
+    const yearStart = yearEnd != null && yearEnd >= 4 ? yearEnd - 4 : null;
+
+    const establishmentInput = findInputByLabel(['établissement ou université', 'institution']);
+    if (establishmentInput && establishmentInput.offsetParent !== null) {
+      scrollIntoViewIfNeeded(establishmentInput);
+      establishmentInput.focus();
+      establishmentInput.click();
+      fillInput(establishmentInput, establishmentVal);
+      setTimeout(function() {
+        const enterEv = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true });
+        establishmentInput.dispatchEvent(enterEv);
+        if (establishmentVal === 'Autre') {
+          setTimeout(function() {
+            const opts = document.querySelectorAll('[role="option"]');
+            for (const o of opts) {
+              const t = (o.textContent || o.getAttribute('aria-label') || '').trim();
+              if (/autre établissement/i.test(t) && o.offsetParent !== null) {
+                o.click();
+                log('   ✏️  Établissement : Sélectionné "Autre établissement" (Firebase vide)', 5);
+                break;
+              }
+            }
+          }, 450);
+        } else {
+          log('   ✏️  Établissement : ' + establishmentVal + ' + Entrée (Firebase)', 5);
+        }
+      }, 400);
+    }
+
+    const diplomaMap = {
+      'bac + 5': 'Master 2 / Master Spé / DSCG (BAC+5)',
+      'bac+5': 'Master 2 / Master Spé / DSCG (BAC+5)',
+      'm2': 'Master 2 / Master Spé / DSCG (BAC+5)',
+      'bac + 3': 'Licence / Bachelor / BUT (BAC+3)',
+      'bac+3': 'Licence / Bachelor / BUT (BAC+3)',
+      'licence': 'Licence / Bachelor / BUT (BAC+3)',
+      'bac': 'BAC+1 / Baccalauréat / infra-BAC'
+    };
+    const eduLevel = (profile.education_level || '').trim().toLowerCase();
+    let diplomaOption = 'Master 2 / Master Spé / DSCG (BAC+5)';
+    for (const [k, v] of Object.entries(diplomaMap)) {
+      if (eduLevel.includes(k)) {
+        diplomaOption = v;
+        break;
+      }
+    }
+    const diplomaBtn = document.querySelector('button[aria-haspopup="listbox"][aria-label*="Diplôme"], button[aria-label*="Diplôme"]') ||
+      Array.from(document.querySelectorAll('button')).find(b => /diplôme.*sélectionnez|diplôme.*obligatoire/i.test((b.getAttribute('aria-label') || '') + (b.textContent || '')));
+    if (diplomaBtn && diplomaBtn.offsetParent !== null) {
+      scrollIntoViewIfNeeded(diplomaBtn);
+      if (clickWorkdayListboxOption(diplomaBtn, diplomaOption, 'Diplôme')) {
+        log('   ✏️  Diplôme : ' + diplomaOption + ' (Firebase education_level)', 5);
+      }
+    }
+
+    const domainInput = findInputByLabel(["domaine d'études", 'domaine d\'études', 'field of study']);
+    if (domainInput && domainInput.offsetParent !== null) {
+      scrollIntoViewIfNeeded(domainInput);
+      domainInput.focus();
+      domainInput.click();
+      fillInput(domainInput, 'banque finance assurance');
+      setTimeout(function() {
+        domainInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+        log('   ✏️  Domaine d\'études : banque finance assurance + Entrée', 5);
+      }, 350);
+    }
+
+    const yearInputs = document.querySelectorAll('input[type="number"][aria-label*="Year"], input[aria-label="Year"], [role="spinbutton"][name="Year"], input[name*="year"]');
+    const spinbuttons = Array.from(document.querySelectorAll('[role="spinbutton"]')).filter(s => /year|année/i.test(s.getAttribute('aria-label') || s.getAttribute('name') || ''));
+    const yearFields = spinbuttons.length >= 2 ? spinbuttons : Array.from(document.querySelectorAll('input[type="number"]')).filter(i => (i.getAttribute('placeholder') || '').match(/^\d{4}$/) || (i.getAttribute('aria-label') || '').toLowerCase().includes('year'));
+    if (yearEnd != null && yearFields.length >= 2) {
+      try {
+        const firstYear = yearFields[0];
+        const secondYear = yearFields[1];
+        if (yearStart != null) {
+          firstYear.focus();
+          fillInput(firstYear, String(yearStart));
+        }
+        secondYear.focus();
+        fillInput(secondYear, String(yearEnd));
+        log('   ✏️  Années études : De ' + (yearStart != null ? yearStart : '?') + ' À ' + yearEnd + ' (Firebase graduation_year)', 5);
+      } catch (e) {
+        log('   ⏭️  Années : ' + (e && e.message), 5);
+      }
+    } else if (yearEnd != null && yearFields.length === 1) {
+      try {
+        fillInput(yearFields[0], String(yearEnd));
+        log('   ✏️  Année de fin : ' + yearEnd + ' (Firebase graduation_year)', 5);
+      } catch (_) {}
+    }
+  }
+
   async function notifyOfferUnavailable(jobId, jobTitle) {
     try {
       const { taleos_pending_tab } = await chrome.storage.local.get('taleos_pending_tab');
@@ -555,7 +658,23 @@
       log('Déjà sur useMyLastApplication → remplissage formulaire', 4);
     }
 
-    // Étape 5 : Remplir le formulaire de candidature (profil Firebase)
+    // Détection étape 2 "Mon expérience" (Études) : remplir établissement, diplôme, domaine, années depuis Firebase
+    const step2EstablishmentInput = findInputByLabel(['établissement ou université', 'institution']);
+    const step2DiplomaBtn = Array.from(document.querySelectorAll('button[aria-haspopup="listbox"], button[role="combobox"]')).find(b => {
+      const a = (b.getAttribute('aria-label') || b.textContent || '').toLowerCase();
+      return a.includes('diplôme') && (a.includes('sélectionnez') || a.includes('select'));
+    });
+    const isStep2Form = (step2EstablishmentInput && step2EstablishmentInput.offsetParent !== null) ||
+      (step2DiplomaBtn && step2DiplomaBtn.offsetParent !== null);
+    if (isStep2Form && url.includes('useMyLastApplication')) {
+      log('📂 [STEP 5b] Formulaire étape 2 "Mon expérience" détecté → remplissage Études depuis Firebase', 5);
+      fillWorkdayStep2Education(profile);
+      setTimeout(refreshWorkdayRequiredFields, 600);
+      setTimeout(hideBanner, 1500);
+      return;
+    }
+
+    // Étape 5 : Remplir le formulaire de candidature (profil Firebase) — étape 1 "Mes données personnelles"
     // Mapping Workday (étape 1 "Mes données personnelles") :
     // - Comment nous avez-vous connus : input searchBox id="source--source" → remplir "Site Deloitte Careers" puis Enter
     // - Déjà travaillé Deloitte : radios Oui/Non (value true/false), souvent opacity 0 → cliquer le label associé

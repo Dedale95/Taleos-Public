@@ -1738,6 +1738,12 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="establishment">Établissement ou université</label>
+                        <input type="text" id="establishment" name="establishment" placeholder="Ex. HEC Paris, Université Paris-Dauphine, ou « Autre » si non listé">
+                        <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">Utilisé pour les candidatures (ex. Deloitte/Workday). Si votre école n’apparaît pas dans leur liste, indiquez « Autre ».</small>
+                    </div>
+
+                    <div class="form-group">
                         <label for="institutionType">Type d'établissement</label>
                         <select id="institutionType" name="institutionType">
                             <option value="">Sélectionnez...</option>
@@ -2570,7 +2576,12 @@
                     educationSelect.value = profile.education_level;
                 }
             }
-            
+            if (profile.establishment) {
+                const establishmentInput = document.getElementById('establishment');
+                if (establishmentInput) {
+                    establishmentInput.value = profile.establishment;
+                }
+            }
             if (profile.institution_type) {
                 const institutionSelect = document.getElementById('institutionType');
                 if (institutionSelect) {
@@ -2918,6 +2929,7 @@
                 ],
                 'Formation': [
                     { id: 'educationLevel', section: 'Formation' },
+                    { id: 'establishment', section: 'Formation' },
                     { id: 'institutionType', section: 'Formation' },
                     { id: 'diplomaStatus', section: 'Formation' }
                 ]
@@ -2984,6 +2996,7 @@
                 ],
                 'Formation': [
                     { id: 'educationLevel', label: 'Niveau d\'études', section: 'Formation' },
+                    { id: 'establishment', label: 'Établissement ou université', section: 'Formation' },
                     { id: 'institutionType', label: 'Type d\'établissement', section: 'Formation' },
                     { id: 'diplomaStatus', label: 'Statut du diplôme', section: 'Formation' }
                 ]
@@ -3193,6 +3206,7 @@
                 regions: selectedRegions, // Array des régions sélectionnées
                 experience_level: document.getElementById('experienceLevel').value,
                 education_level: document.getElementById('educationLevel').value,
+                establishment: document.getElementById('establishment').value.trim(),
                 institution_type: document.getElementById('institutionType').value,
                 diploma_status: document.getElementById('diplomaStatus').value,
                 graduation_year: document.getElementById('graduationYear').value ? parseInt(document.getElementById('graduationYear').value) : null,

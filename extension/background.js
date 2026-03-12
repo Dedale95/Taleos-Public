@@ -1033,6 +1033,7 @@ async function fetchProfile(uid, bankId, token) {
     target_regions: profile.regions || [],
     experience_level: profile.experience_level || '',
     education_level: profile.education_level || '',
+    establishment: (profile.establishment || profile.institution_name || '').trim(),
     school_type: profile.institution_type || '',
     diploma_status: profile.diploma_status || '',
     diploma_year: String(profile.graduation_year || ''),

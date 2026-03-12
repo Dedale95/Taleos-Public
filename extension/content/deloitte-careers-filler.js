@@ -601,12 +601,23 @@
     }
 
     // Étape 2 / 3 : Connexion d'abord (bouton ou formulaire), JAMAIS "Utiliser ma dernière candidature" avant
-    const emailInput = document.querySelector('input[data-automation-id="email"]');
-    const passwordInput = document.querySelector('input[data-automation-id="password"]');
+    let emailInput = document.querySelector('input[data-automation-id="email"]');
+    let passwordInput = document.querySelector('input[data-automation-id="password"]');
+    // Workday peut afficher un popup de connexion sans data-automation-id sur les inputs.
+    // Dans ce cas, on repère les champs par leur label "Adresse e-mail" / "Mot de passe".
+    const altEmailInput = emailInput || document.querySelector('input[aria-label*="Adresse e-mail"], input[placeholder*="Adresse e-mail"]');
+    const altPasswordInput = passwordInput || document.querySelector('input[aria-label*="Mot de passe"], input[placeholder*="Mot de passe"]');
+    emailInput = altEmailInput;
+    passwordInput = altPasswordInput;
 
     // 2a-bis. Si on est sur le formulaire de CRÉATION de compte (pas connexion), cliquer d'abord sur "Connexion" pour afficher le formulaire de connexion
-    const isCreationForm = document.querySelector('input[data-automation-id="confirmPassword"], input[name*="confirmPassword"], input[aria-label*="Confirmer"], input[aria-label*="Confirm "]') ||
+    let isCreationForm = document.querySelector('input[data-automation-id="confirmPassword"], input[name*="confirmPassword"], input[aria-label*="Confirmer"], input[aria-label*="Confirm "]') ||
       Array.from(document.querySelectorAll('button, [role="button"]')).some(el => /^créer un compte$/i.test((el.textContent || el.getAttribute('aria-label') || '').trim()));
+    // Si un vrai formulaire de connexion (email + mot de passe) est visible (popup),
+    // on considère qu'on n'est PAS en création de compte même si le DOM de création est présent derrière.
+    if (emailInput && passwordInput && emailInput.offsetParent && passwordInput.offsetParent) {
+      isCreationForm = false;
+    }
     if (isCreationForm) {
       const connexionBtnToShow = document.querySelector('button[aria-label="Connexion"], [data-automation-id="click_filter"][aria-label="Connexion"], [role="button"][aria-label="Connexion"]') ||
         Array.from(document.querySelectorAll('button, [role="button"]')).find(el => /^connexion$/i.test((el.textContent || el.getAttribute('aria-label') || '').trim()));

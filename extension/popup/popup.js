@@ -148,6 +148,32 @@ async function init() {
   document.getElementById('reload-btn-login')?.addEventListener('click', doReload);
   document.getElementById('diagnostic-btn')?.addEventListener('click', runDiagnostic);
   document.getElementById('refresh-taleos-btn')?.addEventListener('click', refreshTaleosTabs);
+  const macroBtn = document.getElementById('macro-toggle-btn');
+  const macroStatus = document.getElementById('macro-status');
+  if (macroBtn && macroStatus) {
+    let recording = false;
+    macroBtn.addEventListener('click', async () => {
+      try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab || !tab.id) return;
+        if (!recording) {
+          await chrome.tabs.sendMessage(tab.id, { action: 'taleos_start_macro_record' });
+          recording = true;
+          macroBtn.textContent = 'Arrêter l\'enregistrement';
+          macroStatus.textContent = 'Enregistrement en cours… (les actions seront visibles dans la console de la page)';
+        } else {
+          const res = await chrome.tabs.sendMessage(tab.id, { action: 'taleos_stop_macro_record' });
+          recording = false;
+          macroBtn.textContent = 'Démarrer l\'enregistrement';
+          macroStatus.textContent = res && res.count != null
+            ? `Dernier enregistrement : ${res.count} action(s) (voir console Workday)`
+            : 'Inactif';
+        }
+      } catch (e) {
+        console.warn('Macro toggle error:', e);
+      }
+    });
+  }
   setupLogout();
   runDiagnostic();
 

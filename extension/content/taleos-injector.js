@@ -57,6 +57,11 @@
     const msg = (err?.message || String(err)).toLowerCase();
     return /context invalidated|extension.*invalid/i.test(msg);
   }
+
+  function isReceivingEndMissing(err) {
+    const msg = (err?.message || String(err)).toLowerCase();
+    return /receiving end does not exist/i.test(msg);
+  }
   function showReloadToast() {
     const toast = document.createElement('div');
     toast.textContent = 'Extension déconnectée. Rechargement de la page...';
@@ -78,12 +83,12 @@
         return;
       } catch (e) {
         const invalidated = isContextInvalidated(e);
-        const receivingEnd = /receiving end does not exist/i.test(e?.message || '');
-        if (invalidated) {
+        const receivingEnd = isReceivingEndMissing(e);
+        if (invalidated || receivingEnd) {
           showReloadToast();
           return;
         }
-        if (receivingEnd && i < HEALTH_CHECK_RETRIES - 1) {
+        if (i < HEALTH_CHECK_RETRIES - 1) {
           await new Promise(function(r) { setTimeout(r, HEALTH_CHECK_RETRY_DELAY); });
           continue;
         }
@@ -207,6 +212,7 @@
     }
 
     if (!isExtensionValid()) {
+      showReloadToast();
       return;
     }
 
@@ -218,16 +224,19 @@
     btn.dataset.taleosProcessing = '1';
     btn.setAttribute('data-taleos-processing', '1');
 
-    // Ping rapide : si l'extension ne répond pas, ouvrir l'onglet directement ici
+    // Ping rapide : uniquement pour réveiller le service worker si besoin, mais on ne bloque plus l'automatisation sur un timeout
     try {
       await Promise.race([
         chrome.runtime.sendMessage({ action: 'ping' }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('ping_timeout')), 500))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('ping_timeout')), 1500))
       ]);
-    } catch (_) {
-      // Extension non disponible → ouvrir l'onglet manuellement
-      window.open(jobUrl, '_blank');
-      return;
+    } catch (e) {
+      console.warn('[Taleos] Ping extension en échec ou timeout:', e?.message || e);
+      if (isContextInvalidated(e) || isReceivingEndMissing(e)) {
+        showReloadToast();
+        return;
+      }
+      // Sinon on tente quand même la suite.
     }
 
     try {
@@ -240,6 +249,10 @@
       }
     } catch (err) {
       console.warn('[Taleos] Vérification profil:', err);
+      if (isContextInvalidated(err) || isReceivingEndMissing(err)) {
+        showReloadToast();
+        return;
+      }
       showProfileIncompletePopup([]);
       return;
     }

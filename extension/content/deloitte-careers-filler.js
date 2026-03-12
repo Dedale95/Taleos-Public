@@ -70,10 +70,11 @@
       ].filter(function (x) { return x.el && x.el.offsetParent; });
       const elsewhere = document.querySelector('h2[data-automation-id="sectionHeader"], [role="heading"][aria-level="2"], h2') || document.body;
       fields.forEach(function (item, index) {
-        const delay = index * 220;
+        const delay = index * 280;
         setTimeout(function () {
           try {
             scrollIntoViewIfNeeded(item.el);
+            item.el.focus();
             item.el.click();
             log('   🔁 ' + item.label + ' : clic sur la case (validation Workday)', 5);
           } catch (_) {}
@@ -82,7 +83,14 @@
           try {
             elsewhere.click();
           } catch (_) {}
-        }, delay + 100);
+        }, delay + 120);
+        setTimeout(function () {
+          try {
+            if (document.activeElement === item.el) {
+              item.el.blur();
+            }
+          } catch (_) {}
+        }, delay + 180);
       });
     } catch (e) {
       log('   ❌ workdayClickThenClickAway: ' + (e && e.message), 5);

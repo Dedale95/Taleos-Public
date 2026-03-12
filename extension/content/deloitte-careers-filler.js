@@ -359,10 +359,10 @@
 
   /**
    * Remplir l'étape 2 Workday "Mon expérience" (Études) depuis Firebase.
-   * - Établissement : profile.establishment (Firebase) ; "Autre" uniquement si vide → option "Autre établissement".
-   * - Diplôme : mapping education_level → option listbox (ex. Bac+5 → Master 2 / Master Spé...).
-   * - Domaine d'études : non obligatoire (*) → on ne remplit que si une valeur existe en profil (sinon on laisse vide).
-   * - Année de fin : profile.diploma_year (Firebase graduation_year, ex. 2018) ; année de début : diploma_year - 4.
+   * - Établissement ou université : profile.establishment (Firebase) ; "Autre" si vide → option "Autre établissement".
+   * - Diplôme : profile.education_level → option listbox (ex. Bac+5 → Master 2 / Master Spé...).
+   * - De / À (années) : année réelle ou prévue = profile.diploma_year (Firebase graduation_year) ; début = diploma_year - 4.
+   * - Domaine d'études : non renseigné (champ ignoré).
    */
   function fillWorkdayStep2Education(profile) {
     const establishmentVal = (profile.establishment || '').trim() || 'Autre';
@@ -422,19 +422,6 @@
       if (clickWorkdayListboxOption(diplomaBtn, diplomaOption, 'Diplôme')) {
         log('   ✏️  Diplôme : ' + diplomaOption + ' (Firebase education_level)', 5);
       }
-    }
-
-    const domainVal = (profile.study_domain || profile.field_of_study || '').trim();
-    const domainInput = findInputByLabel(["domaine d'études", 'domaine d\'études', 'field of study']);
-    if (domainInput && domainInput.offsetParent !== null && domainVal) {
-      scrollIntoViewIfNeeded(domainInput);
-      domainInput.focus();
-      domainInput.click();
-      fillInput(domainInput, domainVal);
-      setTimeout(function() {
-        domainInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
-        log('   ✏️  Domaine d\'études : ' + domainVal + ' (Firebase, optionnel)', 5);
-      }, 350);
     }
 
     const yearInputs = document.querySelectorAll('input[type="number"][aria-label*="Year"], input[aria-label="Year"], [role="spinbutton"][name="Year"], input[name*="year"]');

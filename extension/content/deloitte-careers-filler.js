@@ -758,79 +758,57 @@
     );
 
     // ——— Comment nous avez-vous connus? → "Site Deloitte Careers" ———
-    // Workday : champ listbox + éventuellement champ recherche "Rechercher".
-    log('   🔵 Comment nous avez-vous connus? → cible "Site Deloitte Careers" (Firebase)', 5);
+    // Workday : textbox ARIA + menu d’options.
+    log('   🔵 Comment nous avez-vous connus? → cible \"Site Deloitte Careers\" (Firebase)', 5);
     let hearAboutFilled = false;
 
-    // 1) D'abord : trouver directement le bouton listbox à côté du libellé "Comment nous avez-vous connus ?"
-    try {
-      const hearLabel = Array.from(document.querySelectorAll('label, span, div, h2, h3')).find(function(el) {
-        const t = (el.textContent || '').toLowerCase();
-        return t.includes('comment nous avez-vous connus');
-      });
-      if (hearLabel) {
-        const container = hearLabel.closest('section, div, li') || document;
-        const hearButton = container.querySelector(
-          'button[aria-haspopup="listbox"], [role="combobox"], button[data-automation-id="selectSingle"]'
-        );
-        if (hearButton && hearButton.offsetParent !== null) {
-          if (clickWorkdayListboxOption(hearButton, SITE_DELOITTE_CAREERS, 'Comment nous avez-vous connus?')) {
-            hearAboutFilled = true;
-            filled = true;
-          }
-        }
-      }
-    } catch (_) {}
-
-    // 2) Fallback : si rien trouvé, prendre le premier listbox du formulaire (c'est ce champ en haut de page)
-    if (!hearAboutFilled) {
+    // 1) Textbox ARIA « Comment nous avez-vous connus ? »
+    const hearTextbox = document.querySelector('[role=\"textbox\"][aria-label^=\"Comment nous avez-vous connus\"]');
+    if (hearTextbox && hearTextbox.offsetParent !== null) {
+      scrollIntoViewIfNeeded(hearTextbox);
       try {
-        const firstListboxBtn = document.querySelector(
-          'form button[aria-haspopup="listbox"], form [role="combobox"]'
-        );
-        if (firstListboxBtn && firstListboxBtn.offsetParent !== null) {
-          if (clickWorkdayListboxOption(firstListboxBtn, SITE_DELOITTE_CAREERS, 'Comment nous avez-vous connus? (fallback premier listbox)')) {
-            hearAboutFilled = true;
-            filled = true;
-          }
-        }
+        hearTextbox.focus();
+        hearTextbox.click();
       } catch (_) {}
+      fillInput(hearTextbox, SITE_DELOITTE_CAREERS);
+      setTimeout(function() {
+        const opt = Array.from(document.querySelectorAll('[role=\"option\"], [data-automation-id=\"promptOption\"]'))
+          .find(function(o) {
+            return (o.textContent || o.getAttribute('aria-label') || '').trim() === SITE_DELOITTE_CAREERS;
+          });
+        if (opt && opt.offsetParent !== null) {
+          opt.click();
+          hearAboutFilled = true;
+          filled = true;
+          log('   ✏️  Comment nous avez-vous connus? : Sélectionné \"Site Deloitte Careers\" via textbox ARIA (Firebase)', 5);
+        }
+      }, 400);
     }
 
-    // 3) Dernier fallback : utiliser le champ de recherche interne s'il existe encore
-    const hearSearchBox = !hearAboutFilled && (
-      document.querySelector('input[data-automation-id="searchBox"][id="source--source"]') ||
-      findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']) ||
-      document.querySelector('input[aria-label*="Comment nous avez-vous connus"], input[placeholder*="Comment nous avez-vous connus"]')
-    );
-    if (hearSearchBox && hearSearchBox.offsetParent !== null) {
-      scrollIntoViewIfNeeded(hearSearchBox);
-      try {
-        hearSearchBox.focus();
-        hearSearchBox.click();
-      } catch (e) {}
-      fillInput(hearSearchBox, SITE_DELOITTE_CAREERS);
-      const opt = document.querySelector(
-        '[data-automation-id="promptOption"][data-automation-label="Site Deloitte Careers"], ' +
-        '[role="option"][aria-label*="Site Deloitte Careers"], ' +
-        '[role="option"]:not([aria-label])[data-automation-id="promptOption"]'
-      );
-      if (opt && opt.offsetParent !== null) {
-        opt.click();
-        hearAboutFilled = true;
-        filled = true;
-        log('   ✏️  Comment nous avez-vous connus? : Sélectionné "Site Deloitte Careers" (option) (Firebase)', 5);
-      }
-      if (!hearAboutFilled) {
+    // 2) Fallback : ancien code (input data-automation / label)
+    if (!hearAboutFilled) {
+      const hearSearchBox = document.querySelector('input[data-automation-id=\"searchBox\"][id=\"source--source\"]') ||
+        findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']) ||
+        document.querySelector('input[aria-label*=\"Comment nous avez-vous connus\"], input[placeholder*=\"Comment nous avez-vous connus\"]');
+      if (hearSearchBox && hearSearchBox.offsetParent !== null) {
+        scrollIntoViewIfNeeded(hearSearchBox);
+        try {
+          hearSearchBox.focus();
+          hearSearchBox.click();
+        } catch (e) {}
+        fillInput(hearSearchBox, SITE_DELOITTE_CAREERS);
         setTimeout(function() {
-          try {
-            const enterEv = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true });
-            (document.activeElement || hearSearchBox).dispatchEvent(enterEv);
-            log('   ✏️  Comment nous avez-vous connus? : Rempli + Entrée (Firebase)', 5);
-          } catch (_) {}
-        }, 350);
-        hearAboutFilled = true;
-        filled = true;
+          const opt2 = Array.from(document.querySelectorAll('[role=\"option\"], [data-automation-id=\"promptOption\"]'))
+            .find(function(o) {
+              return (o.textContent || o.getAttribute('aria-label') || '').trim() === SITE_DELOITTE_CAREERS;
+            });
+          if (opt2 && opt2.offsetParent !== null) {
+            opt2.click();
+            hearAboutFilled = true;
+            filled = true;
+            log('   ✏️  Comment nous avez-vous connus? : Sélectionné \"Site Deloitte Careers\" (fallback input) (Firebase)', 5);
+          }
+        }, 400);
       }
     }
     if (!hearAboutFilled) {
@@ -973,8 +951,9 @@
     if (titleCivility) {
       const titleOption = /madame|mme|mrs|female/i.test(titleCivility) ? 'Madame' : 'Monsieur';
       const titleBtn =
-        document.querySelector('button[aria-haspopup="listbox"][aria-label*="Titre (préfixe)"]') ||
-        document.querySelector('[role="combobox"][aria-label*="Titre (préfixe)"]') ||
+        document.querySelector('[role="button"][aria-label^="Titre (préfixe)"]') ||
+        document.querySelector('button[aria-label^="Titre (préfixe)"]') ||
+        document.querySelector('[role="combobox"][aria-label^="Titre (préfixe)"]') ||
         document.querySelector('button[aria-haspopup="listbox"][name*="legalName--title"]') ||
         document.querySelector('[role="combobox"][name*="legalName--title"]');
       if (titleBtn && titleBtn.offsetParent !== null) {
@@ -1009,10 +988,11 @@
     const zipEl = findInputByLabel(['code postal', 'postal code', 'zip']);
     if (zipEl && profile.zipcode && fillInputIfNeeded(zipEl, profile.zipcode, 'Code postal')) filled = true;
 
-    // ——— Type d'appareil téléphonique : bouton listbox → Mobile Personnel ———
+    // ——— Type d'appareil téléphonique : bouton listbox → Mobile personnel ———
     const phoneTypeBtn = document.querySelector(
-      'button[aria-haspopup="listbox"][aria-label*="Type d\'appareil téléphonique"], ' +
-      '[role="combobox"][aria-label*="Type d\'appareil téléphonique"], ' +
+      '[role="button"][aria-label^="Type d\'appareil téléphonique"], ' +
+      'button[aria-label^="Type d\'appareil téléphonique"], ' +
+      '[role="combobox"][aria-label^="Type d\'appareil téléphonique"], ' +
       'button[aria-haspopup="listbox"][name*="phoneType"], ' +
       '[role="combobox"][name*="phoneType"]'
     );
@@ -1030,85 +1010,57 @@
     if (phoneCountryCode) {
       const wantLabel = phoneCountryCode === '+44' ? 'Royaume-Uni (+44)' : phoneCountryCode === '+33' ? 'France (+33)' : phoneCountryCode;
       log('   🔵 Indicatif de pays (téléphone) : Firebase phone_country_code=' + phoneCountryCode + ' → ' + wantLabel + ' (pour France mettre +33 dans Firebase)', 5);
-      let countryCodeDone = false;
-      const allListbox = document.querySelectorAll('button[aria-haspopup="listbox"], [data-automation-id="compositeHeader"], [role="combobox"]');
-      for (const b of allListbox) {
-        const aria = (b.getAttribute('aria-label') || '').toLowerCase();
-        const text = (b.textContent || '').toLowerCase().trim();
-        const combined = aria + ' ' + text;
-        // Ne pas toucher au champ « Pays » (résidence) : label "Pays France" sans "indicatif" ni indicatif téléphone (+33).
-        const isPaysResidence = combined.includes('pays') && !combined.includes('indicatif') && !/\+\d{2,4}/.test(combined);
-        const isCountryCodeField = !isPaysResidence && (combined.includes('indicatif') || combined.includes('country code') || combined.includes('dialling') || /\+\d{2,4}/.test(combined));
-        if (!isCountryCodeField) continue;
-        const currentVal = (b.getAttribute('aria-label') || b.textContent || '').trim();
-        if (currentVal.includes(phoneCountryCode) && !/sélectionnez|select a value/i.test(currentVal)) {
-          log('   ✅ Indicatif de pays : Déjà ' + currentVal + ' (Firebase identique) → Skip', 5);
-          countryCodeDone = true;
-          break;
+
+      // 1) Si +44, retirer le chip France (+33) existant
+      try {
+        const currentChip = Array.from(document.querySelectorAll('[role=\"option\"]'))
+          .find(function(o) {
+            const t = (o.textContent || '').trim();
+            return /France\s*\(\+33\)/i.test(t);
+          });
+        if (currentChip && currentChip.offsetParent !== null) {
+          scrollIntoViewIfNeeded(currentChip);
+          currentChip.click();
+          try {
+            const delEv = new KeyboardEvent('keydown', { key: 'Delete', code: 'Delete', keyCode: 46, which: 46, bubbles: true });
+            currentChip.dispatchEvent(delEv);
+          } catch (_) {}
+          log('   ✏️  Indicatif de pays : suppression du chip France (+33)', 5);
         }
-        if (clickWorkdayListboxOption(b, wantLabel, 'Indicatif de pays')) {
-          filled = true;
-          countryCodeDone = true;
-        }
-        break;
-      }
-      if (!countryCodeDone) {
-        const indicatifInput = findInputByLabel(['indicatif de pays', 'country code', 'indicatif']) ||
-          document.querySelector('input[aria-label*="Indicatif de pays"], input[placeholder*="Indicatif de pays"]');
-        if (indicatifInput && indicatifInput.offsetParent !== null) {
-          scrollIntoViewIfNeeded(indicatifInput);
-          indicatifInput.focus();
-          indicatifInput.click();
-          fillInput(indicatifInput, wantLabel);
-          countryCodeDone = true;
-          filled = true;
-          setTimeout(function() {
-            const opts = document.querySelectorAll('[role="option"], [data-automation-id="promptOption"]');
-            let clickable = null;
-            for (const o of opts) {
-              const t = (o.getAttribute('aria-label') || o.textContent || '').trim();
-              if (t.includes(phoneCountryCode) || (phoneCountryCode === '+44' && /Royaume-Uni/i.test(t)) || (phoneCountryCode === '+33' && /France/i.test(t))) {
-                clickable = o.closest('[role="option"]') || o.closest('li') || o;
-                break;
+      } catch (_) {}
+
+      // 2) Textbox ARIA « Indicatif de pays »
+      const indicatifTextbox = document.querySelector('[role=\"textbox\"][aria-label^=\"Indicatif de pays\"]');
+      if (indicatifTextbox && indicatifTextbox.offsetParent !== null) {
+        scrollIntoViewIfNeeded(indicatifTextbox);
+        try {
+          indicatifTextbox.focus();
+          indicatifTextbox.click();
+        } catch (_) {}
+        const filter = phoneCountryCode === '+44' ? 'Royaume' : phoneCountryCode;
+        fillInput(indicatifTextbox, filter);
+        setTimeout(function() {
+          const opt = Array.from(document.querySelectorAll('[role=\"option\"], [data-automation-id=\"promptOption\"]'))
+            .find(function(o) {
+              const t = (o.textContent || o.getAttribute('aria-label') || '').trim();
+              if (phoneCountryCode === '+44') {
+                return /Royaume-Uni\s*\(\+44\)/i.test(t);
               }
-            }
-            if (clickable && clickable.offsetParent !== null) {
-              clickable.click();
-              log('   ✏️  Indicatif de pays : Sélectionné ' + wantLabel + ' via champ recherche (fallback)', 5);
-            } else {
-              try {
-                const enterEv = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true });
-                indicatifInput.dispatchEvent(enterEv);
-                log('   ✏️  Indicatif de pays : Rempli ' + wantLabel + ' + Entrée (fallback)', 5);
-              } catch (_) {}
-            }
-          }, 450);
-        }
-      }
-      if (!countryCodeDone) {
-        const opt = document.querySelector('[data-automation-label="' + wantLabel + '"], [data-automation-label*="' + phoneCountryCode + '"], [aria-label*="' + phoneCountryCode + '"]');
-        if (opt && opt.offsetParent !== null) {
-          const listbox = opt.closest('[role="listbox"], ul, [data-automation-id="menuItem"]')?.parentElement || opt.closest('li')?.parentElement;
-          const trigger = listbox?.previousElementSibling || listbox?.parentElement?.querySelector('button[aria-haspopup="listbox"], [data-automation-id="compositeHeader"], button');
-          const labelIndicatif = Array.from(document.querySelectorAll('label, [data-automation-id="label"], span')).find(el => /indicatif|country code|country dial/i.test((el.textContent || '').trim()));
-          const triggerNearLabel = labelIndicatif?.closest('div')?.querySelector('button[aria-haspopup="listbox"], [data-automation-id="compositeHeader"], [role="combobox"]');
-          const toClick = trigger || triggerNearLabel || document.querySelector('button[aria-label*="+33"], button[aria-label*="+44"], [data-automation-id="compositeHeader"]');
-          if (toClick && toClick.offsetParent !== null) {
-            scrollIntoViewIfNeeded(toClick);
-            try { toClick.click(); } catch (e) {}
-            setTimeout(function() {
-              const o = document.querySelector('[data-automation-label="' + wantLabel + '"], [data-automation-label*="' + phoneCountryCode + '"], [aria-label*="' + phoneCountryCode + '"]');
-              const clickable = o?.closest('[role="option"]') || o?.closest('li') || o;
-              if (clickable && clickable.offsetParent !== null) {
-                clickable.click();
-                log('   ✏️  Indicatif de pays : Sélectionné ' + phoneCountryCode + ' (Firebase)', 5);
+              if (phoneCountryCode === '+33') {
+                return /France\s*\(\+33\)/i.test(t);
               }
-            }, 500);
+              return t.includes(phoneCountryCode);
+            });
+          if (opt && opt.offsetParent !== null) {
+            opt.click();
+            log('   ✏️  Indicatif de pays : Sélectionné ' + wantLabel + ' via textbox ARIA (Firebase)', 5);
             filled = true;
-            countryCodeDone = true;
+          } else {
+            log('   ⏭️  Indicatif de pays : aucune option trouvée pour ' + phoneCountryCode + ' après filtrage → Skip', 5);
           }
-        }
-        if (!countryCodeDone) log('   ⏭️  Indicatif de pays : trigger ou option non trouvé pour ' + phoneCountryCode + ' → Skip', 5);
+        }, 500);
+      } else {
+        log('   ⏭️  Indicatif de pays : textbox ARIA non trouvée → Skip', 5);
       }
     } else {
       log('   ⏭️  Indicatif de pays : pas de phone_country_code Firebase → Skip', 5);

@@ -47,30 +47,46 @@
   }
 
   /**
-   * Remplir un input en simulant une saisie caractère par caractère pour que
-   * Workday/React enregistre la valeur (validation "obligatoire" basée sur l'état interne).
+   * Valider les champs Workday comme en manuel : clic sur la case puis clic ailleurs.
+   * Pour chaque champ obligatoire : clic sur l'input (focus) puis clic sur un élément neutre (blur).
    */
-  function fillInputWorkdayLikeUser(el, value, label) {
-    if (!el || value == null || value === '') return;
-    const str = String(value).trim();
-    if (!str) return;
-    scrollIntoViewIfNeeded(el);
-    el.focus();
-    el.select();
-    const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-    function setVal(v) {
-      if (nativeSetter) nativeSetter.call(el, v);
-      else el.value = v;
+  function workdayClickThenClickAway() {
+    try {
+      const firstnameEl = document.getElementById('name--legalName--firstName') || document.querySelector('input[name="legalName--firstName"]');
+      const lastnameEl = document.getElementById('name--legalName--lastName') || document.querySelector('input[name="legalName--lastName"]');
+      const addressEl = document.querySelector('input[id*="address"], input[name*="address"]') || findInputByLabel(['nature et nom de la voie', 'address', 'adresse']);
+      const cityEl = findInputByLabel(['ville', 'city']);
+      const zipEl = findInputByLabel(['code postal', 'postal code', 'zip']);
+      const phoneEl = document.getElementById('phoneNumber--phoneNumber') || document.querySelector('input[name="phoneNumber"][id*="phoneNumber"]') || document.querySelector('input[name="phoneNumber"]');
+      const hearInput = findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
+      const fields = [
+        { el: firstnameEl, label: 'Prénom(s)' },
+        { el: lastnameEl, label: 'Nom de famille' },
+        { el: addressEl, label: 'Nature et nom de la voie' },
+        { el: cityEl, label: 'Ville' },
+        { el: zipEl, label: 'Code postal' },
+        { el: phoneEl, label: 'Numéro de téléphone' },
+        { el: hearInput, label: 'Comment nous avez-vous connus ?' }
+      ].filter(function (x) { return x.el && x.el.offsetParent; });
+      const elsewhere = document.querySelector('h2[data-automation-id="sectionHeader"], [role="heading"][aria-level="2"], h2') || document.body;
+      fields.forEach(function (item, index) {
+        const delay = index * 220;
+        setTimeout(function () {
+          try {
+            scrollIntoViewIfNeeded(item.el);
+            item.el.click();
+            log('   🔁 ' + item.label + ' : clic sur la case (validation Workday)', 5);
+          } catch (_) {}
+        }, delay);
+        setTimeout(function () {
+          try {
+            elsewhere.click();
+          } catch (_) {}
+        }, delay + 100);
+      });
+    } catch (e) {
+      log('   ❌ workdayClickThenClickAway: ' + (e && e.message), 5);
     }
-    setVal('');
-    for (let i = 0; i < str.length; i++) {
-      const c = str[i];
-      setVal(str.slice(0, i + 1));
-      el.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: c }));
-    }
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-    el.blur();
-    if (label) log('   ✏️  ' + label + ' : saisi comme utilisateur (Workday)', 5);
   }
 
   /** Remplir seulement si vide ou différent de Firebase (log skip ou remplacer). Écrit la valeur telle quelle (avec espaces). */
@@ -189,36 +205,6 @@
       el.blur();
       log('   🔁 ' + label + ' : champ actualisé par clic simulé (Workday validation)', 5);
     } catch (_) {}
-  }
-
-  /**
-   * Réappliquer les valeurs des champs texte en simulant une saisie caractère par caractère,
-   * pour que Workday/React enregistre l'état et accepte "Enregistrer et continuer".
-   */
-  function refreshWorkdayRequiredFieldsWithTyping(profile) {
-    if (!profile) return;
-    try {
-      const firstnameEl = document.getElementById('name--legalName--firstName') || document.querySelector('input[name="legalName--firstName"]');
-      const lastnameEl = document.getElementById('name--legalName--lastName') || document.querySelector('input[name="legalName--lastName"]');
-      const addressEl = document.querySelector('input[id*="address"], input[name*="address"]') || findInputByLabel(['nature et nom de la voie', 'address', 'adresse']);
-      const cityEl = findInputByLabel(['ville', 'city']);
-      const zipEl = findInputByLabel(['code postal', 'postal code', 'zip']);
-      const phoneEl = document.getElementById('phoneNumber--phoneNumber') || document.querySelector('input[name="phoneNumber"][id*="phoneNumber"]') || document.querySelector('input[name="phoneNumber"]');
-      const firstname = (profile.firstname || '').trim();
-      const lastname = (profile.lastname || '').trim();
-      const address = (profile.address || '').trim();
-      const city = (profile.city || '').trim();
-      const zipcode = (profile.zipcode || '').trim();
-      const phoneVal = (profile.phone_number || profile['phone-number'] || profile.phone || '').trim().replace(/\s/g, '');
-      if (firstnameEl && firstname) fillInputWorkdayLikeUser(firstnameEl, firstname, 'Prénom (saisie Workday)');
-      if (lastnameEl && lastname) fillInputWorkdayLikeUser(lastnameEl, lastname, 'Nom de famille (saisie Workday)');
-      if (addressEl && address) fillInputWorkdayLikeUser(addressEl, address, 'Adresse (saisie Workday)');
-      if (cityEl && city) fillInputWorkdayLikeUser(cityEl, city, 'Ville (saisie Workday)');
-      if (zipEl && zipcode) fillInputWorkdayLikeUser(zipEl, zipcode, 'Code postal (saisie Workday)');
-      if (phoneEl && phoneVal) fillInputWorkdayLikeUser(phoneEl, phoneVal, 'Numéro de téléphone (saisie Workday)');
-    } catch (e) {
-      log('   ❌ refreshWorkdayRequiredFieldsWithTyping: ' + (e && e.message), 5);
-    }
   }
 
   // Certains champs obligatoires gardent l'erreur tant qu'il n'y a pas eu de « vrai » clic / blur.
@@ -848,12 +834,9 @@
     const phoneEl = document.getElementById('phoneNumber--phoneNumber') || document.querySelector('input[name="phoneNumber"][id*="phoneNumber"]') || document.querySelector('input[name="phoneNumber"]');
     if (phoneEl && phoneVal && fillInputIfNeeded(phoneEl, phoneVal, 'Numéro de téléphone')) filled = true;
 
-    // Après remplissage, on force une « interaction utilisateur » sur les champs obligatoires
-    // pour que Workday rafraîchisse ses messages d'erreur (comme si on cliquait dans chaque champ).
+    // Après remplissage : clic sur chaque champ puis clic ailleurs (comme en manuel) pour que Workday valide.
     setTimeout(refreshWorkdayRequiredFields, 800);
-    setTimeout(refreshWorkdayRequiredFields, 1500);
-    // Réappliquer les valeurs en « saisie caractère par caractère » pour que React/Workday enregistre l'état.
-    setTimeout(function() { refreshWorkdayRequiredFieldsWithTyping(profile); }, 2200);
+    setTimeout(workdayClickThenClickAway, 1500);
 
     if (filled) {
       formFillRetryCount = 0;

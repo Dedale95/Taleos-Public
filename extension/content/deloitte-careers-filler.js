@@ -795,8 +795,8 @@
       return;
     }
 
-    // ——— Comment nous avez-vous connus? → "Site Deloitte Careers" (menus déroulants à traiter plus tard) ———
-    // Workday : input searchBox id="source--source"
+    // ——— Comment nous avez-vous connus? → "Site Deloitte Careers" ———
+    // Workday : ouvrir la case, puis cliquer l'option avec le gros rond "Site Deloitte Careers".
     log('   🔵 Comment nous avez-vous connus? → cible "Site Deloitte Careers" (Firebase)', 5);
     let hearAboutFilled = false;
     const hearField = document.getElementById('source--source') ||
@@ -807,29 +807,31 @@
         hearField.focus();
         hearField.click();
       } catch (_) {}
-      fillInput(hearField, SITE_DELOITTE_CAREERS);
-      // Sur Workday Deloitte, taper puis appuyer sur Entrée suffit à valider ce champ
       setTimeout(function() {
-        pressEnterSequence(hearField);
-        log('   ✏️  Comment nous avez-vous connus? : "Site Deloitte Careers" + Entrée (Firebase)', 5);
-      }, 350);
-      hearAboutFilled = true;
-      filled = true;
-    }
-    // Fallbacks éventuels (autres formulaires) : laisser en dernier recours
-    if (!hearAboutFilled) {
-      const hearAboutInput = findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']) ||
-        document.querySelector('input[aria-label*="Comment nous avez-vous connus"], input[placeholder*="Comment nous avez-vous connus"]');
-      if (hearAboutInput && hearAboutInput.offsetParent !== null) {
-        scrollIntoViewIfNeeded(hearAboutInput);
-        fillInput(hearAboutInput, SITE_DELOITTE_CAREERS);
-        setTimeout(function() {
-          pressEnterSequence(hearAboutInput);
-        }, 350);
-        hearAboutFilled = true;
-        filled = true;
-        log('   ✏️  Comment nous avez-vous connus? : Rempli + Entrée via fallback input (Firebase)', 5);
-      }
+        // Il y a plusieurs promptOption 'Site Deloitte Careers' : on veut la ligne avec le gros rond (radio),
+        // pas le header de navigation ni le chip déjà sélectionné.
+        const candidates = Array.from(document.querySelectorAll('[data-automation-id="promptOption"][data-automation-label="Site Deloitte Careers"]'))
+          .filter(function (el) {
+            if (!el.offsetParent) return false;
+            // Ignorer le chip déjà sélectionné
+            const inSelectedChip = !!el.closest('[data-automation-id="selectedItem"]');
+            return !inSelectedChip;
+          });
+        const targetOpt = candidates.length ? candidates[candidates.length - 1] : null;
+        if (targetOpt) {
+          const clickable = targetOpt.closest('[role="menuitemradio"], [role="option"], li, div') || targetOpt;
+          try {
+            clickable.click();
+            hearAboutFilled = true;
+            filled = true;
+            log('   ✏️  Comment nous avez-vous connus? : Sélectionné "Site Deloitte Careers" via option radio (Firebase)', 5);
+          } catch (e) {
+            log('   ⏭️  Comment nous avez-vous connus? : échec clic option "Site Deloitte Careers" (' + e.message + ')', 5);
+          }
+        } else {
+          log('   ⏭️  Comment nous avez-vous connus? : aucune option "Site Deloitte Careers" visible', 5);
+        }
+      }, 400);
     }
     if (!hearAboutFilled) {
       log('   ⏭️  Comment nous avez-vous connus? : champ non trouvé (retry possible)', 5);
@@ -1007,37 +1009,38 @@
         }
       } catch (_) {}
 
-      // 2) Textbox « Indicatif de pays » : input Rechercher dans le formField qui contient le label "Indicatif de pays"
-      let indicatifTextbox = null;
-      try {
-        const searchInputs = Array.from(document.querySelectorAll('input[placeholder="Rechercher"]'));
-        indicatifTextbox = searchInputs.find(function(inp) {
-          const field = inp.closest('[data-automation-id^="formField-"], section, div');
-          const txt = (field && field.textContent || '').toLowerCase();
-          return txt.includes('indicatif de pays');
-        }) || null;
-      } catch (_) {}
-      if (!indicatifTextbox) {
-        indicatifTextbox = document.querySelector('[role="textbox"][aria-label^="Indicatif de pays"]') ||
-          document.querySelector('input[aria-label*="Indicatif de pays"]');
-      }
-      if (indicatifTextbox && indicatifTextbox.offsetParent !== null) {
-        scrollIntoViewIfNeeded(indicatifTextbox);
-        try {
-          indicatifTextbox.focus();
-          indicatifTextbox.click();
-        } catch (_) {}
-        const filter = phoneCountryCode === '+44' ? 'Royaume-Uni' : phoneCountryCode;
-        fillInput(indicatifTextbox, filter);
-        // Sur Workday, taper le filtre puis appuyer sur Entrée suffit à valider l'indicatif
+      // 2) Ouvrir la liste d'indicatifs et cliquer l'option "Royaume-Uni (+44)"
+      // On garde la suppression du chip France (+33) ci-dessus, qui ouvre généralement la liste.
+      setTimeout(function() {
+        // Si la liste n'est pas ouverte, essayer de cliquer le bouton listbox à côté du label "Indicatif de pays"
+        const hasOpenOption = !!document.querySelector('[data-automation-id="promptOption"][data-automation-label="' + wantLabel + '"]');
+        if (!hasOpenOption) {
+          try {
+            const labelIndic = Array.from(document.querySelectorAll('label, span, div')).find(function(el) {
+              const t = (el.textContent || '').toLowerCase();
+              return t.includes('indicatif de pays');
+            });
+            const field = labelIndic && (labelIndic.closest('[data-automation-id^="formField-"], section, div') || labelIndic.parentElement);
+            const trigger = field && field.querySelector('button[aria-haspopup="listbox"], [role="combobox"]');
+            if (trigger && trigger.offsetParent !== null) trigger.click();
+          } catch (_) {}
+        }
         setTimeout(function() {
-          pressEnterSequence(indicatifTextbox);
-          log('   ✏️  Indicatif de pays : filtre "' + filter + '" + Entrée (Firebase)', 5);
-          filled = true;
-        }, 500);
-      } else {
-        log('   ⏭️  Indicatif de pays : textbox ARIA non trouvée → Skip', 5);
-      }
+          const opt = document.querySelector('[data-automation-id="promptOption"][data-automation-label="' + wantLabel + '"]');
+          if (opt && opt.offsetParent !== null) {
+            const clickable = opt.closest('[role="menuitemradio"], [role="option"], li, div') || opt;
+            try {
+              clickable.click();
+              log('   ✏️  Indicatif de pays : Sélectionné "' + wantLabel + '" via option radio (Firebase)', 5);
+              filled = true;
+            } catch (e) {
+              log('   ⏭️  Indicatif de pays : échec clic option "' + wantLabel + '" (' + e.message + ')', 5);
+            }
+          } else {
+            log('   ⏭️  Indicatif de pays : option "' + wantLabel + '" non visible', 5);
+          }
+        }, 400);
+      }, 250);
     } else {
       log('   ⏭️  Indicatif de pays : pas de phone_country_code Firebase → Skip', 5);
     }

@@ -376,14 +376,20 @@
       scrollIntoViewIfNeeded(establishmentInput);
       establishmentInput.focus();
       establishmentInput.click();
-      fillInput(establishmentInput, establishmentVal);
+      const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+      if (nativeSetter) nativeSetter.call(establishmentInput, establishmentVal);
+      else establishmentInput.value = establishmentVal;
+      establishmentInput.dispatchEvent(new Event('input', { bubbles: true }));
+      establishmentInput.dispatchEvent(new Event('change', { bubbles: true }));
       setTimeout(function() {
-        const enterEv = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true });
-        establishmentInput.dispatchEvent(enterEv);
+        const opts = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true };
+        establishmentInput.dispatchEvent(new KeyboardEvent('keydown', opts));
+        establishmentInput.dispatchEvent(new KeyboardEvent('keypress', opts));
+        establishmentInput.dispatchEvent(new KeyboardEvent('keyup', opts));
         if (establishmentVal === 'Autre') {
           setTimeout(function() {
-            const opts = document.querySelectorAll('[role="option"]');
-            for (const o of opts) {
+            const optsEl = document.querySelectorAll('[role="option"]');
+            for (const o of optsEl) {
               const t = (o.textContent || o.getAttribute('aria-label') || '').trim();
               if (/autre établissement/i.test(t) && o.offsetParent !== null) {
                 o.click();
@@ -395,7 +401,7 @@
         } else {
           log('   ✏️  Établissement : ' + establishmentVal + ' + Entrée (Firebase)', 5);
         }
-      }, 400);
+      }, 350);
     }
 
     const diplomaMap = {

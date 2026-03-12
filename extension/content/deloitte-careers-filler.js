@@ -758,12 +758,36 @@
     );
 
     // ——— Comment nous avez-vous connus? → "Site Deloitte Careers" ———
-    // Workday : champ recherche (placeholder "Rechercher"). Remplir le texte puis Enter valide la sélection.
+    // Workday : champ listbox + éventuellement champ recherche "Rechercher".
     log('   🔵 Comment nous avez-vous connus? → cible "Site Deloitte Careers" (Firebase)', 5);
     let hearAboutFilled = false;
-    const hearSearchBox = document.querySelector('input[data-automation-id="searchBox"][id="source--source"]') ||
+
+    // 1) D'abord : trouver directement le bouton listbox à côté du libellé "Comment nous avez-vous connus ?"
+    try {
+      const hearLabel = Array.from(document.querySelectorAll('label, span, div, h2, h3')).find(function(el) {
+        const t = (el.textContent || '').toLowerCase();
+        return t.includes('comment nous avez-vous connus');
+      });
+      if (hearLabel) {
+        const container = hearLabel.closest('section, div, li') || document;
+        const hearButton = container.querySelector(
+          'button[aria-haspopup="listbox"], [role="combobox"], button[data-automation-id="selectSingle"]'
+        );
+        if (hearButton && hearButton.offsetParent !== null) {
+          if (clickWorkdayListboxOption(hearButton, SITE_DELOITTE_CAREERS, 'Comment nous avez-vous connus?')) {
+            hearAboutFilled = true;
+            filled = true;
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 2) Fallback : utiliser le champ de recherche interne s'il existe encore
+    const hearSearchBox = !hearAboutFilled && (
+      document.querySelector('input[data-automation-id="searchBox"][id="source--source"]') ||
       findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']) ||
-      document.querySelector('input[aria-label*="Comment nous avez-vous connus"], input[placeholder*="Comment nous avez-vous connus"]');
+      document.querySelector('input[aria-label*="Comment nous avez-vous connus"], input[placeholder*="Comment nous avez-vous connus"]')
+    );
     if (hearSearchBox && hearSearchBox.offsetParent !== null) {
       scrollIntoViewIfNeeded(hearSearchBox);
       try {

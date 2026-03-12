@@ -164,17 +164,23 @@
     } catch (_) {}
   }
 
-  // Certains champs obligatoires (Prénom, Nom, Téléphone, Comment nous avez-vous connus) gardent l'erreur
-  // tant qu'il n'y a pas eu de « vrai » clic utilisateur. On les actualise donc après remplissage.
+  // Certains champs obligatoires gardent l'erreur tant qu'il n'y a pas eu de « vrai » clic / blur.
+  // On simule un touch (focus + input/change + blur) sur tous les champs obligatoires pour que Workday valide.
   function refreshWorkdayRequiredFields() {
     try {
       const firstnameEl = document.getElementById('name--legalName--firstName') || document.querySelector('input[name="legalName--firstName"]');
       const lastnameEl = document.getElementById('name--legalName--lastName') || document.querySelector('input[name="legalName--lastName"]');
+      const addressEl = document.querySelector('input[id*="address"], input[name*="address"]') || findInputByLabel(['nature et nom de la voie', 'address', 'adresse']);
+      const cityEl = findInputByLabel(['ville', 'city']);
+      const zipEl = findInputByLabel(['code postal', 'postal code', 'zip']);
       const phoneEl = document.getElementById('phoneNumber--phoneNumber') || document.querySelector('input[name="phoneNumber"][id*="phoneNumber"]') || document.querySelector('input[name="phoneNumber"]');
       const hearInput = findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
 
       if (firstnameEl) touchField(firstnameEl, 'Prénom (refresh)');
       if (lastnameEl) touchField(lastnameEl, 'Nom de famille (refresh)');
+      if (addressEl) touchField(addressEl, 'Adresse (refresh)');
+      if (cityEl) touchField(cityEl, 'Ville (refresh)');
+      if (zipEl) touchField(zipEl, 'Code postal (refresh)');
       if (phoneEl) touchField(phoneEl, 'Numéro de téléphone (refresh)');
       if (hearInput) touchField(hearInput, 'Comment nous avez-vous connus ? (refresh)');
 
@@ -788,6 +794,7 @@
     // Après remplissage, on force une « interaction utilisateur » sur les champs obligatoires
     // pour que Workday rafraîchisse ses messages d'erreur (comme si on cliquait dans chaque champ).
     setTimeout(refreshWorkdayRequiredFields, 800);
+    setTimeout(refreshWorkdayRequiredFields, 1500);
 
     if (filled) {
       formFillRetryCount = 0;

@@ -459,6 +459,49 @@
     }
   }
 
+  /** Récupère un fichier depuis Firebase Storage (message au background) et l’assigne à un input[type=file]. */
+  async function setFileInputFromStorage(inputEl, storagePath, filename) {
+    if (!inputEl || !storagePath) return false;
+    try {
+      const r = await new Promise(function (resolve) {
+        chrome.runtime.sendMessage({ action: 'fetch_storage_file', storagePath }, resolve);
+      });
+      if (r && r.error) throw new Error(r.error);
+      if (!r || !r.base64) return false;
+      const bin = atob(r.base64);
+      const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      const blob = new Blob([arr], { type: (r.type || 'application/pdf') });
+      const file = new File([blob], filename || 'cv.pdf', { type: blob.type });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      inputEl.files = dt.files;
+      inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    } catch (e) {
+      log('   ❌ Erreur upload fichier: ' + (e && e.message), 5);
+      return false;
+    }
+  }
+
+  /** Étape 2 : upload du CV depuis Firebase si profil a cv_storage_path. */
+  async function uploadCvInStep2(profile) {
+    if (!profile || !profile.cv_storage_path) return;
+    const fileInput = document.querySelector('input[type="file"][id*="uploadedFile"]') ||
+      document.querySelector('input[type="file"][id*="file"]') ||
+      document.querySelector('input[type="file"]') ||
+      document.querySelector('section[aria-label*="CV"] input[type="file"]');
+    if (!fileInput) {
+      log('   ⏭️  CV : input file non trouvé', 5);
+      return;
+    }
+    const cvName = (profile.cv_filename || (profile.cv_storage_path || '').split('/').pop()) || 'cv.pdf';
+    scrollIntoViewIfNeeded(fileInput);
+    const ok = await setFileInputFromStorage(fileInput, profile.cv_storage_path, cvName);
+    if (ok) log('   ✏️  CV : uploadé depuis Firebase', 5);
+  }
+
   async function notifyOfferUnavailable(jobId, jobTitle) {
     try {
       const { taleos_pending_tab } = await chrome.storage.local.get('taleos_pending_tab');
@@ -666,10 +709,15 @@
     const isStep2Form = (step2EstablishmentInput && step2EstablishmentInput.offsetParent !== null) ||
       (step2DiplomaBtn && step2DiplomaBtn.offsetParent !== null);
     if (isStep2Form && url.includes('useMyLastApplication')) {
-      log('📂 [STEP 5b] Formulaire étape 2 "Mon expérience" détecté → remplissage Études depuis Firebase', 5);
+      log('📂 [STEP 5b] Formulaire étape 2 "Mon expérience" détecté → remplissage Études + CV depuis Firebase', 5);
       fillWorkdayStep2Education(profile);
-      setTimeout(refreshWorkdayRequiredFields, 600);
-      setTimeout(hideBanner, 1500);
+      uploadCvInStep2(profile).then(function () {
+        setTimeout(refreshWorkdayRequiredFields, 800);
+        setTimeout(hideBanner, 2000);
+      }).catch(function () {
+        setTimeout(refreshWorkdayRequiredFields, 800);
+        setTimeout(hideBanner, 2000);
+      });
       return;
     }
 

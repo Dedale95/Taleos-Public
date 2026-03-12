@@ -90,6 +90,11 @@
     const byClass = document.querySelector('button.rgpd-btn-refuse, button.rgpd-btn-accept, [class*="rgpd"][class*="btn"]');
     if (byClass && byClass.offsetParent !== null) return byClass;
     const buttons = document.querySelectorAll('button, a, [role="button"]');
+    // Préférer "Refuser" pour limiter le tracking (cohérent avec le flux testé)
+    for (const btn of buttons) {
+      const txt = (btn.textContent || '').trim().toLowerCase();
+      if ((txt === 'refuser' || txt.includes('refuse')) && btn.offsetParent !== null) return btn;
+    }
     for (const btn of buttons) {
       const txt = (btn.textContent || '').trim().toLowerCase();
       if (TEXTS.cookieDismiss.some(t => txt === t.toLowerCase() || txt.includes(t.toLowerCase()))) {
@@ -677,10 +682,14 @@
 
         const popin = document.getElementById('popin-application');
         const searchRoot = (popin && (popin.classList.contains('open') || popin.offsetParent !== null)) ? popin : document;
-        const loginBtn = searchRoot.querySelector('a.cta.secondary.arrow[href*="connexion"]') ||
+        let loginBtn = searchRoot.querySelector('a.cta.secondary.arrow[href*="connexion"]') ||
           searchRoot.querySelector('a[href*="connexion"]') ||
           searchRoot.querySelector('a[href*="login"]') ||
           searchRoot.querySelector('a[href*="sign-in"]');
+        if (!loginBtn) {
+          const links = searchRoot.querySelectorAll('a[href]');
+          loginBtn = Array.from(links).find(a => /connexion|login|sign-in|signin/i.test(a.getAttribute('href') || '') && /connexion|se connecter|login|sign in/i.test((a.textContent || '').trim()));
+        }
         if (loginBtn) {
           log('🔑 Connexion de l\'utilisateur...');
         if (!p.auth_email || !p.auth_password) {

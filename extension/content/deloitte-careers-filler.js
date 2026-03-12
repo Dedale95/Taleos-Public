@@ -1006,48 +1006,6 @@
       log('   ⏭️  Type d\'appareil téléphonique : bouton non trouvé → Skip', 5);
     }
 
-    // ——— Indicatif de pays (code téléphone) : basé sur Firebase phone_country_code — +33 = France, +44 = Royaume-Uni ———
-    const phoneCountryCode = (profile.phone_country_code || '').trim().replace(/\s/g, '');
-    if (phoneCountryCode) {
-      const wantLabel = phoneCountryCode === '+44' ? 'Royaume-Uni (+44)' : phoneCountryCode === '+33' ? 'France (+33)' : phoneCountryCode;
-      log('   🔵 Indicatif de pays (téléphone) : Firebase phone_country_code=' + phoneCountryCode + ' → ' + wantLabel + ' (pour France mettre +33 dans Firebase)', 5);
-
-      // Textbox « Indicatif de pays » : input #phoneNumber--countryPhoneCode (placeholder Rechercher)
-      let indicatifTextbox = document.getElementById('phoneNumber--countryPhoneCode');
-      if (!indicatifTextbox) {
-        try {
-          const searchInputs = Array.from(document.querySelectorAll('input[placeholder="Rechercher"]'));
-          indicatifTextbox = searchInputs.find(function (inp) {
-            const field = inp.closest('[data-automation-id^="formField-"], section, div');
-            const txt = (field && field.textContent || '').toLowerCase();
-            return txt.includes('indicatif de pays');
-          }) || null;
-        } catch (_) {}
-      }
-      if (!indicatifTextbox) {
-        indicatifTextbox = document.querySelector('[role="textbox"][aria-label^="Indicatif de pays"]') ||
-          document.querySelector('input[aria-label*="Indicatif de pays"]');
-      }
-      if (indicatifTextbox && indicatifTextbox.offsetParent !== null) {
-        scrollIntoViewIfNeeded(indicatifTextbox);
-        try {
-          indicatifTextbox.focus();
-          indicatifTextbox.click();
-        } catch (_) {}
-        // On tape directement le label complet attendu (France (+33) / Royaume-Uni (+44) / autre)
-        fillInput(indicatifTextbox, wantLabel);
-        setTimeout(function () {
-          pressEnterSequence(indicatifTextbox);
-          log('   ✏️  Indicatif de pays : "' + wantLabel + '" + Entrée (Firebase)', 5);
-          filled = true;
-        }, 400);
-      } else {
-        log('   ⏭️  Indicatif de pays : textbox non trouvée → Skip', 5);
-      }
-    } else {
-      log('   ⏭️  Indicatif de pays : pas de phone_country_code Firebase → Skip', 5);
-    }
-
     // ——— Numéro de téléphone : id="phoneNumber--phoneNumber" ou name="phoneNumber" ———
     const phoneVal = (profile.phone_number || profile['phone-number'] || profile.phone || '').trim().replace(/\s/g, '');
     const phoneEl = document.getElementById('phoneNumber--phoneNumber') || document.querySelector('input[name="phoneNumber"][id*="phoneNumber"]') || document.querySelector('input[name="phoneNumber"]');
@@ -1056,6 +1014,44 @@
     // Après remplissage, forcer la validation Workday : clic dans chaque champ texte puis clic en dehors
     if (url.includes('apply/applyManually')) {
       setTimeout(workdayClickThenClickAway, 800);
+
+      // ——— Indicatif de pays (code téléphone) : exécuté EN DERNIER, après toutes les validations ———
+      var phoneCountryCode = (profile.phone_country_code || '').trim().replace(/\s/g, '');
+      if (phoneCountryCode) {
+        var wantLabel = phoneCountryCode === '+44' ? 'Royaume-Uni (+44)' : phoneCountryCode === '+33' ? 'France (+33)' : phoneCountryCode;
+        log('   🔵 Indicatif de pays (téléphone) : Firebase phone_country_code=' + phoneCountryCode + ' → ' + wantLabel + ' (sera exécuté en fin de process)', 5);
+        setTimeout(function () {
+          var indicatifTextbox = document.getElementById('phoneNumber--countryPhoneCode');
+          if (!indicatifTextbox) {
+            try {
+              var searchInputs = Array.from(document.querySelectorAll('input[placeholder="Rechercher"]'));
+              indicatifTextbox = searchInputs.find(function (inp) {
+                var field = inp.closest('[data-automation-id^="formField-"], section, div');
+                var txt = (field && field.textContent || '').toLowerCase();
+                return txt.includes('indicatif de pays');
+              }) || null;
+            } catch (_) {}
+          }
+          if (!indicatifTextbox) {
+            indicatifTextbox = document.querySelector('[role="textbox"][aria-label^="Indicatif de pays"]') ||
+              document.querySelector('input[aria-label*="Indicatif de pays"]');
+          }
+          if (indicatifTextbox && indicatifTextbox.offsetParent !== null) {
+            scrollIntoViewIfNeeded(indicatifTextbox);
+            try {
+              indicatifTextbox.focus();
+              indicatifTextbox.click();
+            } catch (_) {}
+            fillInput(indicatifTextbox, wantLabel);
+            setTimeout(function () {
+              pressEnterSequence(indicatifTextbox);
+              log('   ✏️  Indicatif de pays : "' + wantLabel + '" + Entrée (Firebase, FIN DE PROCESS)', 5);
+            }, 500);
+          } else {
+            log('   ⏭️  Indicatif de pays : textbox non trouvée en fin de process → Skip', 5);
+          }
+        }, 3000);
+      }
     }
 
     if (filled) {

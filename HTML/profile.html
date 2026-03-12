@@ -1739,8 +1739,9 @@
 
                     <div class="form-group">
                         <label for="establishment">Établissement ou université</label>
-                        <input type="text" id="establishment" name="establishment" placeholder="Ex. HEC Paris, Université Paris-Dauphine, ou « Autre » si non listé">
-                        <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">Utilisé pour les candidatures (ex. Deloitte/Workday). Si votre école n’apparaît pas dans leur liste, indiquez « Autre ».</small>
+                        <input type="text" id="establishment" name="establishment" list="establishment-datalist" placeholder="Choisir ou saisir (ex. ESCP Europe, HEC Paris…)">
+                        <datalist id="establishment-datalist"></datalist>
+                        <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">Liste limitée aux établissements acceptés par Deloitte. Choisissez une suggestion ou « Autre établissement » si le vôtre n’y figure pas.</small>
                     </div>
 
                     <div class="form-group">
@@ -2099,6 +2100,27 @@
                 opt.textContent = `${country} (${code})`;
                 select.appendChild(opt);
             });
+        }
+
+        /** Charge la liste des établissements Deloitte (data/deloitte-institutions.json) et remplit le datalist du champ Établissement. */
+        function loadDeloitteEstablishments() {
+            const datalist = document.getElementById('establishment-datalist');
+            const input = document.getElementById('establishment');
+            if (!datalist || !input) return;
+            const base = window.location.origin + (window.location.pathname.replace(/\/[^/]*$/, '/') || '/');
+            const dataUrl = new URL('../data/deloitte-institutions.json', base).href;
+            fetch(dataUrl)
+                .then(r => r.ok ? r.json() : Promise.reject(new Error(r.statusText)))
+                .then(arr => {
+                    if (!Array.isArray(arr)) return;
+                    datalist.innerHTML = '';
+                    arr.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        datalist.appendChild(opt);
+                    });
+                })
+                .catch(() => { /* garde le champ libre si le fichier est absent */ });
         }
 
         // Fonction pour gérer les accordéons
@@ -3458,6 +3480,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             initDeloitteCountrySelect();
             initPhoneCountryCodeSelect();
+            loadDeloitteEstablishments();
             // Ajouter des listeners sur tous les champs pour valider en temps réel
             const form = document.getElementById('profileForm');
             if (form) {

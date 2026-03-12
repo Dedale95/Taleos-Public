@@ -649,55 +649,50 @@
       log('Aucun bouton Connexion visible', 2);
     }
 
-    // Étape 4 : "Utiliser ma dernière candidature" — seulement sur /apply (pas sur /apply/useMyLastApplication)
-    if (!url.includes('useMyLastApplication')) {
+    // Étape 4 : après connexion, préférer "Postuler manuellement" (PAS "Utiliser ma dernière candidature")
+    if (url.includes('/apply') && !url.includes('useMyLastApplication') && !url.includes('applyManually')) {
       const hasConnexionUi = document.querySelector('input[data-automation-id="email"]') ||
         document.querySelector('input[data-automation-id="password"]') ||
         document.querySelector('[aria-label="Connexion"][role="button"], [data-automation-id="click_filter"][aria-label="Connexion"]') ||
         Array.from(document.querySelectorAll('span')).some(s => /^connexion$/i.test((s.textContent || '').trim()));
 
-      const useLastAppBtn = document.querySelector('[data-automation-id="useMyLastApplication"]') ||
-        document.querySelector('a[href*="useMyLastApplication"]') ||
-        document.querySelector('a[role="button"][href*="useMyLastApplication"]');
+      const manualBtn = Array.from(document.querySelectorAll('button, [role="button"]')).find(el => {
+        const t = (el.textContent || el.getAttribute('aria-label') || '').trim().toLowerCase();
+        return /postuler manuellement/.test(t);
+      });
 
-      const didLogin = !!window.__taleosDeloitteDidLoginClick;
-      log(`Connexion visible=${!!hasConnexionUi}, bouton "Utiliser ma dernière candidature"=${!!useLastAppBtn}, flag=${didLogin}`, 4);
+      log(`Connexion visible=${!!hasConnexionUi}, bouton "Postuler manuellement"=${!!manualBtn}`, 4);
 
-      if (!hasConnexionUi && useLastAppBtn) {
-        log('Clic sur "Utiliser ma dernière candidature"', 4);
+      // On ne clique JAMAIS "Utiliser ma dernière candidature" ici : uniquement "Postuler manuellement"
+      if (!hasConnexionUi && manualBtn && manualBtn.offsetParent !== null) {
+        log('Clic sur "Postuler manuellement"', 4);
         try {
-          useLastAppBtn.scrollIntoView({ behavior: 'instant', block: 'center' });
+          manualBtn.scrollIntoView({ behavior: 'instant', block: 'center' });
         } catch (e) {}
         try {
-          useLastAppBtn.click();
+          manualBtn.click();
         } catch (e) {
-          log('Erreur clic useMyLastApplication: ' + e.message, 4);
+          log('Erreur clic Postuler manuellement: ' + e.message, 4);
         }
         setTimeout(runAutomation, 2500);
         return;
       }
 
-      if (url.includes('/apply') && !hasConnexionUi && !useLastAppBtn) {
+      if (!hasConnexionUi && !manualBtn) {
         // Le formulaire peut déjà être visible (navigation en cours ou URL pas encore mise à jour) → passer au remplissage
         const formAlreadyVisible = document.querySelector('input[id="source--source"], input[name="legalName--firstName"], input[name="legalName--lastName"]') ||
           document.querySelector('input[name="candidateIsPreviousWorker"]') ||
           document.querySelector('button[name="legalName--title"]') ||
           document.querySelector('[data-automation-id="searchBox"][id="source--source"]');
-        if (formAlreadyVisible && formAlreadyVisible.offsetParent !== null) {
-          log('Formulaire déjà visible (bouton absent) → remplissage formulaire', 4);
-        } else if (didLogin) {
-          // On a déjà cliqué Connexion / "Utiliser ma dernière candidature" → la page est peut-être en train de naviguer, ne pas boucler sur 8 retries
-          log('Navigation probable après clic → réessai dans 2s (pas de retry boucle)', 4);
-          setTimeout(runAutomation, 2000);
-          return;
-        } else {
-          log('Attente bouton "Utiliser ma dernière candidature" → retry', 4);
-          maybeRetryForUseLastApp();
-          return;
+        if (!formAlreadyVisible || !formAlreadyVisible.offsetParent) {
+          log('Attente bouton "Postuler manuellement" ou formulaire → retry', 4);
+          if (runCount < MAX_RETRIES) {
+            runCount++;
+            setTimeout(runAutomation, 2000);
+            return;
+          }
         }
       }
-    } else {
-      log('Déjà sur useMyLastApplication → remplissage formulaire', 4);
     }
 
     // Détection étape 2 "Mon expérience" (Études) : remplir établissement, diplôme, domaine, années depuis Firebase

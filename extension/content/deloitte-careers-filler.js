@@ -796,7 +796,7 @@
     }
 
     // ——— Comment nous avez-vous connus? → "Site Deloitte Careers" ———
-    // Workday : ouvrir la case, puis cliquer l'option avec le gros rond "Site Deloitte Careers".
+    // Workday : ouvrir la case, puis (1) cliquer la ligne simple, (2) cliquer la ligne radio (promptLeafNode).
     log('   🔵 Comment nous avez-vous connus? → cible "Site Deloitte Careers" (Firebase)', 5);
     let hearAboutFilled = false;
     const hearField = document.getElementById('source--source') ||
@@ -807,31 +807,52 @@
         hearField.focus();
         hearField.click();
       } catch (_) {}
-      setTimeout(function() {
-        // Il y a plusieurs promptOption 'Site Deloitte Careers' : on veut la ligne avec le gros rond (radio),
-        // pas le header de navigation ni le chip déjà sélectionné.
-        const candidates = Array.from(document.querySelectorAll('[data-automation-id="promptOption"][data-automation-label="Site Deloitte Careers"]'))
-          .filter(function (el) {
+      // 1) Premier clic : ligne simple "Site Deloitte Careers" dans la liste principale
+      setTimeout(function () {
+        const firstRow = Array.from(
+          document.querySelectorAll('[data-automation-id="promptOption"][data-automation-label="Site Deloitte Careers"]')
+        ).find(function (el) {
+          if (!el.offsetParent) return false;
+          const isChip = !!el.closest('[data-automation-id="selectedItem"]');
+          // On veut la ligne du menu, pas le chip déjà sélectionné
+          return !isChip;
+        });
+        if (!firstRow) {
+          log('   ⏭️  Comment nous avez-vous connus? : première ligne "Site Deloitte Careers" non trouvée', 5);
+          return;
+        }
+        const firstClickable = firstRow.closest('[data-automation-id="menuItem"], li, div') || firstRow;
+        try {
+          firstClickable.click();
+        } catch (e) {
+          log('   ⏭️  Comment nous avez-vous connus? : échec clic première ligne (' + e.message + ')', 5);
+          return;
+        }
+        // 2) Deuxième clic : ligne radio (promptLeafNode) avec le gros rond
+        setTimeout(function () {
+          const opt = Array.from(
+            document.querySelectorAll('[data-automation-id="promptOption"][data-automation-label="Site Deloitte Careers"]')
+          ).find(function (el) {
             if (!el.offsetParent) return false;
-            // Ignorer le chip déjà sélectionné
-            const inSelectedChip = !!el.closest('[data-automation-id="selectedItem"]');
-            return !inSelectedChip;
+            const leaf = el.closest('[data-automation-id="promptLeafNode"]');
+            return !!leaf;
           });
-        const targetOpt = candidates.length ? candidates[candidates.length - 1] : null;
-        if (targetOpt) {
-          const clickable = targetOpt.closest('[role="menuitemradio"], [role="option"], li, div') || targetOpt;
+          if (!opt) {
+            log('   ⏭️  Comment nous avez-vous connus? : ligne radio "Site Deloitte Careers" non trouvée', 5);
+            return;
+          }
+          const leafRow = opt.closest('[data-automation-id="promptLeafNode"]') ||
+            opt.closest('[data-automation-id="menuItem"], [role="menuitemradio"], li, div') || opt;
           try {
-            clickable.click();
+            leafRow.click();
             hearAboutFilled = true;
             filled = true;
-            log('   ✏️  Comment nous avez-vous connus? : Sélectionné "Site Deloitte Careers" via option radio (Firebase)', 5);
+            log('   ✏️  Comment nous avez-vous connus? : double clic sur "Site Deloitte Careers" (ligne + radio)', 5);
           } catch (e) {
-            log('   ⏭️  Comment nous avez-vous connus? : échec clic option "Site Deloitte Careers" (' + e.message + ')', 5);
+            log('   ⏭️  Comment nous avez-vous connus? : échec clic ligne radio (' + e.message + ')', 5);
           }
-        } else {
-          log('   ⏭️  Comment nous avez-vous connus? : aucune option "Site Deloitte Careers" visible', 5);
-        }
-      }, 400);
+        }, 350);
+      }, 350);
     }
     if (!hearAboutFilled) {
       log('   ⏭️  Comment nous avez-vous connus? : champ non trouvé (retry possible)', 5);

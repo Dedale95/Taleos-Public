@@ -60,25 +60,24 @@
 
   /**
    * Valider les champs Workday comme en manuel : clic sur la case puis clic ailleurs.
-   * Pour chaque champ obligatoire : clic sur l'input (focus) puis clic sur un élément neutre (blur).
+   * Uniquement les champs TEXTE (prénom, nom, adresse, ville, code postal, téléphone).
+   * Ne pas inclure les menus déroulants (Comment nous avez-vous connus ?, Pays, Type d'appareil, Indicatif de pays) sinon la sélection est vidée.
    */
   function workdayClickThenClickAway() {
     try {
       const firstnameEl = document.getElementById('name--legalName--firstName') || document.querySelector('input[name="legalName--firstName"]');
       const lastnameEl = document.getElementById('name--legalName--lastName') || document.querySelector('input[name="legalName--lastName"]');
-      const addressEl = document.querySelector('input[id*="address"], input[name*="address"]') || findInputByLabel(['nature et nom de la voie', 'address', 'adresse']);
-      const cityEl = findInputByLabel(['ville', 'city']);
-      const zipEl = findInputByLabel(['code postal', 'postal code', 'zip']);
+      const addressEl = document.getElementById('address--addressLine1') || document.querySelector('input[name="addressLine1"]');
+      const cityEl = document.getElementById('address--city') || document.querySelector('input[name="city"]');
+      const zipEl = document.getElementById('address--postalCode') || document.querySelector('input[name="postalCode"]');
       const phoneEl = document.getElementById('phoneNumber--phoneNumber') || document.querySelector('input[name="phoneNumber"][id*="phoneNumber"]') || document.querySelector('input[name="phoneNumber"]');
-      const hearInput = findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
       const fields = [
         { el: firstnameEl, label: 'Prénom(s)' },
         { el: lastnameEl, label: 'Nom de famille' },
         { el: addressEl, label: 'Nature et nom de la voie' },
         { el: cityEl, label: 'Ville' },
         { el: zipEl, label: 'Code postal' },
-        { el: phoneEl, label: 'Numéro de téléphone' },
-        { el: hearInput, label: 'Comment nous avez-vous connus ?' }
+        { el: phoneEl, label: 'Numéro de téléphone' }
       ].filter(function (x) { return x.el && x.el.offsetParent; });
       const elsewhere = document.querySelector('h2[data-automation-id="sectionHeader"], [role="heading"][aria-level="2"], h2') || document.body;
       fields.forEach(function (item, index) {

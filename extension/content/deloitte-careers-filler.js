@@ -46,6 +46,82 @@
     el.blur();
   }
 
+  /** Remplir seulement si vide ou différent de Firebase (log skip ou remplacer). Écrit la valeur telle quelle (avec espaces). */
+  function fillInputIfNeeded(el, value, label) {
+    if (!el) return false;
+    const valueTrimmed = value != null ? String(value).trim() : '';
+    if (!valueTrimmed) {
+      log('   ⏭️  ' + label + ' : pas de valeur Firebase → Skip', 5);
+      return false;
+    }
+    const current = (el.value || '').trim();
+    const currentNorm = current.replace(/\s/g, '');
+    const targetNorm = valueTrimmed.replace(/\s/g, '');
+    if (currentNorm === targetNorm || (currentNorm.length >= 10 && targetNorm.length >= 10 && currentNorm.slice(-10) === targetNorm.slice(-10))) {
+      log('   ✅ ' + label + ' : Déjà correct (Firebase identique) → Skip', 5);
+      return false;
+    }
+    log('   ✏️  ' + label + ' : Remplacer "' + (current || '(vide)') + '" par "' + valueTrimmed + '" (Firebase)', 5);
+    fillInput(el, valueTrimmed);
+    return true;
+  }
+
+  /** Workday : ouvrir un bouton listbox (id, name ou selector) et cliquer l'option dont le label correspond (option cliquée après 400ms). */
+  function clickWorkdayListboxOption(buttonSelector, optionLabelOrValue, label) {
+    let btn = null;
+    if (typeof buttonSelector === 'string') {
+      if (!buttonSelector.includes(' ') && buttonSelector.length <= 50) {
+        btn = document.getElementById(buttonSelector) || document.querySelector('button[name="' + buttonSelector + '"]');
+        if (!btn && buttonSelector.indexOf('--') >= 0) {
+          const namePart = buttonSelector.replace(/^[^-]+--/, '');
+          if (namePart) btn = document.querySelector('button[name="' + namePart + '"]');
+        }
+      }
+      if (!btn) btn = document.querySelector(buttonSelector);
+    } else {
+      btn = buttonSelector;
+    }
+    if (!btn || !btn.offsetParent) {
+      log('   ⏭️  ' + label + ' : bouton non trouvé → Skip', 5);
+      return false;
+    }
+    const currentAria = (btn.getAttribute('aria-label') || '').trim();
+    const target = (optionLabelOrValue || '').trim().toLowerCase();
+    const isPlaceholder = /sélectionnez une valeur|select a value/i.test(currentAria) || (btn.getAttribute('value') === '' || !btn.getAttribute('value'));
+    if (!isPlaceholder && currentAria && target && (currentAria.toLowerCase().includes(target) || (target.includes('monsieur') && currentAria.includes('Monsieur')) || (target.includes('madame') && currentAria.includes('Madame')))) {
+      log('   ✅ ' + label + ' : Déjà sélectionné (' + currentAria + ') → Skip', 5);
+      return false;
+    }
+    try {
+      btn.click();
+    } catch (e) {
+      log('   ❌ ' + label + ' : erreur clic bouton ' + e.message, 5);
+      return false;
+    }
+    const name = btn.getAttribute('name');
+    setTimeout(function tryClickOption() {
+      // NB: pas de sélecteur [value!=""] car non supporté par querySelectorAll → provoquait un SyntaxError et des boucles infinies
+      const opts = document.querySelectorAll('[data-automation-id="promptOption"], [data-automation-id="menuItem"], [data-automation-id="selectedItem"], [role="option"]');
+      for (const opt of opts) {
+        const t = (opt.textContent || opt.getAttribute('aria-label') || opt.getAttribute('data-automation-label') || '').trim().toLowerCase();
+        const v = (opt.getAttribute && opt.getAttribute('value')) || '';
+        if (!t && !v) continue;
+        // Pour "Mobile Personnel" : exiger "mobile" dans l'option (éviter de cocher "Fixe Personnel")
+        const match = t.includes(target) || (target.includes('monsieur') && t.includes('monsieur')) || (target.includes('madame') && t.includes('madame')) ||
+            (target.includes('mobile') && t.includes('mobile')) ||
+            (target.includes('personnel') && t.includes('personnel') && !target.includes('mobile')) ||
+            (target.includes('+33') && t.includes('+33')) || (target.includes('+44') && t.includes('+44')) || (target.includes('france') && t.includes('france')) || (target.includes('royaume') && t.includes('royaume'));
+        if (match && opt.offsetParent !== null) {
+          opt.click();
+          log('   ✏️  ' + label + ' : Sélectionné "' + (opt.textContent || opt.getAttribute('aria-label') || opt.getAttribute('data-automation-label') || t).trim() + '" (Firebase)', 5);
+          return;
+        }
+      }
+      log('   ⏭️  ' + label + ' : option non trouvée après ouverture → Skip', 5);
+    }, 400);
+    return true;
+  }
+
   function fillSelect(el, value) {
     if (!el || value == null || value === '') return;
     const str = String(value).trim().toLowerCase();
@@ -58,6 +134,73 @@
       el.value = opt.value;
       el.dispatchEvent(new Event('change', { bubbles: true }));
     }
+  }
+
+  // « Rafraîchir » un champ comme si l'utilisateur avait cliqué dedans
+  function touchField(el, label) {
+    if (!el || !el.offsetParent) return;
+    try {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const mouseOpts = { bubbles: true, cancelable: true, clientX: cx, clientY: cy };
+      el.dispatchEvent(new MouseEvent('mousedown', mouseOpts));
+      el.dispatchEvent(new MouseEvent('mouseup', mouseOpts));
+      el.click();
+      el.focus();
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      el.blur();
+      log('   🔁 ' + label + ' : champ actualisé par clic simulé (Workday validation)', 5);
+    } catch (_) {}
+  }
+
+  // Certains champs obligatoires (Prénom, Nom, Téléphone, Comment nous avez-vous connus) gardent l'erreur
+  // tant qu'il n'y a pas eu de « vrai » clic utilisateur. On les actualise donc après remplissage.
+  function refreshWorkdayRequiredFields() {
+    try {
+      const firstnameEl = document.getElementById('name--legalName--firstName') || document.querySelector('input[name="legalName--firstName"]');
+      const lastnameEl = document.getElementById('name--legalName--lastName') || document.querySelector('input[name="legalName--lastName"]');
+      const phoneEl = document.getElementById('phoneNumber--phoneNumber') || document.querySelector('input[name="phoneNumber"][id*="phoneNumber"]') || document.querySelector('input[name="phoneNumber"]');
+      const hearInput = findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
+
+      if (firstnameEl) touchField(firstnameEl, 'Prénom (refresh)');
+      if (lastnameEl) touchField(lastnameEl, 'Nom de famille (refresh)');
+      if (phoneEl) touchField(phoneEl, 'Numéro de téléphone (refresh)');
+      if (hearInput) touchField(hearInput, 'Comment nous avez-vous connus ? (refresh)');
+
+      // Cas Workday avec liste déroulante (screenshot) : bouton listbox + pill sélectionné.
+      const hearTrigger = document.querySelector(
+        'button[aria-haspopup="listbox"][aria-label*="Comment nous avez-vous connus"], ' +
+        'button[aria-haspopup="listbox"][aria-label*="How did you hear about us"]'
+      );
+      if (hearTrigger && hearTrigger.offsetParent !== null) {
+        try {
+          // Premier clic : ouvrir la liste si besoin
+          hearTrigger.click();
+          setTimeout(function() {
+            const selectedPill = document.querySelector(
+              '[data-automation-id="selectedItem"][title*="Site Deloitte Careers"], ' +
+              '[data-automation-id="selectedItem"][aria-label*="Site Deloitte Careers"]'
+            );
+            if (selectedPill && selectedPill.offsetParent !== null) {
+              // Clic sur le pill (sélection réelle)
+              selectedPill.click();
+            }
+            // Validation/fermeture exactement comme quand tu appuies sur Entrée.
+            const enterEvent = new KeyboardEvent('keydown', {
+              key: 'Enter',
+              code: 'Enter',
+              keyCode: 13,
+              which: 13,
+              bubbles: true
+            });
+            (document.activeElement || hearTrigger).dispatchEvent(enterEvent);
+            log('   🔁 Comment nous avez-vous connus ? (listbox refresh) : sélection + touche Entrée simulée', 5);
+          }, 250);
+        } catch (_) {}
+      }
+    } catch (_) {}
   }
 
   function findLabelAndInput(labelTexts) {
@@ -161,7 +304,16 @@
 
     const age = Date.now() - (taleos_pending_deloitte.timestamp || 0);
     if (age > MAX_PENDING_AGE) {
-      log('Pending expiré (>10 min) → skip', 0);
+      // Revivifier une fois : si on a un profil (ex. onglet ouvert via window.open, ancien pending en storage), mettre à jour le timestamp
+      if (taleos_pending_deloitte.profile && (taleos_pending_deloitte.profile.auth_email || taleos_pending_deloitte.profile.email)) {
+        log('Pending expiré → revivification du timestamp (une fois)', 0);
+        chrome.storage.local.set({
+          taleos_pending_deloitte: { ...taleos_pending_deloitte, timestamp: Date.now() }
+        });
+        setTimeout(runAutomation, 800);
+        return;
+      }
+      log('Pending expiré (>10 min) et pas de profil → skip', 0);
       chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
       return;
     }
@@ -228,8 +380,22 @@
     const emailInput = document.querySelector('input[data-automation-id="email"]');
     const passwordInput = document.querySelector('input[data-automation-id="password"]');
 
-    // 2a. Si le formulaire est visible → on le remplit et on envoie
-    if (emailInput && passwordInput) {
+    // 2a-bis. Si on est sur le formulaire de CRÉATION de compte (pas connexion), cliquer d'abord sur "Connexion" pour afficher le formulaire de connexion
+    const isCreationForm = document.querySelector('input[data-automation-id="confirmPassword"], input[name*="confirmPassword"], input[aria-label*="Confirmer"], input[aria-label*="Confirm "]') ||
+      Array.from(document.querySelectorAll('button, [role="button"]')).some(el => /^créer un compte$/i.test((el.textContent || el.getAttribute('aria-label') || '').trim()));
+    if (isCreationForm) {
+      const connexionBtnToShow = document.querySelector('button[aria-label="Connexion"], [data-automation-id="click_filter"][aria-label="Connexion"], [role="button"][aria-label="Connexion"]') ||
+        Array.from(document.querySelectorAll('button, [role="button"]')).find(el => /^connexion$/i.test((el.textContent || el.getAttribute('aria-label') || '').trim()));
+      if (connexionBtnToShow && connexionBtnToShow.offsetParent !== null) {
+        log('Formulaire création de compte détecté → clic sur Connexion pour afficher le formulaire de connexion', 2);
+        try { connexionBtnToShow.click(); } catch (e) { log('Erreur clic Connexion: ' + e.message, 2); }
+        setTimeout(runAutomation, 2000);
+        return;
+      }
+    }
+
+    // 2a. Si le formulaire CONNEXION est visible (sans champ "Confirmer mot de passe") → on le remplit et on envoie
+    if (emailInput && passwordInput && !isCreationForm) {
       log('Formulaire connexion visible → remplissage email/mot de passe', 2);
       fillInput(emailInput, email);
       fillInput(passwordInput, password);
@@ -288,21 +454,52 @@
       }
 
       if (url.includes('/apply') && !hasConnexionUi && !useLastAppBtn) {
-        log('Attente bouton "Utiliser ma dernière candidature" → retry', 4);
-        maybeRetryForUseLastApp();
-        return;
+        // Le formulaire peut déjà être visible (navigation en cours ou URL pas encore mise à jour) → passer au remplissage
+        const formAlreadyVisible = document.querySelector('input[id="source--source"], input[name="legalName--firstName"], input[name="legalName--lastName"]') ||
+          document.querySelector('input[name="candidateIsPreviousWorker"]') ||
+          document.querySelector('button[name="legalName--title"]') ||
+          document.querySelector('[data-automation-id="searchBox"][id="source--source"]');
+        if (formAlreadyVisible && formAlreadyVisible.offsetParent !== null) {
+          log('Formulaire déjà visible (bouton absent) → remplissage formulaire', 4);
+        } else if (didLogin) {
+          // On a déjà cliqué Connexion / "Utiliser ma dernière candidature" → la page est peut-être en train de naviguer, ne pas boucler sur 8 retries
+          log('Navigation probable après clic → réessai dans 2s (pas de retry boucle)', 4);
+          setTimeout(runAutomation, 2000);
+          return;
+        } else {
+          log('Attente bouton "Utiliser ma dernière candidature" → retry', 4);
+          maybeRetryForUseLastApp();
+          return;
+        }
       }
     } else {
       log('Déjà sur useMyLastApplication → remplissage formulaire', 4);
     }
 
-    // Étape 5 : Remplir le formulaire de candidature (profil Firebase : Comment nous avez-vous connus, Avez-vous déjà travaillé pour Deloitte, etc.)
+    // Étape 5 : Remplir le formulaire de candidature (profil Firebase)
     let filled = false;
 
-    // Comment nous avez-vous connus? → "Site Deloitte Careers"
-    let hearAboutFilled = false;
+    log('📂 [STEP 5] Données Firebase utilisées pour le formulaire:', 5);
+    log(
+      '   civility: ' + (profile.civility != null ? profile.civility : '(vide)') +
+      ' | firstname: ' + (profile.firstname != null ? profile.firstname : '(vide)') +
+      ' | lastname: ' + (profile.lastname != null ? profile.lastname : '(vide)') +
+      ' | address: ' + (profile.address != null ? profile.address : '(vide)') +
+      ' | city: ' + (profile.city != null ? profile.city : '(vide)') +
+      ' | zipcode: ' + (profile.zipcode != null ? profile.zipcode : '(vide)'),
+      5
+    );
+    var rawWorked = (profile.deloitte_worked != null ? profile.deloitte_worked : profile.deloitteWorked);
+    log(
+      '   phone_country_code: ' + (profile.phone_country_code != null ? profile.phone_country_code : '(vide)') +
+      ' | phone: ' + (profile.phone_number || profile['phone-number'] || profile.phone || '(vide)') +
+      ' | deloitte_worked: ' + (rawWorked != null ? rawWorked : '(vide)'),
+      5
+    );
 
-    // Cas 1 : Workday searchBox spécifique
+    // ——— Comment nous avez-vous connus? → "Site Deloitte Careers" ———
+    log('   🔵 Comment nous avez-vous connus? → cible "Site Deloitte Careers" (Firebase)', 5);
+    let hearAboutFilled = false;
     const hearSearchBox = document.querySelector('input[data-automation-id="searchBox"][id="source--source"]');
     if (hearSearchBox && hearSearchBox.offsetParent !== null) {
       try {
@@ -312,155 +509,217 @@
       const opt = document.querySelector('[data-automation-id="promptOption"][data-automation-label="Site Deloitte Careers"]');
       if (opt && opt.offsetParent !== null) {
         opt.click();
+        // Entrée ferme le menu et valide la sélection (comportement utilisateur).
+        setTimeout(function() {
+          try {
+            const enterEv = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true });
+            (document.activeElement || opt || hearSearchBox).dispatchEvent(enterEv);
+          } catch (_) {}
+        }, 200);
         hearAboutFilled = true;
         filled = true;
+        log('   ✏️  Comment nous avez-vous connus? : Sélectionné "Site Deloitte Careers" + Entrée (Firebase)', 5);
       }
     }
-
-    // Cas 2 : label + select / input génériques
     if (!hearAboutFilled) {
       const hearAboutSelect = findSelectByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
       if (hearAboutSelect) {
         fillSelect(hearAboutSelect, SITE_DELOITTE_CAREERS);
         hearAboutFilled = true;
         filled = true;
+        log('   ✏️  Comment nous avez-vous connus? : Sélectionné "Site Deloitte Careers" via select (Firebase)', 5);
       }
       const hearAboutInput = findInputByLabel(['comment nous avez-vous connus', 'how did you hear about us']);
       if (hearAboutInput) {
         fillInput(hearAboutInput, SITE_DELOITTE_CAREERS);
         hearAboutFilled = true;
         filled = true;
+        log('   ✏️  Comment nous avez-vous connus? : Rempli "Site Deloitte Careers" via input (Firebase)', 5);
       }
     }
-
-    // Cas 3 : clic direct sur une option Workday
     if (!hearAboutFilled && clickWorkdayOptionByLabelAndValue(['comment nous avez-vous connus', 'how did you hear about us'], SITE_DELOITTE_CAREERS)) {
       filled = true;
+      log('   ✏️  Comment nous avez-vous connus? : Sélectionné via option Workday "Site Deloitte Careers" (Firebase)', 5);
+      setTimeout(function() {
+        try {
+          const enterEv = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true });
+          (document.activeElement || document.body).dispatchEvent(enterEv);
+        } catch (_) {}
+      }, 250);
+    }
+    if (!hearAboutFilled) {
+      log('   ⏭️  Comment nous avez-vous connus? : champ non trouvé (retry possible)', 5);
     }
 
-    // Avez-vous déjà travaillé pour Deloitte? (valeur depuis Firebase : deloitte_worked / deloitteWorked)
+    // ——— Avez-vous déjà travaillé pour Deloitte? (Firebase: deloitte_worked / deloitteWorked) ———
     const workedRaw = profile.deloitte_worked || profile.deloitteWorked || 'no';
     const workedYesNo = workedRaw === 'yes' ? 'Oui' : 'Non';
-    log('Avez-vous déjà travaillé pour Deloitte? → ' + workedYesNo + ' (Firebase: ' + workedRaw + ')', 5);
+    log('   🔵 Avez-vous déjà travaillé pour Deloitte? → Firebase: ' + workedRaw + ' → ' + workedYesNo, 5);
     const workedSelect = findSelectByLabel(['avez-vous déjà travaillé pour deloitte', 'have you worked for deloitte']);
     if (workedSelect) {
       fillSelect(workedSelect, workedYesNo);
       filled = true;
     }
     const workedRadioValues = workedRaw === 'yes' ? ['yes', '1', 'oui', 'true'] : ['no', '0', 'non', 'false'];
-    const workedRadios = document.querySelectorAll('input[type="radio"][name*="worked"], input[type="radio"][name*="deloitte"], input[type="radio"][name*="previous"]');
+    const workedRadios = document.querySelectorAll('input[type="radio"][name*="worked"], input[type="radio"][name*="deloitte"], input[type="radio"][name*="previous"], input[name="candidateIsPreviousWorker"]');
     for (const r of workedRadios) {
       const v = (r.value || '').toLowerCase();
-      if (workedRadioValues.some(x => v.includes(x))) {
-        r.checked = true;
-        r.dispatchEvent(new Event('change', { bubbles: true }));
-        filled = true;
+      if (workedRadioValues.some(x => v === x || v.includes(x))) {
+        if (!r.checked) {
+          r.click();
+          log('   ✏️  Avez-vous déjà travaillé : Coché radio value="' + r.value + '" (Firebase)', 5);
+          filled = true;
+        } else {
+          log('   ✅ Avez-vous déjà travaillé : Déjà coché (value=' + r.value + ') → Skip', 5);
+        }
         break;
       }
     }
-
-    // Cas explicite Workday : radios candidateIsPreviousWorker
     if (!filled) {
-      const selector = workedRaw === 'yes'
-        ? 'input[name="candidateIsPreviousWorker"][type="radio"][value="true"]'
-        : 'input[name="candidateIsPreviousWorker"][type="radio"][value="false"]';
-      const radio = document.querySelector(selector);
+      const radioYes = document.querySelector('input[name="candidateIsPreviousWorker"][type="radio"][value="true"]') || document.querySelector('input[name="candidateIsPreviousWorker"][type="radio"][value="1"]');
+      const radioNo = document.querySelector('input[name="candidateIsPreviousWorker"][type="radio"][value="false"]') || document.querySelector('input[name="candidateIsPreviousWorker"][type="radio"][value="0"]');
+      const radio = workedRaw === 'yes' ? radioYes : radioNo;
       if (radio && radio.offsetParent !== null) {
-        radio.click();
-        filled = true;
+        if (!radio.checked) {
+          radio.click();
+          log('   ✏️  Avez-vous déjà travaillé : Coché candidateIsPreviousWorker value="' + radio.value + '" (Firebase)', 5);
+          filled = true;
+        } else {
+          log('   ✅ Avez-vous déjà travaillé : Déjà coché (candidateIsPreviousWorker) → Skip', 5);
+        }
+      } else {
+        log('   ⏭️  Avez-vous déjà travaillé : aucun radio candidateIsPreviousWorker trouvé → Skip', 5);
       }
     }
-
     if (!filled && clickWorkdayOptionByLabelAndValue(['avez-vous déjà travaillé pour deloitte', 'have you worked for deloitte'], workedYesNo)) {
       filled = true;
     }
 
-    // Si oui : ancien bureau, ancienne adresse email, pays
+    // Si oui : ancien bureau, email, pays
     if (workedRaw === 'yes') {
       const oldOffice = findInputByLabel(['votre ancien bureau', 'your previous office', 'ancien bureau']);
       if (oldOffice && profile.deloitte_old_office) {
-        fillInput(oldOffice, profile.deloitte_old_office);
-        filled = true;
+        if (fillInputIfNeeded(oldOffice, profile.deloitte_old_office, 'Ancien bureau')) filled = true;
       }
       const oldEmail = findInputByLabel(['votre ancienne adresse email', 'your previous email', 'ancienne adresse email']);
       if (oldEmail && profile.deloitte_old_email) {
-        fillInput(oldEmail, profile.deloitte_old_email);
-        filled = true;
+        if (fillInputIfNeeded(oldEmail, profile.deloitte_old_email, 'Ancienne adresse email')) filled = true;
       }
-      const countryInput = findInputByLabel(['pays', 'country']);
-      const countrySelect = findSelectByLabel(['pays', 'country']);
       const countryVal = profile.deloitte_country || profile.country || '';
       if (countryVal) {
-        if (countryInput) fillInput(countryInput, countryVal);
-        if (countrySelect) fillSelect(countrySelect, countryVal);
-        filled = true;
+        const countryInput = findInputByLabel(['pays', 'country']);
+        const countrySelect = findSelectByLabel(['pays', 'country']);
+        if (countryInput && fillInputIfNeeded(countryInput, countryVal, 'Pays')) filled = true;
+        if (countrySelect) {
+          fillSelect(countrySelect, countryVal);
+          filled = true;
+        }
       }
     }
 
-    // Titre (civilité) : Madame ou Monsieur
-    const titleSelect = findSelectByLabel(['titre', 'title', 'nom légal']);
-    if (titleSelect && profile.civility) {
-      fillSelect(titleSelect, profile.civility);
-      filled = true;
+    // ——— Titre (préfixe) : bouton Workday id="name--legalName--title" ou name="legalName--title" → Monsieur / Madame ———
+    const titleCivility = (profile.civility || '').trim();
+    if (titleCivility) {
+      const titleOption = /madame|mme|mrs|female/i.test(titleCivility) ? 'Madame' : 'Monsieur';
+      if (clickWorkdayListboxOption('name--legalName--title', titleOption, 'Titre (préfixe)')) filled = true;
+    } else {
+      log('   ⏭️  Titre (préfixe) : pas de civility Firebase → Skip', 5);
     }
 
-    // Prénom(s)
-    const firstnameInput = findInputByLabel(['prénom', 'first name', 'prénoms']);
-    if (firstnameInput && profile.firstname) {
-      fillInput(firstnameInput, profile.firstname);
-      filled = true;
+    // ——— Prénom : id="name--legalName--firstName" (ne pas inverser avec nom) ———
+    const firstnameEl = document.getElementById('name--legalName--firstName') || document.querySelector('input[name="legalName--firstName"]');
+    if (firstnameEl && profile.firstname && fillInputIfNeeded(firstnameEl, profile.firstname, 'Prénom')) filled = true;
+
+    // ——— Nom de famille : id="name--legalName--lastName" ———
+    const lastnameEl = document.getElementById('name--legalName--lastName') || document.querySelector('input[name="legalName--lastName"]');
+    if (lastnameEl && profile.lastname && fillInputIfNeeded(lastnameEl, profile.lastname, 'Nom de famille')) filled = true;
+
+    // ——— Nature et nom de la voie ———
+    const addressEl = document.querySelector('input[id*="address"], input[name*="address"]') || findInputByLabel(['nature et nom de la voie', 'address', 'adresse', 'street']);
+    if (addressEl && profile.address && fillInputIfNeeded(addressEl, profile.address, 'Nature et nom de la voie')) filled = true;
+
+    // ——— Ville ———
+    const cityEl = findInputByLabel(['ville', 'city']);
+    if (cityEl && profile.city && fillInputIfNeeded(cityEl, profile.city, 'Ville')) filled = true;
+
+    // ——— Code postal ———
+    const zipEl = findInputByLabel(['code postal', 'postal code', 'zip']);
+    if (zipEl && profile.zipcode && fillInputIfNeeded(zipEl, profile.zipcode, 'Code postal')) filled = true;
+
+    // ——— Type d'appareil téléphonique : bouton id="phoneNumber--phoneType" ou name="phoneType" → Mobile Personnel ———
+    if (clickWorkdayListboxOption('phoneNumber--phoneType', 'Mobile Personnel', 'Type d\'appareil téléphonique')) filled = true;
+
+    // ——— Indicatif de pays (code téléphone) : basé sur Firebase phone_country_code — +33 = France, +44 = Royaume-Uni ———
+    const phoneCountryCode = (profile.phone_country_code || '').trim().replace(/\s/g, '');
+    if (phoneCountryCode) {
+      const wantLabel = phoneCountryCode === '+44' ? 'Royaume-Uni (+44)' : phoneCountryCode === '+33' ? 'France (+33)' : phoneCountryCode;
+      log('   🔵 Indicatif de pays (téléphone) : Firebase phone_country_code=' + phoneCountryCode + ' → ' + wantLabel + ' (pour France mettre +33 dans Firebase)', 5);
+      const allListbox = document.querySelectorAll('button[aria-haspopup="listbox"], [data-automation-id="compositeHeader"]');
+      let countryCodeDone = false;
+      for (const b of allListbox) {
+        const aria = (b.getAttribute('aria-label') || '').toLowerCase();
+        // On ne doit pas toucher au champ « Pays » (résidence). On limite donc ici strictement à l'indicatif téléphonique.
+        const isCountryField = aria && (aria.includes('indicatif') || aria.includes('country code') || aria.includes('dialling code') || aria.includes('+33') || aria.includes('+44'));
+        if (!isCountryField) continue;
+        const currentVal = (b.getAttribute('aria-label') || b.textContent || '').trim();
+        if (currentVal.includes(phoneCountryCode) && !/sélectionnez|select a value/i.test(currentVal)) {
+          log('   ✅ Indicatif de pays : Déjà ' + currentVal + ' (Firebase identique) → Skip', 5);
+          countryCodeDone = true;
+          break;
+        }
+        if (clickWorkdayListboxOption(b, wantLabel, 'Indicatif de pays')) {
+          filled = true;
+          countryCodeDone = true;
+        }
+        break;
+      }
+      if (!countryCodeDone) {
+        const opt = document.querySelector('[data-automation-label="' + wantLabel + '"], [data-automation-label*="' + phoneCountryCode + '"], [aria-label*="' + phoneCountryCode + '"]');
+        if (opt && opt.offsetParent !== null) {
+          const listbox = opt.closest('[role="listbox"], ul, [data-automation-id="menuItem"]')?.parentElement || opt.closest('li')?.parentElement;
+          const trigger = listbox?.previousElementSibling || listbox?.parentElement?.querySelector('button[aria-haspopup="listbox"], [data-automation-id="compositeHeader"], button');
+          const labelIndicatif = Array.from(document.querySelectorAll('label, [data-automation-id="label"], span')).find(el => /indicatif|country code|country dial/i.test((el.textContent || '').trim()));
+          const triggerNearLabel = labelIndicatif?.closest('div')?.querySelector('button[aria-haspopup="listbox"], [data-automation-id="compositeHeader"], [role="combobox"]');
+          const toClick = trigger || triggerNearLabel || document.querySelector('button[aria-label*="+33"], button[aria-label*="+44"], [data-automation-id="compositeHeader"]');
+          if (toClick && toClick.offsetParent !== null) {
+            try { toClick.click(); } catch (e) {}
+            setTimeout(function() {
+              const o = document.querySelector('[data-automation-label="' + wantLabel + '"], [data-automation-label*="' + phoneCountryCode + '"], [aria-label*="' + phoneCountryCode + '"]');
+              const clickable = o?.closest('[role="option"]') || o?.closest('li') || o;
+              if (clickable && clickable.offsetParent !== null) {
+                clickable.click();
+                log('   ✏️  Indicatif de pays : Sélectionné ' + phoneCountryCode + ' (Firebase)', 5);
+              }
+            }, 500);
+            filled = true;
+            countryCodeDone = true;
+          }
+        }
+        if (!countryCodeDone) log('   ⏭️  Indicatif de pays : trigger ou option non trouvé pour ' + phoneCountryCode + ' → Skip', 5);
+      }
+    } else {
+      log('   ⏭️  Indicatif de pays : pas de phone_country_code Firebase → Skip', 5);
     }
 
-    // Nom de famille
-    const lastnameInput = findInputByLabel(['nom de famille', 'last name', 'nom']);
-    if (lastnameInput && profile.lastname) {
-      fillInput(lastnameInput, profile.lastname);
-      filled = true;
-    }
+    // ——— Numéro de téléphone : id="phoneNumber--phoneNumber" ou name="phoneNumber" ———
+    const phoneVal = (profile.phone_number || profile['phone-number'] || profile.phone || '').trim().replace(/\s/g, '');
+    const phoneEl = document.getElementById('phoneNumber--phoneNumber') || document.querySelector('input[name="phoneNumber"][id*="phoneNumber"]') || document.querySelector('input[name="phoneNumber"]');
+    if (phoneEl && phoneVal && fillInputIfNeeded(phoneEl, phoneVal, 'Numéro de téléphone')) filled = true;
 
-    // Nature et nom de la voie (adresse)
-    const addressInput = findInputByLabel(['nature et nom de la voie', 'address', 'adresse', 'street']);
-    if (addressInput && profile.address) {
-      fillInput(addressInput, profile.address);
-      filled = true;
-    }
-
-    // Ville
-    const cityInput = findInputByLabel(['ville', 'city']);
-    if (cityInput && profile.city) {
-      fillInput(cityInput, profile.city);
-      filled = true;
-    }
-
-    // Code postal
-    const zipInput = findInputByLabel(['code postal', 'postal code', 'zip']);
-    if (zipInput && profile.zipcode) {
-      fillInput(zipInput, profile.zipcode);
-      filled = true;
-    }
-
-    // Type d'appareil téléphonique → Mobile Personnel
-    const phoneTypeSelect = findSelectByLabel(['type d\'appareil téléphonique', 'phone type', 'type d\'appareil']);
-    if (phoneTypeSelect) {
-      fillSelect(phoneTypeSelect, 'Mobile Personnel');
-      filled = true;
-    }
-
-    // Indicatif de pays
-    const countryCodeInput = findInputByLabel(['indicatif de pays', 'country code', 'country dial']);
-    if (countryCodeInput && profile.phone_country_code) {
-      fillInput(countryCodeInput, profile.phone_country_code);
-      filled = true;
-    }
-
-    // Numéro de téléphone
-    const phoneInput = findInputByLabel(['numéro de téléphone', 'phone number', 'téléphone']);
-    if (phoneInput && (profile.phone_number || profile['phone-number'] || profile.phone)) {
-      fillInput(phoneInput, profile.phone_number || profile['phone-number'] || profile.phone);
-      filled = true;
-    }
+    // Après remplissage, on force une « interaction utilisateur » sur les champs obligatoires
+    // pour que Workday rafraîchisse ses messages d'erreur (comme si on cliquait dans chaque champ).
+    setTimeout(refreshWorkdayRequiredFields, 800);
 
     if (filled) {
+      formFillRetryCount = 0;
+      // Sur useMyLastApplication : si au moins un champ est rempli ou déjà correct, on considère l'automatisation terminée
+      if (url.includes('useMyLastApplication')) {
+        log('Champs remplis sur useMyLastApplication → fin automatisation (pending supprimé, bandeau masqué)', 5);
+        chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
+        setTimeout(hideBanner, 2000);
+        return;
+      }
+      // Sur /apply (page d'entrée) on peut relancer une fois pour s'assurer que tout est bien pris en compte
       log('Champs remplis → réessai dans 2s', 5);
       setTimeout(runAutomation, 2000);
       return;
@@ -472,6 +731,15 @@
       return;
     }
 
+    // Sur useMyLastApplication : le formulaire peut se charger en différé → retry sans enlever le bandeau
+    if (url.includes('useMyLastApplication') && formFillRetryCount < MAX_FORM_FILL_RETRIES) {
+      formFillRetryCount++;
+      log('Formulaire pas encore prêt → retry ' + formFillRetryCount + '/' + MAX_FORM_FILL_RETRIES + ' dans 2s (bandeau conservé)', 5);
+      setTimeout(runAutomation, 2000);
+      return;
+    }
+
+    formFillRetryCount = 0;
     chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
     setTimeout(hideBanner, 2000);
   }
@@ -480,6 +748,8 @@
   const MAX_RETRIES = 8;
   let postulerRetryCount = 0;
   const MAX_POSTULER_RETRIES = 6;
+  let formFillRetryCount = 0;
+  const MAX_FORM_FILL_RETRIES = 12;
 
   function maybeRetryForPostuler() {
     if (postulerRetryCount >= MAX_POSTULER_RETRIES) return;
@@ -502,6 +772,7 @@
     if (area === 'local' && changes.taleos_pending_deloitte?.newValue) {
       runCount = 0;
       postulerRetryCount = 0;
+      formFillRetryCount = 0;
       setTimeout(runAutomation, 1000);
     }
   });

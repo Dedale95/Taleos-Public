@@ -2,12 +2,6 @@
  * Taleos - Remplissage automatique Deloitte (Workday)
  * Flux: Connexion → Utiliser ma dernière candidature → Formulaire complet
  *
- * — Test avant modification —
- * Avant de changer la logique (étape 2, établissement, années…) : ouvrir la fixture
- * http://localhost:8000/extension/test/deloitte-step2-fixture.html (servir le dépôt avec python3 -m http.server 8000),
- * cliquer sur « Remplir avec profil test », vérifier établissement + années, puis modifier le script si besoin.
- * Voir extension/test/README.md.
- *
  * — Méthodologie Workday (étape 1 "Mes données personnelles") —
  * 1. Validation des champs : Workday ne met à jour l'état React qu'après focus puis blur.
  *    On simule le comportement utilisateur : pour chaque champ obligatoire, scroll en vue,
@@ -1147,30 +1141,4 @@
     collectDeloitteInstitutions().then(sendResponse).catch(err => sendResponse({ list: [], error: (err && err.message) || 'Erreur' }));
     return true;
   });
-
-  /** Page fixture locale : permettre de tester le remplissage étape 2 avant de modifier le script. */
-  function initFixtureTest() {
-    if (!/deloitte-step2-fixture\.html/.test(window.location.href)) return;
-    const run = () => {
-      const btn = document.getElementById('taleos-fixture-fill-btn');
-      if (!btn || btn.dataset.taleosListener === '1') return;
-      btn.dataset.taleosListener = '1';
-      btn.addEventListener('click', () => {
-        const testProfile = {
-          establishment: 'ESCP Europe',
-          diploma_year: '2018',
-          education_level: 'Bac+5',
-          graduation_year: 2018
-        };
-        fillWorkdayStep2Education(testProfile);
-        log('Fixture : remplissage avec profil test (établissement=ESCP Europe, année fin=2018)', 5);
-      });
-    };
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', run);
-    } else {
-      run();
-    }
-  }
-  initFixtureTest();
 })();

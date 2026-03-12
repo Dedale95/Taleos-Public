@@ -98,9 +98,7 @@
       "matches": [
         "https://*.myworkdayjobs.com/*",
         "https://www.deloitte.com/*",
-        "https://*.deloitte.com/*",
-        "http://localhost:8000/extension/test/*",
-        "http://127.0.0.1:8000/extension/test/*"
+        "https://*.deloitte.com/*"
       ],
       "js": [
         "content/deloitte-careers-filler.js"

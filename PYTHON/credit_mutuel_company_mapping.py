@@ -15,8 +15,6 @@ COMPANY_DISPLAY_MAPPING = {
     "monabanq": "Monabanq",
     "creatis": "Creatis",
     "factofrance": "FactoFrance",
-    "groupe la française": "Groupe La Française",
-    "la française finance": "Groupe La Française",
     "afedim": "AFEDIM",
 }
 
@@ -39,6 +37,7 @@ def normalize_company_name(raw: str) -> str:
     # Tout le reste du groupe CM (caisses, Factoring, Leasing, BECM, CCS, Synergie, etc.) → Crédit Mutuel
     if ("credit mutuel" in key_clean or "crédit mutuel" in key_clean or "ccm" in key_clean or
         "cmlaco" in key_clean or "becm" in key_clean or "ccs" in key_clean or "synergie" in key_clean or
+        "groupe la française" in key_clean or "la française" in key_clean or
         "caisse regionale" in key_clean or "caisse federale" in key_clean or "caisse de credit mutuel" in key_clean):
         return "Crédit Mutuel"
     return raw.strip()

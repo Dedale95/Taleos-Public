@@ -31,7 +31,9 @@ Les APIs automatiques ne fonctionnent plus (Clearbit discontinué) et nécessite
 - **oney.svg** – Oney (Wikimedia)
 - **banque_palatine.png** – Banque Palatine (Newsroom BPCE)
 - **credit_foncier.svg** – Crédit Foncier (Wikimedia)
-- AEW, Mirova, Ostrum, Casden, Capitole Finance : utilisent bpce.svg
+- AEW, Mirova, Ostrum : utilisent bpce.svg
+- Casden : casden.png (logo spécifique)
+- Capitole Finance : caisse_epargne.svg
 - Exécuter : `python PYTHON/download_logos_simple.py`
 
 ### 5. Autres entreprises

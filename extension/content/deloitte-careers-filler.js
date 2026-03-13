@@ -411,7 +411,7 @@
     log('📋 Profil Firebase (Études) :', 5);
     log('   Établissement: ' + (establishmentVal || '—') + '  |  Diplôme: ' + (profile.education_level || '—') + '  |  Année fin: ' + (yearEnd || '—'), 5);
 
-    // ——— Établissement ou université : type + wait for results + click option ———
+    // ——— Établissement ou université : fill search → wait results → click option ———
     var estabInput = document.querySelector('input[data-automation-id="searchBox"][id*="school"]') ||
       document.querySelector('input[id*="school"][placeholder="Rechercher"]') ||
       findInputByLabel(['établissement ou université', 'institution']);
@@ -422,7 +422,6 @@
         estabInput.click();
       } catch (_) {}
       fillInput(estabInput, establishmentVal);
-      pressEnterSequence(estabInput);
 
       var estabTarget = establishmentVal.toLowerCase();
       var estabAttempt = 0;
@@ -446,18 +445,22 @@
           });
         }
         if (match) {
-          match.click();
+          var clickTarget = match.closest('[data-automation-id="menuItem"], [role="option"], li') || match;
+          clickTarget.click();
           log('   ✅ Établissement → ' + (match.textContent || '').trim() + ' (sélectionné)', 5);
         } else if (options.length === 1) {
-          options[0].click();
+          var only = options[0].closest('[data-automation-id="menuItem"], [role="option"], li') || options[0];
+          only.click();
           log('   ✅ Établissement → ' + (options[0].textContent || '').trim() + ' (seul résultat)', 5);
-        } else if (estabAttempt < 4) {
-          setTimeout(trySelectEstablishment, 800);
+        } else if (estabAttempt < 5) {
+          log('   ⏳ Établissement → résultats pas encore affichés (' + options.length + ' options), retry ' + estabAttempt + '/5', 5);
+          setTimeout(trySelectEstablishment, 1000);
         } else {
-          log('   ⏭️  Établissement → aucune option trouvée pour "' + establishmentVal + '" (' + options.length + ' options)', 5);
+          pressEnterSequence(estabInput);
+          log('   ⏭️  Établissement → Enter fallback (aucune option après ' + estabAttempt + ' tentatives)', 5);
         }
       }
-      setTimeout(trySelectEstablishment, 1200);
+      setTimeout(trySelectEstablishment, 1500);
     } else if (!establishmentVal) {
       log('   ⏭️  Établissement → pas de valeur Firebase', 5);
     } else {

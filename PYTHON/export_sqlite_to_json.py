@@ -211,7 +211,12 @@ def fix_location(loc):
         parts = re.split(r'\s*-\s*', loc, maxsplit=1)
         if len(parts) >= 2 and parts[0].strip().upper() == 'N/A':
             return normalize_country(parts[1].strip())
+    # Cas où la location est juste une ville connue en France (ex: \"Grandcamp Maisy\"):
+    # on la transforme en \"Grandcamp Maisy - France\" pour que le filtre pays fonctionne.
+    loc_lower = loc.lower()
     if ' - ' not in loc:
+        if 'grandcamp maisy' in loc_lower:
+            return 'Grandcamp Maisy - France'
         return loc
     parts = loc.split(' - ', 1)
     city = (parts[0] or '').strip()

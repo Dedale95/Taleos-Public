@@ -28,6 +28,7 @@ CA_DB = PYTHON_DIR / "credit_agricole_jobs.db"
 SG_DB = PYTHON_DIR / "societe_generale_jobs.db"
 DELOITTE_DB = PYTHON_DIR / "deloitte_jobs.db"
 BNP_DB = PYTHON_DIR / "bnp_paribas_jobs.db"
+BPIFRANCE_DB = PYTHON_DIR / "bpifrance_jobs.db"
 BPCE_DB = PYTHON_DIR / "bpce_jobs.db"
 
 def run_script(script_name, cwd=PYTHON_DIR, timeout=3600):
@@ -210,6 +211,7 @@ def merge_from_databases():
         ("Deloitte", DELOITTE_DB),
         ("BNP Paribas", BNP_DB),
         ("BPCE", BPCE_DB),
+        ("Bpifrance", BPIFRANCE_DB),
     ]
     
     for name, db_path in sources_info:
@@ -268,6 +270,9 @@ if __name__ == "__main__":
     # 5. Scraper BPCE
     run_script("bpce_scraper.py")
 
+    # 6. Scraper Bpifrance
+    run_script("bpifrance_scraper.py")
+
     # 6. Fusion des données depuis les bases SQLite
     merge_from_databases()
 
@@ -295,7 +300,7 @@ if __name__ == "__main__":
         total_expired = 0
         print(f"   {'Entité':<22} │ {'Live':>6} │ {'Expired':>7}")
         print("   " + "-" * 40)
-        for name, db_path in [("Crédit Agricole", CA_DB), ("Société Générale", SG_DB), ("Deloitte", DELOITTE_DB), ("BNP Paribas", BNP_DB), ("BPCE", BPCE_DB)]:
+        for name, db_path in [("Crédit Agricole", CA_DB), ("Société Générale", SG_DB), ("Deloitte", DELOITTE_DB), ("BNP Paribas", BNP_DB), ("BPCE", BPCE_DB), ("Bpifrance", BPIFRANCE_DB)]:
             if db_path.exists():
                 conn = sqlite3.connect(db_path)
                 row = conn.execute("""

@@ -32,6 +32,7 @@ CA_DB = PYTHON_DIR / "credit_agricole_jobs.db"
 SG_DB = PYTHON_DIR / "societe_generale_jobs.db"
 DELOITTE_DB = PYTHON_DIR / "deloitte_jobs.db"
 BNP_DB = PYTHON_DIR / "bnp_paribas_jobs.db"
+BPIFRANCE_DB = PYTHON_DIR / "bpifrance_jobs.db"
 BPCE_DB = PYTHON_DIR / "bpce_jobs.db"
 
 def fix_location(loc):
@@ -128,6 +129,7 @@ def main():
         ("Deloitte", DELOITTE_DB),
         ("BNP Paribas", BNP_DB),
         ("BPCE", BPCE_DB),
+        ("Bpifrance", BPIFRANCE_DB),
     ]
     
     for name, db_path in sources_info:

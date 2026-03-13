@@ -413,9 +413,30 @@
         estabInput.click();
       } catch (_) {}
       fillInput(estabInput, establishmentVal);
+      // 1) Enter pour lancer la recherche
       setTimeout(function() {
         pressEnterSequence(estabInput);
-        log('   ✅ Établissement → ' + establishmentVal, 5);
+        // 2) Attendre les résultats et cliquer sur le premier match
+        setTimeout(function() {
+          var target = establishmentVal.toLowerCase();
+          var options = Array.from(document.querySelectorAll(
+            '[data-automation-id="promptOption"], [role="option"], [data-automation-id="menuItem"]'
+          )).filter(function(o) { return o.offsetParent !== null; });
+          var match = options.find(function(o) {
+            var txt = (o.textContent || o.getAttribute('data-automation-label') || '').trim().toLowerCase();
+            return txt === target || txt.includes(target);
+          });
+          if (match) {
+            match.click();
+            log('   ✅ Établissement → ' + establishmentVal + ' (sélectionné)', 5);
+          } else if (options.length === 1) {
+            options[0].click();
+            log('   ✅ Établissement → ' + (options[0].textContent || '').trim() + ' (seul résultat)', 5);
+          } else {
+            pressEnterSequence(estabInput);
+            log('   ✅ Établissement → ' + establishmentVal + ' (Enter)', 5);
+          }
+        }, 800);
       }, 500);
     } else if (!establishmentVal) {
       log('   ⏭️  Établissement → pas de valeur Firebase', 5);
@@ -771,11 +792,14 @@
       }
 
       if (!hasConnexionUi && !manualBtn) {
-        // Le formulaire peut déjà être visible (navigation en cours ou URL pas encore mise à jour) → passer au remplissage
+        // Le formulaire peut déjà être visible (Step 1, Step 2 ou autre)
         const formAlreadyVisible = document.querySelector('input[id="source--source"], input[name="legalName--firstName"], input[name="legalName--lastName"]') ||
           document.querySelector('input[name="candidateIsPreviousWorker"]') ||
           document.querySelector('button[name="legalName--title"]') ||
-          document.querySelector('[data-automation-id="searchBox"][id="source--source"]');
+          document.querySelector('[data-automation-id="searchBox"][id="source--source"]') ||
+          document.querySelector('button[aria-haspopup="listbox"][id*="degree"], button[aria-haspopup="listbox"][name="degree"]') ||
+          document.querySelector('[data-automation-id="file-upload-drop-zone"]') ||
+          document.querySelector('[id*="lastYearAttended"]');
         if (!formAlreadyVisible || !formAlreadyVisible.offsetParent) {
           log('Attente bouton "Postuler manuellement" ou formulaire → retry', 4);
           if (runCount < MAX_RETRIES) {
@@ -788,7 +812,6 @@
     }
 
     // Détection étape 2 "Mon expérience" (Études) :
-    // Si les champs Step 1 (prénom/nom) ne sont plus visibles mais que les champs éducation le sont → on est sur Step 2
     var step1Visible = document.getElementById('name--legalName--firstName') && document.getElementById('name--legalName--firstName').offsetParent;
     var step2DiplomaBtn = document.querySelector('button[aria-haspopup="listbox"][id*="degree"], button[aria-haspopup="listbox"][name="degree"]') ||
       Array.from(document.querySelectorAll('button[aria-haspopup="listbox"]')).find(function(b) {
@@ -796,11 +819,20 @@
       });
     var step2YearField = document.querySelector('[data-automation-id="dateSectionYear-display"]') ||
       document.querySelector('[id*="lastYearAttended"]');
+    var step2DropZone = document.querySelector('[data-automation-id="file-upload-drop-zone"]');
     var isStep2Form = !step1Visible && (
       (step2DiplomaBtn && step2DiplomaBtn.offsetParent !== null) ||
-      (step2YearField && step2YearField.offsetParent !== null)
+      (step2YearField && step2YearField.offsetParent !== null) ||
+      (step2DropZone && step2DropZone.offsetParent !== null)
     );
     if (isStep2Form) {
+      if (step2Done) {
+        log('📋 Étape 2 déjà traitée → arrêt', 5);
+        chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
+        setTimeout(hideBanner, 2000);
+        return;
+      }
+      step2Done = true;
       log('📋 Étape 2 "Mon expérience" détectée', 5);
       fillWorkdayStep2Education(profile);
       uploadCvInStep2(profile).then(function () {
@@ -1157,6 +1189,7 @@
   const MAX_POSTULER_RETRIES = 6;
   let formFillRetryCount = 0;
   const MAX_FORM_FILL_RETRIES = 12;
+  let step2Done = false;
 
   function maybeRetryForPostuler() {
     if (postulerRetryCount >= MAX_POSTULER_RETRIES) return;

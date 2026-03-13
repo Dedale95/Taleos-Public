@@ -35,6 +35,9 @@ LOGO_URLS = {
     "amundi": [
         "https://www.amundi.com/var/amundi_com/storage/images/media/logo-amundi.svg",
     ],
+    "bpce": [
+        "https://upload.wikimedia.org/wikipedia/fr/0/0a/Groupe_BPCE_%28logo%29.svg",
+    ],
 }
 
 def download_logo(url: str, filename: str) -> bool:

@@ -22,7 +22,11 @@ Les APIs automatiques ne fonctionnent plus (Clearbit discontinué) et nécessite
 2. Renommez en : `deloitte.png` ou `deloitte_france.png`
 3. Placez dans : `HTML/images/logos/deloitte.png`
 
-### 4. Autres entreprises
+### 4. Groupe BPCE
+- Fichier : `bpce.svg` (téléchargé depuis Wikimedia Commons)
+- Ou exécuter : `python PYTHON/download_logos_simple.py`
+
+### 5. Autres entreprises
 Suivez la même méthode pour :
 - **CACEIS** → `caceis.png`
 - **LCL** → `lcl.png`

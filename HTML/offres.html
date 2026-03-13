@@ -2293,9 +2293,12 @@
             // hideDisabled=false pour Contrat et Études (garde le barré)
             populateCheckboxFilter('contractFilter', sortedContracts, new Set(), counts.contracts, false, restoredFilters?.contracts);
             populateCheckboxFilter('experienceFilter', sortedExperiences, new Set(), counts.experiences, false, restoredFilters?.experiences);
-            const restoredCompanies = restoredFilters && Array.isArray(restoredFilters.companies) && restoredFilters.companies.length
-                ? restoredFilters.companies
-                : (restoredFilters?.companiesExpanded || null);
+            const restoredCompanies =
+                (restoredFilters && Array.isArray(restoredFilters.companiesExpanded) && restoredFilters.companiesExpanded.length)
+                    ? restoredFilters.companiesExpanded
+                    : (restoredFilters && Array.isArray(restoredFilters.companies) && restoredFilters.companies.length
+                        ? restoredFilters.companies
+                        : null);
 
             populateCheckboxFilter(
                 'companyFilter',
@@ -2689,11 +2692,19 @@
 
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'company-group-header';
+
                 const groupLabel = document.createElement('label');
                 groupLabel.style.display = 'flex';
                 groupLabel.style.alignItems = 'center';
                 groupLabel.style.flex = '1';
                 groupLabel.style.cursor = 'pointer';
+
+                const groupCheckbox = document.createElement('input');
+                groupCheckbox.type = 'checkbox';
+                groupCheckbox.className = 'continent-group-checkbox';
+                groupCheckbox.style.marginRight = '6px';
+                groupLabel.appendChild(groupCheckbox);
+
                 const span = document.createElement('span');
                 span.textContent = label;
                 groupLabel.appendChild(span);
@@ -2706,6 +2717,17 @@
                 const childrenDiv = document.createElement('div');
                 childrenDiv.className = 'company-group-children';
                 childrenDiv.setAttribute('data-group', `continent-${label}`);
+
+                groupCheckbox.onchange = () => {
+                    const shouldCheck = groupCheckbox.checked;
+                    const childCheckboxes = Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]'))
+                        .filter(cb => !cb.disabled);
+                    childCheckboxes.forEach(cb => {
+                        cb.checked = shouldCheck;
+                    });
+                    updateActiveFiltersBadge();
+                    applyFilters();
+                };
 
                 expandSpan.onclick = (e) => {
                     e.stopPropagation();
@@ -2739,6 +2761,12 @@
                     if (disabled) labelEl.classList.add('disabled');
                     childrenDiv.appendChild(labelEl);
                 });
+
+                // Cocher automatiquement le continent si tous ses pays sont cochés
+                const allCountriesChecked = countries.every(c => checkedValues.has(c));
+                if (allCountriesChecked && countries.length > 0) {
+                    groupCheckbox.checked = true;
+                }
 
                 container.appendChild(childrenDiv);
             });
@@ -2829,9 +2857,9 @@
                 contracts: getCheckedValues('contractFilter'),
                 experiences: getCheckedValues('experienceFilter'),
                 families: getCheckedValues('familyFilter'),
-                // On sauvegarde ce que l'utilisateur a vraiment coché (y compris les groupes),
-                // et on laisse getSelectedCompanies() faire l'expansion au moment du filtrage.
-                companies: getCheckedValues('companyFilter'),
+                // On sauvegarde directement la liste « étendue » des entreprises sélectionnées
+                // (y compris les filiales quand un groupe est coché) pour simplifier la restauration.
+                companies: getSelectedCompanies(),
                 companiesExpanded: getSelectedCompanies(),
                 educations: getCheckedValues('educationFilter'),
                 companyGroupCAExpanded: companyGroupCAExpanded,
@@ -3145,7 +3173,9 @@
 
         function getCheckedValues(containerId) {
             const container = document.getElementById(containerId);
-            return Array.from(container.querySelectorAll('input:checked')).map(cb => cb.value);
+            return Array.from(container.querySelectorAll('input:checked'))
+                .filter(cb => !cb.classList.contains('continent-group-checkbox'))
+                .map(cb => cb.value);
         }
 
         // Variable globale pour stocker l'état d'authentification

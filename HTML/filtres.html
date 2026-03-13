@@ -2579,11 +2579,19 @@
 
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'company-group-header';
+
                 const groupLabel = document.createElement('label');
                 groupLabel.style.display = 'flex';
                 groupLabel.style.alignItems = 'center';
                 groupLabel.style.flex = '1';
                 groupLabel.style.cursor = 'pointer';
+
+                const groupCheckbox = document.createElement('input');
+                groupCheckbox.type = 'checkbox';
+                groupCheckbox.className = 'continent-group-checkbox';
+                groupCheckbox.style.marginRight = '6px';
+                groupLabel.appendChild(groupCheckbox);
+
                 const span = document.createElement('span');
                 span.textContent = label;
                 groupLabel.appendChild(span);
@@ -2596,6 +2604,16 @@
                 const childrenDiv = document.createElement('div');
                 childrenDiv.className = 'company-group-children';
                 childrenDiv.setAttribute('data-group', `continent-${label}`);
+
+                groupCheckbox.onchange = () => {
+                    const shouldCheck = groupCheckbox.checked;
+                    const childCheckboxes = Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]'))
+                        .filter(cb => !cb.disabled);
+                    childCheckboxes.forEach(cb => {
+                        cb.checked = shouldCheck;
+                        updateFilter(accordionId, 'countries', cb.value, shouldCheck);
+                    });
+                };
 
                 expandSpan.onclick = (e) => {
                     e.stopPropagation();
@@ -2626,6 +2644,12 @@
                     if (disabled) labelEl.classList.add('disabled');
                     childrenDiv.appendChild(labelEl);
                 });
+
+                // Cocher automatiquement le continent si tous ses pays sont cochés
+                const allCountriesChecked = countries.every(c => checkedValues.has(c));
+                if (allCountriesChecked && countries.length > 0) {
+                    groupCheckbox.checked = true;
+                }
 
                 container.appendChild(childrenDiv);
             });

@@ -1895,7 +1895,8 @@
                             // Tout le reste du groupe CM → "Crédit Mutuel" (Factoring, Leasing, BECM, CCS, Synergie, caisses, etc.)
                             else if (cnLower.includes('credit mutuel') || cnLower.includes('crédit mutuel') || cnLower.includes('ccm') ||
                                 cnLower.includes('cmlaco') || cnLower.includes('becm') || cnLower.includes('ccs') || cnLower.includes('synergie') ||
-                                cnLower.includes('groupe la française') || cnLower.includes('la française') ||
+                                cnLower.includes('groupe la française') || cnLower.includes('groupe la francaise') ||
+                                cnLower.includes('la française') || cnLower.includes('la francaise') ||
                                 cnLower.includes('caisse regionale') || cnLower.includes('caisse federale') || cnLower.includes('caisse de credit mutuel')) {
                                 consolidated = 'Crédit Mutuel';
                             }
@@ -2332,14 +2333,15 @@
             if (!name || typeof name !== 'string') return false;
             const n = name.toLowerCase();
             // Toutes les entités du groupe Crédit Mutuel : caisses, CCM, filiales, etc.
-            const cmPatterns = [
+                const cmPatterns = [
                 'crédit mutuel', 'credit mutuel', 'cic', 'cofidis', 'euro information', 'euro-information',
                 'caisse fédérale', 'caisse federale', 'caisse regionale', 'caisse régionale',
                 'caisse de credit mutuel', 'caisse de crédit mutuel', 'becm', 'bfcm', 'monext', 'acm',
                 'assurances du credit mutuel', 'lyonnaise de banque', 'credit mutuel factoring',
                 'credit mutuel leasing', 'credit mutuel gestion', 'credit mutuel asset management',
                 'ccs', 'synergie', 'ccm ', ' ccm', 'cmlaco', 'banque transatlantique', 'banque européenne',
-                'banque europeenne', 'creatis', 'factofrance', 'groupe la française', 'la française',
+                'banque europeenne', 'creatis', 'factofrance', 'groupe la française', 'groupe la francaise',
+                'la française', 'la francaise',
                 'monabanq', 'afedim', 'credit mutuel factoring', 'credit mutuel leasing',
                 'credit mutuel caution', 'credit mutuel amenagement', 'confederation nationale'
             ];

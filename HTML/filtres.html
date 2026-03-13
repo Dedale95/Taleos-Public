@@ -1649,27 +1649,15 @@
                                         else if (cnLower.includes('lyonnaise de banque')) consolidated = 'Lyonnaise de Banque';
                                         else if (cnLower.includes('banque transatlantique')) consolidated = 'Banque Transatlantique';
                                         else if (cnLower.includes('monabanq')) consolidated = 'Monabanq';
-                                        else if (cnLower.includes('credit mutuel factoring')) consolidated = 'Crédit Mutuel Factoring';
-                                        else if (cnLower.includes('credit mutuel leasing')) consolidated = 'Crédit Mutuel Leasing';
-                                        else if (cnLower.includes('credit mutuel gestion')) consolidated = 'Crédit Mutuel Gestion';
-                                        else if (cnLower.includes('credit mutuel asset management')) consolidated = 'Crédit Mutuel Asset Management';
-                                        else if (cnLower.includes('credit mutuel caution')) consolidated = 'Crédit Mutuel Caution Habitat';
-                                        else if (cnLower.includes('banque européenne') || cnLower.includes('banque europeenne')) consolidated = 'BECM';
-                                        else if (cnLower.includes('centre de conseil') || cnLower.includes('ccs')) consolidated = 'CCS';
-                                        else if (cnLower.includes('synergie')) consolidated = 'Synergie';
                                         else if (cnLower.includes('creatis')) consolidated = 'Creatis';
                                         else if (cnLower.includes('factofrance')) consolidated = 'FactoFrance';
                                         else if (cnLower.includes('groupe la française') || cnLower.includes('la française finance')) consolidated = 'Groupe La Française';
                                         else if (cnLower.includes('afedim')) consolidated = 'AFEDIM';
-                                        else if (cnLower.includes('cmlaco')) consolidated = 'Crédit Mutuel';
-                                        else if (/^ccm\s/i.test(cn) || /\sccm\s/i.test(cn)) consolidated = 'Crédit Mutuel';
-                                        else if (cnLower.includes('caisse regionale') || cnLower.includes('caisse de credit mutuel') || cnLower.includes('caisse federale')) {
-                                            const m = cn.match(/(?:credit mutuel|du credit mutuel|de credit mutuel)\s+(.+?)(?:\s*-\s*|$)/i) || cn.match(/(?:ile de france|sud est|maine anjou|midi atlantique|nord europe|savoie|dauphine|normandie|massif central|antilles|mediterraneen|centre|anjou)/i);
-                                            if (m) {
-                                                const r = (m[1] || m[0]).replace(/\s*cmlaco\s*/gi, '').trim();
-                                                consolidated = r ? 'Crédit Mutuel ' + r.replace(/\b\w/g, l => l.toUpperCase()) : 'Crédit Mutuel';
-                                            } else consolidated = 'Crédit Mutuel';
-                                        } else if (cnLower.includes('credit mutuel') || cnLower.includes('crédit mutuel')) consolidated = 'Crédit Mutuel';
+                                        else if (cnLower.includes('credit mutuel') || cnLower.includes('crédit mutuel') || cnLower.includes('ccm') ||
+                                            cnLower.includes('cmlaco') || cnLower.includes('becm') || cnLower.includes('ccs') || cnLower.includes('synergie') ||
+                                            cnLower.includes('caisse regionale') || cnLower.includes('caisse federale') || cnLower.includes('caisse de credit mutuel')) {
+                                            consolidated = 'Crédit Mutuel';
+                                        }
                                         if (consolidated) job.company_name = consolidated;
                                     }
                                     
@@ -3716,9 +3704,10 @@
             <div class="job-bottom-block">
                 ${job.company_name ? (() => {
                     const logoPath = getCompanyLogo(job.company_name);
+                    const logoUrl = logoPath ? (() => { try { return new URL(logoPath, window.location.href).href; } catch(e) { return logoPath; } })() : null;
                     return `
                 <div class="job-company">
-                    ${logoPath ? `<img src="${logoPath}" alt="${job.company_name}" class="company-logo" onerror="this.style.display='none'">` : ''}
+                    ${logoUrl ? `<img src="${logoUrl}" alt="${(job.company_name || '').replace(/"/g, '&quot;')}" class="company-logo" loading="lazy" onerror="this.style.display='none'">` : ''}
                     <div class="company-name-wrapper">
                         <span>${job.company_name}</span>
                     </div>

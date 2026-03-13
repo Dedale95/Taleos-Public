@@ -1421,7 +1421,8 @@
                             <div style="display: flex; align-items: center; flex: 1;">
                                 ${(() => {
                                     const logoPath = getCompanyLogo(app.companyName);
-                                    return logoPath ? `<img src="${logoPath}" alt="${app.companyName || ''}" class="company-logo" onerror="this.style.display='none'">` : '';
+                                    const logoUrl = logoPath ? (() => { try { return new URL(logoPath, window.location.href).href; } catch(e) { return logoPath; } })() : null;
+                                    return logoUrl ? `<img src="${logoUrl}" alt="${(app.companyName || '').replace(/"/g, '&quot;')}" class="company-logo" loading="lazy" onerror="this.style.display='none'">` : '';
                                 })()}
                                 <div class="app-title">${app.jobTitle || 'Sans titre'}</div>
                             </div>

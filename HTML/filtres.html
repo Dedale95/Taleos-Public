@@ -2319,8 +2319,9 @@
                 const span = document.createElement('span');
                 span.textContent = `Groupe BPCE (${bpceGroupCount})`;
                 groupLabel.appendChild(span);
-                groupDiv.appendChild(expandSpan);
+                // Texte + checkbox à gauche, flèche à droite
                 groupDiv.appendChild(groupLabel);
+                groupDiv.appendChild(expandSpan);
                 container.appendChild(groupDiv);
                 const renderedBpceBrands = [];
                 const childCheckboxes = [];
@@ -2394,8 +2395,9 @@
                 const span = document.createElement('span');
                 span.textContent = `Groupe Crédit Agricole (${groupCount})`;
                 groupLabel.appendChild(span);
-                groupDiv.appendChild(expandSpan);
+                // Texte + checkbox à gauche, flèche à droite
                 groupDiv.appendChild(groupLabel);
+                groupDiv.appendChild(expandSpan);
                 container.appendChild(groupDiv);
 
                 const renderedCaSubs = [];
@@ -2470,8 +2472,9 @@
                 const span = document.createElement('span');
                 span.textContent = `Groupe Crédit Mutuel (${cmGroupCount})`;
                 groupLabel.appendChild(span);
-                groupDiv.appendChild(expandSpan);
+                // Texte + checkbox à gauche, flèche à droite
                 groupDiv.appendChild(groupLabel);
+                groupDiv.appendChild(expandSpan);
                 container.appendChild(groupDiv);
                 const childCheckboxes = [];
                 cmSubs.forEach(c => {

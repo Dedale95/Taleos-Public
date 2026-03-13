@@ -2909,11 +2909,18 @@
             }
         }
 
-        // Restaurer les filtres depuis Firestore (si connecté) ou localStorage
-        // Utilise la source la plus récente (savedAt) pour éviter les données obsolètes
+        // Restaurer les filtres : localStorage en priorité (écrit de façon synchrone, fiable)
+        // Firestore en secours uniquement si localStorage vide (évite problèmes auth async / données obsolètes)
         async function restoreFilters() {
-            let filtersFirestore = null;
             let filtersLocal = null;
+            let filtersFirestore = null;
+            
+            try {
+                const savedFilters = localStorage.getItem('offresFilters');
+                if (savedFilters) filtersLocal = JSON.parse(savedFilters);
+            } catch (error) {
+                console.error('Erreur lors de la restauration localStorage des filtres:', error);
+            }
             
             if (firebase.auth && firebase.firestore) {
                 const auth = firebase.auth();
@@ -2933,17 +2940,9 @@
                 }
             }
             
-            try {
-                const savedFilters = localStorage.getItem('offresFilters');
-                if (savedFilters) filtersLocal = JSON.parse(savedFilters);
-            } catch (error) {
-                console.error('Erreur lors de la restauration localStorage des filtres:', error);
-            }
-            
-            const ts = (f) => (f && f.savedAt ? new Date(f.savedAt).getTime() : 0);
-            const filters = (ts(filtersFirestore) >= ts(filtersLocal) ? filtersFirestore : filtersLocal) || filtersFirestore || filtersLocal;
+            const filters = filtersLocal || filtersFirestore;
             if (filters) {
-                console.log('✅ Filtres restaurés depuis', ts(filtersFirestore) >= ts(filtersLocal) && filtersFirestore ? 'Firestore' : 'localStorage');
+                console.log('✅ Filtres restaurés depuis', filtersLocal ? 'localStorage' : 'Firestore');
             }
             
             if (!filters) return null;

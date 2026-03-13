@@ -79,15 +79,10 @@
     if (!el || !text) { if (onComplete) onComplete(); return; }
     var str = String(text).trim();
     if (!str) { if (onComplete) onComplete(); return; }
-    el.focus();
-    el.click();
     var nativeDesc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
     var nativeSet = nativeDesc && nativeDesc.set;
-    var tracker = el._valueTracker;
-    if (tracker) tracker.setValue(el.value || '');
-    if (nativeSet) nativeSet.call(el, '');
-    else el.value = '';
-    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.focus();
+    el.click();
     var i = 0;
     function next() {
       if (i >= str.length) {
@@ -104,9 +99,9 @@
       else el.value = val;
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new KeyboardEvent('keyup', { key: ch, bubbles: true }));
-      setTimeout(next, 50);
+      setTimeout(next, 60);
     }
-    next();
+    setTimeout(next, 200);
   }
 
   /**

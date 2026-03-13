@@ -143,7 +143,13 @@ async function refreshTaleosTabs() {
 
 async function init() {
   await setVersion();
-  const doReload = () => { if (chrome?.runtime?.reload) chrome.runtime.reload(); };
+  const doReload = async () => {
+    const tabs = await chrome.tabs.query({});
+    for (const tab of tabs) {
+      try { await chrome.tabs.reload(tab.id); } catch (_) {}
+    }
+    if (chrome?.runtime?.reload) chrome.runtime.reload();
+  };
   document.getElementById('reload-btn')?.addEventListener('click', doReload);
   document.getElementById('reload-btn-login')?.addEventListener('click', doReload);
   document.getElementById('diagnostic-btn')?.addEventListener('click', runDiagnostic);

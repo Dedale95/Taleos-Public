@@ -2,10 +2,10 @@
 Mapping des noms d'entreprises/filiales Crédit Mutuel (site) → nom d'affichage Taleos.
 """
 
-# Raw (site) → Display (Taleos)
+# Raw (site) → Display (Taleos) - consolidation comme BPCE/CA
 COMPANY_DISPLAY_MAPPING = {
-    "caisse federale de credit mutuel": "Caisse Fédérale du Crédit Mutuel",
-    "caisse fédérale de crédit mutuel": "Caisse Fédérale du Crédit Mutuel",
+    "caisse federale de credit mutuel": "Crédit Mutuel",
+    "caisse fédérale de crédit mutuel": "Crédit Mutuel",
     "cofidis": "Cofidis",
     "euro-information": "Euro Information",
     "euro-information developpements": "Euro Information",
@@ -13,9 +13,9 @@ COMPANY_DISPLAY_MAPPING = {
     "cic": "CIC",
     "credit industriel et commercial": "CIC",
     "becm": "BECM",
-    "banque federative du credit mutuel": "BFCM",
-    "credit mutuel alliance federale": "Crédit Mutuel Alliance Fédérale",
-    "credit mutuel arkéa": "Crédit Mutuel Arkéa",
+    "banque federative du credit mutuel": "Crédit Mutuel",
+    "credit mutuel alliance federale": "Crédit Mutuel",
+    "credit mutuel arkéa": "Crédit Mutuel",
     "monext": "Monext",
     "assurances du credit mutuel": "ACM",
     "acm": "ACM",
@@ -27,6 +27,15 @@ COMPANY_DISPLAY_MAPPING = {
     "banque europeenne du credit mutuel": "BECM",
     "centre de conseil et de service": "CCS",
     "synergie": "Synergie",
+    "banque transatlantique": "Banque Transatlantique",
+    "monabanq": "Monabanq",
+    "creatis": "Creatis",
+    "factofrance": "FactoFrance",
+    "groupe la française": "Groupe La Française",
+    "la française finance": "Groupe La Française",
+    "afedim": "AFEDIM",
+    "cmlaco": "Crédit Mutuel",
+    "credit mutuel caution": "Crédit Mutuel Caution Habitat",
 }
 
 def normalize_company_name(raw: str) -> str:
@@ -51,8 +60,11 @@ def normalize_company_name(raw: str) -> str:
     # CIC variations
     if "credit industriel" in key_clean and "commercial" in key_clean:
         return "CIC"
+    # Caisses locales CCM (CCM GRAY, CCM LE VAL LORRAIN, etc.) → Crédit Mutuel
+    if key_clean.startswith("ccm ") or " ccm " in key_clean:
+        return "Crédit Mutuel"
     # Caisses régionales: extraire la région après "credit mutuel"
-    if "caisse regionale" in key_clean or "caisse de credit mutuel" in key_clean:
+    if "caisse regionale" in key_clean or "caisse de credit mutuel" in key_clean or "caisse federale" in key_clean:
         for sep in [" credit mutuel ", " du credit mutuel ", " de credit mutuel "]:
             if sep in key_clean:
                 parts = key_clean.split(sep, 1)
@@ -60,4 +72,7 @@ def normalize_company_name(raw: str) -> str:
                     region = parts[1].replace("cmlaco", "").strip(" -")
                     if region and len(region) > 2:
                         return f"Crédit Mutuel {region.title()}"
+    # Confédération, autres entités CM
+    if "credit mutuel" in key_clean or "crédit mutuel" in key_clean:
+        return "Crédit Mutuel"
     return raw.strip()

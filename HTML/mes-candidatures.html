@@ -906,14 +906,14 @@
                 'casden': 'images/logos/casden.png',
                 'capitole_finance': 'images/logos/caisse_epargne.svg',
                 'bpifrance': 'images/logos/bpifrance.svg',
-                'credit_mutuel': 'images/logos/credit_mutuel.png',
-                'crédit_mutuel': 'images/logos/credit_mutuel.png',
+                'credit_mutuel': 'images/logos/credit_mutuel.svg',
+                'crédit_mutuel': 'images/logos/credit_mutuel.svg',
                 'cic': 'images/logos/cic.png',
                 'cofidis': 'images/logos/cofidis.png',
                 'euro information': 'images/logos/euro_information.png',
                 'euro-information': 'images/logos/euro_information.png',
-                'caisse fédérale du crédit mutuel': 'images/logos/credit_mutuel.png',
-                'caisse federale du credit mutuel': 'images/logos/credit_mutuel.png',
+                'caisse fédérale du crédit mutuel': 'images/logos/credit_mutuel.svg',
+                'caisse federale du credit mutuel': 'images/logos/credit_mutuel.svg',
                 'lyonnaise de banque': 'images/logos/lyonnaise_banque.png',
                 'oddo_bhf': 'images/logos/oddo_bhf.png'
             };
@@ -924,7 +924,12 @@
                     return logoPath;
                 }
             }
-            
+            // Fallback Crédit Mutuel : entités du groupe sans logo spécifique
+            const n = (companyName || '').toLowerCase();
+            if (n.includes('credit mutuel') || n.includes('crédit mutuel') || n.includes('cic') || n.includes('cofidis') ||
+                n.includes('ccm') || n.includes('cmlaco') || n.includes('euro information') || n.includes('lyonnaise de banque')) {
+                return 'images/logos/credit_mutuel.svg';
+            }
             return null;
         }
 

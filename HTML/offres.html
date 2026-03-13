@@ -1874,11 +1874,41 @@
                 // Traitement d'un job (normalisation, régions, etc.)
                 const processJob = (job) => {
                     try {
-                        // Nettoyage des noms d'entreprises : supprimer les acronymes entre parenthèses
+                        // Nettoyage et consolidation des noms d'entreprises
                         if (job && job.company_name && typeof job.company_name === 'string') {
-                            // Supprimer les acronymes entre parenthèses à la fin du nom
-                            // Ex: "Crédit Agricole Leasing & Factoring (CAL&F)" → "Crédit Agricole Leasing & Factoring"
                             job.company_name = job.company_name.replace(/\s*\([A-Z&]+\)\s*$/g, '').trim();
+                            // Consolidation Groupe Crédit Mutuel (comme BPCE/CA)
+                            const cn = job.company_name;
+                            const cnLower = cn.toLowerCase();
+                            let consolidated = null;
+                            if (cnLower.includes('cic') && !cnLower.includes('credit mutuel')) consolidated = 'CIC';
+                            else if (cnLower.includes('cofidis')) consolidated = 'Cofidis';
+                            else if (cnLower.includes('euro information') || cnLower.includes('euro-information')) consolidated = 'Euro Information';
+                            else if (cnLower.includes('lyonnaise de banque')) consolidated = 'Lyonnaise de Banque';
+                            else if (cnLower.includes('banque transatlantique')) consolidated = 'Banque Transatlantique';
+                            else if (cnLower.includes('monabanq')) consolidated = 'Monabanq';
+                            else if (cnLower.includes('credit mutuel factoring')) consolidated = 'Crédit Mutuel Factoring';
+                            else if (cnLower.includes('credit mutuel leasing')) consolidated = 'Crédit Mutuel Leasing';
+                            else if (cnLower.includes('credit mutuel gestion')) consolidated = 'Crédit Mutuel Gestion';
+                            else if (cnLower.includes('credit mutuel asset management')) consolidated = 'Crédit Mutuel Asset Management';
+                            else if (cnLower.includes('credit mutuel caution')) consolidated = 'Crédit Mutuel Caution Habitat';
+                            else if (cnLower.includes('banque européenne') || cnLower.includes('banque europeenne')) consolidated = 'BECM';
+                            else if (cnLower.includes('centre de conseil') || cnLower.includes('ccs')) consolidated = 'CCS';
+                            else if (cnLower.includes('synergie')) consolidated = 'Synergie';
+                            else if (cnLower.includes('creatis')) consolidated = 'Creatis';
+                            else if (cnLower.includes('factofrance')) consolidated = 'FactoFrance';
+                            else if (cnLower.includes('groupe la française') || cnLower.includes('la française finance')) consolidated = 'Groupe La Française';
+                            else if (cnLower.includes('afedim')) consolidated = 'AFEDIM';
+                            else if (cnLower.includes('cmlaco')) consolidated = 'Crédit Mutuel';
+                            else if (/^ccm\s/i.test(cn) || /\sccm\s/i.test(cn)) consolidated = 'Crédit Mutuel';
+                            else if (cnLower.includes('caisse regionale') || cnLower.includes('caisse de credit mutuel') || cnLower.includes('caisse federale')) {
+                                const m = cn.match(/(?:credit mutuel|du credit mutuel|de credit mutuel)\s+(.+?)(?:\s*-\s*|$)/i) || cn.match(/(?:ile de france|sud est|maine anjou|midi atlantique|nord europe|savoie|dauphine|normandie|massif central|antilles|mediterraneen|centre|anjou)/i);
+                                if (m) {
+                                    const r = (m[1] || m[0]).replace(/\s*cmlaco\s*/gi, '').trim();
+                                    consolidated = r ? 'Crédit Mutuel ' + r.replace(/\b\w/g, l => l.toUpperCase()) : 'Crédit Mutuel';
+                                } else consolidated = 'Crédit Mutuel';
+                            } else if (cnLower.includes('credit mutuel') || cnLower.includes('crédit mutuel')) consolidated = 'Crédit Mutuel';
+                            if (consolidated) job.company_name = consolidated;
                         }
                         
                         // Harmonisation des types de contrat : une seule entrée "Alternance" pour tout ce qui est alternance/apprentissage
@@ -3232,14 +3262,14 @@
                 'casden': 'images/logos/casden.png',
                 'capitole_finance': 'images/logos/caisse_epargne.svg',
                 'bpifrance': 'images/logos/bpifrance.svg',
-                'credit_mutuel': 'images/logos/credit_mutuel.png',
-                'crédit_mutuel': 'images/logos/credit_mutuel.png',
+                'credit_mutuel': 'images/logos/credit_mutuel.svg',
+                'crédit_mutuel': 'images/logos/credit_mutuel.svg',
                 'cic': 'images/logos/cic.png',
                 'cofidis': 'images/logos/cofidis.png',
                 'euro information': 'images/logos/euro_information.png',
                 'euro-information': 'images/logos/euro_information.png',
-                'caisse fédérale du crédit mutuel': 'images/logos/credit_mutuel.png',
-                'caisse federale du credit mutuel': 'images/logos/credit_mutuel.png',
+                'caisse fédérale du crédit mutuel': 'images/logos/credit_mutuel.svg',
+                'caisse federale du credit mutuel': 'images/logos/credit_mutuel.svg',
                 'lyonnaise de banque': 'images/logos/lyonnaise_banque.png',
                 'oddo_bhf': 'images/logos/oddo_bhf.png'
             };
@@ -3250,7 +3280,10 @@
                     return logoPath;
                 }
             }
-            
+            // Fallback : toute filiale Crédit Mutuel sans logo spécifique → logo groupe
+            if (typeof isCreditMutuelSubsidiary === 'function' && isCreditMutuelSubsidiary(companyName)) {
+                return 'images/logos/credit_mutuel.svg';
+            }
             return null;
         }
 

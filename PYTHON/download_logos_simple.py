@@ -60,8 +60,8 @@ LOGO_URLS = {
         "https://upload.wikimedia.org/wikipedia/fr/8/87/Cr%C3%A9dit_foncier.svg",
     ],
     "credit_mutuel": [
+        "https://upload.wikimedia.org/wikipedia/commons/3/37/Logo_Cr%C3%A9dit_Mutuel.svg",
         "https://logo.clearbit.com/creditmutuel.fr?size=128",
-        "https://upload.wikimedia.org/wikipedia/fr/2/2a/Logo_Cr%C3%A9dit_Mutuel.svg",
     ],
     "cic": [
         "https://logo.clearbit.com/cic.fr?size=128",

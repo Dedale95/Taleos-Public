@@ -411,7 +411,7 @@
     log('📋 Profil Firebase (Études) :', 5);
     log('   Établissement: ' + (establishmentVal || '—') + '  |  Diplôme: ' + (profile.education_level || '—') + '  |  Année fin: ' + (yearEnd || '—'), 5);
 
-    // ——— Établissement ou université : search + Enter (comme indicatif pays) ———
+    // ——— Établissement ou université : type + wait for results + click option ———
     var estabInput = document.querySelector('input[data-automation-id="searchBox"][id*="school"]') ||
       document.querySelector('input[id*="school"][placeholder="Rechercher"]') ||
       findInputByLabel(['établissement ou université', 'institution']);
@@ -422,31 +422,42 @@
         estabInput.click();
       } catch (_) {}
       fillInput(estabInput, establishmentVal);
-      // 1) Enter pour lancer la recherche
-      setTimeout(function() {
-        pressEnterSequence(estabInput);
-        // 2) Attendre les résultats et cliquer sur le premier match
-        setTimeout(function() {
-          var target = establishmentVal.toLowerCase();
-          var options = Array.from(document.querySelectorAll(
-            '[data-automation-id="promptOption"], [role="option"], [data-automation-id="menuItem"]'
-          )).filter(function(o) { return o.offsetParent !== null; });
-          var match = options.find(function(o) {
+      pressEnterSequence(estabInput);
+
+      var estabTarget = establishmentVal.toLowerCase();
+      var estabAttempt = 0;
+      function trySelectEstablishment() {
+        estabAttempt++;
+        var options = Array.from(document.querySelectorAll(
+          '[data-automation-id="promptOption"], [role="option"], [data-automation-id="menuItem"]'
+        )).filter(function(o) {
+          if (!o.offsetParent) return false;
+          var isChip = !!o.closest('[data-automation-id="selectedItem"]');
+          return !isChip;
+        });
+        var match = options.find(function(o) {
+          var txt = (o.textContent || o.getAttribute('data-automation-label') || '').trim().toLowerCase();
+          return txt === estabTarget || txt.includes(estabTarget);
+        });
+        if (!match) {
+          match = options.find(function(o) {
             var txt = (o.textContent || o.getAttribute('data-automation-label') || '').trim().toLowerCase();
-            return txt === target || txt.includes(target);
+            return estabTarget.includes(txt) && txt.length >= 3;
           });
-          if (match) {
-            match.click();
-            log('   ✅ Établissement → ' + establishmentVal + ' (sélectionné)', 5);
-          } else if (options.length === 1) {
-            options[0].click();
-            log('   ✅ Établissement → ' + (options[0].textContent || '').trim() + ' (seul résultat)', 5);
-          } else {
-            pressEnterSequence(estabInput);
-            log('   ✅ Établissement → ' + establishmentVal + ' (Enter)', 5);
-          }
-        }, 800);
-      }, 500);
+        }
+        if (match) {
+          match.click();
+          log('   ✅ Établissement → ' + (match.textContent || '').trim() + ' (sélectionné)', 5);
+        } else if (options.length === 1) {
+          options[0].click();
+          log('   ✅ Établissement → ' + (options[0].textContent || '').trim() + ' (seul résultat)', 5);
+        } else if (estabAttempt < 4) {
+          setTimeout(trySelectEstablishment, 800);
+        } else {
+          log('   ⏭️  Établissement → aucune option trouvée pour "' + establishmentVal + '" (' + options.length + ' options)', 5);
+        }
+      }
+      setTimeout(trySelectEstablishment, 1200);
     } else if (!establishmentVal) {
       log('   ⏭️  Établissement → pas de valeur Firebase', 5);
     } else {
@@ -513,7 +524,37 @@
           log('   — Diplôme → déjà OK', 5);
         } else {
           scrollIntoViewIfNeeded(diplomaBtn);
-          clickWorkdayListboxOption(diplomaBtn, diplomaOption, 'Diplôme');
+          diplomaBtn.click();
+          setTimeout(function() {
+            var target = diplomaOption.toLowerCase();
+            var opts = Array.from(document.querySelectorAll(
+              '[data-automation-id="promptOption"], [role="option"], [data-automation-id="menuItem"]'
+            )).filter(function(o) { return o.offsetParent !== null; });
+            var match = opts.find(function(o) {
+              var txt = (o.textContent || o.getAttribute('data-automation-label') || '').trim().toLowerCase();
+              return txt.includes(target) || target.includes(txt);
+            });
+            if (!match) {
+              var keywords = target.split(/[\s\/()]+/).filter(function(w) { return w.length >= 3; });
+              match = opts.find(function(o) {
+                var txt = (o.textContent || o.getAttribute('data-automation-label') || '').trim().toLowerCase();
+                return keywords.filter(function(kw) { return txt.includes(kw); }).length >= Math.max(1, keywords.length - 1);
+              });
+            }
+            if (!match) {
+              var firstPart = target.split('/')[0].trim();
+              match = opts.find(function(o) {
+                var txt = (o.textContent || o.getAttribute('data-automation-label') || '').trim().toLowerCase();
+                return txt.includes(firstPart);
+              });
+            }
+            if (match) {
+              match.click();
+              log('   ✅ Diplôme → ' + (match.textContent || '').trim(), 5);
+            } else {
+              log('   ⏭️  Diplôme → option non trouvée (' + opts.length + ' options visibles, cible: "' + diplomaOption + '")', 5);
+            }
+          }, 800);
         }
       } else {
         log('   ⏭️  Diplôme → bouton non trouvé', 5);

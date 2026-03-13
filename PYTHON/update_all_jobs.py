@@ -175,6 +175,12 @@ def merge_from_databases():
             for row in cursor.fetchall():
                 job = dict(zip(column_names, row))
                 
+                # Fallback publication_date si vide (ex: Deloitte ne fournit pas la date)
+                if not job.get('publication_date') or not str(job.get('publication_date', '')).strip():
+                    first_seen = job.get('first_seen')
+                    if first_seen:
+                        job['publication_date'] = str(first_seen)[:10]
+                
                 # Convertir les JSON strings en listes pour technical_skills et behavioral_skills
                 for col in ['technical_skills', 'behavioral_skills']:
                     if job.get(col) and isinstance(job[col], str):

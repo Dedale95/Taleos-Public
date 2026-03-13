@@ -260,6 +260,12 @@ def read_from_db(db_path, company_name, live_only=True):
         for row in cursor.fetchall():
             job = dict(row)
             
+            # Fallback publication_date si vide (ex: Deloitte ne fournit pas la date)
+            if not job.get('publication_date') or not str(job.get('publication_date', '')).strip():
+                first_seen = job.get('first_seen')
+                if first_seen:
+                    job['publication_date'] = str(first_seen)[:10]
+            
             # Corriger les locations incorrectes (ex: Tunis - France → Tunis - Tunisie)
             if job.get('location'):
                 job['location'] = fix_location(job['location'])

@@ -845,9 +845,14 @@
       return;
     }
 
-    // Étape 5 : Remplir le formulaire de candidature (profil Firebase) — étape 1 "Mes données personnelles"
-    // IDs exacts Workday (inspect) : name--legalName--firstName, name--legalName--lastName,
-    // address--addressLine1, address--city, address--postalCode
+    // Étape 1 : Remplir le formulaire de candidature (profil Firebase) — "Mes données personnelles"
+    if (step1Done) {
+      log('📋 Étape 1 déjà traitée → arrêt', 5);
+      chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
+      setTimeout(hideBanner, 2000);
+      return;
+    }
+
     let filled = false;
 
     var rawWorked = (profile.deloitte_worked != null ? profile.deloitte_worked : profile.deloitteWorked) || 'no';
@@ -861,7 +866,7 @@
       log('   Ancien bureau: ' + v(profile.deloitte_old_office) + '  |  Ancienne email: ' + v(profile.deloitte_old_email), 5);
     }
 
-    // ——— Champs texte uniquement (IDs exacts Workday) ———
+    // ——— Champs texte (fillInputIfNeeded pour ne pas réécrire si déjà correct) ———
     const firstnameEl = document.getElementById('name--legalName--firstName');
     const lastnameEl = document.getElementById('name--legalName--lastName');
     const addressLine1El = document.getElementById('address--addressLine1');
@@ -876,9 +881,7 @@
     ];
     textFields.forEach(function(f) {
       if (f.el && f.val) {
-        fillInput(f.el, f.val);
-        filled = true;
-        log('   ✅ ' + f.label + ' → ' + f.val, 5);
+        if (fillInputIfNeeded(f.el, f.val, f.label)) filled = true;
       }
     });
     if (!firstnameEl && !lastnameEl && url.includes('/apply') && !url.includes('useMyLastApplication')) {
@@ -1154,7 +1157,8 @@
       }
       // Sur apply : auto-clic "Enregistrer et continuer" pour passer à l'étape suivante
       if (isOnApplyForm) {
-        log('✅ Étape remplie → clic auto "Enregistrer et continuer"', 5);
+        step1Done = true;
+        log('✅ Étape 1 remplie → clic auto "Enregistrer et continuer"', 5);
         clickNextAndContinue(5000);
         return;
       }
@@ -1189,6 +1193,7 @@
   const MAX_POSTULER_RETRIES = 6;
   let formFillRetryCount = 0;
   const MAX_FORM_FILL_RETRIES = 12;
+  let step1Done = false;
   let step2Done = false;
 
   function maybeRetryForPostuler() {

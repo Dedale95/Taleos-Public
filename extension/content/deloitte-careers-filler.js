@@ -81,13 +81,17 @@
       const cityEl = document.getElementById('address--city') || document.querySelector('input[name="city"]');
       const zipEl = document.getElementById('address--postalCode') || document.querySelector('input[name="postalCode"]');
       const phoneEl = document.getElementById('phoneNumber--phoneNumber') || document.querySelector('input[name="phoneNumber"][id*="phoneNumber"]') || document.querySelector('input[name="phoneNumber"]');
+      const prevLocationEl = document.getElementById('previousWorker--location');
+      const prevEmailEl = document.getElementById('previousWorker--email');
       const fields = [
         { el: firstnameEl, label: 'Prénom(s)' },
         { el: lastnameEl, label: 'Nom de famille' },
         { el: addressEl, label: 'Nature et nom de la voie' },
         { el: cityEl, label: 'Ville' },
         { el: zipEl, label: 'Code postal' },
-        { el: phoneEl, label: 'Numéro de téléphone' }
+        { el: phoneEl, label: 'Numéro de téléphone' },
+        { el: prevLocationEl, label: 'Ancien bureau Deloitte' },
+        { el: prevEmailEl, label: 'Ancienne email Deloitte' }
       ].filter(function (x) { return x.el && x.el.offsetParent; });
       const elsewhere = document.querySelector('h2[data-automation-id="sectionHeader"], [role="heading"][aria-level="2"], h2') || document.body;
       fields.forEach(function (item, index) {
@@ -97,7 +101,7 @@
             scrollIntoViewIfNeeded(item.el);
             item.el.focus();
             item.el.click();
-            log('   🔁 ' + item.label + ' : clic sur la case (validation Workday)', 5);
+            log('   🔁 Validation → ' + item.label, 5);
           } catch (_) {}
         }, delay);
         setTimeout(function () {
@@ -123,17 +127,16 @@
     if (!el) return false;
     const valueTrimmed = value != null ? String(value).trim() : '';
     if (!valueTrimmed) {
-      log('   ⏭️  ' + label + ' : pas de valeur Firebase → Skip', 5);
       return false;
     }
     const current = (el.value || '').trim();
     const currentNorm = current.replace(/\s/g, '');
     const targetNorm = valueTrimmed.replace(/\s/g, '');
     if (currentNorm === targetNorm || (currentNorm.length >= 10 && targetNorm.length >= 10 && currentNorm.slice(-10) === targetNorm.slice(-10))) {
-      log('   ✅ ' + label + ' : Déjà correct (Firebase identique) → Skip', 5);
+      log('   — ' + label + ' → déjà OK', 5);
       return false;
     }
-    log('   ✏️  ' + label + ' : Remplacer "' + (current || '(vide)') + '" par "' + valueTrimmed + '" (Firebase)', 5);
+    log('   ✅ ' + label + ' → ' + valueTrimmed, 5);
     fillInput(el, valueTrimmed);
     return true;
   }
@@ -170,7 +173,7 @@
     const target = (optionLabelOrValue || '').trim().toLowerCase();
     const isPlaceholder = /sélectionnez une valeur|select a value/i.test(currentAria) || (btn.getAttribute('value') === '' || !btn.getAttribute('value'));
     if (!isPlaceholder && currentAria && target && (currentAria.toLowerCase().includes(target) || (target.includes('monsieur') && currentAria.includes('Monsieur')) || (target.includes('madame') && currentAria.includes('Madame')))) {
-      log('   ✅ ' + label + ' : Déjà sélectionné (' + currentAria + ') → Skip', 5);
+      log('   — ' + label + ' → déjà OK', 5);
       return false;
     }
     try {
@@ -194,11 +197,11 @@
             (target.includes('+33') && t.includes('+33')) || (target.includes('+44') && t.includes('+44')) || (target.includes('france') && t.includes('france')) || (target.includes('royaume') && t.includes('royaume'));
         if (match && opt.offsetParent !== null) {
           opt.click();
-          log('   ✏️  ' + label + ' : Sélectionné "' + (opt.textContent || opt.getAttribute('aria-label') || opt.getAttribute('data-automation-label') || t).trim() + '" (Firebase)', 5);
+          log('   ✅ ' + label + ' → ' + (opt.textContent || opt.getAttribute('data-automation-label') || t).trim(), 5);
           return;
         }
       }
-      log('   ⏭️  ' + label + ' : option non trouvée après ouverture → Skip', 5);
+      log('   ⏭️  ' + label + ' → option non trouvée', 5);
     }, 400);
     return true;
   }
@@ -740,23 +743,16 @@
     // address--addressLine1, address--city, address--postalCode
     let filled = false;
 
-    log('📂 [STEP 5] Données Firebase utilisées pour le formulaire:', 5);
-    log(
-      '   civility: ' + (profile.civility != null ? profile.civility : '(vide)') +
-      ' | firstname: ' + (profile.firstname != null ? profile.firstname : '(vide)') +
-      ' | lastname: ' + (profile.lastname != null ? profile.lastname : '(vide)') +
-      ' | address: ' + (profile.address != null ? profile.address : '(vide)') +
-      ' | city: ' + (profile.city != null ? profile.city : '(vide)') +
-      ' | zipcode: ' + (profile.zipcode != null ? profile.zipcode : '(vide)'),
-      5
-    );
-    var rawWorked = (profile.deloitte_worked != null ? profile.deloitte_worked : profile.deloitteWorked);
-    log(
-      '   phone_country_code: ' + (profile.phone_country_code != null ? profile.phone_country_code : '(vide)') +
-      ' | phone: ' + (profile.phone_number || profile['phone-number'] || profile.phone || '(vide)') +
-      ' | deloitte_worked: ' + (rawWorked != null ? rawWorked : '(vide)'),
-      5
-    );
+    var rawWorked = (profile.deloitte_worked != null ? profile.deloitte_worked : profile.deloitteWorked) || 'no';
+    var phoneRaw = profile.phone_number || profile['phone-number'] || profile.phone || '';
+    var v = function(x) { return x != null && x !== '' ? x : '—'; };
+    log('📋 Profil Firebase :', 5);
+    log('   ' + v(profile.civility) + ' ' + v(profile.firstname) + ' ' + v(profile.lastname), 5);
+    log('   ' + v(profile.address) + ', ' + v(profile.zipcode) + ' ' + v(profile.city), 5);
+    log('   Tel: ' + v(profile.phone_country_code) + ' ' + v(phoneRaw) + '  |  Déjà travaillé Deloitte: ' + rawWorked, 5);
+    if (rawWorked === 'yes') {
+      log('   Ancien bureau: ' + v(profile.deloitte_old_office) + '  |  Ancienne email: ' + v(profile.deloitte_old_email), 5);
+    }
 
     // ——— Champs texte uniquement (IDs exacts Workday) ———
     const firstnameEl = document.getElementById('name--legalName--firstName');
@@ -764,40 +760,25 @@
     const addressLine1El = document.getElementById('address--addressLine1');
     const cityEl = document.getElementById('address--city');
     const postalCodeEl = document.getElementById('address--postalCode');
-    if (firstnameEl && profile.firstname) {
-      fillInput(firstnameEl, profile.firstname);
-      filled = true;
-      log('   ✏️  Prénom : ' + profile.firstname, 5);
-    }
-    if (lastnameEl && profile.lastname) {
-      fillInput(lastnameEl, profile.lastname);
-      filled = true;
-      log('   ✏️  Nom de famille : ' + profile.lastname, 5);
-    }
-    if (addressLine1El && profile.address) {
-      fillInput(addressLine1El, profile.address);
-      filled = true;
-      log('   ✏️  Nature et nom de la voie : ' + profile.address, 5);
-    }
-    if (cityEl && profile.city) {
-      fillInput(cityEl, profile.city);
-      filled = true;
-      log('   ✏️  Ville : ' + profile.city, 5);
-    }
-    if (postalCodeEl && profile.zipcode) {
-      fillInput(postalCodeEl, profile.zipcode);
-      filled = true;
-      log('   ✏️  Code postal : ' + profile.zipcode, 5);
-    }
+    var textFields = [
+      { el: firstnameEl, val: profile.firstname, label: 'Prénom' },
+      { el: lastnameEl, val: profile.lastname, label: 'Nom' },
+      { el: addressLine1El, val: profile.address, label: 'Adresse' },
+      { el: cityEl, val: profile.city, label: 'Ville' },
+      { el: postalCodeEl, val: profile.zipcode, label: 'Code postal' }
+    ];
+    textFields.forEach(function(f) {
+      if (f.el && f.val) {
+        fillInput(f.el, f.val);
+        filled = true;
+        log('   ✅ ' + f.label + ' → ' + f.val, 5);
+      }
+    });
     if (!firstnameEl && !lastnameEl && url.includes('/apply') && !url.includes('useMyLastApplication')) {
-      log('   ⏳ Champs texte non trouvés (formulaire pas encore rendu?) → retry dans 1s', 5);
+      log('   ⏳ Formulaire pas encore rendu → retry 1s', 5);
       setTimeout(runAutomation, 1000);
       return;
     }
-
-    // ——— Comment nous avez-vous connus? → "Site Deloitte Careers" ———
-    // Workday : ouvrir la case, puis (1) cliquer la ligne simple, (2) cliquer la ligne radio (promptLeafNode).
-    log('   🔵 Comment nous avez-vous connus? → cible "Site Deloitte Careers" (Firebase)', 5);
     let hearAboutFilled = false;
     const hearField = document.getElementById('source--source') ||
       document.querySelector('input[data-automation-id="searchBox"][id="source--source"]');
@@ -818,14 +799,14 @@
           return !isChip;
         });
         if (!firstRow) {
-          log('   ⏭️  Comment nous avez-vous connus? : première ligne "Site Deloitte Careers" non trouvée', 5);
+          log('   ⏭️  Source → option non trouvée dans le menu', 5);
           return;
         }
         const firstClickable = firstRow.closest('[data-automation-id="menuItem"], li, div') || firstRow;
         try {
           firstClickable.click();
         } catch (e) {
-          log('   ⏭️  Comment nous avez-vous connus? : échec clic première ligne (' + e.message + ')', 5);
+          log('   ⏭️  Source → échec clic 1 (' + e.message + ')', 5);
           return;
         }
         // 2) Deuxième clic : ligne radio (promptLeafNode) avec le gros rond
@@ -838,7 +819,7 @@
             return !!leaf;
           });
           if (!opt) {
-            log('   ⏭️  Comment nous avez-vous connus? : ligne radio "Site Deloitte Careers" non trouvée', 5);
+            log('   ⏭️  Source → radio "Site Deloitte Careers" non trouvé', 5);
             return;
           }
           const leafRow = opt.closest('[data-automation-id="promptLeafNode"]') ||
@@ -847,48 +828,49 @@
             leafRow.click();
             hearAboutFilled = true;
             filled = true;
-            log('   ✏️  Comment nous avez-vous connus? : double clic sur "Site Deloitte Careers" (ligne + radio)', 5);
+            log('   ✅ Source → "Site Deloitte Careers"', 5);
           } catch (e) {
-            log('   ⏭️  Comment nous avez-vous connus? : échec clic ligne radio (' + e.message + ')', 5);
+            log('   ⏭️  Source → échec clic radio (' + e.message + ')', 5);
           }
         }, 350);
       }, 350);
     }
     if (!hearAboutFilled) {
-      log('   ⏭️  Comment nous avez-vous connus? : champ non trouvé (retry possible)', 5);
+      log('   ⏭️  Source → champ non trouvé (retry)', 5);
     }
 
-    // ——— Avez-vous déjà travaillé pour Deloitte? (Firebase: deloitte_worked / deloitteWorked) ———
+    // ——— Avez-vous déjà travaillé pour Deloitte? ———
     const workedRaw = profile.deloitte_worked || profile.deloitteWorked || 'no';
     const workedYesNo = workedRaw === 'yes' ? 'Oui' : 'Non';
-    log('   🔵 Avez-vous déjà travaillé pour Deloitte? → Firebase: ' + workedRaw + ' → ' + workedYesNo, 5);
     const workedSelect = findSelectByLabel(['avez-vous déjà travaillé pour deloitte', 'have you worked for deloitte']);
     if (workedSelect) {
       fillSelect(workedSelect, workedYesNo);
       filled = true;
     }
+    var workedHandled = false;
     const workedRadioValues = workedRaw === 'yes' ? ['yes', '1', 'oui', 'true'] : ['no', '0', 'non', 'false'];
     const workedRadios = document.querySelectorAll('input[type="radio"][name*="worked"], input[type="radio"][name*="deloitte"], input[type="radio"][name*="previous"], input[name="candidateIsPreviousWorker"]');
     for (const r of workedRadios) {
-      const v = (r.value || '').toLowerCase();
-      if (workedRadioValues.some(x => v === x || v.includes(x))) {
+      const rv = (r.value || '').toLowerCase();
+      if (workedRadioValues.some(x => rv === x || rv.includes(x))) {
         if (!r.checked) {
           r.click();
-          log('   ✏️  Avez-vous déjà travaillé : Coché radio value="' + r.value + '" (Firebase)', 5);
+          log('   ✅ Déjà travaillé Deloitte → ' + workedYesNo, 5);
           filled = true;
         } else {
-          log('   ✅ Avez-vous déjà travaillé : Déjà coché (value=' + r.value + ') → Skip', 5);
+          log('   — Déjà travaillé Deloitte → déjà ' + workedYesNo, 5);
         }
+        workedHandled = true;
         break;
       }
     }
-    if (!filled) {
+    if (!workedHandled) {
       const radioYes = document.querySelector('input[name="candidateIsPreviousWorker"][type="radio"][value="true"]') || document.querySelector('input[name="candidateIsPreviousWorker"][type="radio"][value="1"]');
       const radioNo = document.querySelector('input[name="candidateIsPreviousWorker"][type="radio"][value="false"]') || document.querySelector('input[name="candidateIsPreviousWorker"][type="radio"][value="0"]');
       const radio = workedRaw === 'yes' ? radioYes : radioNo;
       if (radio) {
         if (radio.checked) {
-          log('   ✅ Avez-vous déjà travaillé : Déjà coché (candidateIsPreviousWorker) → Skip', 5);
+          log('   — Déjà travaillé Deloitte → déjà ' + workedYesNo, 5);
         } else {
           const style = typeof getComputedStyle !== 'undefined' ? getComputedStyle(radio) : null;
           const hidden = !radio.offsetParent || (style && (parseFloat(style.opacity) === 0 || style.visibility === 'hidden'));
@@ -898,21 +880,20 @@
             if (labelToClick && labelToClick.offsetParent !== null) {
               scrollIntoViewIfNeeded(labelToClick);
               labelToClick.click();
-              log('   ✏️  Avez-vous déjà travaillé : Coché via label (radio masqué) value="' + radio.value + '" (Firebase)', 5);
+              log('   ✅ Déjà travaillé Deloitte → ' + workedYesNo + ' (via label)', 5);
               filled = true;
             } else {
               radio.click();
-              log('   ✏️  Avez-vous déjà travaillé : Coché candidateIsPreviousWorker value="' + radio.value + '" (Firebase)', 5);
+              log('   ✅ Déjà travaillé Deloitte → ' + workedYesNo, 5);
               filled = true;
             }
           } else {
             radio.click();
-            log('   ✏️  Avez-vous déjà travaillé : Coché candidateIsPreviousWorker value="' + radio.value + '" (Firebase)', 5);
+            log('   ✅ Déjà travaillé Deloitte → ' + workedYesNo, 5);
             filled = true;
           }
         }
       } else {
-        // Fallback : chercher les labels "Oui"/"Non" dans la section correspondante
         const sectionLabel = Array.from(document.querySelectorAll('h2, h3, h4')).find(function(h) {
           const t = (h.textContent || '').toLowerCase();
           return t.includes('avez-vous déjà travaillé pour deloitte') || t.includes('have you worked for deloitte');
@@ -926,39 +907,39 @@
           if (label && label.offsetParent !== null) {
             scrollIntoViewIfNeeded(label);
             label.click();
-            log('   ✏️  Avez-vous déjà travaillé : Coché via label Oui/Non (fallback)', 5);
+            log('   ✅ Déjà travaillé Deloitte → ' + workedYesNo + ' (fallback label)', 5);
             filled = true;
           } else {
-            log('   ⏭️  Avez-vous déjà travaillé : aucun label Oui/Non cliquable trouvé → Skip', 5);
+            log('   ⏭️  Déjà travaillé → radio non trouvé', 5);
           }
         } else {
-          log('   ⏭️  Avez-vous déjà travaillé : aucun radio candidateIsPreviousWorker trouvé → Skip', 5);
+          log('   ⏭️  Déjà travaillé → radio non trouvé', 5);
         }
       }
     }
-    if (!filled && clickWorkdayOptionByLabelAndValue(['avez-vous déjà travaillé pour deloitte', 'have you worked for deloitte'], workedYesNo)) {
+    if (!workedHandled && !filled && clickWorkdayOptionByLabelAndValue(['avez-vous déjà travaillé pour deloitte', 'have you worked for deloitte'], workedYesNo)) {
       filled = true;
     }
 
-    // Si oui : ancien bureau, email, pays
+    // Si oui : ancien bureau + ancienne adresse email (champs supplémentaires Workday)
     if (workedRaw === 'yes') {
-      const oldOffice = findInputByLabel(['votre ancien bureau', 'your previous office', 'ancien bureau']);
-      if (oldOffice && profile.deloitte_old_office) {
-        if (fillInputIfNeeded(oldOffice, profile.deloitte_old_office, 'Ancien bureau')) filled = true;
+      var oldOfficeVal = (profile.deloitte_old_office || '').trim();
+      var oldEmailVal = (profile.deloitte_old_email || '').trim();
+
+      var oldOfficeEl = document.getElementById('previousWorker--location') ||
+        findInputByLabel(['votre ancien bureau', 'your previous office', 'ancien bureau']);
+      if (oldOfficeEl && oldOfficeVal) {
+        if (fillInputIfNeeded(oldOfficeEl, oldOfficeVal, 'Ancien bureau')) filled = true;
+      } else if (!oldOfficeEl) {
+        log('   ⏭️  Ancien bureau → champ non trouvé', 5);
       }
-      const oldEmail = findInputByLabel(['votre ancienne adresse email', 'your previous email', 'ancienne adresse email']);
-      if (oldEmail && profile.deloitte_old_email) {
-        if (fillInputIfNeeded(oldEmail, profile.deloitte_old_email, 'Ancienne adresse email')) filled = true;
-      }
-      const countryVal = profile.deloitte_country || profile.country || '';
-      if (countryVal) {
-        const countryInput = findInputByLabel(['pays', 'country']);
-        const countrySelect = findSelectByLabel(['pays', 'country']);
-        if (countryInput && fillInputIfNeeded(countryInput, countryVal, 'Pays')) filled = true;
-        if (countrySelect) {
-          fillSelect(countrySelect, countryVal);
-          filled = true;
-        }
+
+      var oldEmailEl = document.getElementById('previousWorker--email') ||
+        findInputByLabel(['votre ancienne adresse email', 'your previous email', 'ancienne adresse email']);
+      if (oldEmailEl && oldEmailVal) {
+        if (fillInputIfNeeded(oldEmailEl, oldEmailVal, 'Ancienne email')) filled = true;
+      } else if (!oldEmailEl) {
+        log('   ⏭️  Ancienne email → champ non trouvé', 5);
       }
     }
 
@@ -980,10 +961,8 @@
       } else if (clickWorkdayListboxOption('name--legalName--title', titleOption, 'Titre (préfixe)')) {
         filled = true;
       } else {
-        log('   ⏭️  Titre (préfixe) : bouton non trouvé → Skip', 5);
+        log('   ⏭️  Titre → bouton non trouvé', 5);
       }
-    } else {
-      log('   ⏭️  Titre (préfixe) : pas de civility Firebase → Skip', 5);
     }
 
     // ——— Type d'appareil téléphonique : bouton listbox (menus à traiter plus tard) ———
@@ -1003,7 +982,7 @@
     } else if (clickWorkdayListboxOption('phoneNumber--phoneType', 'Mobile Personnel', 'Type d\'appareil téléphonique')) {
       filled = true;
     } else {
-      log('   ⏭️  Type d\'appareil téléphonique : bouton non trouvé → Skip', 5);
+      log('   ⏭️  Type téléphone → bouton non trouvé', 5);
     }
 
     // ——— Numéro de téléphone : id="phoneNumber--phoneNumber" ou name="phoneNumber" ———
@@ -1022,7 +1001,7 @@
       var phoneCountryCode = (profile.phone_country_code || '').trim().replace(/\s/g, '');
       if (phoneCountryCode) {
         var wantLabel = phoneCountryCode === '+44' ? 'Royaume-Uni (+44)' : phoneCountryCode === '+33' ? 'France (+33)' : phoneCountryCode;
-        log('   🔵 Indicatif de pays (téléphone) : Firebase phone_country_code=' + phoneCountryCode + ' → ' + wantLabel + ' (sera exécuté en fin de process)', 5);
+        log('   ⏳ Indicatif pays → ' + wantLabel + ' (exécution différée 3s)', 5);
         setTimeout(function () {
           var indicatifTextbox = document.getElementById('phoneNumber--countryPhoneCode');
           if (!indicatifTextbox) {
@@ -1048,10 +1027,10 @@
             fillInput(indicatifTextbox, wantLabel);
             setTimeout(function () {
               pressEnterSequence(indicatifTextbox);
-              log('   ✏️  Indicatif de pays : "' + wantLabel + '" + Entrée (Firebase, FIN DE PROCESS)', 5);
+              log('   ✅ Indicatif pays → ' + wantLabel, 5);
             }, 500);
           } else {
-            log('   ⏭️  Indicatif de pays : textbox non trouvée en fin de process → Skip', 5);
+            log('   ⏭️  Indicatif pays → textbox non trouvée', 5);
           }
         }, 3000);
       }
@@ -1061,14 +1040,14 @@
       formFillRetryCount = 0;
       // Sur useMyLastApplication : si au moins un champ est rempli ou déjà correct, on considère l'automatisation terminée
       if (url.includes('useMyLastApplication')) {
-        log('Champs remplis sur useMyLastApplication → fin automatisation (pending supprimé, bandeau masqué)', 5);
+        log('✅ Formulaire rempli (useMyLastApplication) → fin', 5);
         chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
         setTimeout(hideBanner, 2000);
         return;
       }
       // Sur apply/applyManually (ou /apply avec formulaire visible) : on NE relance PAS
       if (isOnApplyForm) {
-        log('Champs remplis sur formulaire candidature → arrêt de l\'automatisation (pas de retry)', 5);
+        log('✅ Formulaire rempli → arrêt (cliquez "Enregistrer et continuer")', 5);
         chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
         setTimeout(hideBanner, 2000);
         return;

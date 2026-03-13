@@ -937,8 +937,8 @@
     }
 
     // Étape 1 : Remplir le formulaire de candidature (profil Firebase) — "Mes données personnelles"
-    if (step1Done) {
-      log('📋 Étape 1 déjà traitée → arrêt', 5);
+    if (step1Attempts >= 3) {
+      log('📋 Étape 1 : ' + step1Attempts + ' tentatives → arrêt', 5);
       chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
       setTimeout(hideBanner, 2000);
       return;
@@ -1250,23 +1250,22 @@
       }
     }
 
+    if (filled && url.includes('useMyLastApplication')) {
+      formFillRetryCount = 0;
+      log('✅ Formulaire rempli (useMyLastApplication) → fin', 5);
+      chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
+      setTimeout(hideBanner, 2000);
+      return;
+    }
+    // Sur apply : toujours valider et cliquer "Enregistrer et continuer" (même si filled=false au retry)
+    if (isOnApplyForm) {
+      step1Attempts++;
+      log('✅ Étape 1 tentative ' + step1Attempts + '/3 → clic auto "Enregistrer et continuer"', 5);
+      clickNextAndContinue(6000);
+      return;
+    }
     if (filled) {
       formFillRetryCount = 0;
-      // Sur useMyLastApplication : si au moins un champ est rempli ou déjà correct, on considère l'automatisation terminée
-      if (url.includes('useMyLastApplication')) {
-        log('✅ Formulaire rempli (useMyLastApplication) → fin', 5);
-        chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
-        setTimeout(hideBanner, 2000);
-        return;
-      }
-      // Sur apply : auto-clic "Enregistrer et continuer" pour passer à l'étape suivante
-      if (isOnApplyForm) {
-        step1Done = true;
-        log('✅ Étape 1 remplie → clic auto "Enregistrer et continuer"', 5);
-        clickNextAndContinue(6000);
-        return;
-      }
-      // Sur /apply (page d'entrée) on peut relancer une fois pour s'assurer que tout est bien pris en compte
       log('Champs remplis → réessai dans 2s', 5);
       setTimeout(runAutomation, 2000);
       return;
@@ -1297,7 +1296,7 @@
   const MAX_POSTULER_RETRIES = 6;
   let formFillRetryCount = 0;
   const MAX_FORM_FILL_RETRIES = 12;
-  let step1Done = false;
+  var step1Attempts = 0;
   let step2Done = false;
 
   function maybeRetryForPostuler() {

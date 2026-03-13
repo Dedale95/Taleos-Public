@@ -435,6 +435,122 @@
    * - À (année) : graduation_year depuis Firebase
    * - Domaine d'études : ignoré (pas obligatoire)
    */
+  /**
+   * Étape 3 Workday "Questions de candidature" :
+   * - Niveau d'expérience (listbox, mapping Firebase → Workday)
+   * - Date de disponibilité (JJ/MM/AAAA spinbuttons)
+   * - Bourse alternance (si présent) → "Ne se prononce pas"
+   */
+  function fillWorkdayStep3Questions(profile) {
+    var expLevel = (profile.experience_level || '').trim().toLowerCase();
+    var availDate = (profile.available_date || profile.available_from || '').trim();
+
+    log('📋 Profil Firebase (Questions) :', 5);
+    log('   Expérience: ' + (expLevel || '—') + '  |  Disponibilité: ' + (availDate || '—'), 5);
+
+    // ——— Niveau d'expérience : mapping Firebase → Workday ———
+    var expMap = {
+      '0-2 ans': '0-1 an',
+      '3-5 ans': '3-5 ans',
+      '6-10 ans': '7-10 ans',
+      '11 ans et plus': '10 ans et +'
+    };
+    var expOption = expMap[expLevel] || null;
+    if (!expOption && expLevel) {
+      if (expLevel.includes('0') || expLevel.includes('1') || expLevel.includes('2')) expOption = '0-1 an';
+      else if (expLevel.includes('3') || expLevel.includes('4') || expLevel.includes('5')) expOption = '3-5 ans';
+      else if (expLevel.includes('6') || expLevel.includes('7') || expLevel.includes('8') || expLevel.includes('9') || expLevel.includes('10')) expOption = '7-10 ans';
+      else if (expLevel.includes('11') || expLevel.includes('plus') || expLevel.includes('+')) expOption = '10 ans et +';
+    }
+    if (expOption) {
+      var expBtns = Array.from(document.querySelectorAll('button[aria-haspopup="listbox"][id*="primaryQuestionnaire"]'));
+      var expBtn = expBtns.find(function(b) {
+        var field = b.closest('[data-fkit-id]');
+        if (!field) return false;
+        var legend = field.querySelector('legend');
+        return legend && /niveau\s*(d.)?exp/i.test(legend.textContent || '');
+      });
+      if (expBtn && expBtn.offsetParent !== null) {
+        clickWorkdayListboxOption(expBtn, expOption, 'Niveau d\'expérience');
+      } else {
+        log('   ⏭️  Niveau d\'expérience → bouton non trouvé', 5);
+      }
+    } else {
+      log('   ⏭️  Niveau d\'expérience → pas de valeur Firebase', 5);
+    }
+
+    // ——— Date de disponibilité (JJ/MM/AAAA) ———
+    var day = '', month = '', year = '';
+    if (availDate) {
+      var parts;
+      if (availDate.includes('/')) {
+        parts = availDate.split('/');
+        day = (parts[0] || '').replace(/\D/g, '');
+        month = (parts[1] || '').replace(/\D/g, '');
+        year = (parts[2] || '').replace(/\D/g, '');
+      } else if (availDate.includes('-')) {
+        parts = availDate.split('-');
+        if (parts[0].length === 4) {
+          year = parts[0]; month = (parts[1] || '').replace(/\D/g, ''); day = (parts[2] || '').replace(/\D/g, '');
+        } else {
+          day = (parts[0] || '').replace(/\D/g, ''); month = (parts[1] || '').replace(/\D/g, ''); year = (parts[2] || '').replace(/\D/g, '');
+        }
+      }
+    }
+    if (day && month && year && year.length === 4) {
+      var dateFields = document.querySelectorAll('[id*="primaryQuestionnaire"][id*="dateSection"]');
+      var dayInput = document.querySelector('[id*="primaryQuestionnaire"][data-automation-id="dateSectionDay-input"]');
+      var monthInput = document.querySelector('[id*="primaryQuestionnaire"][data-automation-id="dateSectionMonth-input"]');
+      var yearInput = document.querySelector('[id*="primaryQuestionnaire"][data-automation-id="dateSectionYear-input"]');
+      if (!dayInput) dayInput = Array.from(dateFields).find(function(el) { return el.id && el.id.includes('Day-input'); });
+      if (!monthInput) monthInput = Array.from(dateFields).find(function(el) { return el.id && el.id.includes('Month-input'); });
+      if (!yearInput) yearInput = Array.from(dateFields).find(function(el) { return el.id && el.id.includes('Year-input'); });
+
+      if (dayInput) {
+        scrollIntoViewIfNeeded(dayInput);
+        fillInput(dayInput, day);
+        log('   ✅ Date dispo (jour) → ' + day, 5);
+      }
+      setTimeout(function() {
+        if (monthInput) {
+          scrollIntoViewIfNeeded(monthInput);
+          fillInput(monthInput, month);
+          log('   ✅ Date dispo (mois) → ' + month, 5);
+        }
+        setTimeout(function() {
+          if (yearInput) {
+            scrollIntoViewIfNeeded(yearInput);
+            fillInput(yearInput, year);
+            log('   ✅ Date dispo (année) → ' + year, 5);
+          }
+        }, 300);
+      }, 300);
+    } else if (availDate) {
+      log('   ⏭️  Date dispo → format non reconnu: "' + availDate + '"', 5);
+    } else {
+      log('   ⏭️  Date dispo → pas de valeur Firebase', 5);
+    }
+
+    // ——— Bourse alternance → "Ne se prononce pas" (si la question existe) ———
+    setTimeout(function() {
+      var allQBtns = Array.from(document.querySelectorAll('button[aria-haspopup="listbox"][id*="primaryQuestionnaire"]'));
+      var bourseBtn = allQBtns.find(function(b) {
+        var field = b.closest('[data-fkit-id]');
+        if (!field) return false;
+        var legend = field.querySelector('legend');
+        return legend && /bourse/i.test(legend.textContent || '');
+      });
+      if (bourseBtn && bourseBtn.offsetParent !== null) {
+        var currentLabel = (bourseBtn.getAttribute('aria-label') || '').trim();
+        if (/ne se prononce pas/i.test(currentLabel)) {
+          log('   — Bourse → déjà "Ne se prononce pas"', 5);
+        } else {
+          clickWorkdayListboxOption(bourseBtn, 'Ne se prononce pas', 'Bourse (alternance)');
+        }
+      }
+    }, 1500);
+  }
+
   function fillWorkdayStep2Education(profile) {
     var establishmentVal = (profile.establishment || '').trim();
     var diplomaYearRaw = profile.diploma_year != null ? profile.diploma_year : '';
@@ -885,7 +1001,8 @@
           document.querySelector('[data-automation-id="searchBox"][id="source--source"]') ||
           document.querySelector('button[aria-haspopup="listbox"][id*="degree"], button[aria-haspopup="listbox"][name="degree"]') ||
           document.querySelector('[data-automation-id="file-upload-drop-zone"]') ||
-          document.querySelector('[id*="lastYearAttended"]');
+          document.querySelector('[id*="lastYearAttended"]') ||
+          document.querySelector('[data-fkit-id*="primaryQuestionnaire"]');
         if (!formAlreadyVisible || !formAlreadyVisible.offsetParent) {
           log('Attente bouton "Postuler manuellement" ou formulaire → retry', 4);
           if (runCount < MAX_RETRIES) {
@@ -895,6 +1012,29 @@
           }
         }
       }
+    }
+
+    // Détection étape 3 "Questions de candidature" :
+    var step3QuestionnaireEl = document.querySelector('[data-fkit-id*="primaryQuestionnaire"]');
+    var step3HasExpField = step3QuestionnaireEl && Array.from(step3QuestionnaireEl.querySelectorAll('legend')).some(function(l) {
+      return /niveau\s*(d.)?exp/i.test(l.textContent || '');
+    });
+    var step3HasDateField = !!document.querySelector('[id*="primaryQuestionnaire"][data-automation-id="dateSectionDay-input"]');
+    var isStep3Form = !document.getElementById('name--legalName--firstName')?.offsetParent &&
+      !document.querySelector('[data-automation-id="file-upload-drop-zone"]')?.offsetParent &&
+      (step3HasExpField || step3HasDateField);
+    if (isStep3Form) {
+      if (step3Done) {
+        log('📋 Étape 3 déjà traitée → arrêt', 5);
+        chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
+        setTimeout(hideBanner, 2000);
+        return;
+      }
+      step3Done = true;
+      log('📋 Étape 3 "Questions de candidature" détectée', 5);
+      fillWorkdayStep3Questions(profile);
+      clickNextAndContinue(4000);
+      return;
     }
 
     // Détection étape 2 "Mon expérience" (Études) :
@@ -1293,6 +1433,7 @@
   const MAX_FORM_FILL_RETRIES = 12;
   var step1Attempts = 0;
   let step2Done = false;
+  let step3Done = false;
 
   function maybeRetryForPostuler() {
     if (postulerRetryCount >= MAX_POSTULER_RETRIES) return;

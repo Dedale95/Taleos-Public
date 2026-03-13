@@ -1169,69 +1169,6 @@
     if (ev.persisted) scheduleRun(2000);
   });
 
-  // ——— Mode enregistrement macro (diagnostic Workday) ———
-  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (!msg || !msg.action) return;
-    if (msg.action === 'taleos_start_macro_record') {
-      if (window.__taleosMacro && window.__taleosMacro.active) {
-        sendResponse?.({ ok: true, already: true });
-        return;
-      }
-      const actions = [];
-      function recordClick(ev) {
-        const el = ev.target;
-        if (!el) return;
-        actions.push({
-          type: 'click',
-          time: Date.now(),
-          tag: el.tagName,
-          id: el.id || null,
-          name: el.getAttribute && el.getAttribute('name') || null,
-          role: el.getAttribute && el.getAttribute('role') || null,
-          dataAutomationId: el.getAttribute && el.getAttribute('data-automation-id') || null,
-          text: (el.textContent || '').trim().slice(0, 120)
-        });
-      }
-      function recordInput(ev) {
-        const el = ev.target;
-        if (!el) return;
-        actions.push({
-          type: 'input',
-          time: Date.now(),
-          id: el.id || null,
-          name: el.getAttribute && el.getAttribute('name') || null,
-          value: el.value
-        });
-      }
-      window.__taleosMacro = {
-        active: true,
-        actions,
-        handlers: { recordClick, recordInput }
-      };
-      document.addEventListener('click', recordClick, true);
-      document.addEventListener('input', recordInput, true);
-      log('🎥 Macro Workday : enregistrement démarré', 0);
-      sendResponse?.({ ok: true });
-      return true;
-    }
-    if (msg.action === 'taleos_stop_macro_record') {
-      if (!window.__taleosMacro || !window.__taleosMacro.active) {
-        sendResponse?.({ ok: false, error: 'no_recording' });
-        return true;
-      }
-      const { actions, handlers } = window.__taleosMacro;
-      window.__taleosMacro.active = false;
-      try {
-        document.removeEventListener('click', handlers.recordClick, true);
-        document.removeEventListener('input', handlers.recordInput, true);
-      } catch (_) {}
-      chrome.storage.local.set({ taleos_last_macro: actions.slice() }).catch(() => {});
-      log('🎥 Macro Workday : enregistrement arrêté (' + actions.length + ' actions)', 0);
-      console.log('[Taleos Macro] Dernières actions enregistrées :', actions);
-      sendResponse?.({ ok: true, count: actions.length });
-      return true;
-    }
-  });
 
   // Retry si on est sur /apply (URL de base) et que le bouton "Utiliser ma dernière candidature" n'est pas encore chargé
   function maybeRetryForUseLastApp() {

@@ -789,7 +789,7 @@
       filled = true;
       log('   ✏️  Code postal : ' + profile.zipcode, 5);
     }
-    if (!firstnameEl && !lastnameEl && url.includes('applyManually')) {
+    if (!firstnameEl && !lastnameEl && url.includes('/apply') && !url.includes('useMyLastApplication')) {
       log('   ⏳ Champs texte non trouvés (formulaire pas encore rendu?) → retry dans 1s', 5);
       setTimeout(runAutomation, 1000);
       return;
@@ -1011,8 +1011,11 @@
     const phoneEl = document.getElementById('phoneNumber--phoneNumber') || document.querySelector('input[name="phoneNumber"][id*="phoneNumber"]') || document.querySelector('input[name="phoneNumber"]');
     if (phoneEl && phoneVal && fillInputIfNeeded(phoneEl, phoneVal, 'Numéro de téléphone')) filled = true;
 
+    // Détection : on est sur un formulaire de candidature (apply ou applyManually, mais pas useMyLastApplication)
+    var isOnApplyForm = url.includes('/apply') && !url.includes('useMyLastApplication');
+
     // Après remplissage, forcer la validation Workday : clic dans chaque champ texte puis clic en dehors
-    if (url.includes('apply/applyManually')) {
+    if (isOnApplyForm) {
       setTimeout(workdayClickThenClickAway, 800);
 
       // ——— Indicatif de pays (code téléphone) : exécuté EN DERNIER, après toutes les validations ———
@@ -1063,9 +1066,9 @@
         setTimeout(hideBanner, 2000);
         return;
       }
-      // Sur apply/applyManually : on NE relance PAS, on laisse l'utilisateur cliquer « Enregistrer et continuer »
-      if (url.includes('apply/applyManually')) {
-        log('Champs remplis sur applyManually → arrêt de l\'automatisation (pas de retry)', 5);
+      // Sur apply/applyManually (ou /apply avec formulaire visible) : on NE relance PAS
+      if (isOnApplyForm) {
+        log('Champs remplis sur formulaire candidature → arrêt de l\'automatisation (pas de retry)', 5);
         chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
         setTimeout(hideBanner, 2000);
         return;

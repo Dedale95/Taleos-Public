@@ -1526,6 +1526,79 @@
             'normandie': 'Normandie', 'bourgogne-franche-comte': 'Bourgogne-Franche-Comté'
         };
 
+        function isJunkLocation(s) {
+            if (!s || typeof s !== 'string') return true;
+            const t = s.trim().toLowerCase();
+            if (t.length < 2) return true;
+            if (/\d{1,2}\s*(th|st|nd|rd)\s*floor/i.test(t)) return true;
+            if (/\d+\s*(allée|allee|rue|avenue|boulevard|blvd|floor|fl)/i.test(t)) return true;
+            if (/\b(gmbh|kg|&|co\.|sarl|sas)\b/i.test(t)) return true;
+            if (/\s+or\s+/i.test(t)) return true;
+            if (/^(shiodome|palazzo|provincia|palazzo\s)/i.test(t)) return true;
+            if (/bldg\.?|building|floor$/i.test(t)) return true;
+            if (/crédit agricole|credit agricole/i.test(t)) return true;
+            if (/^\d+\s/i.test(t) && t.length < 25) return true;
+            if (/provincia\s+di|e\s+provincia|e\s+valtellina/i.test(t)) return true;
+            if (/allee|allée|boulevard|central\s+boulevard/i.test(t) && /\d/.test(t)) return true;
+            return false;
+        }
+
+        const CITY_NORMALIZATION = {
+            'frankfurt': 'Francfort', 'francfort': 'Francfort',
+            'bombay': 'Bombay', 'mumbai': 'Bombay',
+            'hong kong': 'Hong-Kong', 'hong-kong': 'Hong-Kong',
+            'new delhi': 'New Delhi', 'delhi': 'New Delhi',
+            'beijing': 'Pékin', 'pekin': 'Pékin', 'pékin': 'Pékin',
+            'hamburg': 'Hambourg', 'hambourg': 'Hambourg',
+            'aachen': 'Aix-la-Chapelle', 'aix-la-chapelle': 'Aix-la-Chapelle',
+            'aschheim': 'Aschheim',
+            'quebec': 'Québec', 'québec': 'Québec',
+            'bucarest': 'Bucarest', 'bucharest': 'Bucarest',
+            'bistrita-nasaud': 'Bistrița-Năsăud', 'bistrita': 'Bistrița-Năsăud',
+            'parma': 'Parme', 'parme': 'Parme',
+            'pavia': 'Pavie', 'pavie': 'Pavie',
+            'fidenza': 'Fidenza',
+            'lazio': 'Latium', 'latium': 'Latium',
+            'emilie-romagne': 'Émilie-Romagne', 'émilie-romagne': 'Émilie-Romagne',
+            'venetie': 'Vénétie', 'vénétie': 'Vénétie',
+            'spezia': 'La Spezia', 'la spezia': 'La Spezia',
+            'sondrio': 'Sondrio', 'piacenza': 'Plaisance', 'plaisance': 'Plaisance',
+            'chennai': 'Chennai', 'madras': 'Chennai',
+            'chengalpattu': 'Chengalpattu',
+            'shanghai': 'Shanghai',
+            'new york ny': 'New York', 'new york': 'New York',
+            'iselin nj': 'New Jersey', 'iselin': 'New Jersey', 'new jersey': 'New Jersey',
+            'chicago': 'Chicago', 'illinois': 'Illinois', 'texas': 'Texas'
+        };
+
+        const CITY_TO_COUNTRY = {
+            'paris': 'France', 'lyon': 'France', 'marseille': 'France', 'lille': 'France'
+        };
+
+        const COUNTRY_NORMALIZATION = {
+            'république du kenya': 'Kenya', 'republic of kenya': 'Kenya', 'kenya': 'Kenya',
+            'république démocratique du congo': 'RD Congo', 'rd congo': 'RD Congo', 'congo (rdc)': 'RD Congo'
+        };
+
+        function normalizeCountryForFilter(c) {
+            if (!c) return c;
+            const t = c.trim().toLowerCase();
+            if (t === 'france') return 'France';
+            return COUNTRY_NORMALIZATION[t] || c.trim();
+        }
+
+        function normalizeCityForFilter(city, country) {
+            if (!city || !city.trim()) return null;
+            const t = city.trim().toLowerCase();
+            const norm = CITY_NORMALIZATION[t] || CITY_NORMALIZATION[t.replace(/\s+/g, '-')];
+            if (norm) return norm;
+            if (t.includes(' or ')) {
+                const parts = t.split(/\s+or\s+/i);
+                return normalizeCityForFilter(parts[0].trim(), country) || city.trim();
+            }
+            return city.trim();
+        }
+
         const cityToRegion = {
             // Île-de-France (noms normalisés sans accent pour la clé)
             "paris": "Île-de-France", "montrouge": "Île-de-France", "villejuif": "Île-de-France",
@@ -1989,22 +2062,24 @@
                                 const country = parts[1] ? String(parts[1]).trim() : '';
                                 
                                 if (country && country.length > 0) {
-                                    const countryNorm = (String(country).toLowerCase().trim() === 'france') ? 'France' : String(country).trim();
+                                    const countryNorm = normalizeCountryForFilter(country) || (String(country).toLowerCase().trim() === 'france' ? 'France' : String(country).trim());
                                     job.cleanCountries.push(countryNorm);
 
                                     // Traiter les villes avec try/catch pour éviter les erreurs
                                     let cities = [];
                                     try {
-                                        const cityParts = cityPart.split(/[\/,]/);
+                                        const cityParts = cityPart.split(/[\/,]|\s+or\s+/i);
                                         cities = cityParts
                                             .map(c => {
                                                 try {
                                                     let clean = String(c).trim();
                                                     if (!clean) return null;
+                                                    if (isJunkLocation(clean)) return null;
                                                     
                                                     // Nettoyage basique type Python
                                                     clean = clean.replace(/\(.*?\)/g, '').trim();
                                                     clean = clean.replace(/\d{5,6}/g, '').trim();
+                                                    if (isJunkLocation(clean)) return null;
                                                     
                                                     // Si plusieurs mots et pas reconnu en bloc : essayer le dernier mot comme ville (ex: "Paris La Défense" -> garder "Paris" ou "La Défense" selon ce qui matche)
                                                     if (clean.includes(' ') && !cityToRegion[normalizeCityForLookup(clean)] && !cityToRegion[clean.toLowerCase()]) {
@@ -2039,7 +2114,11 @@
                                                 const region = getCityRegion(city, country);
                                                 if (region) job.cleanRegions.push(region);
                                                 else if (countryNorm !== 'France' && city && city.trim()) {
-                                                    job.cleanRegions.push(city.trim());
+                                                    if (isJunkLocation(city)) return;
+                                                    const cityCountry = CITY_TO_COUNTRY[city.trim().toLowerCase()] || CITY_TO_COUNTRY[normalizeCityForLookup(city)];
+                                                    if (cityCountry && cityCountry !== countryNorm) return;
+                                                    const norm = normalizeCityForFilter(city, country);
+                                                    if (norm) job.cleanRegions.push(norm);
                                                 }
                                             } catch (e) {
                                                 console.warn(`Erreur getCityRegion pour "${city}", "${country}":`, e);
@@ -2074,9 +2153,9 @@
                         } else if (job && job.location && typeof job.location === 'string' && job.location.trim()) {
                             const countryOnly = job.location.trim();
                             if (countryOnly) {
-                                const cNorm = countryOnly.toLowerCase().trim() === 'france' ? 'France' : countryOnly;
+                                const cNorm = normalizeCountryForFilter(countryOnly) || (countryOnly.toLowerCase() === 'france' ? 'France' : countryOnly);
                                 job.cleanCountries = [cNorm];
-                                job.cleanRegions = countryOnly.toLowerCase() === "france" ? ["Autres régions françaises"] : [];
+                                job.cleanRegions = cNorm === 'France' ? ["Autres régions françaises"] : [];
                             }
                         }
                     } catch (e) {
@@ -2690,7 +2769,7 @@
             ],
             'Afrique': [
                 'Maroc', 'Côte D\'Ivoire', 'Tunisie', 'Cameroun', 'Gabon',
-                'République Démocratique Du Congo', 'Bénin', 'République Du Kenya'
+                'RD Congo', 'Bénin', 'Kenya'
             ],
             'Amériques': [
                 'États-Unis', 'Canada', 'Mexique'

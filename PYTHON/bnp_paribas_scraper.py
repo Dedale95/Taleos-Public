@@ -323,6 +323,45 @@ def normalize_location(location_raw: str) -> Optional[str]:
 
 
 # =========================================================
+# NORMALIZE BNP BRAND NAME
+# =========================================================
+BNP_BRAND_NORMALIZATION = {
+    "arval bnp paribas group": "Arval",
+    "arval": "Arval",
+    "bnp paribas cardif": "BNP Paribas Cardif",
+    "bnp paribas real estate": "BNP Paribas Real Estate",
+    "bnp paribas asset management": "BNP Paribas Asset Management",
+    "bnp paribas wealth management": "BNP Paribas Wealth Management",
+    "bnp paribas corporate & institutional banking": "BNP Paribas Corporate & Institutional Banking",
+    "bnp paribas cib": "BNP Paribas Corporate & Institutional Banking",
+    "bnp paribas personal finance": "BNP Paribas Personal Finance",
+    "bnp paribas personal investors": "BNP Paribas Personal Investors",
+    "bnp paribas leasing solutions": "BNP Paribas Leasing Solutions",
+    "bnp paribas factor": "BNP Paribas Factor",
+    "bnp paribas fortis": "BNP Paribas Fortis",
+    "bnp paribas bank polska": "BNP Paribas Bank Polska",
+    "bgl bnp paribas": "BGL BNP Paribas",
+    "bnl": "BNL",
+    "teb": "TEB",
+    "hello bank": "Hello bank!",
+    "hello bank!": "Hello bank!",
+    "banque commerciale en france": "Banque Commerciale en France",
+    "bcf": "Banque Commerciale en France",
+}
+
+
+def normalize_bnp_brand(raw: str) -> str:
+    """Normalise le nom de marque BNP pour affichage cohérent (Arval, BNP Paribas Cardif, etc.)."""
+    if not raw or not raw.strip():
+        return "BNP Paribas"
+    t = raw.strip()
+    # Retirer le suffixe "(Groupe BNP Paribas)" si présent
+    t = re.sub(r'\s*\([Gg]roupe\s+BNP\s+Paribas\)\s*$', '', t).strip()
+    key = t.lower()
+    return BNP_BRAND_NORMALIZATION.get(key, t)
+
+
+# =========================================================
 # EXTRACT DETAIL PAGE METADATA FIELD
 # =========================================================
 def extract_offer_field(soup: BeautifulSoup, css_class: str) -> Optional[str]:
@@ -527,7 +566,8 @@ async def fetch_job_details(
             job["company_description"] = (
                 " | ".join(company_desc_parts) if company_desc_parts else None
             )
-            job["company_name"] = "BNP Paribas"
+            # Utiliser la marque extraite pour distinguer les entités du groupe (Arval, BNP Paribas Cardif, etc.)
+            job["company_name"] = normalize_bnp_brand(brand_name) if brand_name else "BNP Paribas"
 
             # Education level (from description)
             desc_lower = (job.get("job_description") or "").lower()

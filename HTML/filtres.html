@@ -1894,10 +1894,12 @@
                         expanded: data.expanded !== undefined ? data.expanded : false,
                         companyGroupCAExpanded: data.companyGroupCAExpanded === true,
                         companyGroupBPCEExpanded: data.companyGroupBPCEExpanded === true,
+                        companyGroupBNPExpanded: data.companyGroupBNPExpanded === true,
                         companyGroupCMExpanded: data.companyGroupCMExpanded === true
                     };
                     companyGroupCAExpandedByAccordion[accordion.id] = accordion.companyGroupCAExpanded;
                     companyGroupBPCEExpandedByAccordion[accordion.id] = accordion.companyGroupBPCEExpanded;
+                    companyGroupBNPExpandedByAccordion[accordion.id] = accordion.companyGroupBNPExpanded;
                     companyGroupCMExpandedByAccordion[accordion.id] = accordion.companyGroupCMExpanded;
                     loadedAccordions.push(accordion);
                     console.log('📦 [loadAccordions] Accordéon chargé:', accordion.id, accordion.name);
@@ -2085,6 +2087,7 @@
                 expanded: true,
                 companyGroupCAExpanded: false,
                 companyGroupBPCEExpanded: false,
+                companyGroupBNPExpanded: false,
                 companyGroupCMExpanded: false
             };
 
@@ -2221,9 +2224,11 @@
 
         const CREDIT_AGRICOLE_GROUP_KEY = '__CA_GROUP__';
         const BPCE_GROUP_KEY = '__BPCE_GROUP__';
+        const BNP_PARIBAS_GROUP_KEY = '__BNP_GROUP__';
         const CREDIT_MUTUEL_GROUP_KEY = '__CM_GROUP__';
         const companyGroupCAExpandedByAccordion = {};
         const companyGroupBPCEExpandedByAccordion = {};
+        const companyGroupBNPExpandedByAccordion = {};
         const companyGroupCMExpandedByAccordion = {};
         function getCompanyGroupCAExpanded(accordionId) {
             if (companyGroupCAExpandedByAccordion[accordionId] !== undefined) return companyGroupCAExpandedByAccordion[accordionId];
@@ -2246,6 +2251,17 @@
             return ['natixis', 'caisse d\'épargne', 'caisse d\'epargne', 'banque populaire', 'bpce',
                 'crédit coopératif', 'credit cooperatif', 'banque palatine', 'oney', 'aew',
                 'mirova', 'ostrum', 'crédit foncier', 'credit foncier', 'capitole finance', 'casden'].some(s => n.includes(s));
+        }
+        function getCompanyGroupBNPExpanded(accordionId) {
+            if (companyGroupBNPExpandedByAccordion[accordionId] !== undefined) return companyGroupBNPExpandedByAccordion[accordionId];
+            return false;
+        }
+        function isBNPParibasBrand(name) {
+            if (!name || typeof name !== 'string') return false;
+            const n = name.toLowerCase();
+            return n.includes('bnp paribas') || n.includes('arval') || n.includes('bgl bnp') ||
+                n.includes('bnl') || n.includes('teb') || n.includes('hello bank') ||
+                n.includes('banque commerciale en france');
         }
         function getCompanyGroupCMExpanded(accordionId) {
             if (companyGroupCMExpandedByAccordion[accordionId] !== undefined) return companyGroupCMExpandedByAccordion[accordionId];
@@ -2274,19 +2290,23 @@
             const cv = checkedValues instanceof Set ? checkedValues : new Set(checkedValues || []);
             const prevCA = container.querySelector('.company-group-children[data-group="ca"]');
             const prevBPCE = container.querySelector('.company-group-children[data-group="bpce"]');
+            const prevBNP = container.querySelector('.company-group-children[data-group="bnp"]');
             const prevCM = container.querySelector('.company-group-children[data-group="cm"]');
             if (prevCA) companyGroupCAExpandedByAccordion[accordionId] = prevCA.classList.contains('visible');
             if (prevBPCE) companyGroupBPCEExpandedByAccordion[accordionId] = prevBPCE.classList.contains('visible');
+            if (prevBNP) companyGroupBNPExpandedByAccordion[accordionId] = prevBNP.classList.contains('visible');
             if (prevCM) companyGroupCMExpandedByAccordion[accordionId] = prevCM.classList.contains('visible');
             const wasExpanded = getCompanyGroupCAExpanded(accordionId);
             const wasBPCEExpanded = getCompanyGroupBPCEExpanded(accordionId);
+            const wasBNPExpanded = getCompanyGroupBNPExpanded(accordionId);
             const wasCMExpanded = getCompanyGroupCMExpanded(accordionId);
             container.innerHTML = '';
 
             const caSubs = values.filter(c => isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const bpceBrands = values.filter(c => isBPCEBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const bnpBrands = values.filter(c => isBNPParibasBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const cmSubs = values.filter(c => isCreditMutuelSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
-            const others = values.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c) && !isCreditMutuelSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const others = values.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c) && !isBNPParibasBrand(c) && !isCreditMutuelSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
             const bpceGroupChecked = bpceBrands.every(c => cv.has(c));
             const bpceGroupCount = bpceBrands.reduce((s, c) => s + (counts[c] || 0), 0);
@@ -2357,6 +2377,82 @@
                 });
                 groupCb.onchange = () => {
                     renderedBpceBrands.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                        updateFilter(accordionId, 'companies', c, groupCb.checked);
+                    });
+                };
+                container.appendChild(childrenDiv);
+            }
+
+            const bnpGroupChecked = bnpBrands.every(c => cv.has(c));
+            const bnpGroupCount = bnpBrands.reduce((s, c) => s + (counts[c] || 0), 0);
+            if (bnpBrands.length > 0) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'company-group-header';
+                const expandSpan = document.createElement('span');
+                expandSpan.className = 'company-group-expand';
+                expandSpan.textContent = '▶';
+                expandSpan.title = 'Cliquer pour afficher/masquer les marques du groupe';
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'company-group-children' + (wasBNPExpanded ? ' visible' : '');
+                childrenDiv.setAttribute('data-group', 'bnp');
+                if (wasBNPExpanded) expandSpan.classList.add('expanded');
+                expandSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    childrenDiv.classList.toggle('visible');
+                    expandSpan.classList.toggle('expanded');
+                    const expanded = childrenDiv.classList.contains('visible');
+                    companyGroupBNPExpandedByAccordion[accordionId] = expanded;
+                    const accordion = accordions.find(a => (a.id || '').toString() === (accordionId || '').toString());
+                    if (accordion) {
+                        accordion.companyGroupBNPExpanded = expanded;
+                        saveAccordion(accordion);
+                    }
+                };
+                const groupLabel = document.createElement('label');
+                groupLabel.style.display = 'flex';
+                groupLabel.style.alignItems = 'center';
+                groupLabel.style.flex = '1';
+                groupLabel.style.cursor = 'pointer';
+                const groupCb = document.createElement('input');
+                groupCb.type = 'checkbox';
+                groupCb.value = BNP_PARIBAS_GROUP_KEY;
+                groupCb.checked = bnpGroupChecked;
+                groupLabel.appendChild(groupCb);
+                const span = document.createElement('span');
+                span.textContent = `Groupe BNP Paribas (${bnpGroupCount})`;
+                groupLabel.appendChild(span);
+                groupDiv.appendChild(groupLabel);
+                groupDiv.appendChild(expandSpan);
+                container.appendChild(groupDiv);
+                const renderedBnpBrands = [];
+                const childCheckboxes = [];
+                bnpBrands.forEach(c => {
+                    const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0) return;
+                    renderedBnpBrands.push(c);
+                    const disabled = disabledValues.has(c);
+                    const label = document.createElement('label');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = c;
+                    cb.checked = cv.has(c) || bnpGroupChecked;
+                    cb.disabled = disabled;
+                    childCheckboxes.push(cb);
+                    cb.onchange = () => {
+                        updateFilter(accordionId, 'companies', c, cb.checked);
+                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    };
+                    label.appendChild(cb);
+                    const sp = document.createElement('span');
+                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
+                    label.appendChild(sp);
+                    if (disabled) label.classList.add('disabled');
+                    childrenDiv.appendChild(label);
+                });
+                groupCb.onchange = () => {
+                    renderedBnpBrands.forEach(c => {
                         const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
                         if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
                         updateFilter(accordionId, 'companies', c, groupCb.checked);

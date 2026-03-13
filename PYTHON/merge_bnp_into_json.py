@@ -7,6 +7,7 @@ Usage: python merge_bnp_into_json.py
 """
 
 import json
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -15,6 +16,19 @@ from export_sqlite_to_json import read_from_db, BNP_DB, HTML_DIR
 
 OUTPUT_JSON = HTML_DIR / "scraped_jobs.json"
 OUTPUT_JSON_LIVE = HTML_DIR / "scraped_jobs_live.json"
+
+
+def get_bnp_company_names(db_path: Path) -> set:
+    """Retourne l'ensemble des company_name présents dans la base BNP (toutes les marques)."""
+    names = {"BNP Paribas"}  # Toujours inclure pour retirer l'ancien format
+    if not db_path.exists():
+        return names
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.execute(
+            "SELECT DISTINCT company_name FROM jobs WHERE is_valid = 1 AND company_name IS NOT NULL AND company_name != ''"
+        )
+        names.update(row[0].strip() for row in cursor.fetchall() if row[0])
+    return names
 
 
 def main():
@@ -32,8 +46,9 @@ def main():
     with open(json_path, "r", encoding="utf-8") as f:
         existing_jobs = json.load(f)
 
-    # Retirer toutes les offres BNP existantes (on les remplace par les nouvelles)
-    other_jobs = [j for j in existing_jobs if (j.get("company_name") or "").strip() != "BNP Paribas"]
+    # Ensemble des marques BNP (Arval, BNP Paribas Cardif, etc.) pour retirer les anciennes
+    bnp_names = get_bnp_company_names(BNP_DB)
+    other_jobs = [j for j in existing_jobs if (j.get("company_name") or "").strip() not in bnp_names]
     count_removed = len(existing_jobs) - len(other_jobs)
 
     # Lire les offres BNP Live depuis la DB (même traitement que export_sqlite_to_json)

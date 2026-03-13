@@ -2477,9 +2477,11 @@
 
         const CREDIT_AGRICOLE_GROUP_KEY = '__CA_GROUP__';
         const BPCE_GROUP_KEY = '__BPCE_GROUP__';
+        const BNP_PARIBAS_GROUP_KEY = '__BNP_GROUP__';
         const CREDIT_MUTUEL_GROUP_KEY = '__CM_GROUP__';
         let companyGroupCAExpanded = false;
         let companyGroupBPCEExpanded = false;
+        let companyGroupBNPExpanded = false;
         let companyGroupCMExpanded = false;
         function isCreditAgricoleSubsidiary(name) {
             if (!name || typeof name !== 'string') return false;
@@ -2494,6 +2496,13 @@
             return ['natixis', 'caisse d\'épargne', 'caisse d\'epargne', 'banque populaire', 'bpce',
                 'crédit coopératif', 'credit cooperatif', 'banque palatine', 'oney', 'aew',
                 'mirova', 'ostrum', 'crédit foncier', 'credit foncier', 'capitole finance', 'casden'].some(s => n.includes(s));
+        }
+        function isBNPParibasBrand(name) {
+            if (!name || typeof name !== 'string') return false;
+            const n = name.toLowerCase();
+            return n.includes('bnp paribas') || n.includes('arval') || n.includes('bgl bnp') ||
+                n.includes('bnl') || n.includes('teb') || n.includes('hello bank') ||
+                n.includes('banque commerciale en france');
         }
         function isCreditMutuelSubsidiary(name) {
             if (!name || typeof name !== 'string') return false;
@@ -2531,6 +2540,10 @@
                 const cmSubs = Array.from(container.querySelectorAll('input[type="checkbox"][data-cm-subsidiary]')).map(cb => cb.value);
                 result = result.filter(v => v !== CREDIT_MUTUEL_GROUP_KEY).concat(cmSubs);
             }
+            if (checked.includes(BNP_PARIBAS_GROUP_KEY)) {
+                const bnpBrands = Array.from(container.querySelectorAll('input[type="checkbox"][data-bnp-brand]')).map(cb => cb.value);
+                result = result.filter(v => v !== BNP_PARIBAS_GROUP_KEY).concat(bnpBrands);
+            }
             return [...new Set(result)];
         }
 
@@ -2539,16 +2552,19 @@
             const checkedValues = restoredCheckedValues ? new Set(restoredCheckedValues) : new Set(getSelectedCompanies());
             const prevCA = container.querySelector('.company-group-children[data-group="ca"]');
             const prevBPCE = container.querySelector('.company-group-children[data-group="bpce"]');
+            const prevBNP = container.querySelector('.company-group-children[data-group="bnp"]');
             const prevCM = container.querySelector('.company-group-children[data-group="cm"]');
             if (prevCA) companyGroupCAExpanded = prevCA.classList.contains('visible');
             if (prevBPCE) companyGroupBPCEExpanded = prevBPCE.classList.contains('visible');
+            if (prevBNP) companyGroupBNPExpanded = prevBNP.classList.contains('visible');
             if (prevCM) companyGroupCMExpanded = prevCM.classList.contains('visible');
             container.innerHTML = '';
 
             const caSubs = companies.filter(c => isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const bpceBrands = companies.filter(c => isBPCEBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const bnpBrands = companies.filter(c => isBNPParibasBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const cmSubs = companies.filter(c => isCreditMutuelSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
-            const others = companies.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c) && !isCreditMutuelSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const others = companies.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c) && !isBNPParibasBrand(c) && !isCreditMutuelSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
             const bpceGroupChecked = checkedValues.has(BPCE_GROUP_KEY) || bpceBrands.every(c => checkedValues.has(c));
             const bpceGroupCount = bpceBrands.reduce((s, c) => s + (counts[c] || 0), 0);
@@ -2607,6 +2623,81 @@
                     cb.value = c;
                     cb.setAttribute('data-bpce-brand', '1');
                     cb.checked = checkedValues.has(c) || bpceGroupChecked;
+                    cb.disabled = disabled;
+                    childCheckboxes.push(cb);
+                    label.appendChild(cb);
+                    const sp = document.createElement('span');
+                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
+                    label.appendChild(sp);
+                    if (disabled) label.classList.add('disabled');
+                    childrenDiv.appendChild(label);
+                });
+                childCheckboxes.forEach(cb => {
+                    cb.onchange = () => {
+                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                        updateActiveFiltersBadge();
+                        applyFilters();
+                    };
+                });
+                container.appendChild(childrenDiv);
+            }
+
+            const bnpGroupChecked = checkedValues.has(BNP_PARIBAS_GROUP_KEY) || bnpBrands.every(c => checkedValues.has(c));
+            const bnpGroupCount = bnpBrands.reduce((s, c) => s + (counts[c] || 0), 0);
+            if (bnpBrands.length > 0) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'company-group-header';
+                const expandSpan = document.createElement('span');
+                expandSpan.className = 'company-group-expand';
+                expandSpan.textContent = '▶';
+                expandSpan.title = 'Cliquer pour afficher/masquer les marques du groupe';
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'company-group-children' + (companyGroupBNPExpanded ? ' visible' : '');
+                childrenDiv.setAttribute('data-group', 'bnp');
+                expandSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    childrenDiv.classList.toggle('visible');
+                    expandSpan.classList.toggle('expanded');
+                    companyGroupBNPExpanded = childrenDiv.classList.contains('visible');
+                    localStorage.setItem('companyGroupBNPExpanded', companyGroupBNPExpanded);
+                    saveFilters().catch(err => console.error('Erreur sauvegarde filtres:', err));
+                };
+                if (companyGroupBNPExpanded) expandSpan.classList.add('expanded');
+                const groupLabel = document.createElement('label');
+                groupLabel.style.display = 'flex';
+                groupLabel.style.alignItems = 'center';
+                groupLabel.style.flex = '1';
+                groupLabel.style.cursor = 'pointer';
+                const groupCb = document.createElement('input');
+                groupCb.type = 'checkbox';
+                groupCb.value = BNP_PARIBAS_GROUP_KEY;
+                groupCb.checked = bnpGroupChecked;
+                groupCb.onchange = () => {
+                    bnpBrands.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"][data-bnp-brand]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                    });
+                    updateActiveFiltersBadge();
+                    applyFilters();
+                };
+                groupLabel.appendChild(groupCb);
+                const span = document.createElement('span');
+                span.textContent = `Groupe BNP Paribas (${bnpGroupCount})`;
+                groupLabel.appendChild(span);
+                groupDiv.appendChild(groupLabel);
+                groupDiv.appendChild(expandSpan);
+                container.appendChild(groupDiv);
+                const childCheckboxes = [];
+                bnpBrands.forEach(c => {
+                    const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0 && !checkedValues.has(c)) return;
+                    const disabled = disabledValues.has(c);
+                    const label = document.createElement('label');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = c;
+                    cb.setAttribute('data-bnp-brand', '1');
+                    cb.checked = checkedValues.has(c) || bnpGroupChecked;
                     cb.disabled = disabled;
                     childCheckboxes.push(cb);
                     label.appendChild(cb);
@@ -3710,7 +3801,19 @@
                 'factofrance': 'images/logos/factofrance.png',
                 'facto': 'images/logos/factofrance.png',
                 'monabanq': 'images/logos/monabanq.png',
-                'oddo_bhf': 'images/logos/oddo_bhf.svg'
+                'oddo_bhf': 'images/logos/oddo_bhf.svg',
+                'bnp_paribas': 'images/logos/bnp_paribas.png',
+                'arval': 'images/logos/bnp_paribas.png',
+                'bnp_paribas_cardif': 'images/logos/bnp_paribas.png',
+                'bnp_paribas_real_estate': 'images/logos/bnp_paribas.png',
+                'bnp_paribas_asset_management': 'images/logos/bnp_paribas.png',
+                'bnp_paribas_wealth_management': 'images/logos/bnp_paribas.png',
+                'bnp_paribas_cib': 'images/logos/bnp_paribas.png',
+                'bnp_paribas_personal_finance': 'images/logos/bnp_paribas.png',
+                'bnp_paribas_fortis': 'images/logos/bnp_paribas.png',
+                'bgl_bnp_paribas': 'images/logos/bnp_paribas.png',
+                'hello_bank': 'images/logos/bnp_paribas.png',
+                'banque_commerciale_en_france': 'images/logos/bnp_paribas.png'
             };
             
             // Rechercher le logo dans le mapping
@@ -3722,6 +3825,10 @@
             // Fallback : toute filiale Crédit Mutuel sans logo spécifique → logo groupe
             if (typeof isCreditMutuelSubsidiary === 'function' && isCreditMutuelSubsidiary(companyName)) {
                 return 'images/logos/credit_mutuel.svg';
+            }
+            // Fallback : toute marque BNP Paribas sans logo spécifique → logo groupe
+            if (typeof isBNPParibasBrand === 'function' && isBNPParibasBrand(companyName)) {
+                return 'images/logos/bnp_paribas.png';
             }
             return null;
         }

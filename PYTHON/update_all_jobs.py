@@ -27,6 +27,7 @@ OUTPUT_CSV = HTML_DIR / "scraped_jobs.csv"
 CA_DB = PYTHON_DIR / "credit_agricole_jobs.db"
 SG_DB = PYTHON_DIR / "societe_generale_jobs.db"
 DELOITTE_DB = PYTHON_DIR / "deloitte_jobs.db"
+BNP_DB = PYTHON_DIR / "bnp_paribas_jobs.db"
 
 def run_script(script_name, cwd=PYTHON_DIR, timeout=3600):
     print(f"🚀 Lancement de {script_name}...")
@@ -205,7 +206,8 @@ def merge_from_databases():
     sources_info = [
         ("Crédit Agricole", CA_DB),
         ("Société Générale", SG_DB),
-        ("Deloitte", DELOITTE_DB)
+        ("Deloitte", DELOITTE_DB),
+        ("BNP Paribas", BNP_DB),
     ]
     
     for name, db_path in sources_info:
@@ -258,10 +260,13 @@ if __name__ == "__main__":
     # 3. Scraper Deloitte
     run_script("deloitte_scraper.py")
 
-    # 4. Fusion des données depuis les bases SQLite
+    # 4. Scraper BNP Paribas
+    run_script("bnp_paribas_scraper.py")
+
+    # 5. Fusion des données depuis les bases SQLite
     merge_from_databases()
 
-    # 5. Export JSON pour les fichiers HTML
+    # 6. Export JSON pour les fichiers HTML
     print()
     print("🔄 Export JSON pour les fichiers HTML...")
     try:
@@ -275,7 +280,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"⚠️ Erreur lors de l'export JSON: {e}")
 
-    # 6. Récapitulatif visuel Live vs Expired par entité
+    # 7. Récapitulatif visuel Live vs Expired par entité
     print()
     print("=" * 60)
     print("📊 OFFRES PAR ENTITÉ (Live / Expired)")
@@ -285,7 +290,7 @@ if __name__ == "__main__":
         total_expired = 0
         print(f"   {'Entité':<22} │ {'Live':>6} │ {'Expired':>7}")
         print("   " + "-" * 40)
-        for name, db_path in [("Crédit Agricole", CA_DB), ("Société Générale", SG_DB), ("Deloitte", DELOITTE_DB)]:
+        for name, db_path in [("Crédit Agricole", CA_DB), ("Société Générale", SG_DB), ("Deloitte", DELOITTE_DB), ("BNP Paribas", BNP_DB)]:
             if db_path.exists():
                 conn = sqlite3.connect(db_path)
                 row = conn.execute("""

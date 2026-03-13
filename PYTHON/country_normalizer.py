@@ -217,6 +217,14 @@ def normalize_country(country_raw):
     if country_clean.isdigit() or (len(country_clean) <= 3 and country_clean.isdigit()):
         return "France"  # Les codes numériques courts sont probablement des départements français
     
+    # Cas particuliers avant découpe sur virgule
+    # Ex: \"Korea, Republic Of\" → Corée du Sud
+    if 'korea' in country_clean:
+        return 'Corée du Sud'
+    # Villes qui ne sont pas des pays (ex: Grandcamp Maisy) → France
+    if country_clean == 'grandcamp maisy':
+        return 'France'
+    
     # Supprimer les codes ISO ou régions si présents après une virgule
     if ',' in country_clean:
         country_clean = country_clean.split(',')[-1].strip()

@@ -1908,6 +1908,22 @@
                                 contractLower.includes("contrat d'apprentissage") || contractLower.includes('contrat de professionnalisation') || contractLower.includes('contrat en alternance');
                             if (isAlternance) job.contract_type = 'Alternance';
                         }
+
+                        // Consolidation des familles de métier : regrouper les rubriques synonymes sous un libellé canonique
+                        if (job && job.job_family && typeof job.job_family === 'string') {
+                            const f = job.job_family.trim();
+                            const fLower = f.toLowerCase();
+                            const familySynonyms = {
+                                'fonctions corporate': 'Direction générale',
+                                'métiers du médical et social': 'Autres',
+                                'metiers du medical et social': 'Autres',
+                                'recouvrement / contentieux': 'Juridique',
+                                'rse / esg': 'Autres',
+                                'administration / services généraux': 'Administration / Services Généraux',
+                                'administration / services generaux': 'Administration / Services Généraux'
+                            };
+                            if (familySynonyms[fLower]) job.job_family = familySynonyms[fLower];
+                        }
                         
                         // Harmonisation des niveaux d'études
                         if (job && job.education_level && typeof job.education_level === 'string') {
@@ -2320,82 +2336,6 @@
             const bpceBrands = companies.filter(c => isBPCEBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const others = companies.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
-            const groupChecked = checkedValues.has(CREDIT_AGRICOLE_GROUP_KEY) || caSubs.every(c => checkedValues.has(c));
-            const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
-
-            if (caSubs.length > 0) {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'company-group-header';
-                const expandSpan = document.createElement('span');
-                expandSpan.className = 'company-group-expand';
-                expandSpan.textContent = '▶';
-                expandSpan.onclick = (e) => {
-                    e.stopPropagation();
-                    childrenDiv.classList.toggle('visible');
-                    expandSpan.classList.toggle('expanded');
-                    companyGroupCAExpanded = childrenDiv.classList.contains('visible');
-                    localStorage.setItem('companyGroupCAExpanded', companyGroupCAExpanded);
-                    saveFilters().catch(err => console.error('Erreur sauvegarde filtres:', err));
-                };
-                const groupLabel = document.createElement('label');
-                groupLabel.style.display = 'flex';
-                groupLabel.style.alignItems = 'center';
-                groupLabel.style.flex = '1';
-                groupLabel.style.cursor = 'pointer';
-                const groupCb = document.createElement('input');
-                groupCb.type = 'checkbox';
-                groupCb.value = CREDIT_AGRICOLE_GROUP_KEY;
-                groupCb.checked = groupChecked;
-                groupCb.onchange = () => {
-                    caSubs.forEach(c => {
-                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
-                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
-                    });
-                    updateActiveFiltersBadge();
-                    applyFilters();
-                };
-                groupLabel.appendChild(groupCb);
-                const span = document.createElement('span');
-                span.textContent = `Groupe Crédit Agricole (${groupCount})`;
-                groupLabel.appendChild(span);
-                groupDiv.appendChild(expandSpan);
-                groupDiv.appendChild(groupLabel);
-                container.appendChild(groupDiv);
-
-                const childrenDiv = document.createElement('div');
-                childrenDiv.className = 'company-group-children' + (companyGroupCAExpanded ? ' visible' : '');
-                childrenDiv.setAttribute('data-group', 'ca');
-                if (companyGroupCAExpanded) expandSpan.classList.add('expanded');
-                const childCheckboxes = [];
-                caSubs.forEach(c => {
-                    const cnt = counts[c] || 0;
-                    if (hideDisabled && cnt === 0) return;
-                    const disabled = disabledValues.has(c);
-                    const label = document.createElement('label');
-                    const cb = document.createElement('input');
-                    cb.type = 'checkbox';
-                    cb.value = c;
-                    cb.setAttribute('data-ca-subsidiary', '1');
-                    cb.checked = checkedValues.has(c) || groupChecked;
-                    cb.disabled = disabled;
-                    childCheckboxes.push(cb);
-                    label.appendChild(cb);
-                    const sp = document.createElement('span');
-                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
-                    label.appendChild(sp);
-                    if (disabled) label.classList.add('disabled');
-                    childrenDiv.appendChild(label);
-                });
-                childCheckboxes.forEach(cb => {
-                    cb.onchange = () => {
-                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
-                        updateActiveFiltersBadge();
-                        applyFilters();
-                    };
-                });
-                container.appendChild(childrenDiv);
-            }
-
             const bpceGroupChecked = checkedValues.has(BPCE_GROUP_KEY) || bpceBrands.every(c => checkedValues.has(c));
             const bpceGroupCount = bpceBrands.reduce((s, c) => s + (counts[c] || 0), 0);
             if (bpceBrands.length > 0) {
@@ -2451,6 +2391,81 @@
                     cb.value = c;
                     cb.setAttribute('data-bpce-brand', '1');
                     cb.checked = checkedValues.has(c) || bpceGroupChecked;
+                    cb.disabled = disabled;
+                    childCheckboxes.push(cb);
+                    label.appendChild(cb);
+                    const sp = document.createElement('span');
+                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
+                    label.appendChild(sp);
+                    if (disabled) label.classList.add('disabled');
+                    childrenDiv.appendChild(label);
+                });
+                childCheckboxes.forEach(cb => {
+                    cb.onchange = () => {
+                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                        updateActiveFiltersBadge();
+                        applyFilters();
+                    };
+                });
+                container.appendChild(childrenDiv);
+            }
+
+            const groupChecked = checkedValues.has(CREDIT_AGRICOLE_GROUP_KEY) || caSubs.every(c => checkedValues.has(c));
+            const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
+            if (caSubs.length > 0) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'company-group-header';
+                const expandSpan = document.createElement('span');
+                expandSpan.className = 'company-group-expand';
+                expandSpan.textContent = '▶';
+                const groupLabel = document.createElement('label');
+                groupLabel.style.display = 'flex';
+                groupLabel.style.alignItems = 'center';
+                groupLabel.style.flex = '1';
+                groupLabel.style.cursor = 'pointer';
+                const groupCb = document.createElement('input');
+                groupCb.type = 'checkbox';
+                groupCb.value = CREDIT_AGRICOLE_GROUP_KEY;
+                groupCb.checked = groupChecked;
+                groupCb.onchange = () => {
+                    caSubs.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                    });
+                    updateActiveFiltersBadge();
+                    applyFilters();
+                };
+                groupLabel.appendChild(groupCb);
+                const span = document.createElement('span');
+                span.textContent = `Groupe Crédit Agricole (${groupCount})`;
+                groupLabel.appendChild(span);
+                groupDiv.appendChild(expandSpan);
+                groupDiv.appendChild(groupLabel);
+                container.appendChild(groupDiv);
+
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'company-group-children' + (companyGroupCAExpanded ? ' visible' : '');
+                childrenDiv.setAttribute('data-group', 'ca');
+                if (companyGroupCAExpanded) expandSpan.classList.add('expanded');
+                expandSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    childrenDiv.classList.toggle('visible');
+                    expandSpan.classList.toggle('expanded');
+                    companyGroupCAExpanded = childrenDiv.classList.contains('visible');
+                    localStorage.setItem('companyGroupCAExpanded', companyGroupCAExpanded);
+                    saveFilters().catch(err => console.error('Erreur sauvegarde filtres:', err));
+                };
+                const childCheckboxes = [];
+                caSubs.forEach(c => {
+                    const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0) return;
+                    const disabled = disabledValues.has(c);
+                    const label = document.createElement('label');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = c;
+                    cb.setAttribute('data-ca-subsidiary', '1');
+                    cb.checked = checkedValues.has(c) || groupChecked;
                     cb.disabled = disabled;
                     childCheckboxes.push(cb);
                     label.appendChild(cb);

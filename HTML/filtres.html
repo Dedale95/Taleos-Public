@@ -1608,6 +1608,22 @@
                                             contractLower.includes("contrat d'apprentissage") || contractLower.includes('contrat de professionnalisation') || contractLower.includes('contrat en alternance');
                                         if (isAlternance) job.contract_type = 'Alternance';
                                     }
+
+                                    // Consolidation des familles de métier : regrouper les rubriques synonymes sous un libellé canonique
+                                    if (job && job.job_family && typeof job.job_family === 'string') {
+                                        const f = job.job_family.trim();
+                                        const fLower = f.toLowerCase();
+                                        const familySynonyms = {
+                                            'fonctions corporate': 'Direction générale',
+                                            'métiers du médical et social': 'Autres',
+                                            'metiers du medical et social': 'Autres',
+                                            'recouvrement / contentieux': 'Juridique',
+                                            'rse / esg': 'Autres',
+                                            'administration / services généraux': 'Administration / Services Généraux',
+                                            'administration / services generaux': 'Administration / Services Généraux'
+                                        };
+                                        if (familySynonyms[fLower]) job.job_family = familySynonyms[fLower];
+                                    }
                                     
                                     // Harmonisation des niveaux d'études (identique à offres.html)
                                     if (job && job.education_level && typeof job.education_level === 'string') {
@@ -2169,83 +2185,6 @@
             const bpceBrands = values.filter(c => isBPCEBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const others = values.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
-            const groupChecked = caSubs.every(c => cv.has(c));
-            const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
-
-            if (caSubs.length > 0) {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'company-group-header';
-                const expandSpan = document.createElement('span');
-                expandSpan.className = 'company-group-expand';
-                expandSpan.textContent = '▶';
-                const childrenDiv = document.createElement('div');
-                childrenDiv.className = 'company-group-children' + (wasExpanded ? ' visible' : '');
-                childrenDiv.setAttribute('data-group', 'ca');
-                if (wasExpanded) expandSpan.classList.add('expanded');
-                expandSpan.onclick = (e) => {
-                    e.stopPropagation();
-                    childrenDiv.classList.toggle('visible');
-                    expandSpan.classList.toggle('expanded');
-                    const expanded = childrenDiv.classList.contains('visible');
-                    companyGroupCAExpandedByAccordion[accordionId] = expanded;
-                    const accordion = accordions.find(a => (a.id || '').toString() === (accordionId || '').toString());
-                    if (accordion) {
-                        accordion.companyGroupCAExpanded = expanded;
-                        saveAccordion(accordion);
-                    }
-                };
-                const groupLabel = document.createElement('label');
-                groupLabel.style.display = 'flex';
-                groupLabel.style.alignItems = 'center';
-                groupLabel.style.flex = '1';
-                groupLabel.style.cursor = 'pointer';
-                const groupCb = document.createElement('input');
-                groupCb.type = 'checkbox';
-                groupCb.value = CREDIT_AGRICOLE_GROUP_KEY;
-                groupCb.checked = groupChecked;
-                groupLabel.appendChild(groupCb);
-                const span = document.createElement('span');
-                span.textContent = `Groupe Crédit Agricole (${groupCount})`;
-                groupLabel.appendChild(span);
-                groupDiv.appendChild(expandSpan);
-                groupDiv.appendChild(groupLabel);
-                container.appendChild(groupDiv);
-
-                const renderedCaSubs = [];
-                const childCheckboxes = [];
-                caSubs.forEach(c => {
-                    const cnt = counts[c] || 0;
-                    if (hideDisabled && cnt === 0) return;
-                    renderedCaSubs.push(c);
-                    const disabled = disabledValues.has(c);
-                    const label = document.createElement('label');
-                    const cb = document.createElement('input');
-                    cb.type = 'checkbox';
-                    cb.value = c;
-                    cb.checked = cv.has(c) || groupChecked;
-                    cb.disabled = disabled;
-                    childCheckboxes.push(cb);
-                    cb.onchange = () => {
-                        updateFilter(accordionId, 'companies', c, cb.checked);
-                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
-                    };
-                    label.appendChild(cb);
-                    const sp = document.createElement('span');
-                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
-                    label.appendChild(sp);
-                    if (disabled) label.classList.add('disabled');
-                    childrenDiv.appendChild(label);
-                });
-                groupCb.onchange = () => {
-                    renderedCaSubs.forEach(c => {
-                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
-                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
-                        updateFilter(accordionId, 'companies', c, groupCb.checked);
-                    });
-                };
-                container.appendChild(childrenDiv);
-            }
-
             const bpceGroupChecked = bpceBrands.every(c => cv.has(c));
             const bpceGroupCount = bpceBrands.reduce((s, c) => s + (counts[c] || 0), 0);
             if (bpceBrands.length > 0) {
@@ -2313,6 +2252,82 @@
                 });
                 groupCb.onchange = () => {
                     renderedBpceBrands.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                        updateFilter(accordionId, 'companies', c, groupCb.checked);
+                    });
+                };
+                container.appendChild(childrenDiv);
+            }
+
+            const groupChecked = caSubs.every(c => cv.has(c));
+            const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
+            if (caSubs.length > 0) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'company-group-header';
+                const expandSpan = document.createElement('span');
+                expandSpan.className = 'company-group-expand';
+                expandSpan.textContent = '▶';
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'company-group-children' + (wasExpanded ? ' visible' : '');
+                childrenDiv.setAttribute('data-group', 'ca');
+                if (wasExpanded) expandSpan.classList.add('expanded');
+                expandSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    childrenDiv.classList.toggle('visible');
+                    expandSpan.classList.toggle('expanded');
+                    const expanded = childrenDiv.classList.contains('visible');
+                    companyGroupCAExpandedByAccordion[accordionId] = expanded;
+                    const accordion = accordions.find(a => (a.id || '').toString() === (accordionId || '').toString());
+                    if (accordion) {
+                        accordion.companyGroupCAExpanded = expanded;
+                        saveAccordion(accordion);
+                    }
+                };
+                const groupLabel = document.createElement('label');
+                groupLabel.style.display = 'flex';
+                groupLabel.style.alignItems = 'center';
+                groupLabel.style.flex = '1';
+                groupLabel.style.cursor = 'pointer';
+                const groupCb = document.createElement('input');
+                groupCb.type = 'checkbox';
+                groupCb.value = CREDIT_AGRICOLE_GROUP_KEY;
+                groupCb.checked = groupChecked;
+                groupLabel.appendChild(groupCb);
+                const span = document.createElement('span');
+                span.textContent = `Groupe Crédit Agricole (${groupCount})`;
+                groupLabel.appendChild(span);
+                groupDiv.appendChild(expandSpan);
+                groupDiv.appendChild(groupLabel);
+                container.appendChild(groupDiv);
+
+                const renderedCaSubs = [];
+                const childCheckboxes = [];
+                caSubs.forEach(c => {
+                    const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0) return;
+                    renderedCaSubs.push(c);
+                    const disabled = disabledValues.has(c);
+                    const label = document.createElement('label');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = c;
+                    cb.checked = cv.has(c) || groupChecked;
+                    cb.disabled = disabled;
+                    childCheckboxes.push(cb);
+                    cb.onchange = () => {
+                        updateFilter(accordionId, 'companies', c, cb.checked);
+                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    };
+                    label.appendChild(cb);
+                    const sp = document.createElement('span');
+                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
+                    label.appendChild(sp);
+                    if (disabled) label.classList.add('disabled');
+                    childrenDiv.appendChild(label);
+                });
+                groupCb.onchange = () => {
+                    renderedCaSubs.forEach(c => {
                         const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
                         if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
                         updateFilter(accordionId, 'companies', c, groupCb.checked);

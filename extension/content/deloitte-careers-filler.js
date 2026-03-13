@@ -69,6 +69,24 @@
   }
 
   /**
+   * Clic sur "Enregistrer et continuer" (pageFooterNextButton) puis relance runAutomation
+   * pour détecter l'étape suivante après transition Workday.
+   */
+  function clickNextAndContinue(delayMs) {
+    setTimeout(function () {
+      var nextBtn = document.querySelector('button[data-automation-id="pageFooterNextButton"]');
+      if (nextBtn && nextBtn.offsetParent !== null) {
+        scrollIntoViewIfNeeded(nextBtn);
+        nextBtn.click();
+        log('➡️  Clic "Enregistrer et continuer"', 0);
+        setTimeout(runAutomation, 3000);
+      } else {
+        log('⏭️  Bouton "Enregistrer et continuer" non trouvé', 0);
+      }
+    }, delayMs || 2000);
+  }
+
+  /**
    * Valider les champs Workday comme en manuel : clic sur la case puis clic ailleurs.
    * Uniquement les champs TEXTE (prénom, nom, adresse, ville, code postal, téléphone).
    * Ne pas inclure les menus déroulants (Comment nous avez-vous connus ?, Pays, Type d'appareil, Indicatif de pays) sinon la sélection est vidée.
@@ -370,103 +388,130 @@
 
   /**
    * Remplir l'étape 2 Workday "Mon expérience" (Études) depuis Firebase.
-   * - Établissement ou université : profile.establishment (Firebase) ; "Autre" si vide → option "Autre établissement".
-   * - Diplôme : profile.education_level → option listbox (ex. Bac+5 → Master 2 / Master Spé...).
-   * - De / À (années) : année réelle ou prévue = profile.diploma_year (Firebase graduation_year) ; début = diploma_year - 4.
-   * - Domaine d'études : non renseigné (champ ignoré).
+   * - Établissement ou université : type + Enter (même pattern que Indicatif pays)
+   * - Diplôme : listbox (education_level → mapping vers options Workday)
+   * - À (année) : graduation_year depuis Firebase
+   * - Domaine d'études : ignoré (pas obligatoire)
    */
   function fillWorkdayStep2Education(profile) {
-    const establishmentVal = (profile.establishment || '').trim() || 'Autre';
-    const diplomaYearRaw = profile.diploma_year != null ? profile.diploma_year : '';
-    const diplomaYear = String(diplomaYearRaw).replace(/\D/g, '');
-    const yearEnd = diplomaYear.length === 4 ? parseInt(diplomaYear, 10) : null;
-    const yearStart = yearEnd != null && yearEnd >= 4 ? yearEnd - 4 : null;
+    var establishmentVal = (profile.establishment || '').trim();
+    var diplomaYearRaw = profile.diploma_year != null ? profile.diploma_year : '';
+    var diplomaYear = String(diplomaYearRaw).replace(/\D/g, '');
+    var yearEnd = diplomaYear.length === 4 ? parseInt(diplomaYear, 10) : null;
 
-    const establishmentInput = findInputByLabel(['établissement ou université', 'institution']);
-    if (establishmentInput && establishmentInput.offsetParent !== null) {
-      scrollIntoViewIfNeeded(establishmentInput);
-      establishmentInput.focus();
-      establishmentInput.click();
-      const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-      if (nativeSetter) nativeSetter.call(establishmentInput, establishmentVal);
-      else establishmentInput.value = establishmentVal;
-      establishmentInput.dispatchEvent(new Event('input', { bubbles: true }));
-      establishmentInput.dispatchEvent(new Event('change', { bubbles: true }));
+    log('📋 Profil Firebase (Études) :', 5);
+    log('   Établissement: ' + (establishmentVal || '—') + '  |  Diplôme: ' + (profile.education_level || '—') + '  |  Année fin: ' + (yearEnd || '—'), 5);
+
+    // ——— Établissement ou université : search + Enter (comme indicatif pays) ———
+    var estabInput = document.querySelector('input[data-automation-id="searchBox"][id*="school"]') ||
+      document.querySelector('input[id*="school"][placeholder="Rechercher"]') ||
+      findInputByLabel(['établissement ou université', 'institution']);
+    if (estabInput && estabInput.offsetParent !== null && establishmentVal) {
+      scrollIntoViewIfNeeded(estabInput);
+      try {
+        estabInput.focus();
+        estabInput.click();
+      } catch (_) {}
+      fillInput(estabInput, establishmentVal);
       setTimeout(function() {
-        const opts = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true };
-        establishmentInput.dispatchEvent(new KeyboardEvent('keydown', opts));
-        establishmentInput.dispatchEvent(new KeyboardEvent('keypress', opts));
-        establishmentInput.dispatchEvent(new KeyboardEvent('keyup', opts));
-        if (establishmentVal === 'Autre') {
-          setTimeout(function() {
-            const optsEl = document.querySelectorAll('[role="option"]');
-            for (const o of optsEl) {
-              const t = (o.textContent || o.getAttribute('aria-label') || '').trim();
-              if (/autre établissement/i.test(t) && o.offsetParent !== null) {
-                o.click();
-                log('   ✏️  Établissement : Sélectionné "Autre établissement" (Firebase vide)', 5);
-                break;
-              }
-            }
-          }, 450);
-        } else {
-          log('   ✏️  Établissement : ' + establishmentVal + ' + Entrée (Firebase)', 5);
-        }
-      }, 350);
+        pressEnterSequence(estabInput);
+        log('   ✅ Établissement → ' + establishmentVal, 5);
+      }, 500);
+    } else if (!establishmentVal) {
+      log('   ⏭️  Établissement → pas de valeur Firebase', 5);
+    } else {
+      log('   ⏭️  Établissement → champ non trouvé', 5);
     }
 
-    const diplomaMap = {
-      'bac + 5': 'Master 2 / Master Spé / DSCG (BAC+5)',
+    // ——— Diplôme : listbox ———
+    var diplomaMap = {
+      'bac+1': 'BAC+1 / Baccalauréat / infra-BAC',
+      'bac + 1': 'BAC+1 / Baccalauréat / infra-BAC',
+      'baccalauréat': 'BAC+1 / Baccalauréat / infra-BAC',
+      'bac+2': 'DUT / BTS / DEUG (BAC+2)',
+      'bac + 2': 'DUT / BTS / DEUG (BAC+2)',
+      'bts': 'DUT / BTS / DEUG (BAC+2)',
+      'dut': 'DUT / BTS / DEUG (BAC+2)',
+      'bac+3': 'License / Bachelor / DUT (BAC+3)',
+      'bac + 3': 'License / Bachelor / DUT (BAC+3)',
+      'licence': 'License / Bachelor / DUT (BAC+3)',
+      'bachelor': 'License / Bachelor / DUT (BAC+3)',
+      'bac+4': 'Master 1 / Maitrise (BAC+4)',
+      'bac + 4': 'Master 1 / Maitrise (BAC+4)',
+      'master 1': 'Master 1 / Maitrise (BAC+4)',
+      'm1': 'Master 1 / Maitrise (BAC+4)',
       'bac+5': 'Master 2 / Master Spé / DSCG (BAC+5)',
+      'bac + 5': 'Master 2 / Master Spé / DSCG (BAC+5)',
+      'master 2': 'Master 2 / Master Spé / DSCG (BAC+5)',
       'm2': 'Master 2 / Master Spé / DSCG (BAC+5)',
-      'bac + 3': 'Licence / Bachelor / BUT (BAC+3)',
-      'bac+3': 'Licence / Bachelor / BUT (BAC+3)',
-      'licence': 'Licence / Bachelor / BUT (BAC+3)',
-      'bac': 'BAC+1 / Baccalauréat / infra-BAC'
+      'master': 'Master 2 / Master Spé / DSCG (BAC+5)',
+      'grande école': 'Programme Grande Ecole, MIM ou Formation Ingénieur',
+      'grande ecole': 'Programme Grande Ecole, MIM ou Formation Ingénieur',
+      'ingénieur': 'Programme Grande Ecole, MIM ou Formation Ingénieur',
+      'ingenieur': 'Programme Grande Ecole, MIM ou Formation Ingénieur',
+      'mim': 'Programme Grande Ecole, MIM ou Formation Ingénieur',
+      'miage': 'Master MIAGE',
+      'capa': 'CAPA (Certificat d\'Aptitude à la profession d\'Avocat)',
+      'actuaire': 'Diplôme d\'Actuaire',
+      'cafcac': 'CAFCAC (Commissariat aux comptes)',
+      'dec': 'DEC (Diplôme d\'Expertise Comptable)',
+      'expertise comptable': 'DEC (Diplôme d\'Expertise Comptable)',
+      'doctorat': 'Doctorat',
+      'phd': 'Doctorat'
     };
-    const eduLevel = (profile.education_level || '').trim().toLowerCase();
-    let diplomaOption = 'Master 2 / Master Spé / DSCG (BAC+5)';
-    for (const [k, v] of Object.entries(diplomaMap)) {
-      if (eduLevel.includes(k)) {
-        diplomaOption = v;
+    var eduLevel = (profile.education_level || '').trim().toLowerCase();
+    var diplomaOption = null;
+    for (var k in diplomaMap) {
+      if (eduLevel.includes(k) || eduLevel === k) {
+        diplomaOption = diplomaMap[k];
         break;
       }
     }
-    const diplomaBtn = document.querySelector('button[aria-haspopup="listbox"][aria-label*="Diplôme"], button[aria-label*="Diplôme"]') ||
-      Array.from(document.querySelectorAll('button')).find(b => /diplôme.*sélectionnez|diplôme.*obligatoire/i.test((b.getAttribute('aria-label') || '') + (b.textContent || '')));
-    if (diplomaBtn && diplomaBtn.offsetParent !== null) {
-      scrollIntoViewIfNeeded(diplomaBtn);
-      if (clickWorkdayListboxOption(diplomaBtn, diplomaOption, 'Diplôme')) {
-        log('   ✏️  Diplôme : ' + diplomaOption + ' (Firebase education_level)', 5);
+    if (!diplomaOption && eduLevel) {
+      diplomaOption = 'Master 2 / Master Spé / DSCG (BAC+5)';
+    }
+    if (diplomaOption) {
+      var diplomaBtn = document.querySelector('button[aria-haspopup="listbox"][id*="degree"]') ||
+        document.querySelector('button[aria-haspopup="listbox"][name="degree"]') ||
+        document.querySelector('button[aria-haspopup="listbox"][aria-label*="Diplôme"]') ||
+        Array.from(document.querySelectorAll('button[aria-haspopup="listbox"]')).find(function(b) {
+          return /diplôme/i.test(b.getAttribute('aria-label') || '');
+        });
+      if (diplomaBtn && diplomaBtn.offsetParent !== null) {
+        var currentLabel = (diplomaBtn.getAttribute('aria-label') || '').trim();
+        if (currentLabel.toLowerCase().includes(diplomaOption.toLowerCase().substring(0, 10))) {
+          log('   — Diplôme → déjà OK', 5);
+        } else {
+          scrollIntoViewIfNeeded(diplomaBtn);
+          clickWorkdayListboxOption(diplomaBtn, diplomaOption, 'Diplôme');
+        }
+      } else {
+        log('   ⏭️  Diplôme → bouton non trouvé', 5);
       }
     }
 
-    const yearInputs = document.querySelectorAll('input[type="number"][aria-label*="Year"], input[aria-label="Year"], [role="spinbutton"][name="Year"], input[name*="year"]');
-    const spinbuttons = Array.from(document.querySelectorAll('[role="spinbutton"]')).filter(s => /year|année/i.test(s.getAttribute('aria-label') || s.getAttribute('name') || ''));
-    const yearFields = spinbuttons.length >= 2 ? spinbuttons : Array.from(document.querySelectorAll('input[type="number"]')).filter(i => (i.getAttribute('placeholder') || '').match(/^\d{4}$/) || (i.getAttribute('aria-label') || '').toLowerCase().includes('year'));
-    if (yearEnd != null && yearFields.length >= 2) {
-      try {
-        const label0 = (yearFields[0].getAttribute('aria-label') || yearFields[0].getAttribute('name') || '').toLowerCase();
-        const label1 = (yearFields[1].getAttribute('aria-label') || yearFields[1].getAttribute('name') || '').toLowerCase();
-        const isEndFirst = /fin|end|to|obtention/.test(label0) || /année de fin|year end/.test(label0);
-        const isStartFirst = /début|start|from/.test(label0) || /année de début|year start/.test(label0);
-        const startField = (isEndFirst ? yearFields[1] : yearFields[0]);
-        const endField = (isEndFirst ? yearFields[0] : yearFields[1]);
-        if (yearStart != null) {
-          startField.focus();
-          fillInput(startField, String(yearStart));
+    // ——— À (année réelle ou prévue) ———
+    if (yearEnd != null) {
+      setTimeout(function() {
+        var yearInput = document.querySelector('input[id*="lastYearAttended"][id*="Year"]') ||
+          document.querySelector('input[aria-label*="Année"][id*="lastYearAttended"]') ||
+          document.querySelector('[role="spinbutton"][id*="lastYearAttended"]');
+        if (!yearInput) {
+          var yearInputs = Array.from(document.querySelectorAll('input[type="text"], [role="spinbutton"]')).filter(function(i) {
+            var ph = (i.getAttribute('placeholder') || '').trim();
+            var al = (i.getAttribute('aria-label') || '').toLowerCase();
+            return ph === 'AAAA' || al.includes('year') || al.includes('année');
+          });
+          if (yearInputs.length > 0) yearInput = yearInputs[yearInputs.length - 1];
         }
-        endField.focus();
-        fillInput(endField, String(yearEnd));
-        log('   ✏️  Années études : De ' + (yearStart != null ? yearStart : '?') + ' À ' + yearEnd + ' (Firebase graduation_year, aucune modification)', 5);
-      } catch (e) {
-        log('   ⏭️  Années : ' + (e && e.message), 5);
-      }
-    } else if (yearEnd != null && yearFields.length === 1) {
-      try {
-        fillInput(yearFields[0], String(yearEnd));
-        log('   ✏️  Année de fin : ' + yearEnd + ' (Firebase graduation_year)', 5);
-      } catch (_) {}
+        if (yearInput && yearInput.offsetParent !== null) {
+          scrollIntoViewIfNeeded(yearInput);
+          fillInput(yearInput, String(yearEnd));
+          log('   ✅ Année fin → ' + yearEnd, 5);
+        } else {
+          log('   ⏭️  Année → champ non trouvé', 5);
+        }
+      }, 1200);
     }
   }
 
@@ -717,23 +762,28 @@
       }
     }
 
-    // Détection étape 2 "Mon expérience" (Études) : remplir établissement, diplôme, domaine, années depuis Firebase
-    const step2EstablishmentInput = findInputByLabel(['établissement ou université', 'institution']);
-    const step2DiplomaBtn = Array.from(document.querySelectorAll('button[aria-haspopup="listbox"], button[role="combobox"]')).find(b => {
-      const a = (b.getAttribute('aria-label') || b.textContent || '').toLowerCase();
-      return a.includes('diplôme') && (a.includes('sélectionnez') || a.includes('select'));
-    });
-    const isStep2Form = (step2EstablishmentInput && step2EstablishmentInput.offsetParent !== null) ||
-      (step2DiplomaBtn && step2DiplomaBtn.offsetParent !== null);
-    if (isStep2Form && url.includes('useMyLastApplication')) {
-      log('📂 [STEP 5b] Formulaire étape 2 "Mon expérience" détecté → remplissage Études + CV depuis Firebase', 5);
+    // Détection étape 2 "Mon expérience" (Études) :
+    // Si les champs Step 1 (prénom/nom) ne sont plus visibles mais que les champs éducation le sont → on est sur Step 2
+    var step1Visible = document.getElementById('name--legalName--firstName') && document.getElementById('name--legalName--firstName').offsetParent;
+    var step2DiplomaBtn = document.querySelector('button[aria-haspopup="listbox"][id*="degree"], button[aria-haspopup="listbox"][name="degree"]') ||
+      Array.from(document.querySelectorAll('button[aria-haspopup="listbox"]')).find(function(b) {
+        return /diplôme/i.test(b.getAttribute('aria-label') || '');
+      });
+    var step2YearField = document.querySelector('[data-automation-id="dateSectionYear-display"]') ||
+      document.querySelector('[id*="lastYearAttended"]');
+    var isStep2Form = !step1Visible && (
+      (step2DiplomaBtn && step2DiplomaBtn.offsetParent !== null) ||
+      (step2YearField && step2YearField.offsetParent !== null)
+    );
+    if (isStep2Form) {
+      log('📋 Étape 2 "Mon expérience" détectée', 5);
       fillWorkdayStep2Education(profile);
       uploadCvInStep2(profile).then(function () {
         setTimeout(refreshWorkdayRequiredFields, 800);
-        setTimeout(hideBanner, 2000);
+        clickNextAndContinue(4000);
       }).catch(function () {
         setTimeout(refreshWorkdayRequiredFields, 800);
-        setTimeout(hideBanner, 2000);
+        clickNextAndContinue(4000);
       });
       return;
     }
@@ -1045,11 +1095,10 @@
         setTimeout(hideBanner, 2000);
         return;
       }
-      // Sur apply/applyManually (ou /apply avec formulaire visible) : on NE relance PAS
+      // Sur apply : auto-clic "Enregistrer et continuer" pour passer à l'étape suivante
       if (isOnApplyForm) {
-        log('✅ Formulaire rempli → arrêt (cliquez "Enregistrer et continuer")', 5);
-        chrome.storage.local.remove(['taleos_pending_deloitte', 'taleos_deloitte_did_login_click']);
-        setTimeout(hideBanner, 2000);
+        log('✅ Étape remplie → clic auto "Enregistrer et continuer"', 5);
+        clickNextAndContinue(5000);
         return;
       }
       // Sur /apply (page d'entrée) on peut relancer une fois pour s'assurer que tout est bien pris en compte

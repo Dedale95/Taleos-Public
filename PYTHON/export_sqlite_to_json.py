@@ -35,6 +35,7 @@ DELOITTE_DB = PYTHON_DIR / "deloitte_jobs.db"
 BNP_DB = PYTHON_DIR / "bnp_paribas_jobs.db"
 BPIFRANCE_DB = PYTHON_DIR / "bpifrance_jobs.db"
 BPCE_DB = PYTHON_DIR / "bpce_jobs.db"
+CREDIT_MUTUEL_DB = PYTHON_DIR / "credit_mutuel_jobs.db"
 
 def fix_location(loc):
     """Corrige les locations incorrectes (ex: Tunis - France → Tunis - Tunisie, N/A - Luxembourg → Luxembourg).
@@ -149,6 +150,7 @@ def main():
         ("BNP Paribas", BNP_DB),
         ("BPCE", BPCE_DB),
         ("Bpifrance", BPIFRANCE_DB),
+        ("Crédit Mutuel", CREDIT_MUTUEL_DB),
     ]
     
     for name, db_path in sources_info:

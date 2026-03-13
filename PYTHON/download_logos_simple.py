@@ -59,6 +59,10 @@ LOGO_URLS = {
     "credit_foncier": [
         "https://upload.wikimedia.org/wikipedia/fr/8/87/Cr%C3%A9dit_foncier.svg",
     ],
+    "credit_mutuel": [
+        "https://logo.clearbit.com/creditmutuel.fr?size=128",
+        "https://upload.wikimedia.org/wikipedia/fr/2/2a/Logo_Cr%C3%A9dit_Mutuel.svg",
+    ],
 }
 
 def download_logo(url: str, filename: str) -> bool:

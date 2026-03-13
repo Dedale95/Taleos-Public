@@ -391,7 +391,8 @@ async def fetch_listing_page(context: BrowserContext, page_num: int, sem: asynci
                 if h3:
                     job_title = h3.get_text(strip=True)
 
-                # Contrat et lieu: texte du lien "CDI • Paris (haussmann) Voir le détail"
+                # Contrat et lieu: sur la vignette "CDI • Paris (haussmann)" ou "Alternance • Maisons-Alfort"
+                # Le texte peut être dans le lien ou dans un parent/sibling
                 link_text = link.get_text(strip=True).replace("Voir le détail", "").strip()
                 contract_type = None
                 location_raw = None
@@ -399,6 +400,18 @@ async def fetch_listing_page(context: BrowserContext, page_num: int, sem: asynci
                     parts = link_text.split(" • ", 1)
                     contract_type = normalize_contract(parts[0].strip()) if parts else None
                     location_raw = parts[1].strip() if len(parts) > 1 else None
+                # Fallback: chercher dans le bloc parent (ex: div contenant h3 + meta + lien)
+                if not contract_type or not location_raw:
+                    block = link.find_parent(["div", "article", "li"]) or link
+                    block_text = block.get_text(separator=" ", strip=True) if block else ""
+                    block_text = block_text.replace("Voir le détail", "").strip()
+                    if " • " in block_text:
+                        parts = block_text.split(" • ", 2)
+                        if len(parts) >= 2:
+                            if not contract_type:
+                                contract_type = normalize_contract(parts[0].strip())
+                            if not location_raw:
+                                location_raw = parts[1].replace("Voir le détail", "").strip()
 
                 location = build_location(location_raw) if location_raw else None
                 if not job_title:
@@ -439,22 +452,38 @@ async def fetch_job_detail(context: BrowserContext, job: Dict, sem: asyncio.Sema
             if h1:
                 job["job_title"] = h1.get_text(strip=True)
 
-            # === TAGS EXPLICITES (type contrat) ===
-            # Li de la zone métadonnées (avant "Ces offres peuvent aussi vous intéresser")
-            ces_offres_h2 = soup.find("h2", string=re.compile(r"Ces offres", re.I))
-            for li in soup.find_all("li"):
-                if ces_offres_h2 and li.find_previous("h2", string=re.compile(r"Ces offres", re.I)):
-                    continue  # li après "Ces offres", ignorer
-                txt = li.get_text(strip=True)
-                if not txt or len(txt) > 50:
-                    continue
-                txt_lower = txt.lower()
-                if txt_lower in ("cdi", "cdd", "stage", "vie", "v.i.e"):
-                    job["contract_type"] = normalize_contract(txt)
-                    break
-                if txt_lower == "alternance":
-                    job["contract_type"] = "Alternance / Apprentissage"
-                    break
+            # === TYPE DE CONTRAT ===
+            # Priorité 1: garder celui de la liste (vignette) - source fiable
+            # Priorité 2: header "ALTERNANCE • TEMPS-PLEIN • MAISONS-ALFORT"
+            # Priorité 3: LIs de "Détails de l'offre" uniquement (jamais "Ces offres")
+            if not job.get("contract_type"):
+                # Header meta: "ALTERNANCE • TEMPS-PLEIN • MAISONS-ALFORT" (1er = contrat, 2e = durée, 3e = lieu)
+                header = soup.select_one(".entry-header, .job-header, [class*='header']")
+                if header:
+                    meta_text = header.get_text(strip=True)
+                    if " • " in meta_text:
+                        first_part = meta_text.split(" • ")[0].strip().lower()
+                        # Ignorer "temps-plein", "temps plein" (durée, pas type de contrat)
+                        if first_part and first_part not in ("temps-plein", "temps plein"):
+                            ct = normalize_contract(first_part)
+                            if ct and ct in list(CONTRACT_MAPPING.values()) + ["Alternance / Apprentissage"]:
+                                job["contract_type"] = ct
+                # Fallback: LIs de "Détails de l'offre" (exclure "Ces offres")
+                if not job.get("contract_type"):
+                    ces_offres_h2 = soup.find("h2", string=re.compile(r"Ces offres", re.I))
+                    for li in soup.find_all("li"):
+                        if ces_offres_h2 and li.find_previous("h2", string=re.compile(r"Ces offres", re.I)):
+                            continue
+                        txt = li.get_text(strip=True)
+                        if not txt or len(txt) > 50:
+                            continue
+                        txt_lower = txt.lower()
+                        if txt_lower in ("cdi", "cdd", "stage", "vie", "v.i.e"):
+                            job["contract_type"] = normalize_contract(txt)
+                            break
+                        if txt_lower == "alternance":
+                            job["contract_type"] = "Alternance / Apprentissage"
+                            break
 
             # Localisation: "Vos futurs bureaux : Paris (Haussmann)" ou header "cdi • Paris (Haussmann)"
             for h3 in soup.select("h3"):
@@ -525,7 +554,7 @@ async def fetch_job_detail(context: BrowserContext, job: Dict, sem: asyncio.Sema
 # =========================================================
 # MAIN
 # =========================================================
-async def main():
+async def main(refresh_all: bool = False):
     start = time.time()
     logging.info("=" * 80)
     logging.info("DÉBUT PIPELINE BPI FRANCE JOB SCRAPER")
@@ -572,15 +601,19 @@ async def main():
             logging.info("\n⏳ ÉTAPE 3: Marquage des offres expirées")
             db.mark_as_expired(expired_urls)
 
-        # Étape 4: Scraper les détails des nouveaux
-        new_jobs = [j for j in all_jobs if j.get("job_url") in new_urls]
-        if new_jobs:
-            logging.info(f"\n🚀 ÉTAPE 4: Scraping de {len(new_jobs)} nouvelles offres")
-            tasks = [fetch_job_detail(context, job, sem) for job in new_jobs]
+        # Étape 4: Scraper les détails (nouveaux uniquement, ou tous si --refresh-all)
+        if refresh_all:
+            jobs_to_detail = all_jobs
+            logging.info(f"\n🔄 Mode --refresh-all: re-scraping des détails pour {len(jobs_to_detail)} offres")
+        else:
+            jobs_to_detail = [j for j in all_jobs if j.get("job_url") in new_urls]
+        if jobs_to_detail:
+            logging.info(f"\n🚀 ÉTAPE 4: Scraping des détails de {len(jobs_to_detail)} offres")
+            tasks = [fetch_job_detail(context, job, sem) for job in jobs_to_detail]
             for coro in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Détails"):
                 await coro
             today = datetime.now().strftime("%Y-%m-%d")
-            for job in new_jobs:
+            for job in jobs_to_detail:
                 job["publication_date"] = db.get_existing_publication_date(job.get("job_url", "")) or today
                 db.insert_or_update_job(job)
         else:
@@ -612,4 +645,8 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--refresh-all", action="store_true", help="Re-scraper les détails de toutes les offres (corrige les types de contrat erronés)")
+    args = parser.parse_args()
+    asyncio.run(main(refresh_all=args.refresh_all))

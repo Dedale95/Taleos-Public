@@ -109,6 +109,7 @@ CONTRACT_MAPPING = {
     "contrat-dapprentissage": "Alternance / Apprentissage",
     "contrat-de-professionnalisation": "Alternance / Apprentissage",
     "contrat-en-alternance": "Alternance / Apprentissage",
+    "auxiliaire-de-vacances": "Stage",
     "vie": "VIE",
     "Contrat en alternance": "Alternance / Apprentissage",
 }

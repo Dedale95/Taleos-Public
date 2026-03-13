@@ -77,7 +77,7 @@ CONTRACT_MAPPING = {
     "apprentissage": "Alternance",
     "contrat de professionnalisation": "Alternance",
     "contrat étudiant": "Contrat étudiant",
-    "auxiliaire de vacances": "Auxiliaire de vacances",
+    "auxiliaire de vacances": "Stage",
     "reconversion professionnelle (cdi)": "CDI",
 }
 

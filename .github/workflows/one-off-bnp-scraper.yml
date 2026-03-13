@@ -1,0 +1,37 @@
+# One-off BNP Paribas scraper - pour valider le fonctionnement
+# Lance uniquement le scraper BNP (pas CA, SG, Deloitte)
+# Déclenchement manuel uniquement (workflow_dispatch)
+# Les prochaines exécutions se feront via le batch quotidien (update-job-offers.yml)
+
+name: One-off BNP Paribas scraper
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bnp-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90  # BNP ~3700 offres, peut prendre 30-60 min
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configuration Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installation des dépendances
+        run: |
+          pip install -r PYTHON/requirements_scrapers.txt
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Scraper BNP Paribas uniquement
+        run: python PYTHON/bnp_paribas_scraper.py
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Stats BNP Paribas
+        run: python PYTHON/show_job_stats.py

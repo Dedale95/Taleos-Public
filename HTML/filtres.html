@@ -2092,10 +2092,16 @@
         }
 
         const CREDIT_AGRICOLE_GROUP_KEY = '__CA_GROUP__';
-        const companyGroupCAExpandedByAccordion = {}; // État ouvert/fermé par accordéon
+        const BPCE_GROUP_KEY = '__BPCE_GROUP__';
+        const companyGroupCAExpandedByAccordion = {};
+        const companyGroupBPCEExpandedByAccordion = {};
         function getCompanyGroupCAExpanded(accordionId) {
             if (companyGroupCAExpandedByAccordion[accordionId] !== undefined) return companyGroupCAExpandedByAccordion[accordionId];
-            return false; // fermé par défaut, ouvert uniquement si l'utilisateur l'a laissé ouvert
+            return false;
+        }
+        function getCompanyGroupBPCEExpanded(accordionId) {
+            if (companyGroupBPCEExpandedByAccordion[accordionId] !== undefined) return companyGroupBPCEExpandedByAccordion[accordionId];
+            return false;
         }
         function isCreditAgricoleSubsidiary(name) {
             if (!name || typeof name !== 'string') return false;
@@ -2104,18 +2110,29 @@
                 ['lcl', 'caceis', 'amundi', 'bforbank', 'indosuez wealth management',
                  'gruppo bancario crédit agricole italia', 'idia capital investissement', 'uptevia'].some(s => n.includes(s));
         }
+        function isBPCEBrand(name) {
+            if (!name || typeof name !== 'string') return false;
+            const n = name.toLowerCase();
+            return ['natixis', 'caisse d\'épargne', 'caisse d\'epargne', 'banque populaire', 'bpce',
+                'crédit coopératif', 'credit cooperatif', 'banque palatine', 'oney', 'aew',
+                'mirova', 'ostrum', 'crédit foncier', 'credit foncier', 'capitole finance', 'casden'].some(s => n.includes(s));
+        }
 
         function populateCompanyFilterAccordionWithGroup(accordionId, values, counts, disabledValues, hideDisabled, checkedValues) {
             const container = document.getElementById(`companyFilter-${accordionId}`);
             if (!container) return;
             const cv = checkedValues instanceof Set ? checkedValues : new Set(checkedValues || []);
-            const prevChildren = container.querySelector('.company-group-children');
-            if (prevChildren) companyGroupCAExpandedByAccordion[accordionId] = prevChildren.classList.contains('visible');
+            const prevCA = container.querySelector('.company-group-children[data-group="ca"]');
+            const prevBPCE = container.querySelector('.company-group-children[data-group="bpce"]');
+            if (prevCA) companyGroupCAExpandedByAccordion[accordionId] = prevCA.classList.contains('visible');
+            if (prevBPCE) companyGroupBPCEExpandedByAccordion[accordionId] = prevBPCE.classList.contains('visible');
             const wasExpanded = getCompanyGroupCAExpanded(accordionId);
+            const wasBPCEExpanded = getCompanyGroupBPCEExpanded(accordionId);
             container.innerHTML = '';
 
             const caSubs = values.filter(c => isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
-            const others = values.filter(c => !isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const bpceBrands = values.filter(c => isBPCEBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const others = values.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
             const groupChecked = caSubs.every(c => cv.has(c));
             const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
@@ -2128,6 +2145,7 @@
                 expandSpan.textContent = '▶';
                 const childrenDiv = document.createElement('div');
                 childrenDiv.className = 'company-group-children' + (wasExpanded ? ' visible' : '');
+                childrenDiv.setAttribute('data-group', 'ca');
                 if (wasExpanded) expandSpan.classList.add('expanded');
                 expandSpan.onclick = (e) => {
                     e.stopPropagation();
@@ -2185,6 +2203,81 @@
                 });
                 groupCb.onchange = () => {
                     renderedCaSubs.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                        updateFilter(accordionId, 'companies', c, groupCb.checked);
+                    });
+                };
+                container.appendChild(childrenDiv);
+            }
+
+            const bpceGroupChecked = bpceBrands.every(c => cv.has(c));
+            const bpceGroupCount = bpceBrands.reduce((s, c) => s + (counts[c] || 0), 0);
+            if (bpceBrands.length > 0) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'company-group-header';
+                const expandSpan = document.createElement('span');
+                expandSpan.className = 'company-group-expand';
+                expandSpan.textContent = '▶';
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'company-group-children' + (wasBPCEExpanded ? ' visible' : '');
+                childrenDiv.setAttribute('data-group', 'bpce');
+                if (wasBPCEExpanded) expandSpan.classList.add('expanded');
+                expandSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    childrenDiv.classList.toggle('visible');
+                    expandSpan.classList.toggle('expanded');
+                    const expanded = childrenDiv.classList.contains('visible');
+                    companyGroupBPCEExpandedByAccordion[accordionId] = expanded;
+                    const accordion = accordions.find(a => (a.id || '').toString() === (accordionId || '').toString());
+                    if (accordion) {
+                        accordion.companyGroupBPCEExpanded = expanded;
+                        saveAccordion(accordion);
+                    }
+                };
+                const groupLabel = document.createElement('label');
+                groupLabel.style.display = 'flex';
+                groupLabel.style.alignItems = 'center';
+                groupLabel.style.flex = '1';
+                groupLabel.style.cursor = 'pointer';
+                const groupCb = document.createElement('input');
+                groupCb.type = 'checkbox';
+                groupCb.value = BPCE_GROUP_KEY;
+                groupCb.checked = bpceGroupChecked;
+                groupLabel.appendChild(groupCb);
+                const span = document.createElement('span');
+                span.textContent = `Groupe BPCE (${bpceGroupCount})`;
+                groupLabel.appendChild(span);
+                groupDiv.appendChild(expandSpan);
+                groupDiv.appendChild(groupLabel);
+                container.appendChild(groupDiv);
+                const renderedBpceBrands = [];
+                const childCheckboxes = [];
+                bpceBrands.forEach(c => {
+                    const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0) return;
+                    renderedBpceBrands.push(c);
+                    const disabled = disabledValues.has(c);
+                    const label = document.createElement('label');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = c;
+                    cb.checked = cv.has(c) || bpceGroupChecked;
+                    cb.disabled = disabled;
+                    childCheckboxes.push(cb);
+                    cb.onchange = () => {
+                        updateFilter(accordionId, 'companies', c, cb.checked);
+                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    };
+                    label.appendChild(cb);
+                    const sp = document.createElement('span');
+                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
+                    label.appendChild(sp);
+                    if (disabled) label.classList.add('disabled');
+                    childrenDiv.appendChild(label);
+                });
+                groupCb.onchange = () => {
+                    renderedBpceBrands.forEach(c => {
                         const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
                         if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
                         updateFilter(accordionId, 'companies', c, groupCb.checked);

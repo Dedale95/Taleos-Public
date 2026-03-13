@@ -2072,6 +2072,11 @@
             } else {
                 companyGroupCAExpanded = localStorage.getItem('companyGroupCAExpanded') === 'true';
             }
+            if (restoredFilters?.companyGroupBPCEExpanded !== undefined) {
+                companyGroupBPCEExpanded = restoredFilters.companyGroupBPCEExpanded;
+            } else {
+                companyGroupBPCEExpanded = localStorage.getItem('companyGroupBPCEExpanded') === 'true';
+            }
             
             const sets = {
                 regions: new Set(), countries: new Set(), contracts: new Set(),
@@ -2220,7 +2225,9 @@
         }
 
         const CREDIT_AGRICOLE_GROUP_KEY = '__CA_GROUP__';
-        let companyGroupCAExpanded = false; // Fermé par défaut, ouvert uniquement si l'utilisateur l'a laissé ouvert
+        const BPCE_GROUP_KEY = '__BPCE_GROUP__';
+        let companyGroupCAExpanded = false;
+        let companyGroupBPCEExpanded = false;
         function isCreditAgricoleSubsidiary(name) {
             if (!name || typeof name !== 'string') return false;
             const n = name.toLowerCase();
@@ -2228,28 +2235,42 @@
                 ['lcl', 'caceis', 'amundi', 'bforbank', 'indosuez wealth management',
                  'gruppo bancario crédit agricole italia', 'idia capital investissement', 'uptevia'].some(s => n.includes(s));
         }
+        function isBPCEBrand(name) {
+            if (!name || typeof name !== 'string') return false;
+            const n = name.toLowerCase();
+            return ['natixis', 'caisse d\'épargne', 'caisse d\'epargne', 'banque populaire', 'bpce',
+                'crédit coopératif', 'credit cooperatif', 'banque palatine', 'oney', 'aew',
+                'mirova', 'ostrum', 'crédit foncier', 'credit foncier', 'capitole finance', 'casden'].some(s => n.includes(s));
+        }
 
         function getSelectedCompanies() {
             const container = document.getElementById('companyFilter');
             if (!container) return [];
             const checked = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            let result = [...checked];
             if (checked.includes(CREDIT_AGRICOLE_GROUP_KEY)) {
-                const allCompanies = Array.from(container.querySelectorAll('input[type="checkbox"][data-ca-subsidiary]')).map(cb => cb.value);
-                const others = checked.filter(v => v !== CREDIT_AGRICOLE_GROUP_KEY);
-                return [...new Set([...allCompanies, ...others])];
+                const caSubs = Array.from(container.querySelectorAll('input[type="checkbox"][data-ca-subsidiary]')).map(cb => cb.value);
+                result = result.filter(v => v !== CREDIT_AGRICOLE_GROUP_KEY).concat(caSubs);
             }
-            return checked;
+            if (checked.includes(BPCE_GROUP_KEY)) {
+                const bpceBrands = Array.from(container.querySelectorAll('input[type="checkbox"][data-bpce-brand]')).map(cb => cb.value);
+                result = result.filter(v => v !== BPCE_GROUP_KEY).concat(bpceBrands);
+            }
+            return [...new Set(result)];
         }
 
         function populateCompanyFilterWithGroup(companies, counts, disabledValues, hideDisabled, restoredCheckedValues) {
             const container = document.getElementById('companyFilter');
             const checkedValues = restoredCheckedValues ? new Set(restoredCheckedValues) : new Set(getSelectedCompanies());
-            const prevChildren = container.querySelector('.company-group-children');
-            if (prevChildren) companyGroupCAExpanded = prevChildren.classList.contains('visible');
+            const prevCA = container.querySelector('.company-group-children[data-group="ca"]');
+            const prevBPCE = container.querySelector('.company-group-children[data-group="bpce"]');
+            if (prevCA) companyGroupCAExpanded = prevCA.classList.contains('visible');
+            if (prevBPCE) companyGroupBPCEExpanded = prevBPCE.classList.contains('visible');
             container.innerHTML = '';
 
             const caSubs = companies.filter(c => isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
-            const others = companies.filter(c => !isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const bpceBrands = companies.filter(c => isBPCEBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const others = companies.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
             const groupChecked = checkedValues.has(CREDIT_AGRICOLE_GROUP_KEY) || caSubs.every(c => checkedValues.has(c));
             const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
@@ -2295,6 +2316,7 @@
 
                 const childrenDiv = document.createElement('div');
                 childrenDiv.className = 'company-group-children' + (companyGroupCAExpanded ? ' visible' : '');
+                childrenDiv.setAttribute('data-group', 'ca');
                 if (companyGroupCAExpanded) expandSpan.classList.add('expanded');
                 const childCheckboxes = [];
                 caSubs.forEach(c => {
@@ -2307,6 +2329,80 @@
                     cb.value = c;
                     cb.setAttribute('data-ca-subsidiary', '1');
                     cb.checked = checkedValues.has(c) || groupChecked;
+                    cb.disabled = disabled;
+                    childCheckboxes.push(cb);
+                    label.appendChild(cb);
+                    const sp = document.createElement('span');
+                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
+                    label.appendChild(sp);
+                    if (disabled) label.classList.add('disabled');
+                    childrenDiv.appendChild(label);
+                });
+                childCheckboxes.forEach(cb => {
+                    cb.onchange = () => {
+                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                        updateActiveFiltersBadge();
+                        applyFilters();
+                    };
+                });
+                container.appendChild(childrenDiv);
+            }
+
+            const bpceGroupChecked = checkedValues.has(BPCE_GROUP_KEY) || bpceBrands.every(c => checkedValues.has(c));
+            const bpceGroupCount = bpceBrands.reduce((s, c) => s + (counts[c] || 0), 0);
+            if (bpceBrands.length > 0) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'company-group-header';
+                const expandSpan = document.createElement('span');
+                expandSpan.className = 'company-group-expand';
+                expandSpan.textContent = '▶';
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'company-group-children' + (companyGroupBPCEExpanded ? ' visible' : '');
+                childrenDiv.setAttribute('data-group', 'bpce');
+                expandSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    childrenDiv.classList.toggle('visible');
+                    expandSpan.classList.toggle('expanded');
+                    companyGroupBPCEExpanded = childrenDiv.classList.contains('visible');
+                    localStorage.setItem('companyGroupBPCEExpanded', companyGroupBPCEExpanded);
+                    saveFilters().catch(err => console.error('Erreur sauvegarde filtres:', err));
+                };
+                if (companyGroupBPCEExpanded) expandSpan.classList.add('expanded');
+                const groupLabel = document.createElement('label');
+                groupLabel.style.display = 'flex';
+                groupLabel.style.alignItems = 'center';
+                groupLabel.style.flex = '1';
+                groupLabel.style.cursor = 'pointer';
+                const groupCb = document.createElement('input');
+                groupCb.type = 'checkbox';
+                groupCb.value = BPCE_GROUP_KEY;
+                groupCb.checked = bpceGroupChecked;
+                groupCb.onchange = () => {
+                    bpceBrands.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"][data-bpce-brand]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                    });
+                    updateActiveFiltersBadge();
+                    applyFilters();
+                };
+                groupLabel.appendChild(groupCb);
+                const span = document.createElement('span');
+                span.textContent = `Groupe BPCE (${bpceGroupCount})`;
+                groupLabel.appendChild(span);
+                groupDiv.appendChild(expandSpan);
+                groupDiv.appendChild(groupLabel);
+                container.appendChild(groupDiv);
+                const childCheckboxes = [];
+                bpceBrands.forEach(c => {
+                    const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0) return;
+                    const disabled = disabledValues.has(c);
+                    const label = document.createElement('label');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = c;
+                    cb.setAttribute('data-bpce-brand', '1');
+                    cb.checked = checkedValues.has(c) || bpceGroupChecked;
                     cb.disabled = disabled;
                     childCheckboxes.push(cb);
                     label.appendChild(cb);
@@ -2409,6 +2505,7 @@
                 companies: getSelectedCompanies(),
                 educations: getCheckedValues('educationFilter'),
                 companyGroupCAExpanded: companyGroupCAExpanded,
+                companyGroupBPCEExpanded: companyGroupBPCEExpanded,
                 savedAt: new Date().toISOString()
             };
             
@@ -2956,7 +3053,20 @@
                 'caceis': 'images/logos/caceis.png',
                 'indosuez': 'images/logos/indosuez.png',
                 'lcl': 'images/logos/lcl.png',
-                'uptevia': 'images/logos/uptevia.png'
+                'uptevia': 'images/logos/uptevia.png',
+                'bpce': 'images/logos/bpce.png',
+                'natixis': 'images/logos/bpce.png',
+                'caisse_depargne': 'images/logos/bpce.png',
+                "caisse_d'epargne": 'images/logos/bpce.png',
+                'banque_populaire': 'images/logos/bpce.png',
+                'credit_cooperatif': 'images/logos/bpce.png',
+                'banque_palatine': 'images/logos/bpce.png',
+                'oney': 'images/logos/bpce.png',
+                'aew': 'images/logos/bpce.png',
+                'mirova': 'images/logos/bpce.png',
+                'ostrum': 'images/logos/bpce.png',
+                'credit_foncier': 'images/logos/bpce.png',
+                'casden': 'images/logos/bpce.png'
             };
             
             // Rechercher le logo dans le mapping

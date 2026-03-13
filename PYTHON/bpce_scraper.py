@@ -50,6 +50,54 @@ class Config:
 
 config = Config()
 
+# ================= Brand → Maison (big picture) =================
+# Mapping des marques API vers des noms lisibles pour les vignettes.
+# Ordre: marques spécifiques d'abord, puis préfixes génériques.
+BRAND_TO_HOUSE = [
+    # Maisons spécifiques (exact ou préfixe)
+    ("Banque Palatine", "Banque Palatine"),
+    ("AEW", "AEW"),
+    ("Groupe Crédit Coopératif", "Crédit Coopératif"),
+    ("Crédit Coopératif", "Crédit Coopératif"),
+    ("ONEY", "Oney"),
+    ("Oney", "Oney"),
+    ("Mirova", "Mirova"),
+    ("Ostrum Asset Management", "Ostrum"),
+    ("Ostrum", "Ostrum"),
+    ("Crédit Foncier", "Crédit Foncier"),
+    ("Capitole Finance", "Capitole Finance"),
+    ("Casden", "Casden"),
+    # Natixis (toutes variantes CIB, IM, Wealth, etc.)
+    ("Natixis", "Natixis"),
+    ("NIMI", "Natixis"),
+    # Caisse d'Épargne (toutes régionales)
+    ("Caisse d'Epargne", "Caisse d'Épargne"),
+    ("Caisse d'Épargne", "Caisse d'Épargne"),
+    # Banque Populaire (toutes régionales + BRED, Banque BCP, Banque de Savoie)
+    ("BRED Banque Populaire", "Banque Populaire"),
+    ("Banque Populaire", "Banque Populaire"),
+    ("Banque BCP", "Banque Populaire"),
+    ("Banque de Savoie", "Banque Populaire"),
+    # BPCE (entités centrales, solutions, assurances, etc.)
+    ("BPCE", "BPCE"),
+]
+DEFAULT_HOUSE = "BPCE"
+
+
+def resolve_company_name(brand_list: List[str]) -> str:
+    """Retourne le nom de la maison (big picture) à partir de la liste des marques."""
+    if not brand_list:
+        return DEFAULT_HOUSE
+    brand_raw = (brand_list[0] or "").strip() if brand_list else ""
+    if not brand_raw:
+        return DEFAULT_HOUSE
+    brand_lower = brand_raw.lower()
+    for pattern, house in BRAND_TO_HOUSE:
+        if pattern.lower() in brand_lower:
+            return house
+    return DEFAULT_HOUSE
+
+
 # ================= Contract type mapping =================
 CONTRACT_MAPPING = {
     "cdi": "CDI",
@@ -419,6 +467,9 @@ def transform_api_item_to_job(item: Dict) -> Dict:
     education_level = extract_education_level(job_description)
     experience_level = extract_experience_level(job_description, contract_type)
 
+    # Maison (AEW, Banque Palatine, Natixis, Caisse d'Épargne, etc.)
+    company_name = resolve_company_name(item.get("brand", []))
+
     return {
         "job_url": job_url,
         "job_id": job_id,
@@ -438,7 +489,7 @@ def transform_api_item_to_job(item: Dict) -> Dict:
         "tools": None,
         "languages": None,
         "job_description": job_description,
-        "company_name": "BPCE",
+        "company_name": company_name,
         "company_description": None,
         "first_seen": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

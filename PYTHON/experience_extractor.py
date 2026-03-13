@@ -9,13 +9,19 @@ import re
 from typing import Optional
 
 
-def extract_experience_level(text: str, contract_type: Optional[str] = None) -> Optional[str]:
+def extract_experience_level(
+    text: str,
+    contract_type: Optional[str] = None,
+    job_title: Optional[str] = None
+) -> Optional[str]:
     """
     Extrait le niveau d'expérience attendu depuis le texte de l'offre (description, company_description, etc.).
+    Fallback : infère depuis le titre du poste si la description ne donne rien.
     
     Args:
         text: Texte complet de l'offre (description, company_description, etc.)
         contract_type: Type de contrat (Stage, VIE, Alternance → toujours 0-2 ans)
+        job_title: Titre du poste (fallback pour inférence : Senior, Junior, Lead, Manager, etc.)
     
     Returns:
         "0 - 2 ans", "3 - 5 ans", "6 - 10 ans", "11 ans et plus" ou None
@@ -26,10 +32,9 @@ def extract_experience_level(text: str, contract_type: Optional[str] = None) -> 
         if any(x in ct_lower for x in ['stage', 'vie', 'alternance', 'apprentissage', 'intern', 'trainee']):
             return "0 - 2 ans"
     
-    if not text or not str(text).strip():
+    text_lower = (text or "").lower().strip()
+    if not text_lower and not job_title:
         return None
-    
-    text_lower = text.lower()
     
     # 1. "Niveau d'expérience minimum X - Y ans" (format Crédit Agricole, BPCE)
     niv_min = re.search(
@@ -80,6 +85,19 @@ def extract_experience_level(text: str, contract_type: Optional[str] = None) -> 
             return "6 - 10 ans"
         return "11 ans et plus"
     
+    # 5a. "minimum de deux/trois/... ans" (mots français)
+    fr_numbers = {'deux': 2, 'trois': 3, 'quatre': 4, 'cinq': 5, 'six': 6, 'sept': 7, 'huit': 8, 'neuf': 9, 'dix': 10}
+    min_fr = re.search(r"minimum\s+de\s+(deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\s*ans", text_lower)
+    if min_fr:
+        y = fr_numbers.get(min_fr.group(1), 2)
+        if y <= 2:
+            return "0 - 2 ans"
+        if y <= 5:
+            return "3 - 5 ans"
+        if y <= 10:
+            return "6 - 10 ans"
+        return "11 ans et plus"
+    
     # 5b. "plus de X ans" / "more than X years" (générique)
     plus_de_m = re.search(r"(?:plus\s+de|more\s+than|over)\s*(\d+)\s*(?:ans|years?)", text_lower)
     if plus_de_m:
@@ -116,6 +134,42 @@ def extract_experience_level(text: str, contract_type: Optional[str] = None) -> 
             return "6 - 10 ans"
         return "11 ans et plus"
     
+    # 5d1. "au moins X mois" (convertir en ans)
+    at_least_mois = re.search(r"(?:at\s+least|au\s+moins)\s+(\d+)\s*mois", text_lower)
+    if at_least_mois:
+        mois = int(at_least_mois.group(1))
+        y = max(1, (mois + 11) // 12)
+        if y <= 2:
+            return "0 - 2 ans"
+        if y <= 5:
+            return "3 - 5 ans"
+        return "6 - 10 ans"
+    
+    # 5d2. "X mois d'expérience"
+    mois_m = re.search(r"(\d+)\s*mois\s*d['\u2019\s]expérience", text_lower)
+    if mois_m:
+        mois = int(mois_m.group(1))
+        y = (mois + 11) // 12
+        if y <= 2:
+            return "0 - 2 ans"
+        if y <= 5:
+            return "3 - 5 ans"
+        if y <= 10:
+            return "6 - 10 ans"
+        return "11 ans et plus"
+    
+    # 5d3. "expérience de X ans ou plus" / "X ans ou plus"
+    ans_ou_plus = re.search(r"(?:expérience\s+de\s+)?(\d+)\s*ans\s*ou\s*plus", text_lower)
+    if ans_ou_plus:
+        y = int(ans_ou_plus.group(1))
+        if y <= 2:
+            return "0 - 2 ans"
+        if y <= 5:
+            return "3 - 5 ans"
+        if y <= 10:
+            return "6 - 10 ans"
+        return "11 ans et plus"
+    
     # 5e. "X years of experience" / "X+ years" (nombre seul)
     years_exp_m = re.search(r"(\d+)\+?\s*years?\s*(?:of\s*)?experience", text_lower)
     if years_exp_m:
@@ -144,12 +198,30 @@ def extract_experience_level(text: str, contract_type: Optional[str] = None) -> 
         (r'junior|débutant|beginner|entry|jeune diplômé|stagiaire|alternant', "0 - 2 ans"),
         (r'recent\s+graduate|young\s+graduate|graduate\s+program', "0 - 2 ans"),
         (r'first\s+experience|première expérience|premier poste|première expérience réussie', "0 - 2 ans"),
+        (r'expérience\s+réussie|premières?\s+expériences?\s+professionnelles?', "0 - 2 ans"),
+        (r'aucune\s+expérience\s+requise|no\s+experience\s+required', "0 - 2 ans"),
+        (r'expérience\s+(?:requise|souhaitée|attendue)|experience\s+(?:required|needed)', "3 - 5 ans"),
+        (r'(?:relevant|demonstrated|proven)\s+experience', "3 - 5 ans"),
         (r'early\s+career|entry\s*level', "0 - 2 ans"),
         (r'less than 2|moins de 2|moins de deux', "0 - 2 ans"),
     ]
     for pattern, level in patterns:
         if re.search(pattern, text_lower):
             return level
+    
+    # Fallback : inférer depuis le titre du poste (pour nouvelles offres et offres sans mention explicite)
+    if job_title:
+        title_lower = job_title.lower()
+        if any(x in title_lower for x in ['stage', 'alternance', 'vie', 'intern', 'stagiare']):
+            return "0 - 2 ans"
+        if any(x in title_lower for x in ['junior', 'graduate', 'jeune diplômé']):
+            return "0 - 2 ans"
+        if any(x in title_lower for x in ['senior', 'director', 'expert', 'chief']):
+            return "11 ans et plus"
+        if 'lead' in title_lower or 'principal' in title_lower:
+            return "6 - 10 ans"
+        if 'manager' in title_lower or 'confirmé' in title_lower:
+            return "6 - 10 ans"
     
     return None
 

@@ -543,7 +543,7 @@ async def fetch_job_detail(context: BrowserContext, job: Dict, sem: asyncio.Sema
             if not job.get("job_family") and desc:
                 job["job_family"] = classify_job_family(job.get("job_title", ""), desc)
             job["education_level"] = extract_education_level(desc)
-            job["experience_level"] = extract_experience_level(desc, job.get("contract_type"))
+            job["experience_level"] = extract_experience_level(desc, job.get("contract_type"), job.get("job_title"))
 
         except Exception as e:
             logging.warning(f"Erreur détail {job.get('job_url')}: {e}")

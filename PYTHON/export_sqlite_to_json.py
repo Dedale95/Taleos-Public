@@ -113,16 +113,17 @@ def read_from_db(db_path, company_name, live_only=True):
                     except:
                         pass  # Garder la valeur originale si le parsing échoue
             
-            # Enrichir experience_level si vide : ré-extraction depuis la description (patterns à jour)
+            # Enrichir experience_level si vide : ré-extraction depuis description + fallback titre
             if not job.get('experience_level'):
                 combined = " ".join(filter(None, [
                     job.get('job_description') or '',
                     job.get('company_description') or ''
                 ]))
-                if combined:
-                    extracted = extract_experience_level(combined, job.get('contract_type'))
-                    if extracted:
-                        job['experience_level'] = extracted
+                extracted = extract_experience_level(
+                    combined, job.get('contract_type'), job.get('job_title')
+                )
+                if extracted:
+                    job['experience_level'] = extracted
             
             jobs.append(job)
         

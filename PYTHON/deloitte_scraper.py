@@ -462,7 +462,7 @@ async def fetch_job_experience(context: BrowserContext, job: Dict, sem: asyncio.
             experience_level = seniority
             if not experience_level:
                 full_text = soup.get_text() if soup else description_text
-                experience_level = extract_experience_level(full_text, job.get("contract_type"))
+                experience_level = extract_experience_level(full_text, job.get("contract_type"), job.get("job_title"))
             
             # Education level mapping
             education_level = None

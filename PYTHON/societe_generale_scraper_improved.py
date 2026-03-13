@@ -479,7 +479,7 @@ async def fetch_job_details(context: BrowserContext, url: str, sem: asyncio.Sema
                     break
             
             # Extract experience level (module partagé)
-            experience_level = extract_experience_level(soup.get_text(), contract_type)
+            experience_level = extract_experience_level(soup.get_text(), contract_type, job_title)
 
             # Extract sections for description and skills
             description_parts = []

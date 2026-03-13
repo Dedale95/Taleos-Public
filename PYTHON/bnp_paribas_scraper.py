@@ -545,7 +545,7 @@ async def fetch_job_details(
 
             # Experience level (module partagé)
             desc = job.get("job_description") or ""
-            job["experience_level"] = extract_experience_level(desc, job.get("contract_type"))
+            job["experience_level"] = extract_experience_level(desc, job.get("contract_type"), job.get("job_title"))
 
             # Job family classification
             job["job_family"] = classify_job_family(

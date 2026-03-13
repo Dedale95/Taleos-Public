@@ -445,7 +445,7 @@ def transform_api_item_to_job(item: Dict) -> Dict:
 
     # Education & Experience
     education_level = extract_education_level(job_description)
-    experience_level = extract_experience_level(job_description, contract_type)
+    experience_level = extract_experience_level(job_description, contract_type, job_title)
 
     # Maison (AEW, Banque Palatine, Natixis, Caisse d'Épargne, etc.)
     company_name = resolve_company_name(item.get("brand", []))

@@ -676,7 +676,7 @@ class JobDetailScraper:
                 ]))
                 if combined:
                     job["experience_level"] = extract_experience_level(
-                        combined, job.get("contract_type")
+                        combined, job.get("contract_type"), job.get("job_title")
                     )
 
             return job

@@ -91,6 +91,10 @@ LOGO_URLS = {
         "https://www.afedim.fr/var/afedim/storage/images/media/logo-afedim.svg",
         "https://logo.clearbit.com/afedim.fr?size=128",
     ],
+    "oddo_bhf": [
+        "https://upload.wikimedia.org/wikipedia/commons/1/11/Oddo_BHF_logo.svg",
+        "https://upload.wikimedia.org/wikipedia/commons/6/69/Logo_ODDO_BHF.jpg",
+    ],
 }
 
 def download_logo(url: str, filename: str) -> bool:

@@ -1676,10 +1676,15 @@
                                     // Harmonisation des types de contrat : une seule entrée "Alternance" pour tout ce qui est alternance/apprentissage
                                     if (job && job.contract_type && typeof job.contract_type === 'string') {
                                         const c = job.contract_type.trim();
-                                        const contractLower = c.toLowerCase();
-                                        const isAlternance = contractLower === 'alternance' || contractLower === 'alternance / apprentissage' || contractLower === 'apprentissage' ||
-                                            contractLower.includes("contrat d'apprentissage") || contractLower.includes('contrat de professionnalisation') || contractLower.includes('contrat en alternance');
-                                        if (isAlternance) job.contract_type = 'Alternance';
+                                        const cl = c.toLowerCase().replace(/\s*\([^)]*\)/g, '').trim().toLowerCase();
+                                        let consolidated = null;
+                                        if (/stage|internship|job etudiant|student job|working student|contrat etudiant|auxiliaire/i.test(cl)) consolidated = 'Stage';
+                                        else if (/alternance|apprentissage|contrat de professionnalisation|contrat d'apprentissage|contrat en alternance/i.test(cl)) consolidated = 'Alternance';
+                                        else if (/\bvie\b|v\.i\.e|volontariat international/i.test(cl)) consolidated = 'VIE';
+                                        else if (/cdd|temporary|temporaire|zero hours/i.test(cl)) consolidated = 'CDD';
+                                        else if (/graduate programme|graduate program/i.test(cl)) consolidated = 'Graduate Programme';
+                                        else if (/cdi|permanent|reconversion professionnelle/i.test(cl)) consolidated = 'CDI';
+                                        if (consolidated) job.contract_type = consolidated;
                                     }
 
                                     // Consolidation des familles de métier : regrouper les rubriques synonymes sous un libellé canonique

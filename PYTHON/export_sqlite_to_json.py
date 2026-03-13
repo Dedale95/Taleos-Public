@@ -146,16 +146,48 @@ def normalize_job_family(raw_family: str) -> str:
 
 def normalize_contract_type(raw_contract: str) -> str:
     """
-    Normalise certains types de contrat pour rester sur :
-    Stage / Alternance / VIE / CDD / CDI.
-    Le gros est déjà fait dans les scrapers, ici on ajoute un filet de sécurité.
+    Normalise tous les types de contrat vers :
+    Stage / Alternance / VIE / CDD / CDI / Graduate Programme.
     """
     if not raw_contract:
         return raw_contract
     s = str(raw_contract).strip()
     norm = _normalize_text(s)
-    if "auxiliaire de vacances" in norm:
+    # Supprimer les parenthèses et leur contenu pour la comparaison (ex: "Working Student (Working Student)")
+    s_clean = re.sub(r'\s*\([^)]*\)\s*', ' ', s).strip()
+    norm_clean = _normalize_text(s_clean)
+
+    # Stage
+    if any(x in norm or x in norm_clean for x in [
+        "stage", "internship", "auxiliaire de vacances", "job etudiant", "student job",
+        "working student", "contrat etudiant", "stagesup"
+    ]):
         return "Stage"
+
+    # Alternance
+    if any(x in norm or x in norm_clean for x in [
+        "alternance", "apprentissage", "contrat de professionnalisation",
+        "contrat d'apprentissage", "contrat en alternance", "contrat-dapprentissage",
+        "contrat-de-professionnalisation", "contrat-en-alternance"
+    ]):
+        return "Alternance"
+
+    # VIE
+    if any(x in norm or x in norm_clean for x in ["vie", "v.i.e", "volontariat international"]):
+        return "VIE"
+
+    # CDD
+    if any(x in norm or x in norm_clean for x in ["cdd", "temporary", "temporaire", "zero hours"]):
+        return "CDD"
+
+    # Graduate Programme (avant CDI pour éviter que "Graduate Programme (CDI)" → CDI)
+    if any(x in norm or x in norm_clean for x in ["graduate programme", "graduate program"]):
+        return "Graduate Programme"
+
+    # CDI
+    if any(x in norm or x in norm_clean for x in ["cdi", "permanent", "reconversion professionnelle"]):
+        return "CDI"
+
     return s
 
 

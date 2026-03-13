@@ -12,6 +12,8 @@ jobs:
   bnp-only:
     runs-on: ubuntu-latest
     timeout-minutes: 90  # BNP ~3700 offres, peut prendre 30-60 min
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout
@@ -29,9 +31,9 @@ jobs:
           playwright install-deps chromium
 
       - name: Scraper BNP Paribas uniquement
-        run: python PYTHON/bnp_paribas_scraper.py
+        run: cd PYTHON && python bnp_paribas_scraper.py
         env:
           PYTHONUNBUFFERED: 1
 
       - name: Stats BNP Paribas
-        run: python PYTHON/show_job_stats.py
+        run: cd PYTHON && python show_job_stats.py

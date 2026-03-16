@@ -2704,9 +2704,16 @@
                 const span = document.createElement('span');
                 span.textContent = `Groupe BPCE (${bpceGroupCount})`;
                 groupLabel.appendChild(span);
-                // Texte + checkbox à gauche, flèche à droite
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (e.target === groupCb) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    groupCb.checked = !groupCb.checked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
                 container.appendChild(groupDiv);
                 const childCheckboxes = [];
                 bpceBrands.forEach(c => {
@@ -2783,6 +2790,14 @@
                 groupLabel.appendChild(span);
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (e.target === groupCb) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    groupCb.checked = !groupCb.checked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
                 container.appendChild(groupDiv);
                 bnpBrands.forEach(c => {
                     const cnt = counts[c] || 0;
@@ -2843,9 +2858,16 @@
                 const span = document.createElement('span');
                 span.textContent = `Groupe Crédit Agricole (${groupCount})`;
                 groupLabel.appendChild(span);
-                // Texte + checkbox à gauche, flèche à droite
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (e.target === groupCb) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    groupCb.checked = !groupCb.checked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
                 container.appendChild(groupDiv);
 
                 const childrenDiv = document.createElement('div');
@@ -2931,9 +2953,16 @@
                 const span = document.createElement('span');
                 span.textContent = `Groupe Crédit Mutuel (${cmGroupCount})`;
                 groupLabel.appendChild(span);
-                // Texte + checkbox à gauche, flèche à droite
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (e.target === groupCb) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    groupCb.checked = !groupCb.checked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
                 container.appendChild(groupDiv);
                 const childCheckboxes = [];
                 cmSubs.forEach(c => {

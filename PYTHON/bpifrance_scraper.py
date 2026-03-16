@@ -117,6 +117,33 @@ def normalize_contract(raw: Optional[str]) -> Optional[str]:
     return raw.strip()
 
 
+def extract_location_from_title_and_description(title: Optional[str], description: Optional[str]) -> Optional[str]:
+    """
+    Extrait la localisation depuis le titre ou la description quand les champs standards ne la fournissent pas.
+    Ex: "Chargé d'études Réunion" → La Réunion, "Direction interrégionale Outre-mer" + contexte Réunion
+    """
+    text = " ".join(filter(None, [title or "", description or ""])).lower()
+    if not text:
+        return None
+    # DOM-TOM : titre "X Réunion" ou description "Outre-mer" + "Réunion"
+    dom_tom_patterns = [
+        (r'\bréunion\b', 'La Réunion'),
+        (r'\bmartinique\b', 'Martinique'),
+        (r'\bguadeloupe\b', 'Guadeloupe'),
+        (r'\bguyane\b', 'Guyane'),
+        (r'polynésie\s+française|polynesie\s+francaise', 'Polynésie Française'),
+        (r'nouvelle-calédonie|nouvelle-caledonie', 'Nouvelle-Calédonie'),
+    ]
+    for pattern, loc_name in dom_tom_patterns:
+        if re.search(pattern, text, re.IGNORECASE):
+            city = normalize_city(loc_name)
+            if city:
+                country = get_country_from_city(city) or "France"
+                country = normalize_country(country)
+                return f"{city} - {country}"
+    return None
+
+
 def build_location(location_raw: Optional[str]) -> Optional[str]:
     """Construit 'Ville - Pays' à partir du texte brut (ex: 'Paris (haussmann)', 'Strasbourg')."""
     if not location_raw:
@@ -544,6 +571,12 @@ async def fetch_job_detail(context: BrowserContext, job: Dict, sem: asyncio.Sema
                 job["job_family"] = classify_job_family(job.get("job_title", ""), desc)
             job["education_level"] = extract_education_level(desc)
             job["experience_level"] = extract_experience_level(desc, job.get("contract_type"), job.get("job_title"))
+
+            # Fallback: extraire localisation depuis titre/description (ex: "Chargé d'études Réunion", "Direction Outre-mer")
+            if not job.get("location"):
+                loc = extract_location_from_title_and_description(job.get("job_title"), desc)
+                if loc:
+                    job["location"] = loc
 
         except Exception as e:
             logging.warning(f"Erreur détail {job.get('job_url')}: {e}")

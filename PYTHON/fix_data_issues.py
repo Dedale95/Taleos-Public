@@ -17,6 +17,7 @@ PYTHON_DIR = Path(__file__).parent
 CA_DB = PYTHON_DIR / "credit_agricole_jobs.db"
 SG_DB = PYTHON_DIR / "societe_generale_jobs.db"
 DELOITTE_DB = PYTHON_DIR / "deloitte_jobs.db"
+BPIFRANCE_DB = PYTHON_DIR / "bpifrance_jobs.db"
 
 # Mots-clés à détecter comme adresses ou noms d'entreprises
 ADDRESS_KEYWORDS = [
@@ -192,6 +193,30 @@ def normalize_education_level(edu):
     # Sinon retourner tel quel
     return edu
 
+def fix_bpifrance_location(db_path):
+    """Extrait la localisation depuis titre/description pour les offres BPI sans lieu (ex: Réunion, Martinique)."""
+    if not db_path.exists():
+        return
+    try:
+        from bpifrance_scraper import extract_location_from_title_and_description
+    except ImportError:
+        return
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute(
+        "SELECT job_url, job_title, job_description FROM jobs WHERE (location IS NULL OR location = '') AND (job_title IS NOT NULL OR job_description IS NOT NULL)"
+    )
+    updated = 0
+    for job_url, title, desc in cursor.fetchall():
+        loc = extract_location_from_title_and_description(title, desc)
+        if loc:
+            conn.execute("UPDATE jobs SET location = ?, last_updated = CURRENT_TIMESTAMP WHERE job_url = ?", (loc, job_url))
+            updated += 1
+    conn.commit()
+    conn.close()
+    if updated:
+        print(f"   📍 Bpifrance: {updated} localisation(s) extraite(s) depuis titre/description")
+
+
 def mark_sg_error_pages_invalid(db_path):
     """Marque is_valid=0 pour les offres SG avec titre 'Page not found' / 'Page introuvable'"""
     if not db_path.exists():
@@ -271,6 +296,7 @@ def main():
     fix_database(CA_DB, "Crédit Agricole")
     fix_database(SG_DB, "Société Générale")
     fix_database(DELOITTE_DB, "Deloitte")
+    fix_bpifrance_location(BPIFRANCE_DB)
     
     print("\n" + "=" * 80)
     print("✅ CORRECTIONS TERMINÉES")

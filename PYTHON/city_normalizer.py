@@ -33,6 +33,17 @@ CITY_MAPPING = {
     'cergy': 'Cergy',
     'region parisienne': 'Région Parisienne',
     'ile de france': 'Région Parisienne',
+    # DOM-TOM
+    'réunion': 'La Réunion',
+    'la réunion': 'La Réunion',
+    'martinique': 'Martinique',
+    'guadeloupe': 'Guadeloupe',
+    'guyane': 'Guyane',
+    'guyane française': 'Guyane',
+    'polynésie française': 'Polynésie Française',
+    'polynesie francaise': 'Polynésie Française',
+    'nouvelle-calédonie': 'Nouvelle-Calédonie',
+    'nouvelle-caledonie': 'Nouvelle-Calédonie',
     
     # ========== AUTRES GRANDES VILLES FR ==========
     'lyon': 'Lyon',

@@ -179,6 +179,30 @@ class JobDatabase:
             )
             return {row[0] for row in cursor.fetchall()}
 
+    def mark_error_pages_invalid(self) -> int:
+        """Marque is_valid=0 pour les jobs dont le titre/description indique une page d'erreur."""
+        error_patterns = ['erreur de navigation', 'accusé de réception', 'accuse de reception', 'page not found', 'page introuvable', 'votre candidature en 4 étapes']
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                "SELECT job_url, job_title, job_description FROM jobs WHERE is_valid = 1 AND (job_title IS NOT NULL OR job_description IS NOT NULL)"
+            )
+            def _norm(s):
+                return (s or '').lower().replace('\xa0', ' ')
+            to_invalidate = []
+            for row in cursor.fetchall():
+                title = _norm(row[1])
+                desc = _norm(row[2])
+                if any(p in title for p in error_patterns) or any(p in desc for p in error_patterns):
+                    to_invalidate.append(row[0])
+            if to_invalidate:
+                placeholders = ','.join('?' * len(to_invalidate))
+                conn.execute(f"""
+                    UPDATE jobs SET is_valid = 0, last_updated = CURRENT_TIMESTAMP
+                    WHERE job_url IN ({placeholders})
+                """, tuple(to_invalidate))
+                conn.commit()
+        return len(to_invalidate)
+
     def mark_as_expired(self, urls: Set[str]):
         if not urls:
             return
@@ -193,6 +217,12 @@ class JobDatabase:
     def insert_or_update_job(self, job: Dict):
         with sqlite3.connect(self.db_path) as conn:
             is_valid = 1 if (job.get('job_id') or job.get('job_title') or job.get('job_description')) else 0
+            # Exclure les pages d'erreur (Erreur de navigation, Accusé de réception, etc.)
+            title_lower = (job.get('job_title') or '').lower().replace('\xa0', ' ')
+            desc_lower = (job.get('job_description') or '').lower().replace('\xa0', ' ')
+            error_patterns = ['erreur de navigation', 'accusé de réception', 'accuse de reception', 'page not found', 'page introuvable', 'votre candidature en 4 étapes']
+            if any(err in title_lower for err in error_patterns) or any(err in desc_lower for err in error_patterns):
+                is_valid = 0
             technical_skills = job.get('technical_skills') or '[]'
             behavioral_skills = job.get('behavioral_skills') or '[]'
             if isinstance(technical_skills, list):
@@ -442,6 +472,11 @@ async def main_async():
     logging.info("=" * 60)
     logging.info("CRÉDIT MUTUEL - DÉBUT DU SCRAPING")
     logging.info("=" * 60)
+
+    # 0. Marquer les pages d'erreur déjà en base comme invalides
+    n_invalid = db.mark_error_pages_invalid()
+    if n_invalid:
+        logging.info(f"🧹 {n_invalid} offres (Erreur de navigation / Accusé de réception) marquées invalides")
 
     # 1. Collecter les URLs
     logging.info("Étape 1: Collecte des URLs...")

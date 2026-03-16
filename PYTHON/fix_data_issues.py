@@ -18,6 +18,7 @@ CA_DB = PYTHON_DIR / "credit_agricole_jobs.db"
 SG_DB = PYTHON_DIR / "societe_generale_jobs.db"
 DELOITTE_DB = PYTHON_DIR / "deloitte_jobs.db"
 BPIFRANCE_DB = PYTHON_DIR / "bpifrance_jobs.db"
+CREDIT_MUTUEL_DB = PYTHON_DIR / "credit_mutuel_jobs.db"
 
 # Mots-clés à détecter comme adresses ou noms d'entreprises
 ADDRESS_KEYWORDS = [
@@ -217,6 +218,32 @@ def fix_bpifrance_location(db_path):
         print(f"   📍 Bpifrance: {updated} localisation(s) extraite(s) depuis titre/description")
 
 
+def mark_credit_mutuel_error_pages_invalid(db_path):
+    """Marque is_valid=0 pour les offres CM avec titre/description 'Erreur de navigation', 'Accusé de réception', etc."""
+    if not db_path.exists():
+        return 0
+    error_patterns = ['erreur de navigation', 'accusé de réception', 'accuse de reception', 'page not found', 'page introuvable', 'votre candidature en 4 étapes']
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute(
+        "SELECT job_url, job_title, job_description FROM jobs WHERE is_valid = 1 AND (job_title IS NOT NULL OR job_description IS NOT NULL)"
+    )
+    def _norm(s):
+        return (s or '').lower().replace('\xa0', ' ')
+    to_invalidate = [
+        row[0] for row in cursor.fetchall()
+        if any(p in _norm(row[1]) for p in error_patterns) or any(p in _norm(row[2]) for p in error_patterns)
+    ]
+    if to_invalidate:
+        placeholders = ','.join('?' * len(to_invalidate))
+        conn.execute(f"""
+            UPDATE jobs SET is_valid = 0, last_updated = CURRENT_TIMESTAMP
+            WHERE job_url IN ({placeholders})
+        """, tuple(to_invalidate))
+        conn.commit()
+    conn.close()
+    return len(to_invalidate)
+
+
 def mark_sg_error_pages_invalid(db_path):
     """Marque is_valid=0 pour les offres SG avec titre 'Page not found' / 'Page introuvable'"""
     if not db_path.exists():
@@ -251,6 +278,11 @@ def fix_database(db_path, db_name):
         n = mark_sg_error_pages_invalid(db_path)
         if n:
             print(f"   🧹 {n} offres 'Page not found' marquées invalides")
+    # Crédit Mutuel : marquer les pages d'erreur (Erreur de navigation, Accusé de réception)
+    if db_name == "Crédit Mutuel":
+        n = mark_credit_mutuel_error_pages_invalid(db_path)
+        if n:
+            print(f"   🧹 {n} offres (Erreur de navigation / Accusé de réception) marquées invalides")
     
     print(f"\n📁 Correction de {db_name}...")
     conn = sqlite3.connect(db_path)
@@ -296,6 +328,7 @@ def main():
     fix_database(CA_DB, "Crédit Agricole")
     fix_database(SG_DB, "Société Générale")
     fix_database(DELOITTE_DB, "Deloitte")
+    fix_database(CREDIT_MUTUEL_DB, "Crédit Mutuel")
     fix_bpifrance_location(BPIFRANCE_DB)
     
     print("\n" + "=" * 80)

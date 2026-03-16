@@ -2363,26 +2363,40 @@
             };
 
             const countryToRegions = {};
+            const NON_SPECIFIE = 'Non spécifié';
             allJobs.forEach(job => {
-                if (job.cleanCountries) job.cleanCountries.forEach(c => {
-                    sets.countries.add(c);
-                    counts.countries[c] = (counts.countries[c] || 0) + 1;
-                    if (!countryToRegions[c]) countryToRegions[c] = new Set();
-                    if (job.cleanRegions) job.cleanRegions.forEach(r => {
-                        countryToRegions[c].add(r);
+                if (job.cleanCountries && job.cleanCountries.length) {
+                    job.cleanCountries.forEach(c => {
+                        sets.countries.add(c);
+                        counts.countries[c] = (counts.countries[c] || 0) + 1;
+                        if (!countryToRegions[c]) countryToRegions[c] = new Set();
+                        if (job.cleanRegions) job.cleanRegions.forEach(r => {
+                            countryToRegions[c].add(r);
+                        });
                     });
-                });
+                } else {
+                    sets.countries.add(NON_SPECIFIE);
+                    counts.countries[NON_SPECIFIE] = (counts.countries[NON_SPECIFIE] || 0) + 1;
+                }
                 if (job.cleanRegions) job.cleanRegions.forEach(r => {
                     sets.regions.add(r);
                     counts.regions[r] = (counts.regions[r] || 0) + 1;
                 });
-                if (job.contract_type) {
-                    sets.contracts.add(job.contract_type);
-                    counts.contracts[job.contract_type] = (counts.contracts[job.contract_type] || 0) + 1;
+                const ct = job.contract_type && String(job.contract_type).trim();
+                if (ct) {
+                    sets.contracts.add(ct);
+                    counts.contracts[ct] = (counts.contracts[ct] || 0) + 1;
+                } else {
+                    sets.contracts.add(NON_SPECIFIE);
+                    counts.contracts[NON_SPECIFIE] = (counts.contracts[NON_SPECIFIE] || 0) + 1;
                 }
-                if (job.experience_level) {
-                    sets.experiences.add(job.experience_level);
-                    counts.experiences[job.experience_level] = (counts.experiences[job.experience_level] || 0) + 1;
+                const exp = job.experience_level && String(job.experience_level).trim();
+                if (exp) {
+                    sets.experiences.add(exp);
+                    counts.experiences[exp] = (counts.experiences[exp] || 0) + 1;
+                } else {
+                    sets.experiences.add(NON_SPECIFIE);
+                    counts.experiences[NON_SPECIFIE] = (counts.experiences[NON_SPECIFIE] || 0) + 1;
                 }
                 if (job.job_family) {
                     sets.families.add(job.job_family);
@@ -2392,9 +2406,13 @@
                     sets.companies.add(job.company_name);
                     counts.companies[job.company_name] = (counts.companies[job.company_name] || 0) + 1;
                 }
-                if (job.education_level) {
-                    sets.educations.add(job.education_level);
-                    counts.educations[job.education_level] = (counts.educations[job.education_level] || 0) + 1;
+                const edu = job.education_level && String(job.education_level).trim();
+                if (edu) {
+                    sets.educations.add(edu);
+                    counts.educations[edu] = (counts.educations[edu] || 0) + 1;
+                } else {
+                    sets.educations.add(NON_SPECIFIE);
+                    counts.educations[NON_SPECIFIE] = (counts.educations[NON_SPECIFIE] || 0) + 1;
                 }
             });
 
@@ -3011,9 +3029,17 @@
             container.innerHTML = '';
 
             const continentMap = {};
+            const allContinentsCountries = new Set();
             Object.keys(CONTINENT_GROUPS).forEach(label => {
-                continentMap[label] = CONTINENT_GROUPS[label].filter(c => values.includes(c));
+                const list = CONTINENT_GROUPS[label].filter(c => values.includes(c));
+                continentMap[label] = list;
+                list.forEach(c => allContinentsCountries.add(c));
             });
+            const autresPays = values.filter(c => !allContinentsCountries.has(c) && c !== 'Non spécifié');
+            const nonSpecPays = values.includes('Non spécifié') ? ['Non spécifié'] : [];
+            if (autresPays.length > 0 || nonSpecPays.length > 0) {
+                continentMap['Non spécifié / Autres'] = [...autresPays, ...nonSpecPays];
+            }
             const countriesAssigned = new Set();
 
             const allCheckboxesIn = (el) => Array.from(el.querySelectorAll('input[type="checkbox"]')).filter(cb => !cb.classList.contains('continent-group-checkbox') && !cb.disabled);
@@ -3406,15 +3432,23 @@
                     const descMatch = (job.job_description || '').toLowerCase().includes(keyword);
                     return titleMatch || descMatch;
                 });
+                const jobCountry = job.cleanCountries && job.cleanCountries.length ? job.cleanCountries : null;
                 const matchCountry = !selectedCountries.length ||
-                    (job.cleanCountries && job.cleanCountries.some(c => selectedCountries.includes(c)));
+                    (selectedCountries.includes('Non spécifié') && !jobCountry) ||
+                    (jobCountry && jobCountry.some(c => selectedCountries.includes(c)));
                 const matchRegion = !selectedRegions.length ||
                     (job.cleanRegions && job.cleanRegions.some(r => selectedRegions.includes(r)));
-                const matchContract = !selectedContracts.length || selectedContracts.includes(job.contract_type);
-                const matchExperience = !selectedExperiences.length || selectedExperiences.includes(job.experience_level);
+                const jobContract = job.contract_type && String(job.contract_type).trim();
+                const matchContract = !selectedContracts.length || selectedContracts.includes(jobContract) ||
+                    (selectedContracts.includes('Non spécifié') && !jobContract);
+                const jobExp = job.experience_level && String(job.experience_level).trim();
+                const matchExperience = !selectedExperiences.length || selectedExperiences.includes(jobExp) ||
+                    (selectedExperiences.includes('Non spécifié') && !jobExp);
                 const matchFamily = !selectedFamilies.length || selectedFamilies.includes(job.job_family);
                 const matchCompany = !selectedCompanies.length || selectedCompanies.includes(job.company_name);
-                const matchEducation = !selectedEducations.length || selectedEducations.includes(job.education_level);
+                const jobEdu = job.education_level && String(job.education_level).trim();
+                const matchEducation = !selectedEducations.length || selectedEducations.includes(jobEdu) ||
+                    (selectedEducations.includes('Non spécifié') && !jobEdu);
 
                 return matchSearch && matchCountry && matchRegion && matchContract &&
                     matchExperience && matchFamily && matchCompany && matchEducation;
@@ -3438,15 +3472,23 @@
 
                     // Pour les comptages pays : exclure pays ET région (cocher Europe coche pays + régions enfants)
                     const skipLocationForCountryCounts = excludeFilterType === 'country';
+                    const jc = job.cleanCountries && job.cleanCountries.length ? job.cleanCountries : null;
                     const matchCountry = skipLocationForCountryCounts || !selectedCountries.length ||
-                        (job.cleanCountries && job.cleanCountries.some(c => selectedCountries.includes(c)));
+                        (selectedCountries.includes('Non spécifié') && !jc) ||
+                        (jc && jc.some(c => selectedCountries.includes(c)));
                     const matchRegion = skipLocationForCountryCounts || excludeFilterType === 'region' || !selectedRegions.length ||
                         (job.cleanRegions && job.cleanRegions.some(r => selectedRegions.includes(r)));
-                    const matchContract = excludeFilterType === 'contract' || !selectedContracts.length || selectedContracts.includes(job.contract_type);
-                    const matchExperience = excludeFilterType === 'experience' || !selectedExperiences.length || selectedExperiences.includes(job.experience_level);
+                    const jct = job.contract_type && String(job.contract_type).trim();
+                    const matchContract = excludeFilterType === 'contract' || !selectedContracts.length || selectedContracts.includes(jct) ||
+                        (selectedContracts.includes('Non spécifié') && !jct);
+                    const jex = job.experience_level && String(job.experience_level).trim();
+                    const matchExperience = excludeFilterType === 'experience' || !selectedExperiences.length || selectedExperiences.includes(jex) ||
+                        (selectedExperiences.includes('Non spécifié') && !jex);
                     const matchFamily = excludeFilterType === 'family' || !selectedFamilies.length || selectedFamilies.includes(job.job_family);
                     const matchCompany = excludeFilterType === 'company' || !selectedCompanies.length || selectedCompanies.includes(job.company_name);
-                    const matchEducation = excludeFilterType === 'education' || !selectedEducations.length || selectedEducations.includes(job.education_level);
+                    const jed = job.education_level && String(job.education_level).trim();
+                    const matchEducation = excludeFilterType === 'education' || !selectedEducations.length || selectedEducations.includes(jed) ||
+                        (selectedEducations.includes('Non spécifié') && !jed);
 
                     return matchSearch && matchCountry && matchRegion && matchContract &&
                         matchExperience && matchFamily && matchCompany && matchEducation;
@@ -3459,10 +3501,15 @@
             let availableCountries = new Set();
             const countryCounts = {};
             getJobsMatchingOtherFilters('country').forEach(job => {
-                if (job.cleanCountries) job.cleanCountries.forEach(c => {
-                    availableCountries.add(c);
-                    countryCounts[c] = (countryCounts[c] || 0) + 1;
-                });
+                if (job.cleanCountries && job.cleanCountries.length) {
+                    job.cleanCountries.forEach(c => {
+                        availableCountries.add(c);
+                        countryCounts[c] = (countryCounts[c] || 0) + 1;
+                    });
+                } else {
+                    availableCountries.add('Non spécifié');
+                    countryCounts['Non spécifié'] = (countryCounts['Non spécifié'] || 0) + 1;
+                }
             });
 
             // Pour les régions : si pays sélectionnés, ne montrer que les régions de ces pays
@@ -3496,13 +3543,17 @@
             const allEducations = new Set();
 
             allJobs.forEach(job => {
-                if (job.cleanCountries) job.cleanCountries.forEach(c => allCountries.add(c));
+                if (job.cleanCountries && job.cleanCountries.length) job.cleanCountries.forEach(c => allCountries.add(c));
+                else allCountries.add('Non spécifié');
                 if (job.cleanRegions) job.cleanRegions.forEach(r => allRegions.add(r));
-                if (job.contract_type) allContracts.add(job.contract_type);
-                if (job.experience_level) allExperiences.add(job.experience_level);
+                const ct = job.contract_type && String(job.contract_type).trim();
+                allContracts.add(ct || 'Non spécifié');
+                const ex = job.experience_level && String(job.experience_level).trim();
+                allExperiences.add(ex || 'Non spécifié');
                 if (job.job_family) allFamilies.add(job.job_family);
                 if (job.company_name) allCompanies.add(job.company_name);
-                if (job.education_level) allEducations.add(job.education_level);
+                const ed = job.education_level && String(job.education_level).trim();
+                allEducations.add(ed || 'Non spécifié');
             });
 
             // Mettre à jour les filtres avec les options désactivées
@@ -3558,16 +3609,16 @@
             const educationCounts = {};
 
             getJobsMatchingOtherFilters('contract').forEach(job => {
-                if (job.contract_type) {
-                    availableContracts.add(job.contract_type);
-                    contractCounts[job.contract_type] = (contractCounts[job.contract_type] || 0) + 1;
-                }
+                const ct = job.contract_type && String(job.contract_type).trim();
+                const v = ct || 'Non spécifié';
+                availableContracts.add(v);
+                contractCounts[v] = (contractCounts[v] || 0) + 1;
             });
             getJobsMatchingOtherFilters('experience').forEach(job => {
-                if (job.experience_level) {
-                    availableExperiences.add(job.experience_level);
-                    experienceCounts[job.experience_level] = (experienceCounts[job.experience_level] || 0) + 1;
-                }
+                const ex = job.experience_level && String(job.experience_level).trim();
+                const v = ex || 'Non spécifié';
+                availableExperiences.add(v);
+                experienceCounts[v] = (experienceCounts[v] || 0) + 1;
             });
             getJobsMatchingOtherFilters('family').forEach(job => {
                 if (job.job_family) {
@@ -3582,10 +3633,10 @@
                 }
             });
             getJobsMatchingOtherFilters('education').forEach(job => {
-                if (job.education_level) {
-                    availableEducations.add(job.education_level);
-                    educationCounts[job.education_level] = (educationCounts[job.education_level] || 0) + 1;
-                }
+                const ed = job.education_level && String(job.education_level).trim();
+                const v = ed || 'Non spécifié';
+                availableEducations.add(v);
+                educationCounts[v] = (educationCounts[v] || 0) + 1;
             });
 
             const sortedAllFamilies = Array.from(allFamilies).sort((a, b) => {

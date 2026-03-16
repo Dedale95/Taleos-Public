@@ -2477,7 +2477,25 @@
             const restoredLocation = restoredFilters?.countries || restoredFilters?.regions
                 ? { countries: restoredFilters?.countries || [], regions: restoredFilters?.regions || [] }
                 : null;
-            populateCheckboxFilter('countryFilter', sortedCountries, new Set(), counts.countries, true, restoredLocation, restoredFilters?.continentExpanded, countryToRegions, counts.regions, restoredFilters?.countryExpanded);
+            // Inclure pays et régions restaurés pour pouvoir cocher même si pas dans le 1er lot
+            const countriesForFilter = new Set(sets.countries);
+            let countryToRegionsForFilter = countryToRegions;
+            let regionCountsForFilter = counts.regions;
+            if (restoredLocation?.countries?.length) {
+                restoredLocation.countries.forEach(c => {
+                    countriesForFilter.add(c);
+                    if (!(c in counts.countries)) counts.countries[c] = 0;
+                });
+            }
+            if (restoredLocation?.regions?.length) {
+                regionCountsForFilter = { ...counts.regions };
+                restoredLocation.regions.forEach(r => {
+                    if (!(r in regionCountsForFilter)) regionCountsForFilter[r] = 0;
+                });
+            }
+            const sortedCountriesForFilter = Array.from(countriesForFilter).sort((a, b) =>
+                (counts.countries[b] || 0) - (counts.countries[a] || 0));
+            populateCheckboxFilter('countryFilter', sortedCountriesForFilter, new Set(), counts.countries, true, restoredLocation, restoredFilters?.continentExpanded, countryToRegionsForFilter, regionCountsForFilter, restoredFilters?.countryExpanded);
             populateCheckboxFilter('familyFilter', Array.from(sets.families).sort(), new Set(), counts.families, true, restoredFilters?.families);
             
             // hideDisabled=false pour Contrat et Études (garde le barré)

@@ -2369,14 +2369,6 @@
                 groupLabel.appendChild(span);
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
-                groupDiv.addEventListener('click', (e) => {
-                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (e.target === groupCb) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    groupCb.checked = !groupCb.checked;
-                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
-                });
                 container.appendChild(groupDiv);
                 const renderedBpceBrands = [];
                 const childCheckboxes = [];
@@ -2410,6 +2402,14 @@
                         updateFilter(accordionId, 'companies', c, groupCb.checked);
                     });
                 };
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    groupCb.checked = !allChecked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
                 container.appendChild(childrenDiv);
             }
 
@@ -2453,14 +2453,6 @@
                 groupLabel.appendChild(span);
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
-                groupDiv.addEventListener('click', (e) => {
-                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (e.target === groupCb) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    groupCb.checked = !groupCb.checked;
-                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
-                });
                 container.appendChild(groupDiv);
                 const childCheckboxes = [];
                 const renderedBnpBrands = [];
@@ -2496,6 +2488,14 @@
                         updateFilter(accordionId, 'companies', c, groupCb.checked);
                     });
                 };
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    groupCb.checked = !allChecked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
                 container.appendChild(childrenDiv);
             }
 
@@ -2538,15 +2538,6 @@
                 groupLabel.appendChild(span);
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
-                // Clic sur toute la ligne (sauf flèche) pour cocher le groupe
-                groupDiv.addEventListener('click', (e) => {
-                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (e.target === groupCb) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    groupCb.checked = !groupCb.checked;
-                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
-                });
                 container.appendChild(groupDiv);
 
                 const renderedCaSubs = [];
@@ -2581,6 +2572,14 @@
                         updateFilter(accordionId, 'companies', c, groupCb.checked);
                     });
                 };
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    groupCb.checked = !allChecked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
                 container.appendChild(childrenDiv);
             }
 
@@ -2623,14 +2622,6 @@
                 groupLabel.appendChild(span);
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
-                groupDiv.addEventListener('click', (e) => {
-                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (e.target === groupCb) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    groupCb.checked = !groupCb.checked;
-                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
-                });
                 container.appendChild(groupDiv);
                 const childCheckboxes = [];
                 cmSubs.forEach(c => {
@@ -2663,6 +2654,14 @@
                         updateFilter(accordionId, 'companies', c, groupCb.checked);
                     });
                 };
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    groupCb.checked = !allChecked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
                 container.appendChild(childrenDiv);
             }
 
@@ -2761,13 +2760,23 @@
 
                 groupCheckbox.onchange = () => {
                     const shouldCheck = groupCheckbox.checked;
-                    const childCheckboxes = Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]'))
+                    const childCbs = Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]'))
                         .filter(cb => !cb.disabled);
-                    childCheckboxes.forEach(cb => {
+                    childCbs.forEach(cb => {
                         cb.checked = shouldCheck;
                         updateFilter(accordionId, 'countries', cb.value, shouldCheck);
                     });
                 };
+
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const childCbs = Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]'));
+                    const allChecked = childCbs.length > 0 && childCbs.every(cb => cb.disabled || cb.checked);
+                    groupCheckbox.checked = !allChecked;
+                    groupCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                });
 
                 expandSpan.onclick = (e) => {
                     e.stopPropagation();
@@ -2790,7 +2799,11 @@
                     cb.value = c;
                     cb.checked = checkedValues.has(c);
                     cb.disabled = disabled;
-                    cb.onchange = () => updateFilter(accordionId, 'countries', c, cb.checked);
+                    cb.onchange = () => {
+                        updateFilter(accordionId, 'countries', c, cb.checked);
+                        const childCbs = Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]'));
+                        groupCheckbox.checked = childCbs.every(cb2 => cb2.disabled || cb2.checked);
+                    };
                     labelEl.appendChild(cb);
                     const sp = document.createElement('span');
                     sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;

@@ -2706,14 +2706,6 @@
                 groupLabel.appendChild(span);
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
-                groupDiv.addEventListener('click', (e) => {
-                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (e.target === groupCb) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    groupCb.checked = !groupCb.checked;
-                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
-                });
                 container.appendChild(groupDiv);
                 const childCheckboxes = [];
                 bpceBrands.forEach(c => {
@@ -2741,6 +2733,14 @@
                         updateActiveFiltersBadge();
                         applyFilters();
                     };
+                });
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    groupCb.checked = !allChecked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
                 });
                 container.appendChild(childrenDiv);
             }
@@ -2790,14 +2790,6 @@
                 groupLabel.appendChild(span);
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
-                groupDiv.addEventListener('click', (e) => {
-                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (e.target === groupCb) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    groupCb.checked = !groupCb.checked;
-                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
-                });
                 container.appendChild(groupDiv);
                 bnpBrands.forEach(c => {
                     const cnt = counts[c] || 0;
@@ -2825,6 +2817,14 @@
                         updateActiveFiltersBadge();
                         applyFilters();
                     };
+                });
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    groupCb.checked = !allChecked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
                 });
                 container.appendChild(childrenDiv);
             }
@@ -2860,14 +2860,6 @@
                 groupLabel.appendChild(span);
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
-                groupDiv.addEventListener('click', (e) => {
-                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (e.target === groupCb) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    groupCb.checked = !groupCb.checked;
-                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
-                });
                 container.appendChild(groupDiv);
 
                 const childrenDiv = document.createElement('div');
@@ -2908,6 +2900,14 @@
                         updateActiveFiltersBadge();
                         applyFilters();
                     };
+                });
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    groupCb.checked = !allChecked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
                 });
                 container.appendChild(childrenDiv);
             }
@@ -2955,14 +2955,6 @@
                 groupLabel.appendChild(span);
                 groupDiv.appendChild(groupLabel);
                 groupDiv.appendChild(expandSpan);
-                groupDiv.addEventListener('click', (e) => {
-                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (e.target === groupCb) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    groupCb.checked = !groupCb.checked;
-                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
-                });
                 container.appendChild(groupDiv);
                 const childCheckboxes = [];
                 cmSubs.forEach(c => {
@@ -2990,6 +2982,14 @@
                         updateActiveFiltersBadge();
                         applyFilters();
                     };
+                });
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    groupCb.checked = !allChecked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
                 });
                 container.appendChild(childrenDiv);
             }
@@ -3125,6 +3125,16 @@
                     allCheckboxesIn(contChildren).forEach(cb => { cb.checked = on; });
                     triggerUpdate();
                 };
+
+                contGroupDiv.addEventListener('click', (e) => {
+                    if (e.target === contExpand || contExpand.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const childCbs = allCheckboxesIn(contChildren);
+                    const allChecked = childCbs.length > 0 && childCbs.every(cb => cb.checked);
+                    contCb.checked = !allChecked;
+                    contCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
 
                 contExpand.onclick = (e) => {
                     e.stopPropagation();

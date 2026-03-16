@@ -16,6 +16,7 @@ COMPANY_DISPLAY_MAPPING = {
     "creatis": "Creatis",
     "factofrance": "FactoFrance",
     "afedim": "AFEDIM",
+    "ataraxia promotion": "Ataraxia Promotion",
 }
 
 def normalize_company_name(raw: str) -> str:

@@ -2404,7 +2404,7 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    renderedBpceBrands.forEach(c => {
+                    bpceBrands.forEach(c => {
                         const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
                         if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
                         updateFilter(accordionId, 'companies', c, groupCb.checked);
@@ -2473,6 +2473,7 @@
                     const cb = document.createElement('input');
                     cb.type = 'checkbox';
                     cb.value = c;
+                    cb.setAttribute('data-bnp-brand', '1');
                     cb.checked = cv.has(c) || bnpGroupChecked;
                     cb.disabled = disabled;
                     childCheckboxes.push(cb);
@@ -2489,8 +2490,8 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    renderedBnpBrands.forEach(c => {
-                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
+                    bnpBrands.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"][data-bnp-brand]`);
                         if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
                         updateFilter(accordionId, 'companies', c, groupCb.checked);
                     });
@@ -2574,7 +2575,7 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    renderedCaSubs.forEach(c => {
+                    caSubs.forEach(c => {
                         const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
                         if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
                         updateFilter(accordionId, 'companies', c, groupCb.checked);

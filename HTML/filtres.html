@@ -406,14 +406,54 @@
             flex-direction: column;
         }
 
-        .filter-group > label {
-            margin-bottom: 10px;
+        .filter-box {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f9fafb;
+            display: flex;
+            flex-direction: column;
         }
 
-        .filter-group > label {
+        .filter-box-header {
+            padding: 10px 12px;
+            text-align: center;
             font-weight: 800;
-            color: #1a1a1a;
             font-size: 0.95rem;
+            color: #1a1a1a;
+            background: rgba(255, 255, 255, 0.7);
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .filter-box-body-checkboxes {
+            min-height: 180px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .filter-box .filter-checkbox-container {
+            border: none;
+            background: transparent;
+            border-radius: 0;
+            min-height: 136px;
+            max-height: 136px;
+        }
+
+        .filter-box-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .filter-box-body-search {
+            padding: 12px;
+        }
+
+        .filter-box-body-search .search-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .search-wrapper {
@@ -3092,51 +3132,69 @@
                 <div class="filters-section">
                     <div class="filter-row">
                         <div class="filter-group">
-                            <label>🔍 Mots-clés</label>
-                            <div class="search-wrapper">
-                                <input type="text" id="search-${accordionId}" placeholder="Tapez un mot-clé et appuyez sur Entrée..." onkeydown="if(event.key==='Enter') { addSearchKeyword('${accordionId}', this.value); this.value=''; event.preventDefault(); }">
-                                <div class="search-tags" id="tags-${accordionId}">
-                                    ${(filters.searchKeywords || []).map(kw => `
-                                        <div class="search-tag">
-                                            <span>${kw}</span>
-                                            <span class="search-tag-remove" onclick="removeSearchKeyword('${accordionId}', '${kw}')">✕</span>
+                            <div class="filter-box">
+                                <div class="filter-box-header">🔍 Mots-clés</div>
+                                <div class="filter-box-body filter-box-body-search">
+                                    <div class="search-wrapper">
+                                        <input type="text" id="search-${accordionId}" placeholder="Tapez un mot-clé et appuyez sur Entrée..." onkeydown="if(event.key==='Enter') { addSearchKeyword('${accordionId}', this.value); this.value=''; event.preventDefault(); }">
+                                        <div class="search-tags" id="tags-${accordionId}">
+                                            ${(filters.searchKeywords || []).map(kw => `
+                                                <div class="search-tag">
+                                                    <span>${kw}</span>
+                                                    <span class="search-tag-remove" onclick="removeSearchKeyword('${accordionId}', '${kw}')">✕</span>
+                                                </div>
+                                            `).join('')}
                                         </div>
-                                    `).join('')}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="filter-group">
-                            <label>🌍 Pays</label>
-                            <div class="filter-checkbox-container" id="countryFilter-${accordionId}"></div>
+                            <div class="filter-box">
+                                <div class="filter-box-header">🌍 Pays</div>
+                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="countryFilter-${accordionId}"></div>
+                            </div>
                         </div>
                         <div class="filter-group">
-                            <label>🗺️ Région</label>
-                            <div class="filter-checkbox-container" id="regionFilter-${accordionId}"></div>
+                            <div class="filter-box">
+                                <div class="filter-box-header">🗺️ Région</div>
+                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="regionFilter-${accordionId}"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="filter-row">
                         <div class="filter-group">
-                            <label>💼 Expérience</label>
-                            <div class="filter-checkbox-container" id="experienceFilter-${accordionId}"></div>
+                            <div class="filter-box">
+                                <div class="filter-box-header">💼 Expérience</div>
+                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="experienceFilter-${accordionId}"></div>
+                            </div>
                         </div>
                         <div class="filter-group">
-                            <label>🎓 Niveau d'étude</label>
-                            <div class="filter-checkbox-container" id="educationFilter-${accordionId}"></div>
+                            <div class="filter-box">
+                                <div class="filter-box-header">🎓 Niveau d'étude</div>
+                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="educationFilter-${accordionId}"></div>
+                            </div>
                         </div>
                         <div class="filter-group"></div>
                     </div>
                     <div class="filter-row">
                         <div class="filter-group">
-                            <label>📄 Type de contrat</label>
-                            <div class="filter-checkbox-container" id="contractFilter-${accordionId}"></div>
+                            <div class="filter-box">
+                                <div class="filter-box-header">📄 Type de contrat</div>
+                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="contractFilter-${accordionId}"></div>
+                            </div>
                         </div>
                         <div class="filter-group">
-                            <label>🎯 Famille de métier</label>
-                            <div class="filter-checkbox-container" id="familyFilter-${accordionId}"></div>
+                            <div class="filter-box">
+                                <div class="filter-box-header">🎯 Famille de métier</div>
+                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="familyFilter-${accordionId}"></div>
+                            </div>
                         </div>
                         <div class="filter-group">
-                            <label>🏢 Entreprise</label>
-                            <div class="filter-checkbox-container" id="companyFilter-${accordionId}"></div>
+                            <div class="filter-box">
+                                <div class="filter-box-header">🏢 Entreprise</div>
+                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="companyFilter-${accordionId}"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="filter-row-reset">

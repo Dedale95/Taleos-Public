@@ -332,11 +332,46 @@
             flex-direction: column;
         }
 
-        .filter-group > label {
+        .filter-box {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f9fafb;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-box-header {
+            padding: 10px 12px;
+            text-align: center;
             font-weight: 800;
-            margin-bottom: 10px;
-            color: #1a1a1a;
             font-size: 0.95rem;
+            color: #1a1a1a;
+            background: rgba(255, 255, 255, 0.7);
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .filter-box-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .filter-box-body-checkboxes {
+            min-height: 180px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .filter-box-body-search {
+            padding: 12px;
+        }
+
+        .filter-box-body-search .search-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .search-wrapper {
@@ -428,6 +463,14 @@
             border-radius: 12px;
             padding: 12px;
             background: #f9fafb;
+        }
+
+        .filter-box .filter-checkbox-container {
+            border: none;
+            background: transparent;
+            border-radius: 0;
+            min-height: 136px;
+            max-height: 136px;
         }
 
         .filter-checkbox-container::-webkit-scrollbar {
@@ -1427,37 +1470,53 @@
             <div class="filters-content" id="filtersContainer">
             <div class="filter-row">
                 <div class="filter-group">
-                    <label for="searchInput">🔍 Recherche par mots-clés</label>
-                    <div class="search-wrapper">
-                        <input type="text" id="searchInput" placeholder="Tapez un mot-clé et appuyez sur Entrée...">
-                        <div class="search-tags" id="searchTags"></div>
+                    <div class="filter-box">
+                        <div class="filter-box-header">🔍 Recherche par mots-clés</div>
+                        <div class="filter-box-body filter-box-body-search">
+                            <div class="search-wrapper">
+                                <input type="text" id="searchInput" placeholder="Tapez un mot-clé et appuyez sur Entrée...">
+                                <div class="search-tags" id="searchTags"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="filter-group filter-group-location">
-                    <label>🌍 Pays & Régions</label>
-                    <div id="countryFilter" class="filter-checkbox-container"></div>
+                    <div class="filter-box">
+                        <div class="filter-box-header">🌍 Pays & Régions</div>
+                        <div id="countryFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
-                    <label>📄 Type de contrat</label>
-                    <div id="contractFilter" class="filter-checkbox-container"></div>
+                    <div class="filter-box">
+                        <div class="filter-box-header">📄 Type de contrat</div>
+                        <div id="contractFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
-                    <label>🎓 Niveau d'étude</label>
-                    <div id="educationFilter" class="filter-checkbox-container"></div>
+                    <div class="filter-box">
+                        <div class="filter-box-header">🎓 Niveau d'étude</div>
+                        <div id="educationFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
+                    </div>
                 </div>
             </div>
             <div class="filter-row">
                 <div class="filter-group">
-                    <label>💼 Expérience</label>
-                    <div id="experienceFilter" class="filter-checkbox-container"></div>
+                    <div class="filter-box">
+                        <div class="filter-box-header">💼 Expérience</div>
+                        <div id="experienceFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
-                    <label>🎯 Famille de métier</label>
-                    <div id="familyFilter" class="filter-checkbox-container"></div>
+                    <div class="filter-box">
+                        <div class="filter-box-header">🎯 Famille de métier</div>
+                        <div id="familyFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
+                    </div>
                 </div>
                 <div class="filter-group">
-                    <label>🏢 Entreprise</label>
-                    <div id="companyFilter" class="filter-checkbox-container"></div>
+                    <div class="filter-box">
+                        <div class="filter-box-header">🏢 Entreprise</div>
+                        <div id="companyFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
+                    </div>
                 </div>
             </div>
             <div class="filter-row-reset">

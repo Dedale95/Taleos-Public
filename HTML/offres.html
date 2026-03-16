@@ -3453,26 +3453,17 @@
                 });
             };
 
-            // Pour les pays : si régions sélectionnées, ne montrer que les pays de ces régions
+            // Pour les pays : compter tous les jobs (hors localisation) pour des comptages cohérents.
+            // Évite que Monaco, République Tchèque etc. affichent 0 quand Europe est coché
+            // (ces pays n'ont qu'une région, non cochée car masquée dans l'UI).
             let availableCountries = new Set();
             const countryCounts = {};
-            if (selectedRegions.length > 0) {
-                getJobsMatchingOtherFilters('country').forEach(job => {
-                    if (job.cleanRegions && job.cleanRegions.some(r => selectedRegions.includes(r))) {
-                        if (job.cleanCountries) job.cleanCountries.forEach(c => {
-                            availableCountries.add(c);
-                            countryCounts[c] = (countryCounts[c] || 0) + 1;
-                        });
-                    }
+            getJobsMatchingOtherFilters('country').forEach(job => {
+                if (job.cleanCountries) job.cleanCountries.forEach(c => {
+                    availableCountries.add(c);
+                    countryCounts[c] = (countryCounts[c] || 0) + 1;
                 });
-            } else {
-                getJobsMatchingOtherFilters('country').forEach(job => {
-                    if (job.cleanCountries) job.cleanCountries.forEach(c => {
-                        availableCountries.add(c);
-                        countryCounts[c] = (countryCounts[c] || 0) + 1;
-                    });
-                });
-            }
+            });
 
             // Pour les régions : si pays sélectionnés, ne montrer que les régions de ces pays
             let availableRegions = new Set();

@@ -170,10 +170,12 @@ def extract_experience_level(
             return "6 - 10 ans"
         return "11 ans et plus"
     
-    # 5e. "X years of experience" / "X+ years" (Required: 8+ years, Desired: 10+ years)
-    # Prendre le max si plusieurs mentions (ex: Required 8+, Desired 10+ → 10+)
-    # 10+ = niveau senior → "11 ans et plus"
+    # 5e. "X years of experience" / "X+ years" (Required: 8+ years, 8+ years prior ... experience)
+    # Inclut "8+ years prior compliance advisory experience" (texte entre years et experience)
+    # Prendre le max si plusieurs mentions. 10+ = senior → "11 ans et plus"
     years_exp_all = re.findall(r"(\d+)\+\s*years?\s*(?:of\s*)?experience", text_lower)
+    years_exp_prior = re.findall(r"(\d+)\+\s*years?\s+[^.]*?experience", text_lower)
+    years_exp_all = list(set(years_exp_all + years_exp_prior))
     if years_exp_all:
         y = max(int(x) for x in years_exp_all)
         if y <= 2:

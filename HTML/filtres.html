@@ -386,19 +386,25 @@
             margin-bottom: 20px;
         }
 
-        /* Première ligne : Recherche, Pays, Région */
-        .filter-row:first-of-type {
-            grid-template-columns: 1.8fr 1.1fr 1.4fr;
+        /* Disposition : gauche (Recherche+Expérience) | centre (Contrat+Études+Famille) | droite (Pays+Région+Entreprise) */
+        .filter-row-top {
+            grid-template-columns: 1fr 1.2fr 1.2fr;
+            align-items: start;
         }
-
-        /* Deuxième ligne : Expérience, Niveau d'étude, (espace) */
-        .filter-row:nth-of-type(2) {
-            grid-template-columns: 1fr 1fr 1fr;
+        .filter-col-left {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-
-        /* Troisième ligne : Type de contrat, Famille de métier, Entreprise */
-        .filter-row:nth-of-type(3) {
-            grid-template-columns: 1fr 1fr 1fr;
+        .filter-col-center {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .filter-col-right {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .filter-group {
@@ -1365,7 +1371,7 @@
                 font-size: 1rem;
             }
 
-            .filter-row {
+            .filter-row-top {
                 grid-template-columns: 1fr;
             }
         }
@@ -3166,70 +3172,71 @@
             
             return `
                 <div class="filters-section">
-                    <div class="filter-row">
-                        <div class="filter-group">
-                            <div class="filter-box">
-                                <div class="filter-box-header">🔍 Mots-clés</div>
-                                <div class="filter-box-body filter-box-body-search">
-                                    <div class="search-wrapper">
-                                        <input type="text" id="search-${accordionId}" placeholder="Tapez un mot-clé et appuyez sur Entrée..." onkeydown="if(event.key==='Enter') { addSearchKeyword('${accordionId}', this.value); this.value=''; event.preventDefault(); }">
-                                        <div class="search-tags" id="tags-${accordionId}">
-                                            ${(filters.searchKeywords || []).map(kw => `
-                                                <div class="search-tag">
-                                                    <span>${kw}</span>
-                                                    <span class="search-tag-remove" onclick="removeSearchKeyword('${accordionId}', '${kw}')">✕</span>
-                                                </div>
-                                            `).join('')}
+                    <div class="filter-row filter-row-top">
+                        <div class="filter-col-left">
+                            <div class="filter-group">
+                                <div class="filter-box">
+                                    <div class="filter-box-header">🔍 Mots-clés</div>
+                                    <div class="filter-box-body filter-box-body-search">
+                                        <div class="search-wrapper">
+                                            <input type="text" id="search-${accordionId}" placeholder="Tapez un mot-clé et appuyez sur Entrée..." onkeydown="if(event.key==='Enter') { addSearchKeyword('${accordionId}', this.value); this.value=''; event.preventDefault(); }">
+                                            <div class="search-tags" id="tags-${accordionId}">
+                                                ${(filters.searchKeywords || []).map(kw => `
+                                                    <div class="search-tag">
+                                                        <span>${kw}</span>
+                                                        <span class="search-tag-remove" onclick="removeSearchKeyword('${accordionId}', '${kw}')">✕</span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="filter-group">
-                            <div class="filter-box filter-box-location">
-                                <div class="filter-box-header">🌍 Pays</div>
-                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="countryFilter-${accordionId}"></div>
+                            <div class="filter-group">
+                                <div class="filter-box filter-box-experience">
+                                    <div class="filter-box-header">💼 Expérience</div>
+                                    <div class="filter-checkbox-container filter-box-body-checkboxes" id="experienceFilter-${accordionId}"></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="filter-group">
-                            <div class="filter-box filter-box-location">
-                                <div class="filter-box-header">🗺️ Région</div>
-                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="regionFilter-${accordionId}"></div>
+                        <div class="filter-col-center">
+                            <div class="filter-group">
+                                <div class="filter-box filter-box-contract">
+                                    <div class="filter-box-header">📄 Type de contrat</div>
+                                    <div class="filter-checkbox-container filter-box-body-checkboxes" id="contractFilter-${accordionId}"></div>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <div class="filter-box">
+                                    <div class="filter-box-header">🎓 Niveau d'étude</div>
+                                    <div class="filter-checkbox-container filter-box-body-checkboxes" id="educationFilter-${accordionId}"></div>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <div class="filter-box filter-box-family">
+                                    <div class="filter-box-header">🎯 Famille de métier</div>
+                                    <div class="filter-checkbox-container filter-box-body-checkboxes" id="familyFilter-${accordionId}"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="filter-row">
-                        <div class="filter-group">
-                            <div class="filter-box filter-box-experience">
-                                <div class="filter-box-header">💼 Expérience</div>
-                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="experienceFilter-${accordionId}"></div>
+                        <div class="filter-col-right">
+                            <div class="filter-group">
+                                <div class="filter-box filter-box-location">
+                                    <div class="filter-box-header">🌍 Pays</div>
+                                    <div class="filter-checkbox-container filter-box-body-checkboxes" id="countryFilter-${accordionId}"></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="filter-group">
-                            <div class="filter-box">
-                                <div class="filter-box-header">🎓 Niveau d'étude</div>
-                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="educationFilter-${accordionId}"></div>
+                            <div class="filter-group">
+                                <div class="filter-box filter-box-location">
+                                    <div class="filter-box-header">🗺️ Région</div>
+                                    <div class="filter-checkbox-container filter-box-body-checkboxes" id="regionFilter-${accordionId}"></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="filter-group"></div>
-                    </div>
-                    <div class="filter-row">
-                        <div class="filter-group">
-                            <div class="filter-box filter-box-contract">
-                                <div class="filter-box-header">📄 Type de contrat</div>
-                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="contractFilter-${accordionId}"></div>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <div class="filter-box filter-box-family">
-                                <div class="filter-box-header">🎯 Famille de métier</div>
-                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="familyFilter-${accordionId}"></div>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <div class="filter-box">
-                                <div class="filter-box-header">🏢 Entreprise</div>
-                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="companyFilter-${accordionId}"></div>
+                            <div class="filter-group">
+                                <div class="filter-box">
+                                    <div class="filter-box-header">🏢 Entreprise</div>
+                                    <div class="filter-checkbox-container filter-box-body-checkboxes" id="companyFilter-${accordionId}"></div>
+                                </div>
                             </div>
                         </div>
                     </div>

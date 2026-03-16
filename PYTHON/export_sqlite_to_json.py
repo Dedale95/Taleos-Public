@@ -176,8 +176,8 @@ def normalize_contract_type(raw_contract: str) -> str:
     if any(x in norm or x in norm_clean for x in ["vie", "v.i.e", "volontariat international"]):
         return "VIE"
 
-    # CDD (Contractor / Temp = intérim / CDD)
-    if any(x in norm or x in norm_clean for x in ["cdd", "temporary", "temporaire", "zero hours", "contractor", "temp"]):
+    # CDD (Contractor / Temp / Fixed term = intérim / CDD)
+    if any(x in norm or x in norm_clean for x in ["cdd", "temporary", "temporaire", "fixed term", "zero hours", "contractor", "temp"]):
         return "CDD"
 
     # Graduate Programme (CDI) → CDI (le contrat sous-jacent est CDI)

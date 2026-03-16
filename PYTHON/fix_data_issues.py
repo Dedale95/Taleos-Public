@@ -299,11 +299,17 @@ def fix_database(db_path, db_name):
         print(f"⚠️ Base de données manquante : {db_path}")
         return
     
-    # SG : marquer les tuiles 404 comme invalides
+    # SG : marquer les tuiles 404 comme invalides + corriger "Fixed term contract" → CDD
     if db_name == "Société Générale":
         n = mark_sg_error_pages_invalid(db_path)
         if n:
             print(f"   🧹 {n} offres 'Page not found' marquées invalides")
+        conn_sg = sqlite3.connect(db_path)
+        r = conn_sg.execute("UPDATE jobs SET contract_type = 'CDD', last_updated = CURRENT_TIMESTAMP WHERE is_valid = 1 AND contract_type = 'Fixed term contract'").rowcount
+        conn_sg.commit()
+        conn_sg.close()
+        if r:
+            print(f"   📄 {r} offres 'Fixed term contract' → CDD")
     # Crédit Mutuel : marquer les pages d'erreur (Erreur de navigation, Accusé de réception)
     if db_name == "Crédit Mutuel":
         n = mark_credit_mutuel_error_pages_invalid(db_path)

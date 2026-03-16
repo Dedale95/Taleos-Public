@@ -374,6 +374,7 @@ async def fetch_job_details(context: BrowserContext, url: str, sem: asyncio.Sema
                 contract_mapping = {
                     "Permanent contract": "CDI",
                     "Temporary contract": "CDD",
+                    "Fixed term contract": "CDD",
                     "Internship": "Stage",
                     "Trainee": "Stage",
                     "International Volunteer Program": "VIE",

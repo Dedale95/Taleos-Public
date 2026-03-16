@@ -280,30 +280,15 @@
             margin-bottom: 20px;
         }
 
-        /* Nouvelle disposition : gauche (Recherche+Expérience) | centre (Contrat+Études côte à côte, Famille en dessous) | droite (Pays+Entreprise) */
-        .filter-row-top {
-            grid-template-columns: 0.85fr 1.3fr 1.3fr;
+        /* Ligne 1 : Recherche, Type de contrat, Niveau d'étude, Pays & Régions (4 colonnes égales) */
+        .filter-row-1 {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
             align-items: start;
         }
-        .filter-col-left {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .filter-col-center {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .filter-col-center-top {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .filter-col-right {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        /* Ligne 2 : Expérience, Famille de métier, Entreprise (3 colonnes égales, même niveau) */
+        .filter-row-2 {
+            grid-template-columns: 1fr 1fr 1fr;
+            align-items: start;
         }
 
         .filter-group-location {
@@ -337,10 +322,8 @@
 
         /* Responsive : colonnes empilées sur petit écran */
         @media (max-width: 1200px) {
-            .filter-row-top {
-                grid-template-columns: 1fr;
-            }
-            .filter-col-center-top {
+            .filter-row-1,
+            .filter-row-2 {
                 grid-template-columns: 1fr;
             }
         }
@@ -384,6 +367,7 @@
 
         .filter-box-body-search {
             padding: 12px;
+            min-height: 156px;
         }
 
         .filter-box-body-search .search-wrapper {
@@ -1533,60 +1517,54 @@
 
             <!-- Contenu des filtres -->
             <div class="filters-content" id="filtersContainer">
-            <div class="filter-row filter-row-top">
-                <div class="filter-col-left">
-                    <div class="filter-group">
-                        <div class="filter-box">
-                            <div class="filter-box-header">🔍 Recherche par mots-clés</div>
-                            <div class="filter-box-body filter-box-body-search">
-                                <div class="search-wrapper">
-                                    <input type="text" id="searchInput" placeholder="Tapez un mot-clé et appuyez sur Entrée...">
-                                    <div class="search-tags" id="searchTags"></div>
-                                </div>
+            <div class="filter-row filter-row-1">
+                <div class="filter-group">
+                    <div class="filter-box">
+                        <div class="filter-box-header">🔍 Recherche par mots-clés</div>
+                        <div class="filter-box-body filter-box-body-search">
+                            <div class="search-wrapper">
+                                <input type="text" id="searchInput" placeholder="Tapez un mot-clé et appuyez sur Entrée...">
+                                <div class="search-tags" id="searchTags"></div>
                             </div>
                         </div>
                     </div>
-                    <div class="filter-group">
-                        <div class="filter-box filter-box-experience">
-                            <div class="filter-box-header">💼 Expérience</div>
-                            <div id="experienceFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
-                        </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-box filter-box-contract">
+                        <div class="filter-box-header">📄 Type de contrat</div>
+                        <div id="contractFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
                     </div>
                 </div>
-                <div class="filter-col-center">
-                    <div class="filter-col-center-top">
-                        <div class="filter-group">
-                            <div class="filter-box filter-box-contract">
-                                <div class="filter-box-header">📄 Type de contrat</div>
-                                <div id="contractFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                        <div class="filter-box filter-box-education">
-                            <div class="filter-box-header">🎓 Niveau d'étude</div>
-                            <div id="educationFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
-                        </div>
-                        </div>
-                    </div>
-                    <div class="filter-group">
-                        <div class="filter-box filter-box-family">
-                            <div class="filter-box-header">🎯 Famille de métier</div>
-                            <div id="familyFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
-                        </div>
+                <div class="filter-group">
+                    <div class="filter-box filter-box-education">
+                        <div class="filter-box-header">🎓 Niveau d'étude</div>
+                        <div id="educationFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
                     </div>
                 </div>
-                <div class="filter-col-right">
-                    <div class="filter-group filter-group-location">
-                        <div class="filter-box filter-box-location">
-                            <div class="filter-box-header">🌍 Pays & Régions</div>
-                            <div id="countryFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
-                        </div>
+                <div class="filter-group filter-group-location">
+                    <div class="filter-box filter-box-location">
+                        <div class="filter-box-header">🌍 Pays & Régions</div>
+                        <div id="countryFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
                     </div>
-                    <div class="filter-group">
-                        <div class="filter-box">
-                            <div class="filter-box-header">🏢 Entreprise</div>
-                            <div id="companyFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
-                        </div>
+                </div>
+            </div>
+            <div class="filter-row filter-row-2">
+                <div class="filter-group">
+                    <div class="filter-box filter-box-experience">
+                        <div class="filter-box-header">💼 Expérience</div>
+                        <div id="experienceFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-box filter-box-family">
+                        <div class="filter-box-header">🎯 Famille de métier</div>
+                        <div id="familyFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-box">
+                        <div class="filter-box-header">🏢 Entreprise</div>
+                        <div id="companyFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
                     </div>
                 </div>
             </div>

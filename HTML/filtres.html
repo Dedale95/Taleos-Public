@@ -2714,7 +2714,8 @@
                 groupLabel.appendChild(groupCheckbox);
 
                 const span = document.createElement('span');
-                span.textContent = label;
+                const contCount = countries.reduce((s, c) => s + (counts[c] || 0), 0);
+                span.textContent = contCount > 0 ? `${label} (${contCount})` : label;
                 groupLabel.appendChild(span);
 
                 const expandSpan = document.createElement('span');

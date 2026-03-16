@@ -3074,7 +3074,8 @@
                 contLabelEl.appendChild(contCb);
 
                 const contSpan = document.createElement('span');
-                contSpan.textContent = contLabel;
+                const contCount = countries.reduce((s, c) => s + (counts[c] || 0), 0);
+                contSpan.textContent = contCount > 0 ? `${contLabel} (${contCount})` : contLabel;
                 contLabelEl.appendChild(contSpan);
 
                 const contExpand = document.createElement('span');

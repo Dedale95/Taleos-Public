@@ -2697,6 +2697,7 @@
                         const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"][data-bpce-brand]`);
                         if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
                     });
+                    groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
                     updateActiveFiltersBadge();
                     applyFilters();
                 };
@@ -2781,6 +2782,7 @@
                         const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"][data-bnp-brand]`);
                         if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
                     });
+                    groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
                     updateActiveFiltersBadge();
                     applyFilters();
                 };
@@ -2851,6 +2853,7 @@
                         const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
                         if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
                     });
+                    groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
                     updateActiveFiltersBadge();
                     applyFilters();
                 };
@@ -2946,6 +2949,7 @@
                         const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"][data-cm-subsidiary]`);
                         if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
                     });
+                    groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
                     updateActiveFiltersBadge();
                     applyFilters();
                 };

@@ -413,6 +413,13 @@ async def fetch_job_detail(context: BrowserContext, job: Dict, sem: asyncio.Sema
                     elif "alternance" in text.lower() or "dual studies" in text.lower():
                         contract_type = "Alternance / Apprentissage"
 
+            # Priorité 1: "Localisation : PARIS" (label explicite sur la page détail)
+            loc_match = re.search(r'Localisation\s*:\s*([A-Za-zÀ-ÿ\-]+)', full_text, re.IGNORECASE)
+            if loc_match:
+                loc_raw = loc_match.group(1).strip()
+                if loc_raw and "domaine" not in loc_raw.lower() and "type" not in loc_raw.lower():
+                    city_raw = loc_raw
+
             # Structure Altays : bloc "Lieu du poste" avec liste [ville, contrat, domaine, pays, date]
             # Ex: - Saarbrücken | - CDI | - Others | - Allemagne | - 04/03/2026
             known_contracts = {"CDI", "CDD", "Stage", "VIE", "Alternance"}
@@ -429,6 +436,8 @@ async def fetch_job_detail(context: BrowserContext, job: Dict, sem: asyncio.Sema
                 parent = meta_block.find_parent(["div", "section", "article", "main"])
                 if parent:
                     meta_items = [li.get_text(strip=True) for li in parent.select("ul li") if li.get_text(strip=True)]
+                    # Villes connues à privilégier (éviter les adresses type "12 boulevard...")
+                    known_cities_oddo = {"PARIS", "Paris", "Saarbrücken", "Frankfurt", "Francfort", "Luxembourg", "Luxembourg Ville", "Düsseldorf", "Milan", "Genève", "Zurich"}
                     for item in meta_items:
                         if re.match(r"\d{1,2}/\d{1,2}/\d{4}", item):
                             publication_date = parse_publication_date(item)
@@ -439,7 +448,9 @@ async def fetch_job_detail(context: BrowserContext, job: Dict, sem: asyncio.Sema
                         elif item in known_domains:
                             job_family_raw = item
                         elif not city_raw and item and len(item) < 50 and "postuler" not in item.lower() and not re.match(r"^\d", item):
-                            city_raw = item
+                            # Privilégier les villes connues ; éviter les adresses (boulevard, rue, allée)
+                            if item in known_cities_oddo or (normalize_city(item) and "boulevard" not in item.lower() and "rue" not in item.lower() and "allée" not in item.lower() and "allee" not in item.lower()):
+                                city_raw = item
 
             # Fallback: chercher les valeurs connues dans le HTML
             if not job_family_raw:
@@ -549,17 +560,22 @@ async def main():
         if expired_urls:
             db.mark_as_expired(expired_urls)
 
-        # Étape 2: Scraper les détails des nouveaux
-        new_jobs = [j for j in jobs if j["job_url"] in new_urls]
-        if new_jobs:
-            logging.info(f"\n🚀 ÉTAPE 2: Scraping de {len(new_jobs)} nouvelles offres")
+        # Étape 2: Scraper les détails (nouveaux uniquement, ou tous si --refresh-all)
+        refresh_all = "--refresh-all" in __import__("sys").argv
+        if refresh_all:
+            jobs_to_detail = jobs
+            logging.info(f"\n🔄 Mode --refresh-all: re-scraping des détails pour {len(jobs_to_detail)} offres")
+        else:
+            jobs_to_detail = [j for j in jobs if j["job_url"] in new_urls]
+        if jobs_to_detail:
+            logging.info(f"\n🚀 ÉTAPE 2: Scraping de {len(jobs_to_detail)} offres")
             sem = asyncio.Semaphore(config.MAX_CONCURRENT_PAGES)
-            tasks = [fetch_job_detail(context, j, sem) for j in new_jobs]
+            tasks = [fetch_job_detail(context, j, sem) for j in jobs_to_detail]
             for coro in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Scraping détails"):
                 await coro
 
             today = datetime.now().strftime("%Y-%m-%d")
-            for job in new_jobs:
+            for job in jobs_to_detail:
                 existing_date = db.get_existing_publication_date(job.get("job_url") or "")
                 job["publication_date"] = existing_date or today
                 db.insert_or_update_job(job)

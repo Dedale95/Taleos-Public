@@ -382,6 +382,36 @@ def fix_database(db_path, db_name):
     
     print(f"   ✅ {updated_count} offres corrigées sur {len(jobs)}")
 
+def fix_credit_agricole_experience(db_path):
+    """Ré-extrait l'expérience depuis la description (ex: 10+ years → 11 ans et plus)."""
+    if not db_path.exists():
+        return
+    try:
+        from experience_extractor import extract_experience_level
+    except ImportError:
+        return
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute(
+        "SELECT job_url, job_title, contract_type, experience_level, job_description FROM jobs WHERE is_valid = 1 AND job_description IS NOT NULL"
+    )
+    updated = 0
+    for job_url, title, contract_type, current_exp, desc in cursor.fetchall():
+        extracted = extract_experience_level(desc or "", contract_type, title)
+        if not extracted:
+            continue
+        # Ne mettre à jour que si la description donne une info plus précise (ex: 10+ years)
+        if extracted != current_exp:
+            conn.execute(
+                "UPDATE jobs SET experience_level = ?, last_updated = CURRENT_TIMESTAMP WHERE job_url = ?",
+                (extracted, job_url)
+            )
+            updated += 1
+    conn.commit()
+    conn.close()
+    if updated:
+        print(f"   📊 Crédit Agricole: {updated} niveau d'expérience ré-extrait depuis la description")
+
+
 def main():
     print("=" * 80)
     print("🔧 CORRECTION DES DONNÉES DANS LES BASES SQLITE")
@@ -389,6 +419,7 @@ def main():
     
     # Corriger chaque base
     fix_database(CA_DB, "Crédit Agricole")
+    fix_credit_agricole_experience(CA_DB)
     fix_database(SG_DB, "Société Générale")
     fix_database(DELOITTE_DB, "Deloitte")
     fix_database(CREDIT_MUTUEL_DB, "Crédit Mutuel")

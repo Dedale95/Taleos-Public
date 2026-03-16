@@ -170,8 +170,20 @@ def extract_experience_level(
             return "6 - 10 ans"
         return "11 ans et plus"
     
-    # 5e. "X years of experience" / "X+ years" (nombre seul)
-    years_exp_m = re.search(r"(\d+)\+?\s*years?\s*(?:of\s*)?experience", text_lower)
+    # 5e. "X years of experience" / "X+ years" (Required: 8+ years, Desired: 10+ years)
+    # Prendre le max si plusieurs mentions (ex: Required 8+, Desired 10+ → 10+)
+    # 10+ = niveau senior → "11 ans et plus"
+    years_exp_all = re.findall(r"(\d+)\+\s*years?\s*(?:of\s*)?experience", text_lower)
+    if years_exp_all:
+        y = max(int(x) for x in years_exp_all)
+        if y <= 2:
+            return "0 - 2 ans"
+        if y <= 5:
+            return "3 - 5 ans"
+        if y >= 10:
+            return "11 ans et plus"  # 10+ = senior
+        return "6 - 10 ans"
+    years_exp_m = re.search(r"(\d+)\s*years?\s*(?:of\s*)?experience", text_lower)
     if years_exp_m:
         y = int(years_exp_m.group(1))
         if y <= 2:

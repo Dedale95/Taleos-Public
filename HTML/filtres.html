@@ -673,6 +673,12 @@
             max-height: 800px;
             margin-bottom: 8px;
         }
+        .location-country-children {
+            margin-left: 18px;
+        }
+        .location-region-item {
+            margin-left: 18px;
+        }
         /* Aligner visuellement toutes les lignes entreprise (groupes + simples) */
         .company-filter-other {
             display: flex;
@@ -2882,133 +2888,236 @@
             ]
         };
 
-        function populateCountryFilterAccordionWithContinents(accordionId, values, counts, disabledValues, hideDisabled, checkedValues) {
+        const locationExpandedByAccordion = {};
+        function populateCountryFilterAccordionWithContinents(accordionId, values, counts, disabledValues, hideDisabled, checkedCountries, countryToRegions = {}, regionCounts = {}, checkedRegions = new Set()) {
             const container = document.getElementById(`countryFilter-${accordionId}`);
             if (!container) return;
             container.innerHTML = '';
 
+            const cvCountries = checkedCountries instanceof Set ? checkedCountries : new Set(checkedCountries || []);
+            const cvRegions = checkedRegions instanceof Set ? checkedRegions : new Set(checkedRegions || []);
+
+            const allCheckboxesIn = (el) => Array.from(el.querySelectorAll('input[type="checkbox"]')).filter(cb => !cb.classList.contains('continent-group-checkbox') && !cb.disabled);
+
             const continentMap = {};
+            const allContinentsCountries = new Set();
             Object.keys(CONTINENT_GROUPS).forEach(label => {
-                continentMap[label] = CONTINENT_GROUPS[label].filter(c => values.includes(c));
+                const list = CONTINENT_GROUPS[label].filter(c => values.includes(c));
+                continentMap[label] = list;
+                list.forEach(c => allContinentsCountries.add(c));
             });
+            const autresPays = values.filter(c => !allContinentsCountries.has(c) && c !== 'Non spécifié');
+            const nonSpecPays = values.includes('Non spécifié') ? ['Non spécifié'] : [];
+            if (autresPays.length > 0 || nonSpecPays.length > 0) {
+                continentMap['Non spécifié / Autres'] = [...autresPays, ...nonSpecPays];
+            }
             const countriesAssigned = new Set();
 
-            Object.entries(continentMap).forEach(([label, countries]) => {
+            const continentExpanded = locationExpandedByAccordion[accordionId]?.continent || {};
+            const countryExpanded = locationExpandedByAccordion[accordionId]?.country || {};
+
+            Object.entries(continentMap).forEach(([contLabel, countries]) => {
                 if (!countries || countries.length === 0) return;
 
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'company-group-header';
+                const contGroupDiv = document.createElement('div');
+                contGroupDiv.className = 'company-group-header';
 
-                const groupLabel = document.createElement('label');
-                groupLabel.style.display = 'flex';
-                groupLabel.style.alignItems = 'center';
-                groupLabel.style.flex = '1';
-                groupLabel.style.cursor = 'pointer';
+                const contLabelEl = document.createElement('label');
+                contLabelEl.style.display = 'flex';
+                contLabelEl.style.alignItems = 'center';
+                contLabelEl.style.flex = '1';
+                contLabelEl.style.cursor = 'pointer';
 
-                const groupCheckbox = document.createElement('input');
-                groupCheckbox.type = 'checkbox';
-                groupCheckbox.className = 'continent-group-checkbox';
-                groupCheckbox.style.marginRight = '6px';
-                groupLabel.appendChild(groupCheckbox);
+                const contCb = document.createElement('input');
+                contCb.type = 'checkbox';
+                contCb.className = 'continent-group-checkbox';
+                contCb.style.marginRight = '6px';
+                contLabelEl.appendChild(contCb);
 
-                const span = document.createElement('span');
+                const contSpan = document.createElement('span');
                 const contCount = countries.reduce((s, c) => s + (counts[c] || 0), 0);
-                span.textContent = contCount > 0 ? `${label} (${contCount})` : label;
-                groupLabel.appendChild(span);
+                contSpan.textContent = contCount > 0 ? `${contLabel} (${contCount})` : contLabel;
+                contLabelEl.appendChild(contSpan);
 
-                const expandSpan = document.createElement('span');
-                expandSpan.className = 'company-group-expand';
-                expandSpan.textContent = '▶';
-                expandSpan.title = 'Cliquer pour afficher/masquer les pays de ce continent';
+                const contExpand = document.createElement('span');
+                contExpand.className = 'company-group-expand';
+                contExpand.textContent = '▶';
+                contExpand.title = 'Cliquer pour afficher/masquer les pays';
 
-                const childrenDiv = document.createElement('div');
-                childrenDiv.className = 'company-group-children';
-                childrenDiv.setAttribute('data-group', `continent-${label}`);
-                childrenDiv.onclick = (e) => e.stopPropagation();
+                const isContExpanded = continentExpanded[contLabel] === true;
+                const contChildren = document.createElement('div');
+                contChildren.className = 'company-group-children' + (isContExpanded ? ' visible' : '');
+                contChildren.setAttribute('data-group', `continent-${contLabel}`);
+                if (isContExpanded) contExpand.classList.add('expanded');
+                contChildren.onclick = (e) => e.stopPropagation();
 
-                groupCheckbox.onchange = () => {
-                    const shouldCheck = groupCheckbox.checked;
-                    const childCbs = Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]'))
-                        .filter(cb => !cb.disabled);
-                    childCbs.forEach(cb => {
-                        cb.checked = shouldCheck;
-                        updateFilter(accordionId, 'countries', cb.value, shouldCheck);
-                    });
-                    requestAnimationFrame(() => {
-                        const childrenDivNew = container.querySelector(`.company-group-children[data-group="continent-${label}"]`);
-                        const groupHeader = childrenDivNew ? childrenDivNew.previousElementSibling : null;
-                        const groupCbNew = groupHeader ? groupHeader.querySelector('.continent-group-checkbox') : null;
-                        const childCbsNew = childrenDivNew ? Array.from(childrenDivNew.querySelectorAll('input[type="checkbox"]')) : [];
-                        if (groupCbNew && childCbsNew.length > 0) groupCbNew.checked = childCbsNew.every(c => c.disabled || c.checked);
+                contCb.onchange = () => {
+                    const on = contCb.checked;
+                    allCheckboxesIn(contChildren).forEach(cb => {
+                        cb.checked = on;
+                        const locType = cb.getAttribute('data-location-type');
+                        if (locType === 'region') updateFilter(accordionId, 'regions', cb.value, on);
+                        else updateFilter(accordionId, 'countries', cb.value, on);
                     });
                 };
 
-                groupDiv.addEventListener('click', (e) => {
-                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                contGroupDiv.addEventListener('click', (e) => {
+                    if (e.target === contExpand || contExpand.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
-                    const childCbs = Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]'));
-                    const allChecked = childCbs.length > 0 && childCbs.every(cb => cb.disabled || cb.checked);
-                    groupCheckbox.checked = !allChecked;
-                    groupCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                    const childCbs = allCheckboxesIn(contChildren);
+                    const allChecked = childCbs.length > 0 && childCbs.every(cb => cb.checked);
+                    contCb.checked = !allChecked;
+                    contCb.dispatchEvent(new Event('change', { bubbles: true }));
                 });
 
-                expandSpan.onclick = (e) => {
+                contExpand.onclick = (e) => {
                     e.stopPropagation();
-                    childrenDiv.classList.toggle('visible');
-                    expandSpan.classList.toggle('expanded');
+                    contChildren.classList.toggle('visible');
+                    contExpand.classList.toggle('expanded');
+                    if (!locationExpandedByAccordion[accordionId]) locationExpandedByAccordion[accordionId] = {};
+                    if (!locationExpandedByAccordion[accordionId].continent) locationExpandedByAccordion[accordionId].continent = {};
+                    locationExpandedByAccordion[accordionId].continent[contLabel] = contChildren.classList.contains('visible');
                 };
 
-                groupDiv.appendChild(groupLabel);
-                groupDiv.appendChild(expandSpan);
-                container.appendChild(groupDiv);
+                contGroupDiv.appendChild(contLabelEl);
+                contGroupDiv.appendChild(contExpand);
+                container.appendChild(contGroupDiv);
 
-                countries.forEach(c => {
-                    const cnt = counts[c] || 0;
-                    if (hideDisabled && cnt === 0 && !checkedValues.has(c)) return;
-                    countriesAssigned.add(c);
-                    const disabled = disabledValues.has(c);
-                    const labelEl = document.createElement('label');
-                    const cb = document.createElement('input');
-                    cb.type = 'checkbox';
-                    cb.value = c;
-                    cb.checked = checkedValues.has(c);
-                    cb.disabled = disabled;
-                    cb.onchange = () => {
-                        updateFilter(accordionId, 'countries', c, cb.checked);
-                        const childCbs = Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]'));
-                        groupCheckbox.checked = childCbs.every(cb2 => cb2.disabled || cb2.checked);
+                countries.forEach(country => {
+                    const countryCnt = counts[country] || 0;
+                    if (hideDisabled && countryCnt === 0 && !cvCountries.has(country)) return;
+                    countriesAssigned.add(country);
+                    const regionsForCountry = (countryToRegions && countryToRegions[country]) ? Array.from(countryToRegions[country]).sort((a, b) => (regionCounts[b] || 0) - (regionCounts[a] || 0)) : [];
+                    const hasRegions = regionsForCountry.length > 1;
+                    const isCountryExpanded = countryExpanded[country] === true;
+
+                    const countryHeader = document.createElement('div');
+                    countryHeader.className = 'company-group-header location-country-header';
+
+                    const countryLabel = document.createElement('label');
+                    countryLabel.style.display = 'flex';
+                    countryLabel.style.alignItems = 'center';
+                    countryLabel.style.flex = '1';
+                    countryLabel.style.cursor = 'pointer';
+
+                    const countryCb = document.createElement('input');
+                    countryCb.type = 'checkbox';
+                    countryCb.value = country;
+                    countryCb.setAttribute('data-location-type', 'country');
+                    countryCb.checked = cvCountries.has(country);
+                    countryCb.disabled = disabledValues.has(country);
+                    countryCb.style.marginRight = '6px';
+                    countryLabel.appendChild(countryCb);
+
+                    const countryExpand = document.createElement('span');
+                    countryExpand.className = 'company-group-expand';
+                    countryExpand.textContent = '▶';
+                    countryExpand.title = 'Cliquer pour afficher/masquer les régions';
+                    if (!hasRegions) countryExpand.style.visibility = 'hidden';
+
+                    const countryChildren = document.createElement('div');
+                    countryChildren.className = 'company-group-children location-country-children' + (isCountryExpanded ? ' visible' : '');
+                    countryChildren.setAttribute('data-group', `country-${country}`);
+                    if (isCountryExpanded) countryExpand.classList.add('expanded');
+                    countryChildren.onclick = (e) => e.stopPropagation();
+
+                    countryCb.onchange = () => {
+                        const on = countryCb.checked;
+                        allCheckboxesIn(countryChildren).forEach(cb => { cb.checked = on; updateFilter(accordionId, 'regions', cb.value, on); });
+                        contCb.checked = allCheckboxesIn(contChildren).every(cb => cb.checked);
                     };
-                    labelEl.appendChild(cb);
-                    const sp = document.createElement('span');
-                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
-                    labelEl.appendChild(sp);
-                    if (disabled) labelEl.classList.add('disabled');
-                    childrenDiv.appendChild(labelEl);
+
+                    countryExpand.onclick = (e) => {
+                        e.stopPropagation();
+                        countryChildren.classList.toggle('visible');
+                        countryExpand.classList.toggle('expanded');
+                        if (!locationExpandedByAccordion[accordionId]) locationExpandedByAccordion[accordionId] = {};
+                        if (!locationExpandedByAccordion[accordionId].country) locationExpandedByAccordion[accordionId].country = {};
+                        locationExpandedByAccordion[accordionId].country[country] = countryChildren.classList.contains('visible');
+                    };
+
+                    if (hasRegions) {
+                        let sumRegions = 0;
+                        regionsForCountry.forEach(region => {
+                            const rCnt = (regionCounts && regionCounts[region]) || 0;
+                            sumRegions += rCnt;
+                            if (hideDisabled && rCnt === 0 && !cvRegions.has(region)) return;
+                            let displayLabel = region.startsWith('__AUTRES__') ? 'Autres' : region;
+                            if (region === 'Bistrița-Năsăud' || region === 'Bistrita-Nasaud') displayLabel = 'Bistrița-Năsăud (județ)';
+                            if ((region === 'Québec' || region === 'Quebec') && country === 'Canada') displayLabel = 'Québec (ville)';
+                            const labelEl = document.createElement('label');
+                            labelEl.className = 'location-region-item';
+                            const cb = document.createElement('input');
+                            cb.type = 'checkbox';
+                            cb.value = region;
+                            cb.setAttribute('data-location-type', 'region');
+                            cb.checked = cvRegions.has(region);
+                            cb.onchange = () => {
+                                countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
+                                contCb.checked = allCheckboxesIn(contChildren).every(cb2 => cb2.checked);
+                                updateFilter(accordionId, 'regions', region, cb.checked);
+                            };
+                            labelEl.appendChild(cb);
+                            const sp = document.createElement('span');
+                            sp.textContent = rCnt > 0 ? `${displayLabel} (${rCnt})` : displayLabel;
+                            labelEl.appendChild(sp);
+                            countryChildren.appendChild(labelEl);
+                        });
+                        const gap = countryCnt - sumRegions;
+                        if (gap > 0) {
+                            const labelEl = document.createElement('label');
+                            labelEl.className = 'location-region-item location-non-specifie';
+                            labelEl.style.opacity = '0.85';
+                            const sp = document.createElement('span');
+                            sp.textContent = `Non spécifié / Siège (${gap})`;
+                            sp.style.marginLeft = '22px';
+                            labelEl.appendChild(sp);
+                            countryChildren.appendChild(labelEl);
+                        }
+                    }
+
+                    const allRegionsChecked = regionsForCountry.length === 0 || regionsForCountry.every(r => cvRegions.has(r));
+                    if (cvCountries.has(country) || (regionsForCountry.length > 0 && allRegionsChecked)) {
+                        countryCb.checked = true;
+                    }
+
+                    const countryText = document.createElement('span');
+                    const countryLabel_ = country === 'Polynésie Française' ? country + ' (DOM-TOM)' : country;
+                    countryText.textContent = countryCnt > 0 ? `${countryLabel_} (${countryCnt})` : countryLabel_;
+                    countryLabel.appendChild(countryText);
+
+                    countryHeader.appendChild(countryLabel);
+                    countryHeader.appendChild(countryExpand);
+                    contChildren.appendChild(countryHeader);
+                    if (hasRegions) contChildren.appendChild(countryChildren);
                 });
 
-                // Cocher automatiquement le continent si tous ses pays sont cochés
-                const allCountriesChecked = countries.every(c => checkedValues.has(c));
-                if (allCountriesChecked && countries.length > 0) {
-                    groupCheckbox.checked = true;
+                const allCountriesOrRegionsChecked = countries.every(c => {
+                    const regs = countryToRegions && countryToRegions[c] ? Array.from(countryToRegions[c]) : [];
+                    const countryChecked = cvCountries.has(c);
+                    const allRegionsChecked = regs.length > 0 ? regs.every(r => cvRegions.has(r)) : false;
+                    return countryChecked || allRegionsChecked;
+                });
+                if (allCountriesOrRegionsChecked && countries.length > 0) {
+                    contCb.checked = true;
                 }
 
-                container.appendChild(childrenDiv);
+                container.appendChild(contChildren);
             });
 
             const others = values.filter(c => !countriesAssigned.has(c));
             others.forEach(value => {
                 const count = counts[value] || 0;
                 const isDisabled = disabledValues.has(value);
-                const isChecked = checkedValues.has(value);
-                if (hideDisabled && count === 0 && !isChecked) {
-                    return;
-                }
+                const isChecked = cvCountries.has(value);
+                if (hideDisabled && count === 0 && !isChecked) return;
                 const label = document.createElement('label');
                 if (isDisabled) label.classList.add('disabled');
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.value = value;
+                checkbox.setAttribute('data-location-type', 'country');
                 checkbox.checked = isChecked;
                 checkbox.disabled = isDisabled;
                 checkbox.onchange = () => updateFilter(accordionId, 'countries', value, checkbox.checked);
@@ -3148,12 +3257,12 @@
         }
 
         // Fonction pour peupler un filtre avec compteurs et état disabled (identique à offres.html)
-        function populateCheckboxFilterAccordion(accordionId, filterId, values, disabledValues = new Set(), counts = {}, hideDisabled = false, checkedValues = new Set()) {
+        function populateCheckboxFilterAccordion(accordionId, filterId, values, disabledValues = new Set(), counts = {}, hideDisabled = false, checkedValues = new Set(), countryToRegions = {}, regionCounts = {}, checkedRegions = new Set()) {
             const container = document.getElementById(`${filterId}-${accordionId}`);
             if (!container) return;
 
             if (filterId === 'countryFilter') {
-                return populateCountryFilterAccordionWithContinents(accordionId, values, counts, disabledValues, hideDisabled, checkedValues);
+                return populateCountryFilterAccordionWithContinents(accordionId, values, counts, disabledValues, hideDisabled, checkedValues, countryToRegions, regionCounts, checkedRegions);
             }
 
             if (filterId === 'companyFilter') {
@@ -3249,12 +3358,8 @@
                         </div>
                         <div class="filter-group filter-group-location">
                             <div class="filter-box filter-box-location">
-                                <div class="filter-box-header">🌍 Pays</div>
+                                <div class="filter-box-header">🌍 Pays & Régions</div>
                                 <div class="filter-checkbox-container filter-box-body-checkboxes" id="countryFilter-${accordionId}"></div>
-                            </div>
-                            <div class="filter-box filter-box-location">
-                                <div class="filter-box-header">🌍 Région</div>
-                                <div class="filter-checkbox-container filter-box-body-checkboxes" id="regionFilter-${accordionId}"></div>
                             </div>
                         </div>
                         <div class="filter-group">
@@ -3498,14 +3603,17 @@
             const checkedCompanies = new Set(filters.companies || []);
             const checkedEducations = new Set(filters.educations || []);
 
-            // Pays et Régions : hideDisabled=true (masque les 0)
+            // Pays & Régions : un seul filtre hiérarchique (continent > pays > région)
+            const countryToRegionsUpdate = {};
+            getJobsMatchingOtherFilters('country').forEach(job => {
+                if (job.cleanCountries && job.cleanRegions) job.cleanCountries.forEach(c => {
+                    if (!countryToRegionsUpdate[c]) countryToRegionsUpdate[c] = new Set();
+                    job.cleanRegions.forEach(r => countryToRegionsUpdate[c].add(r));
+                });
+            });
             populateCheckboxFilterAccordion(accordionId, 'countryFilter', sortedCountries,
                 new Set([...allCountries].filter(c => !availableCountries.has(c) && !checkedCountries.has(c))),
-                countryCounts, true, checkedCountries);
-
-            populateCheckboxFilterAccordion(accordionId, 'regionFilter', sortedRegions,
-                new Set([...allRegions].filter(r => !availableRegions.has(r) && !checkedRegions.has(r))),
-                regionCounts, true, checkedRegions);
+                countryCounts, true, checkedCountries, countryToRegionsUpdate, regionCounts, checkedRegions);
 
             // Contrat et Expérience : hideDisabled=false (barre en gris)
             populateCheckboxFilterAccordion(accordionId, 'contractFilter', sortedContracts,

@@ -966,7 +966,9 @@ const PROFILE_FIELD_LABELS = {
   educationLevel: 'Niveau d\'études',
   institutionType: 'Type d\'établissement',
   diplomaStatus: 'Statut du diplôme',
-  deloitteWorked: 'Avez-vous déjà travaillé pour Deloitte ?'
+  deloitteWorked: 'Avez-vous déjà travaillé pour Deloitte ?',
+  cv: 'CV (Documents)',
+  bpcePreferences: 'Préférences BPCE'
 };
 
 /** Vérifie si le profil utilisateur est complet (même logique que offres.html) */
@@ -977,6 +979,12 @@ async function checkProfileCompletenessFromFirestore() {
   const profileRes = await fetch(`${base}/profiles/${taleosUserId}`, { headers: { Authorization: `Bearer ${taleosIdToken}` } });
   if (!profileRes.ok) return { complete: false, missingFields: ['Profil'] };
   const profile = parseFirestoreDoc(await profileRes.json());
+  const bpceHasContent = !!(
+    (profile.bpce_handicap || '').trim() ||
+    (profile.bpce_vivier_natixis || '').trim() ||
+    (profile.linkedin_url || '').trim() ||
+    profile.bpce_job_alerts
+  );
   const required = {
     civility: profile.civility,
     firstName: profile.first_name,
@@ -996,7 +1004,9 @@ async function checkProfileCompletenessFromFirestore() {
     educationLevel: profile.education_level,
     institutionType: profile.institution_type,
     diplomaStatus: profile.diploma_status,
-    deloitteWorked: profile.deloitte_worked === 'yes' || profile.deloitte_worked === 'no'
+    deloitteWorked: profile.deloitte_worked === 'yes' || profile.deloitte_worked === 'no',
+    cv: !!((profile.cv_storage_path || profile.cv_url || '').trim()),
+    bpcePreferences: bpceHasContent
   };
   const missingFields = [];
   for (const [k, v] of Object.entries(required)) {

@@ -33,7 +33,8 @@ chrome.runtime.onInstalled.addListener((details) => {
 const BANK_SCRIPT_MAP = {
   credit_agricole: 'scripts/credit_agricole.js',
   societe_generale: 'scripts/societe_generale.js',
-  deloitte: 'scripts/credit_agricole.js'
+  deloitte: 'scripts/credit_agricole.js',
+  bpce: 'content/bpce-careers-filler.js'
 };
 
 const PROJECT_ID = 'project-taleos';
@@ -775,6 +776,25 @@ async function handleApply(offerUrl, bankId, jobId, jobTitle, companyName, taleo
       },
       taleos_sg_tab_id: tab.id
     });
+  } else if (bankId === 'bpce' || (offerUrl && String(offerUrl).toLowerCase().includes('recrutement.bpce.fr'))) {
+    chrome.storage.local.set({ taleos_pending_tab: taleosTabId });
+    const createOpts = { url: offerUrl, active: true };
+    if (taleosTabId) {
+      try {
+        const taleosTab = await chrome.tabs.get(taleosTabId);
+        if (taleosTab?.index != null) createOpts.index = taleosTab.index + 1;
+      } catch (_) {}
+    }
+    const tab = await chrome.tabs.create(createOpts);
+    chrome.storage.local.set({
+      taleos_pending_bpce: {
+        profile: { ...profile, __jobId: jobId, __jobTitle: jobTitle, __companyName: companyName || 'BPCE', __offerUrl: offerUrl },
+        offerUrl, jobId, jobTitle, companyName: companyName || 'BPCE',
+        tabId: tab.id,
+        timestamp: Date.now()
+      },
+      taleos_bpce_tab_id: tab.id
+    });
   } else {
     // Ouvrir la candidature dans un sous-onglet, jamais dans la page Taleos
     const otherCreateOpts = { url: offerUrl, active: false };
@@ -1006,6 +1026,12 @@ async function fetchProfile(uid, bankId, token) {
         }
       }
     }
+  }
+  // BPCE : fallback sur email du profil ou taleosUserEmail si pas de career_connection
+  if (bankId === 'bpce' && (!creds || !creds.email)) {
+    const { taleosUserEmail } = await chrome.storage.local.get(['taleosUserEmail']);
+    const fallbackEmail = (profile.email || taleosUserEmail || '').trim();
+    if (fallbackEmail) creds = { email: fallbackEmail };
   }
   if (!creds || !creds.email) throw new Error(`Identifiants ${bankId} introuvables. Configurez-les sur la page Connexions.`);
 

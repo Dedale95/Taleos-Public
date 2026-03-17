@@ -107,6 +107,7 @@
     if (url.includes('groupecreditagricole.jobs') || url.includes('creditagricole')) return 'credit_agricole';
     if (url.includes('careers.societegenerale.com') || url.includes('societegenerale') || url.includes('socgen.taleo.net')) return 'societe_generale';
     if (url.includes('deloitte.com') || (url.includes('myworkdayjobs.com') && url.toLowerCase().includes('deloitte'))) return 'deloitte';
+    if (url.includes('recrutement.bpce.fr')) return 'bpce';
     return 'credit_agricole'; // défaut
   }
 
@@ -267,6 +268,18 @@
     const fallbackOpen = () => {
       clearProcessing(jobId, true);
       if (bankId === 'societe_generale' || jobUrl.includes('careers.societegenerale.com') || jobUrl.includes('socgen.taleo.net')) {
+        chrome.storage.local.set({
+          taleos_apply_fallback: {
+            offerUrl: jobUrl,
+            bankId,
+            jobId,
+            jobTitle,
+            companyName,
+            timestamp: Date.now()
+          }
+        });
+      }
+      if (bankId === 'bpce' || jobUrl.includes('recrutement.bpce.fr')) {
         chrome.storage.local.set({
           taleos_apply_fallback: {
             offerUrl: jobUrl,

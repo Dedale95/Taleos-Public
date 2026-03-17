@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Taleos",
-  "version": "1.0.46",
+  "version": "1.0.47",
   "description": "Automatisation de candidatures bancaires - Taleos",
   "permissions": [
     "activeTab",
@@ -23,6 +23,7 @@
     "https://socgen.taleo.net/*",
     "https://*.deloitte.com/*",
     "https://*.myworkdayjobs.com/*",
+    "https://recrutement.bpce.fr/*",
     "http://localhost/*",
     "http://localhost:8000/*",
     "http://127.0.0.1/*",
@@ -102,6 +103,15 @@
       ],
       "js": [
         "content/deloitte-careers-filler.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://recrutement.bpce.fr/*"
+      ],
+      "js": [
+        "content/bpce-careers-filler.js"
       ],
       "run_at": "document_idle"
     }

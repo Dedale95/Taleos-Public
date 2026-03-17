@@ -155,8 +155,8 @@
 
   function showProfileIncompletePopup(missingFields) {
     const msg = missingFields && missingFields.length > 0
-      ? 'Pour activer l\'automatisation des candidatures, veuillez compléter tous les champs obligatoires : ' + missingFields.join(', ')
-      : 'Il manque des informations dans votre profil. Vous devez compléter votre profil avant de pouvoir candidater.';
+      ? 'Votre profil est incomplet. Veuillez compléter toutes les informations requises dans Mon profil avant de lancer une candidature : ' + missingFields.join(', ')
+      : 'Votre profil est incomplet. Complétez toutes les informations requises dans Mon profil avant de lancer une candidature.';
     const script = document.createElement('script');
     script.textContent = `
       (function() {
@@ -245,11 +245,15 @@
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000));
       const checkRes = await Promise.race([checkPromise, timeoutPromise]);
       if (!checkRes || checkRes.complete !== true) {
+        delete btn.dataset.taleosProcessing;
+        btn.removeAttribute('data-taleos-processing');
         showProfileIncompletePopup(checkRes?.missingFields || []);
         return;
       }
     } catch (err) {
       console.warn('[Taleos] Vérification profil:', err);
+      delete btn.dataset.taleosProcessing;
+      btn.removeAttribute('data-taleos-processing');
       if (isContextInvalidated(err) || isReceivingEndMissing(err)) {
         showReloadToast();
         return;
@@ -319,7 +323,14 @@
       }
       if (response?.error) {
         console.warn('[Taleos] handleApply:', response.error);
-        fallbackOpen();
+        if (/profil incomplet|profil introuvable/i.test(response.error)) {
+          clearProcessing(jobId, true);
+          const match = response.error.match(/avant de lancer une candidature[:\s]+(.+)$/);
+          const missingFields = match ? match[1].split(',').map(m => m.trim()).filter(Boolean) : [];
+          showProfileIncompletePopup(missingFields.length ? missingFields : []);
+        } else {
+          fallbackOpen();
+        }
       }
     } catch (err) {
       const msg = (err?.message || String(err)).toLowerCase();

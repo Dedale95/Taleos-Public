@@ -636,6 +636,12 @@ async function handleApply(offerUrl, bankId, jobId, jobTitle, companyName, taleo
     return { error: 'Utilisateur non connecté' };
   }
 
+  const profileCheck = await checkProfileCompletenessFromFirestore();
+  if (!profileCheck?.complete) {
+    const missing = profileCheck?.missingFields?.length ? profileCheck.missingFields.join(', ') : 'informations manquantes';
+    return { error: `Profil incomplet. Complétez toutes les informations requises dans Mon profil avant de lancer une candidature : ${missing}` };
+  }
+
   let profile;
   try {
     profile = await fetchProfile(taleosUserId, bankId, taleosIdToken);

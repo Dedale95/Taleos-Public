@@ -352,7 +352,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.action === 'taleos_check_profile_complete') {
-    checkProfileCompletenessFromFirestore()
+    checkProfileCompletenessFromFirestore(msg.bankId)
       .then((res) => sendResponse(typeof res === 'object' ? res : { complete: !!res }))
       .catch(e => sendResponse({ complete: false, error: e.message, missingFields: [] }));
     return true;
@@ -636,7 +636,7 @@ async function handleApply(offerUrl, bankId, jobId, jobTitle, companyName, taleo
     return { error: 'Utilisateur non connecté' };
   }
 
-  const profileCheck = await checkProfileCompletenessFromFirestore();
+  const profileCheck = await checkProfileCompletenessFromFirestore(bankId);
   if (!profileCheck?.complete) {
     const missing = profileCheck?.missingFields?.length ? profileCheck.missingFields.join(', ') : 'informations manquantes';
     return { error: `Profil incomplet. Complétez toutes les informations requises dans Mon profil avant de lancer une candidature : ${missing}` };
@@ -972,19 +972,15 @@ const PROFILE_FIELD_LABELS = {
 };
 
 /** Vérifie si le profil utilisateur est complet (même logique que offres.html) */
-async function checkProfileCompletenessFromFirestore() {
+async function checkProfileCompletenessFromFirestore(bankId) {
   const { taleosUserId, taleosIdToken } = await chrome.storage.local.get(['taleosUserId', 'taleosIdToken']);
   if (!taleosUserId || !taleosIdToken) return { complete: false, missingFields: ['Connexion'] };
   const base = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
   const profileRes = await fetch(`${base}/profiles/${taleosUserId}`, { headers: { Authorization: `Bearer ${taleosIdToken}` } });
   if (!profileRes.ok) return { complete: false, missingFields: ['Profil'] };
   const profile = parseFirestoreDoc(await profileRes.json());
-  const bpceHasContent = !!(
-    (profile.bpce_handicap || '').trim() ||
-    (profile.bpce_vivier_natixis || '').trim() ||
-    (profile.linkedin_url || '').trim() ||
-    profile.bpce_job_alerts
-  );
+  const isBpce = bankId === 'bpce' || (typeof bankId === 'string' && bankId.toLowerCase().includes('bpce'));
+  const bpceHasContent = !!((profile.bpce_handicap || '').trim() || (profile.bpce_vivier_natixis || '').trim() || (profile.linkedin_url || '').trim() || profile.bpce_job_alerts);
   const required = {
     civility: profile.civility,
     firstName: profile.first_name,
@@ -1005,9 +1001,11 @@ async function checkProfileCompletenessFromFirestore() {
     institutionType: profile.institution_type,
     diplomaStatus: profile.diploma_status,
     deloitteWorked: profile.deloitte_worked === 'yes' || profile.deloitte_worked === 'no',
-    cv: !!((profile.cv_storage_path || profile.cv_url || '').trim()),
-    bpcePreferences: bpceHasContent
+    cv: !!((profile.cv_storage_path || profile.cv_url || '').trim())
   };
+  if (isBpce) {
+    required.bpcePreferences = bpceHasContent;
+  }
   const missingFields = [];
   for (const [k, v] of Object.entries(required)) {
     if (v === undefined || v === null || v === '' || v === false || (typeof v === 'string' && v.trim() === '')) {

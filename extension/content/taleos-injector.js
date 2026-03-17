@@ -241,7 +241,7 @@
     }
 
     try {
-      const checkPromise = chrome.runtime.sendMessage({ action: 'taleos_check_profile_complete' });
+      const checkPromise = chrome.runtime.sendMessage({ action: 'taleos_check_profile_complete', bankId });
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000));
       const checkRes = await Promise.race([checkPromise, timeoutPromise]);
       if (!checkRes || checkRes.complete !== true) {

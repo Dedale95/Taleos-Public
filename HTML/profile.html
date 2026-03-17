@@ -3134,6 +3134,22 @@
                 });
             });
 
+            // Préférences BPCE : section optionnelle — verte uniquement si au moins un champ rempli
+            const bpceHandicap = document.getElementById('bpceHandicap')?.value?.trim() || '';
+            const bpceVivier = document.getElementById('bpceVivierNatixis')?.value?.trim() || '';
+            const linkedinUrl = document.getElementById('linkedinUrl')?.value?.trim() || '';
+            const bpceJobAlerts = document.getElementById('bpceJobAlerts')?.checked || false;
+            const bpceHasContent = !!(bpceHandicap || bpceVivier || linkedinUrl || bpceJobAlerts);
+            document.querySelectorAll('.accordion-header h2').forEach(header => {
+                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Préférences BPCE') {
+                    const section = header.closest('.accordion-section');
+                    if (section) {
+                        section.classList.remove('incomplete', 'complete');
+                        section.classList.add(bpceHasContent ? 'complete' : 'incomplete');
+                    }
+                }
+            });
+
             // Si des champs sont incomplets, afficher un toast et retourner false
             if (incompleteFields.length > 0) {
                 const fieldsList = incompleteFields.slice(0, 5).join(', ');

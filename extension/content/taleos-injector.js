@@ -157,22 +157,56 @@
     const msg = missingFields && missingFields.length > 0
       ? 'Votre profil est incomplet. Veuillez compléter toutes les informations requises dans Mon profil avant de lancer une candidature : ' + missingFields.join(', ')
       : 'Votre profil est incomplet. Complétez toutes les informations requises dans Mon profil avant de lancer une candidature.';
-    const script = document.createElement('script');
-    script.textContent = `
-      (function() {
-        var m = document.createElement('div');
-        m.id = 'profileIncompleteModal';
-        m.className = 'profile-incomplete-modal';
-        m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999999';
-        m.innerHTML = '<div style="background:#fff;padding:24px;border-radius:12px;max-width:450px;text-align:center"><h3>Profil incomplet</h3><p>' + ${JSON.stringify(msg)} + '</p><button id="taleos-btn-profile" style="margin:8px;padding:10px 20px;background:#667eea;color:#fff;border:none;border-radius:8px;cursor:pointer">Compléter mon profil</button><button id="taleos-btn-close" style="margin:8px;padding:10px 20px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer">Fermer</button></div>';
-        m.onclick = function(e) { if (e.target === m) m.remove(); };
-        document.body.appendChild(m);
-        m.querySelector('#taleos-btn-profile').onclick = function() { m.remove(); window.location.href = 'profile.html'; };
-        m.querySelector('#taleos-btn-close').onclick = function() { m.remove(); };
-      })();
-    `;
-    (document.head || document.documentElement).appendChild(script);
-    script.remove();
+
+    // Créer la modale directement en DOM (évite CSP qui bloque l'injection de script inline)
+    const existing = document.getElementById('taleos-profile-incomplete-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'taleos-profile-incomplete-modal';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'taleos-profile-incomplete-title');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2147483647;font-family:system-ui,-apple-system,sans-serif';
+
+    const box = document.createElement('div');
+    box.style.cssText = 'background:#fff;padding:24px;border-radius:12px;max-width:450px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.2)';
+
+    const title = document.createElement('h3');
+    title.id = 'taleos-profile-incomplete-title';
+    title.textContent = 'Profil incomplet';
+    title.style.cssText = 'margin:0 0 16px;font-size:18px;color:#1f2937';
+
+    const text = document.createElement('p');
+    text.textContent = msg;
+    text.style.cssText = 'margin:0 0 20px;font-size:14px;line-height:1.5;color:#4b5563';
+
+    const btnProfile = document.createElement('button');
+    btnProfile.textContent = 'Compléter mon profil';
+    btnProfile.style.cssText = 'margin:8px;padding:10px 20px;background:#667eea;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px';
+
+    const btnClose = document.createElement('button');
+    btnClose.textContent = 'Fermer';
+    btnClose.style.cssText = 'margin:8px;padding:10px 20px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer;font-size:14px;color:#374151';
+
+    box.appendChild(title);
+    box.appendChild(text);
+    box.appendChild(btnProfile);
+    box.appendChild(btnClose);
+    overlay.appendChild(box);
+
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) overlay.remove();
+    });
+    btnProfile.addEventListener('click', function() {
+      overlay.remove();
+      window.location.href = new URL('profile.html', window.location.href).href;
+    });
+    btnClose.addEventListener('click', function() {
+      overlay.remove();
+    });
+
+    document.body.appendChild(overlay);
   }
 
   function setButtonProcessing(btn, jobId) {

@@ -281,17 +281,21 @@ def mark_credit_mutuel_error_pages_invalid(db_path):
 
 
 def mark_sg_error_pages_invalid(db_path):
-    """Marque is_valid=0 pour les offres SG avec titre 'Page not found' / 'Page introuvable'"""
+    """Marque is_valid=0 pour les offres SG avec titre/description indiquant page 404 / offre expirée"""
     if not db_path.exists():
         return 0
-    error_patterns = ['page not found', 'page introuvable', 'pagenot found']
+    error_patterns = [
+        "page not found", "page introuvable", "pageintrouvable", "pagenot found",
+        "erreur 404", "error 404", "il semblerait que la page", "n'existe plus",
+        "ne soit plus en ligne", "offre d'emploi ne soit plus"
+    ]
     conn = sqlite3.connect(db_path)
     cursor = conn.execute(
-        "SELECT job_url, job_title FROM jobs WHERE is_valid = 1 AND job_title IS NOT NULL"
+        "SELECT job_url, job_title, job_description FROM jobs WHERE is_valid = 1 AND (job_title IS NOT NULL OR job_description IS NOT NULL)"
     )
     to_invalidate = [
         row[0] for row in cursor.fetchall()
-        if row[1] and any(p in row[1].lower() for p in error_patterns)
+        if any(p in f"{(row[1] or '')} {(row[2] or '')}".lower() for p in error_patterns)
     ]
     if to_invalidate:
         placeholders = ','.join('?' * len(to_invalidate))

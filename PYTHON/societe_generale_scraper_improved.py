@@ -7,6 +7,7 @@ Extrait TOUTES les données: dates, description, compétences, etc.
 import asyncio
 import logging
 import csv
+import random
 import re
 import time
 import sqlite3
@@ -33,6 +34,15 @@ logging.basicConfig(
 # ================= Constants =================
 BASE_URL = "https://careers.societegenerale.com"
 SEARCH_URL = f"{BASE_URL}/rechercher?query="
+
+# Patterns pour détecter les pages 404 / offre expirée (SG)
+PAGE_404_PATTERNS = [
+    "page not found", "page introuvable", "pageintrouvable", "pagenot found",
+    "erreur 404", "error 404",
+    "il semblerait que la page", "n'existe plus", "ne soit plus en ligne",
+    "offre d'emploi ne soit plus", "job position is no longer online",
+    "the requested page no longer exists"
+]
 
 # ================= Config =================
 class Config:
@@ -115,16 +125,30 @@ class JobDatabase:
             """, tuple(urls))
             conn.commit()
 
+    def mark_as_expired_and_invalid(self, urls: Set[str]):
+        """Marque des offres comme expirées ET invalides (page 404)"""
+        if not urls:
+            return
+
+        with sqlite3.connect(self.db_path) as conn:
+            placeholders = ','.join('?' * len(urls))
+            conn.execute(f"""
+                UPDATE jobs 
+                SET status = 'Expired', is_valid = 0, last_updated = CURRENT_TIMESTAMP
+                WHERE job_url IN ({placeholders})
+            """, tuple(urls))
+            conn.commit()
+
     def mark_error_pages_invalid(self) -> int:
-        """Marque is_valid=0 pour les jobs dont le titre indique une page 404. Retourne le nombre mis à jour."""
-        error_patterns = ['page not found', 'page introuvable', 'pagenot found']
+        """Marque is_valid=0 pour les jobs dont le titre/description indique une page 404. Retourne le nombre mis à jour."""
+        error_patterns = PAGE_404_PATTERNS
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
-                "SELECT job_url, job_title FROM jobs WHERE is_valid = 1 AND job_title IS NOT NULL"
+                "SELECT job_url, job_title, job_description FROM jobs WHERE is_valid = 1 AND (job_title IS NOT NULL OR job_description IS NOT NULL)"
             )
             to_invalidate = [
                 row[0] for row in cursor.fetchall()
-                if row[1] and any(p in row[1].lower() for p in error_patterns)
+                if any(p in f"{(row[1] or '')} {(row[2] or '')}".lower() for p in error_patterns)
             ]
             if to_invalidate:
                 placeholders = ','.join('?' * len(to_invalidate))
@@ -140,9 +164,9 @@ class JobDatabase:
         with sqlite3.connect(self.db_path) as conn:
             # Vérifier si le job a du contenu valide
             is_valid = 1 if (job.get('job_id') or job.get('job_title') or job.get('job_description')) else 0
-            # Exclure les pages d'erreur 404 (tuiles vides "PageNot found", "Page introuvable")
-            title_lower = (job.get('job_title') or '').lower()
-            if any(err in title_lower for err in ['page not found', 'page introuvable', 'pagenot found']):
+            # Exclure les pages d'erreur 404 (tuiles vides "Page introuvable", "Pageintrouvable", etc.)
+            combined_text = f"{(job.get('job_title') or '')} {(job.get('job_description') or '')}".lower()
+            if any(p in combined_text for p in PAGE_404_PATTERNS):
                 is_valid = 0
 
             # Convertir les listes en JSON si nécessaire
@@ -357,6 +381,22 @@ async def fetch_job_details(context: BrowserContext, url: str, sem: asyncio.Sema
             
             html = await page.content()
             soup = BeautifulSoup(html, "html.parser")
+
+            # Détection précoce des pages 404 / offre expirée
+            page_text = soup.get_text(separator=" ").lower()
+            if any(p in page_text for p in PAGE_404_PATTERNS):
+                job_id_match = re.search(r'-([A-Z0-9]+)-(?:fr|en)', url)
+                job_id = "SG_" + job_id_match.group(1) if job_id_match else None
+                return {
+                    "job_id": job_id, "job_title": "Page introuvable", "contract_type": None,
+                    "publication_date": None, "location": None, "job_family": None,
+                    "duration": None, "management_position": None, "status": "Expired",
+                    "education_level": None, "experience_level": None, "training_specialization": None,
+                    "technical_skills": "[]", "behavioral_skills": "[]", "tools": None, "languages": None,
+                    "job_description": None, "company_name": "Société Générale",
+                    "company_description": None, "job_url": url,
+                    "first_seen": None, "last_updated": None
+                }
 
             # Extract job_id from URL
             job_id_match = re.search(r'-([A-Z0-9]+)-(?:fr|en)', url)
@@ -677,6 +717,23 @@ async def main():
             db.mark_as_expired(expired_urls)
             logging.info(f"✓ {len(expired_urls)} offres marquées comme expirées")
 
+        # Étape 3.5: Re-validation des URLs encore dans la recherche (détection 404)
+        still_in_search = all_current_links & existing_live_urls
+        if still_in_search:
+            sample_size = min(200, len(still_in_search))
+            to_revalidate = set(random.sample(list(still_in_search), sample_size))
+            logging.info(f"\n🔍 ÉTAPE 3.5: Re-validation de {len(to_revalidate)} URLs (échantillon)")
+            sem_jobs = asyncio.Semaphore(config.MAX_CONCURRENT_PAGES)
+            reval_tasks = [fetch_job_details(context, url, sem_jobs) for url in to_revalidate]
+            invalid_urls = set()
+            for coro in tqdm(asyncio.as_completed(reval_tasks), total=len(reval_tasks), desc="Revalidating"):
+                job_data = await coro
+                if job_data and job_data.get("status") == "Expired":
+                    invalid_urls.add(job_data.get("job_url"))
+            if invalid_urls:
+                db.mark_as_expired_and_invalid(invalid_urls)
+                logging.info(f"✓ {len(invalid_urls)} offres devenues 404 marquées invalides")
+
         # Étape 4: Scraper les nouveaux détails
         if new_urls:
             logging.info(f"\n🚀 ÉTAPE 4: Scraping de {len(new_urls)} nouvelles offres")
@@ -725,5 +782,56 @@ async def main():
     logging.info(f"Time elapsed: {elapsed:.2f}s")
     logging.info("=" * 80)
 
+async def revalidate_only(limit: int = 500):
+    """Re-valide les URLs live en base : détecte les 404 et les marque invalides."""
+    db = JobDatabase(config.DB_PATH)
+    n_invalid = db.mark_error_pages_invalid()
+    if n_invalid:
+        logging.info(f"🧹 {n_invalid} offres 404 (titre/description) marquées invalides")
+
+    existing_live_urls = db.get_live_urls()
+    if not existing_live_urls:
+        logging.info("Aucune URL live à re-valider")
+        return
+
+    to_revalidate = list(existing_live_urls)[:limit]
+    logging.info(f"Re-validation de {len(to_revalidate)} URLs live...")
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=config.HEADLESS)
+        context = await browser.new_context()
+        await context.route("**/*", lambda r: r.abort() if r.request.resource_type in config.BLOCK_RESOURCES else r.continue_())
+
+        sem = asyncio.Semaphore(config.MAX_CONCURRENT_PAGES)
+        tasks = [fetch_job_details(context, url, sem) for url in to_revalidate]
+        invalid_urls = set()
+        for coro in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Revalidating"):
+            job = await coro
+            if job and job.get("status") == "Expired":
+                invalid_urls.add(job.get("job_url"))
+
+        await context.close()
+        await browser.close()
+
+    if invalid_urls:
+        db.mark_as_expired_and_invalid(invalid_urls)
+        logging.info(f"✓ {len(invalid_urls)} offres 404 marquées invalides")
+    else:
+        logging.info("✓ Aucune offre 404 détectée")
+    logging.info("Pensez à exécuter export_sqlite_to_json.py pour mettre à jour le site")
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    import sys
+    if "--revalidate-only" in sys.argv:
+        limit = 500
+        if "--limit" in sys.argv:
+            idx = sys.argv.index("--limit")
+            if idx + 1 < len(sys.argv):
+                try:
+                    limit = int(sys.argv[idx + 1])
+                except ValueError:
+                    pass
+        asyncio.run(revalidate_only(limit=limit))
+    else:
+        asyncio.run(main())

@@ -2479,7 +2479,8 @@
             const cmSubs = values.filter(c => isCreditMutuelSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const others = values.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c) && !isBNPParibasBrand(c) && !isCreditMutuelSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
-            const bpceGroupChecked = cv.has(BPCE_GROUP_KEY) || bpceBrands.every(c => cv.has(c));
+            const renderedBpceBrands = bpceBrands.filter(c => !(hideDisabled && (counts[c] || 0) === 0));
+            const bpceGroupChecked = cv.has(BPCE_GROUP_KEY) || (renderedBpceBrands.length > 0 && renderedBpceBrands.every(c => cv.has(c)));
             const bpceGroupCount = bpceBrands.reduce((s, c) => s + (counts[c] || 0), 0);
             if (bpceBrands.length > 0 && (!hideDisabled || bpceGroupCount > 0 || bpceGroupChecked)) {
                 const groupDiv = document.createElement('div');
@@ -2569,7 +2570,8 @@
                 container.appendChild(childrenDiv);
             }
 
-            const bnpGroupChecked = cv.has(BNP_PARIBAS_GROUP_KEY) || bnpBrands.every(c => cv.has(c));
+            const renderedBnpBrands = bnpBrands.filter(c => !(hideDisabled && (counts[c] || 0) === 0));
+            const bnpGroupChecked = cv.has(BNP_PARIBAS_GROUP_KEY) || (renderedBnpBrands.length > 0 && renderedBnpBrands.every(c => cv.has(c)));
             const bnpGroupCount = bnpBrands.reduce((s, c) => s + (counts[c] || 0), 0);
             if (bnpBrands.length > 0 && (!hideDisabled || bnpGroupCount > 0 || bnpGroupChecked)) {
                 const groupDiv = document.createElement('div');

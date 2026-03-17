@@ -2808,9 +2808,8 @@
                 result = result.filter(v => v !== CREDIT_MUTUEL_GROUP_KEY).concat(cmSubs);
             }
             if (checked.includes(BNP_PARIBAS_GROUP_KEY)) {
-                const bnpCbs = container.querySelectorAll('input[type="checkbox"][data-bnp-brand]');
-                const bnpList = Array.from(bnpCbs).filter(cb => cb.checked).map(cb => cb.value);
-                result = result.filter(v => v !== BNP_PARIBAS_GROUP_KEY).concat(bnpList);
+                const bnpBrands = Array.from(container.querySelectorAll('input[type="checkbox"][data-bnp-brand]')).map(cb => cb.value);
+                result = result.filter(v => v !== BNP_PARIBAS_GROUP_KEY).concat(bnpBrands);
             }
             return [...new Set(result)];
         }
@@ -2834,7 +2833,8 @@
             const cmSubs = companies.filter(c => isCreditMutuelSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const others = companies.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c) && !isBNPParibasBrand(c) && !isCreditMutuelSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
-            const bpceGroupChecked = checkedValues.has(BPCE_GROUP_KEY) || bpceBrands.every(c => checkedValues.has(c));
+            const renderedBpceBrands = bpceBrands.filter(c => !(hideDisabled && (counts[c] || 0) === 0 && !checkedValues.has(c)));
+            const bpceGroupChecked = checkedValues.has(BPCE_GROUP_KEY) || (renderedBpceBrands.length > 0 && renderedBpceBrands.every(c => checkedValues.has(c)));
             const bpceGroupCount = bpceBrands.reduce((s, c) => s + (counts[c] || 0), 0);
             if (bpceBrands.length > 0 && (!hideDisabled || bpceGroupCount > 0 || bpceGroupChecked)) {
                 const groupDiv = document.createElement('div');
@@ -2918,7 +2918,8 @@
                 container.appendChild(childrenDiv);
             }
 
-            const bnpGroupChecked = checkedValues.has(BNP_PARIBAS_GROUP_KEY) || bnpBrands.every(c => checkedValues.has(c));
+            const renderedBnpBrands = bnpBrands.filter(c => !(hideDisabled && (counts[c] || 0) === 0 && !checkedValues.has(c)));
+            const bnpGroupChecked = checkedValues.has(BNP_PARIBAS_GROUP_KEY) || (renderedBnpBrands.length > 0 && renderedBnpBrands.every(c => checkedValues.has(c)));
             const bnpGroupCount = bnpBrands.reduce((s, c) => s + (counts[c] || 0), 0);
             if (bnpBrands.length > 0 && (!hideDisabled || bnpGroupCount > 0 || bnpGroupChecked)) {
                 const groupDiv = document.createElement('div');

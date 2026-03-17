@@ -1,6 +1,7 @@
 /**
  * Taleos - Remplissage automatique BPCE (recrutement.bpce.fr)
- * Flux : Email (Firebase) → CGU cochée → Suivant
+ * Étape 1 : Clic sur "Postuler directement" pour ouvrir le formulaire Oracle
+ * (Le formulaire email/CGU/Suivant est géré par bpce-oracle-filler.js sur Oracle Cloud)
  */
 (function() {
   'use strict';
@@ -31,43 +32,16 @@
     document.getElementById(BANNER_ID)?.remove();
   }
 
-  function fillInput(input, value) {
-    if (!input || value == null || value === '') return;
-    const str = String(value).trim();
-    input.focus();
-    const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-    if (nativeSetter) nativeSetter.call(input, str);
-    else input.value = str;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-    input.blur();
-  }
-
-  function findEmailInput() {
-    return document.querySelector('#primary-email-0') ||
-           document.querySelector('input[name="primary-email"]') ||
-           document.querySelector('input[type="email"][aria-label*="électronique"]') ||
-           document.querySelector('input[type="email"]');
-  }
-
-  function findCguCheckbox() {
-    return document.querySelector('span.apply-flow-input-checkbox__button') ||
-           document.querySelector('.apply-flow-input-checkbox__button');
-  }
-
-  function findNextButton() {
-    const byTitle = document.querySelector('button[title="Suivant"]');
-    if (byTitle) return byTitle;
-    const byAria = document.querySelector('button[aria-label="Suivant"]');
-    if (byAria) return byAria;
-    const buttons = document.querySelectorAll('button.apply-flow-pagination__button, button[data-bind*="next-button"]');
-    for (const btn of buttons) {
-      if ((btn.textContent || '').trim().includes('Suivant')) return btn;
+  function findPostulerButton() {
+    const links = document.querySelectorAll('a[href*="oraclecloud.com"][href*="apply"], a[title="Postuler"], a.c-button--big, a.c-offer-sticky-button');
+    for (const a of links) {
+      const text = (a.textContent || '').trim();
+      if (/postuler|postulez|candidater/i.test(text)) return a;
     }
-    return document.querySelector('button[type="submit"]');
+    return document.querySelector('a[href*="oraclecloud.com"][href*="apply"]');
   }
 
-  async function waitForElement(selectorFn, maxWait = 15000) {
+  async function waitForElement(selectorFn, maxWait = 8000) {
     const start = Date.now();
     while (Date.now() - start < maxWait) {
       const el = selectorFn();
@@ -91,52 +65,24 @@
       return;
     }
 
-    const { profile } = taleos_pending_bpce;
-    const email = (profile?.email || profile?.auth_email || '').trim();
-    if (!email) {
-      log('Email manquant dans le profil → arrêt');
-      chrome.storage.local.remove(['taleos_pending_bpce', 'taleos_bpce_tab_id']);
+    const isOfferPage = /\/job\//.test(window.location.pathname || '');
+    if (!isOfferPage) {
+      log('Pas sur une page offre (/job/) → skip');
       return;
     }
 
     showBanner();
-    log('Démarrage remplissage : email, CGU, Suivant');
+    log('Recherche du bouton "Postuler directement"...');
 
-    const emailInput = await waitForElement(findEmailInput);
-    if (!emailInput) {
-      log('Champ email non trouvé');
+    const postulerBtn = await waitForElement(findPostulerButton);
+    if (!postulerBtn) {
+      log('Bouton Postuler non trouvé');
       hideBanner();
       return;
     }
 
-    fillInput(emailInput, email);
-    log('Email renseigné');
-
-    const cguCheckbox = await waitForElement(findCguCheckbox);
-    if (!cguCheckbox) {
-      log('Case CGU non trouvée');
-      hideBanner();
-      return;
-    }
-
-    const isChecked = cguCheckbox.classList.contains('apply-flow-input-checkbox__button--checked');
-    if (!isChecked) {
-      cguCheckbox.click();
-      log('CGU cochée');
-      await new Promise(r => setTimeout(r, 300));
-    }
-
-    const nextBtn = findNextButton();
-    if (!nextBtn || nextBtn.disabled) {
-      log('Bouton Suivant non trouvé ou désactivé');
-      hideBanner();
-      return;
-    }
-
-    nextBtn.click();
-    log('Clic sur Suivant');
-
-    chrome.storage.local.remove(['taleos_pending_bpce', 'taleos_bpce_tab_id']);
+    log('Clic sur Postuler directement');
+    postulerBtn.click();
     hideBanner();
   }
 

@@ -9,8 +9,10 @@
   const MAX_PENDING_AGE = 10 * 60 * 1000;
   const BANNER_ID = 'taleos-bpce-automation-banner';
 
-  function log(msg) {
-    console.log(`[${new Date().toLocaleTimeString('fr-FR')}] [Taleos BPCE] ${msg}`);
+  const STEP = (n, msg) => `[STEP ${n}] ${msg}`;
+  function log(msg, stepNum) {
+    const prefix = stepNum != null ? STEP(stepNum, '') : '';
+    console.log(`[${new Date().toLocaleTimeString('fr-FR')}] [Taleos BPCE] ${prefix}${msg}`);
   }
 
   function showBanner() {
@@ -54,34 +56,35 @@
   async function runAutomation() {
     const { taleos_pending_bpce } = await chrome.storage.local.get('taleos_pending_bpce');
     if (!taleos_pending_bpce) {
-      log('Pas de candidature BPCE en cours → skip');
+      log('⏭️  Pas de candidature BPCE en cours (taleos_pending_bpce absent) → skip', 1);
       return;
     }
 
     const age = Date.now() - (taleos_pending_bpce.timestamp || 0);
     if (age > MAX_PENDING_AGE) {
-      log('Pending expiré (>10 min) → skip');
+      log('⏭️  Pending expiré (>10 min) → skip', 1);
       chrome.storage.local.remove(['taleos_pending_bpce', 'taleos_bpce_tab_id']);
       return;
     }
 
     const isOfferPage = /\/job\//.test(window.location.pathname || '');
     if (!isOfferPage) {
-      log('Pas sur une page offre (/job/) → skip');
+      log('⏭️  Pas sur une page offre (/job/) → skip', 1);
       return;
     }
 
     showBanner();
-    log('Recherche du bouton "Postuler directement"...');
+    log('📋 Étape 1 recrutement.bpce.fr : clic sur "Postuler directement" pour ouvrir le formulaire Oracle', 1);
+    log('   Recherche du bouton (a[href*="oraclecloud.com"], a.c-button--big, a.c-offer-sticky-button)...', 1);
 
     const postulerBtn = await waitForElement(findPostulerButton);
     if (!postulerBtn) {
-      log('Bouton Postuler non trouvé');
+      log('❌ Bouton Postuler non trouvé', 1);
       hideBanner();
       return;
     }
 
-    log('Clic sur Postuler directement');
+    log('✅ Clic sur "Postuler directement" → ouverture formulaire Oracle dans nouvel onglet', 1);
     postulerBtn.click();
     hideBanner();
   }

@@ -8,8 +8,10 @@
   const MAX_PENDING_AGE = 10 * 60 * 1000;
   const BANNER_ID = 'taleos-bpce-oracle-banner';
 
-  function log(msg) {
-    console.log(`[${new Date().toLocaleTimeString('fr-FR')}] [Taleos BPCE Oracle] ${msg}`);
+  const STEP = (n, msg) => `[STEP ${n}] ${msg}`;
+  function log(msg, stepNum) {
+    const prefix = stepNum != null ? STEP(stepNum, '') : '';
+    console.log(`[${new Date().toLocaleTimeString('fr-FR')}] [Taleos BPCE Oracle] ${prefix}${msg}`);
   }
 
   function showBanner() {
@@ -80,13 +82,13 @@
   async function runAutomation() {
     const { taleos_pending_bpce } = await chrome.storage.local.get('taleos_pending_bpce');
     if (!taleos_pending_bpce) {
-      log('Pas de candidature BPCE en cours → skip');
+      log('⏭️  Pas de candidature BPCE en cours (taleos_pending_bpce absent) → skip', 2);
       return;
     }
 
     const age = Date.now() - (taleos_pending_bpce.timestamp || 0);
     if (age > MAX_PENDING_AGE) {
-      log('Pending expiré (>10 min) → skip');
+      log('⏭️  Pending expiré (>10 min) → skip', 2);
       chrome.storage.local.remove(['taleos_pending_bpce', 'taleos_bpce_tab_id']);
       return;
     }
@@ -94,27 +96,28 @@
     const { profile } = taleos_pending_bpce;
     const email = (profile?.email || profile?.auth_email || '').trim();
     if (!email) {
-      log('Email manquant dans le profil → arrêt');
+      log('❌ Email manquant dans le profil Firebase → arrêt', 2);
       chrome.storage.local.remove(['taleos_pending_bpce', 'taleos_bpce_tab_id']);
       return;
     }
 
     showBanner();
-    log('Démarrage remplissage : email, CGU, Suivant');
+    log('📋 Étape 2 Oracle Cloud : remplissage email (Firebase) → CGU cochée → Suivant', 2);
+    log('   Email: ' + (email ? email.replace(/(.{2}).*(@.*)/, '$1***$2') : '—'), 2);
 
     const emailInput = await waitForElement(findEmailInput);
     if (!emailInput) {
-      log('Champ email non trouvé');
+      log('❌ Champ email (#primary-email-0, input[name="primary-email"]) non trouvé', 2);
       hideBanner();
       return;
     }
 
     fillInput(emailInput, email);
-    log('Email renseigné');
+    log('   ✅ Email renseigné (nativeSetter + input/change events)', 2);
 
     const cguCheckbox = await waitForElement(findCguCheckbox);
     if (!cguCheckbox) {
-      log('Case CGU non trouvée');
+      log('❌ Case CGU (span.apply-flow-input-checkbox__button) non trouvée', 2);
       hideBanner();
       return;
     }
@@ -122,19 +125,21 @@
     const isChecked = cguCheckbox.classList.contains('apply-flow-input-checkbox__button--checked');
     if (!isChecked) {
       cguCheckbox.click();
-      log('CGU cochée');
+      log('   ✅ CGU cochée (clic sur span.apply-flow-input-checkbox__button)', 2);
       await new Promise(r => setTimeout(r, 300));
+    } else {
+      log('   — CGU déjà cochée', 2);
     }
 
     const nextBtn = findNextButton();
     if (!nextBtn || nextBtn.disabled) {
-      log('Bouton Suivant non trouvé ou désactivé');
+      log('❌ Bouton Suivant non trouvé ou désactivé (button[title="Suivant"])', 2);
       hideBanner();
       return;
     }
 
     nextBtn.click();
-    log('Clic sur Suivant');
+    log('✅ Clic sur Suivant → passage à l\'étape suivante du formulaire', 2);
 
     chrome.storage.local.remove(['taleos_pending_bpce', 'taleos_bpce_tab_id']);
     hideBanner();

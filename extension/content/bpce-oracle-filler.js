@@ -1,7 +1,7 @@
 /**
  * Taleos - Remplissage formulaire BPCE Oracle Cloud (ekez.fa.em2.oraclecloud.com)
  * Flux multi-étapes : Email+CGU → Code PIN → Données personnelles → Questions → Documents → Alertes
- * Version 1.0.55 : Correction des sélecteurs pour les boutons (Oui/Non) et textarea avec espaces
+ * Version 1.0.56 : Logique "Smart-Fill" (Check avant remplissage) et logs uniformisés
  */
 (function() {
   'use strict';
@@ -34,39 +34,59 @@
     document.getElementById(BANNER_ID)?.remove();
   }
 
-  function fillInput(input, value) {
-    if (!input || value == null || value === '') return;
-    const str = String(value).trim();
+  /**
+   * Remplissage intelligent : ne remplit que si différent de la valeur actuelle
+   */
+  function smartFillInput(label, input, value) {
+    if (!input || value == null || value === '') return false;
+    const newVal = String(value).trim();
+    const currentVal = (input.value || '').trim();
+
+    if (currentVal === newVal) {
+      log(`   — ${label} → déjà "${currentVal}" (Skip)`, 2);
+      return false;
+    }
+
     input.focus();
     const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set || 
                          Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
-    if (nativeSetter) nativeSetter.call(input, str);
-    else input.value = str;
+    if (nativeSetter) nativeSetter.call(input, newVal);
+    else input.value = newVal;
+    
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
     input.blur();
+    log(`   ✅ ${label} → "${newVal}" (Mis à jour)`, 2);
+    return true;
   }
 
-  function clickButtonByText(textToFind, container = document) {
-    // On cherche tous les boutons et les spans de texte (Oracle met souvent le texte dans un span)
+  /**
+   * Clic intelligent sur bouton : ne clique que si pas déjà sélectionné
+   */
+  function smartClickButton(label, textToFind, container = document) {
     const elements = container.querySelectorAll('button, .cx-select-pill-section, .cx-select-pill-name, [role="button"]');
     const target = String(textToFind || '').trim().toLowerCase();
     
     for (const el of elements) {
       const elText = (el.textContent || '').trim().toLowerCase();
       if (elText === target) {
-        // Si on a trouvé le span, on clique sur le bouton parent
         const btn = el.closest('button') || el.closest('.cx-select-pill-section') || el;
         const isSelected = btn.classList.contains('cx-select-pill-section--selected') || 
                            btn.getAttribute('aria-pressed') === 'true' ||
-                           btn.getAttribute('aria-checked') === 'true';
-        if (!isSelected) {
+                           btn.getAttribute('aria-checked') === 'true' ||
+                           btn.classList.contains('active');
+        
+        if (isSelected) {
+          log(`   — ${label} → déjà "${textToFind}" (Skip)`, 2);
+          return 'already_selected';
+        } else {
           btn.click();
+          log(`   ✅ ${label} → "${textToFind}" (Cliqué)`, 2);
           return true;
         }
-        return 'already_selected';
       }
     }
+    log(`   ⏭️  ${label} → option "${textToFind}" non trouvée`, 2);
     return false;
   }
 
@@ -126,13 +146,17 @@
     const emailInput = document.querySelector('#primary-email-0') || document.querySelector('input[type="email"]');
     if (emailInput && emailInput.offsetParent !== null && !document.querySelector('#pin-code-1')) {
       log('📋 Étape 1 : Email + CGU', 2);
-      fillInput(emailInput, email);
+      smartFillInput('Email', emailInput, email);
       const cgu = document.querySelector('span.apply-flow-input-checkbox__button') || document.querySelector('.apply-flow-input-checkbox__button');
       if (cgu && !cgu.classList.contains('apply-flow-input-checkbox__button--checked')) {
         cgu.click();
+        log('   ✅ CGU cochée', 2);
       }
       const nextBtn = findNextButton();
-      if (nextBtn) nextBtn.click();
+      if (nextBtn) {
+        nextBtn.click();
+        log('✅ Clic Suivant → Code PIN', 2);
+      }
       return;
     }
 
@@ -144,13 +168,17 @@
       if (taleos_bpce_pin_code) {
         const pinStr = String(taleos_bpce_pin_code).trim();
         if (pinStr.length === 6) {
-          log('   📌 Code PIN trouvé → remplissage automatique', 2);
+          log('   📌 Code PIN intercepté → remplissage automatique', 2);
           for (let i = 0; i < 6; i++) {
-            fillInput(document.querySelector(`#pin-code-${i + 1}`), pinStr[i]);
+            const field = document.querySelector(`#pin-code-${i + 1}`);
+            if (field && field.value !== pinStr[i]) fillInput(field, pinStr[i]);
           }
           setTimeout(() => {
             const verifyBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('VÉRIFIER'));
-            if (verifyBtn) verifyBtn.click();
+            if (verifyBtn) {
+              verifyBtn.click();
+              log('✅ Code PIN soumis', 2);
+            }
           }, 500);
         }
       } else {
@@ -164,18 +192,18 @@
     const firstNameInput = document.querySelector('input[id*="firstName"]');
     if (lastNameInput && lastNameInput.offsetParent !== null) {
       log('📋 Étape 2 : Données personnelles', 2);
-      fillInput(lastNameInput, profile.last_name || profile.lastname);
-      fillInput(firstNameInput, profile.first_name || profile.firstname);
+      smartFillInput('Nom', lastNameInput, profile.last_name || profile.lastname);
+      smartFillInput('Prénom', firstNameInput, profile.first_name || profile.firstname);
       
       const civility = (profile.civility || '').toLowerCase();
-      if (civility.includes('monsieur')) clickButtonByText('M.');
-      else if (civility.includes('madame')) clickButtonByText('Mme');
+      if (civility.includes('monsieur')) smartClickButton('Titre', 'M.');
+      else if (civility.includes('madame')) smartClickButton('Titre', 'Mme');
 
       const phoneInput = document.querySelector('input[type="tel"]');
-      if (phoneInput) fillInput(phoneInput, profile.phone || profile.phone_number);
+      if (phoneInput) smartFillInput('Téléphone', phoneInput, profile.phone || profile.phone_number);
 
       const countryDropdown = document.querySelector('input[id*="country-codes-dropdown"]');
-      if (countryDropdown) fillInput(countryDropdown, profile.phone_country_code || '+33');
+      if (countryDropdown) smartFillInput('Code Pays', countryDropdown, profile.phone_country_code || '+33');
 
       // --- Étape 3 : Questions ---
       log('📋 Étape 3 : Questions de candidature', 2);
@@ -183,32 +211,24 @@
       // Question Handicap
       const handicapVal = (profile.bpce_handicap || 'Non').trim();
       const handicapContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.toLowerCase().includes('handicap'));
-      if (handicapContainer) {
-        const ok = clickButtonByText(handicapVal, handicapContainer);
-        if (ok) log(`   ✅ Handicap → ${handicapVal}`, 2);
-      }
+      if (handicapContainer) smartClickButton('Handicap', handicapVal, handicapContainer);
 
-      // Disponibilité (Sélecteur ID dynamique robuste)
+      // Disponibilité
       const disponibiliteTextarea = document.querySelector('textarea[name="300000620007177"]') || document.querySelector('textarea[id^="300000620007177"]');
       const availableFrom = (profile.available_from || profile.available_date || '').trim();
       if (disponibiliteTextarea && availableFrom) {
-        fillInput(disponibiliteTextarea, availableFrom);
-        log('   ✅ Disponibilité renseignée', 2);
+        smartFillInput('Disponibilité', disponibiliteTextarea, availableFrom);
       }
 
       // Vivier Natixis
       const vivierVal = (profile.bpce_vivier_natixis || 'Oui').trim();
       const vivierContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.toLowerCase().includes('vivier') || el.textContent.toLowerCase().includes('natixis'));
-      if (vivierContainer) {
-        const ok = clickButtonByText(vivierVal, vivierContainer);
-        if (ok) log(`   ✅ Vivier Natixis → ${vivierVal}`, 2);
-      }
+      if (vivierContainer) smartClickButton('Vivier Natixis', vivierVal, vivierContainer);
 
       // LinkedIn
       const linkedinInput = document.querySelector('input[type="url"][id*="siteLink"]');
       if (linkedinInput && profile.linkedin_url) {
-        fillInput(linkedinInput, profile.linkedin_url);
-        log('   ✅ LinkedIn renseigné', 2);
+        smartFillInput('LinkedIn', linkedinInput, profile.linkedin_url);
       }
 
       log('✅ Formulaire rempli ! Veuillez vérifier et cliquer sur SOUMETTRE.', 2);
@@ -238,7 +258,7 @@
       }, 1000);
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    log('👁️  MutationObserver actif (V1.0.55)', 2);
+    log('👁️  MutationObserver actif (V1.0.56)', 2);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

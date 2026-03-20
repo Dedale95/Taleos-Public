@@ -1,12 +1,13 @@
 /**
  * Taleos - Remplissage formulaire BPCE Oracle Cloud (ekez.fa.em2.oraclecloud.com)
- * Version 1.0.57 : Sélecteurs réels capturés en navigation directe et verrouillage des étapes.
+ * Version 1.0.58 : Détection persistante après le code PIN et sélecteurs robustes.
  */
 (function() {
   'use strict';
 
   const BANNER_ID = 'taleos-bpce-oracle-banner';
   let lastProcessedStep = 0;
+  let isAutomationRunning = false;
 
   function log(msg, stepNum) {
     const prefix = stepNum ? `[STEP ${stepNum}] ` : '';
@@ -71,101 +72,129 @@
   }
 
   async function runAutomation() {
-    const { taleos_pending_bpce } = await chrome.storage.local.get('taleos_pending_bpce');
-    if (!taleos_pending_bpce) return;
-    const { profile } = taleos_pending_bpce;
-    showBanner();
+    if (isAutomationRunning) return;
+    isAutomationRunning = true;
 
-    // --- Étape 1 : Email + CGU ---
-    const emailInput = document.querySelector('#primary-email-0') || document.querySelector('input[type="email"]');
-    if (emailInput && emailInput.offsetParent !== null && !document.querySelector('[id*="pin-code"]')) {
-      if (lastProcessedStep >= 1) return;
-      log('📋 Étape 1 : Email + CGU', 1);
-      fillInput(emailInput, profile.email || profile.auth_email, 'Email');
-      const cgu = document.querySelector('span.apply-flow-input-checkbox__button') || document.querySelector('.apply-flow-input-checkbox__button');
-      if (cgu && !cgu.classList.contains('apply-flow-input-checkbox__button--checked')) {
-        cgu.click();
-        log('   ✅ CGU cochée');
+    try {
+      const { taleos_pending_bpce } = await chrome.storage.local.get('taleos_pending_bpce');
+      if (!taleos_pending_bpce) {
+        isAutomationRunning = false;
+        return;
       }
-      const nextBtn = document.querySelector('button[title="Suivant"]') || Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Suivant'));
-      if (nextBtn) {
-        nextBtn.click();
-        lastProcessedStep = 1;
-        log('✅ Clic Suivant → Code PIN');
-      }
-      return;
-    }
+      const { profile } = taleos_pending_bpce;
+      showBanner();
 
-    // --- Étape 1b : Code PIN ---
-    const pinInput = document.querySelector('#pin-code-1');
-    if (pinInput && pinInput.offsetParent !== null) {
-      if (lastProcessedStep >= 1.5) return;
-      log('📋 Étape 1b : Vérification d\'identité (Code PIN)', 1.5);
-      const { taleos_bpce_pin_code } = await chrome.storage.local.get('taleos_bpce_pin_code');
-      if (taleos_bpce_pin_code && String(taleos_bpce_pin_code).length === 6) {
-        const pin = String(taleos_bpce_pin_code);
-        for (let i = 0; i < 6; i++) {
-          const field = document.querySelector(`#pin-code-${i + 1}`);
-          if (field) fillInput(field, pin[i]);
+      // --- Étape 1 : Email + CGU ---
+      const emailInput = document.querySelector('#primary-email-0') || document.querySelector('input[type="email"]');
+      if (emailInput && emailInput.offsetParent !== null && !document.querySelector('[id*="pin-code"]')) {
+        if (lastProcessedStep < 1) {
+          log('📋 Étape 1 : Email + CGU', 1);
+          fillInput(emailInput, profile.email || profile.auth_email, 'Email');
+          const cgu = document.querySelector('span.apply-flow-input-checkbox__button') || document.querySelector('.apply-flow-input-checkbox__button');
+          if (cgu && !cgu.classList.contains('apply-flow-input-checkbox__button--checked')) {
+            cgu.click();
+            log('   ✅ CGU cochée');
+          }
+          const nextBtn = document.querySelector('button[title="Suivant"]') || Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Suivant'));
+          if (nextBtn) {
+            nextBtn.click();
+            lastProcessedStep = 1;
+            log('✅ Clic Suivant → Code PIN');
+          }
         }
-        const verifyBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('VÉRIFIER'));
-        if (verifyBtn) {
-          verifyBtn.click();
-          lastProcessedStep = 1.5;
-          log('✅ Code PIN soumis');
-        }
-      } else {
-        log('   ⏳ En attente du code PIN...');
+        isAutomationRunning = false;
+        return;
       }
-      return;
-    }
 
-    // --- Étape 2 : Formulaire complet ---
-    const lastNameInput = document.querySelector('#lastName-5') || document.querySelector('input[id*="lastName"]');
-    if (lastNameInput && lastNameInput.offsetParent !== null) {
-      if (lastProcessedStep >= 2) return;
-      log('📋 Étape 2 : Formulaire complet', 2);
-      
-      // Contact
-      fillInput(lastNameInput, profile.last_name || profile.lastname, 'Nom');
-      fillInput(document.querySelector('#firstName-6') || document.querySelector('input[id*="firstName"]'), profile.first_name || profile.firstname, 'Prénom');
-      
-      const civ = (profile.civility || '').toLowerCase();
-      if (civ.includes('monsieur')) clickButtonByText('M.', document, 'Titre');
-      else if (civ.includes('madame')) clickButtonByText('Mme', document, 'Titre');
+      // --- Étape 1b : Code PIN ---
+      const pinInput = document.querySelector('#pin-code-1');
+      if (pinInput && pinInput.offsetParent !== null) {
+        if (lastProcessedStep < 1.5) {
+          log('📋 Étape 1b : Vérification d\'identité (Code PIN)', 1.5);
+          const { taleos_bpce_pin_code } = await chrome.storage.local.get('taleos_bpce_pin_code');
+          if (taleos_bpce_pin_code && String(taleos_bpce_pin_code).length === 6) {
+            const pin = String(taleos_bpce_pin_code);
+            for (let i = 0; i < 6; i++) {
+              const field = document.querySelector(`#pin-code-${i + 1}`);
+              if (field) fillInput(field, pin[i]);
+            }
+            const verifyBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('VÉRIFIER'));
+            if (verifyBtn) {
+              verifyBtn.click();
+              lastProcessedStep = 1.5;
+              log('✅ Code PIN soumis');
+            }
+          } else {
+            log('   ⏳ En attente du code PIN...');
+          }
+        }
+        isAutomationRunning = false;
+        return;
+      }
 
-      fillInput(document.querySelector('input[type="tel"]'), profile.phone || profile.phone_number, 'Téléphone');
-      fillInput(document.querySelector('input[id*="country-codes-dropdown"]'), profile.phone_country_code || '+33', 'Code Pays');
+      // --- Étape 2 : Formulaire complet ---
+      const lastNameInput = document.querySelector('#lastName-5') || document.querySelector('input[id*="lastName"]');
+      if (lastNameInput && lastNameInput.offsetParent !== null) {
+        if (lastProcessedStep < 2) {
+          log('📋 Étape 2 : Formulaire complet', 2);
+          
+          // Contact
+          fillInput(lastNameInput, profile.last_name || profile.lastname, 'Nom');
+          fillInput(document.querySelector('#firstName-6') || document.querySelector('input[id*="firstName"]'), profile.first_name || profile.firstname, 'Prénom');
+          
+          const civ = (profile.civility || '').toLowerCase();
+          if (civ.includes('monsieur')) clickButtonByText('M.', document, 'Titre');
+          else if (civ.includes('madame')) clickButtonByText('Mme', document, 'Titre');
 
-      // Questions
-      log('📋 Étape 3 : Questions de candidature', 3);
-      const handicapVal = (profile.bpce_handicap || 'Non').trim();
-      const handicapContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.toLowerCase().includes('handicap'));
-      if (handicapContainer) clickButtonByText(handicapVal, handicapContainer, 'Handicap');
+          fillInput(document.querySelector('input[type="tel"]'), profile.phone || profile.phone_number, 'Téléphone');
+          fillInput(document.querySelector('input[id*="country-codes-dropdown"]'), profile.phone_country_code || '+33', 'Code Pays');
 
-      const disponibiliteTextarea = document.querySelector('textarea[name="300000620007177"]') || document.querySelector('textarea[id^="300000620007177"]');
-      if (disponibiliteTextarea) fillInput(disponibiliteTextarea, profile.available_from || profile.available_date, 'Disponibilité');
+          // Questions
+          log('📋 Étape 3 : Questions de candidature', 3);
+          const handicapVal = (profile.bpce_handicap || 'Non').trim();
+          const handicapContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.toLowerCase().includes('handicap'));
+          if (handicapContainer) clickButtonByText(handicapVal, handicapContainer, 'Handicap');
 
-      const vivierVal = (profile.bpce_vivier_natixis || 'Oui').trim();
-      const vivierContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.toLowerCase().includes('vivier') || el.textContent.toLowerCase().includes('natixis'));
-      if (vivierContainer) clickButtonByText(vivierVal, vivierContainer, 'Vivier Natixis');
+          const disponibiliteTextarea = document.querySelector('textarea[name="300000620007177"]') || document.querySelector('textarea[id^="300000620007177"]');
+          if (disponibiliteTextarea) fillInput(disponibiliteTextarea, profile.available_from || profile.available_date, 'Disponibilité');
 
-      // LinkedIn
-      const linkedinInput = document.querySelector('input[id*="siteLink"]');
-      if (linkedinInput) fillInput(linkedinInput, profile.linkedin_url, 'LinkedIn');
+          const vivierVal = (profile.bpce_vivier_natixis || 'Oui').trim();
+          const vivierContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.toLowerCase().includes('vivier') || el.textContent.toLowerCase().includes('natixis'));
+          if (vivierContainer) clickButtonByText(vivierVal, vivierContainer, 'Vivier Natixis');
 
-      lastProcessedStep = 2;
-      log('✅ Formulaire rempli ! Veuillez vérifier et SOUMETTRE.');
+          // LinkedIn
+          const linkedinInput = document.querySelector('input[id*="siteLink"]');
+          if (linkedinInput) fillInput(linkedinInput, profile.linkedin_url, 'LinkedIn');
+
+          lastProcessedStep = 2;
+          log('✅ Formulaire rempli ! Veuillez vérifier et SOUMETTRE.');
+        }
+      }
+    } catch (e) {
+      log('❌ Erreur automation: ' + e.message);
+    } finally {
+      isAutomationRunning = false;
     }
   }
 
   function init() {
     if (window.__taleosBpceOracleInit) return;
     window.__taleosBpceOracleInit = true;
-    log('👁️  MutationObserver actif (V1.0.57)');
+    log('👁️  MutationObserver actif (V1.0.58)');
+    
+    // Déclenchement périodique plus fréquent au début pour ne pas rater la transition après le PIN
+    const fastCheck = setInterval(() => {
+      if (lastProcessedStep >= 1.5 && lastProcessedStep < 2) {
+        runAutomation();
+      }
+    }, 1000);
+    
+    // Arrêter le check rapide après 30 secondes pour économiser les ressources
+    setTimeout(() => clearInterval(fastCheck), 30000);
+
     const observer = new MutationObserver(() => {
       clearTimeout(window.__taleosBpceDebounce);
-      window.__taleosBpceDebounce = setTimeout(runAutomation, 1000);
+      window.__taleosBpceDebounce = setTimeout(runAutomation, 800);
     });
     observer.observe(document.body, { childList: true, subtree: true });
     runAutomation();

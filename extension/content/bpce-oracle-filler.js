@@ -1,7 +1,7 @@
 /**
  * Taleos - Remplissage formulaire BPCE Oracle Cloud (ekez.fa.em2.oraclecloud.com)
- * Flux multi-étapes : Email+CGU → Données personnelles → Questions → Documents → Alertes
- * (Étape code par mail : à implémenter plus tard)
+ * Flux multi-étapes : Email+CGU → Code PIN → Données personnelles → Questions → Documents → Alertes
+ * Gestion du code PIN : Peut être injecté automatiquement via message ou saisi manuellement
  */
 (function() {
   'use strict';
@@ -171,9 +171,36 @@
       return;
     }
 
+    // --- Étape 1b : Code PIN (Vérification d'identité) ---
+    const pinInput1 = document.querySelector('#pin-code-1');
+    if (pinInput1 && pinInput1.offsetParent !== null) {
+      log('📋 Étape 1b : Vérification d\'identité (Code PIN)', 2);
+      const { taleos_bpce_pin_code } = await chrome.storage.local.get('taleos_bpce_pin_code');
+      if (taleos_bpce_pin_code) {
+        const pinStr = String(taleos_bpce_pin_code).trim();
+        if (pinStr.length === 6) {
+          log('   📌 Code PIN trouvé en storage → remplissage automatique', 2);
+          for (let i = 0; i < 6; i++) {
+            const pinField = document.querySelector(`#pin-code-${i + 1}`);
+            if (pinField) fillInput(pinField, pinStr[i]);
+          }
+          await new Promise(r => setTimeout(r, 500));
+          const verifyBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('VÉRIFIER'));
+          if (verifyBtn) {
+            verifyBtn.click();
+            log('✅ Code PIN soumis → vérification en cours', 2);
+            setTimeout(runAutomation, 2000);
+          }
+        }
+      } else {
+        log('   ⏳ En attente du code PIN (à saisir manuellement ou via API email)', 2);
+      }
+      return;
+    }
+
     // --- Étape 2 : Données personnelles (Nom, Prénom, Titre, Téléphone) ---
-    const lastNameInput = document.querySelector('input[name="lastName"]') || document.querySelector('#lastName-10');
-    const firstNameInput = document.querySelector('input[name="firstName"]') || document.querySelector('#firstName-11');
+    const lastNameInput = document.querySelector('input[name="lastName"]') || document.querySelector('#lastName-12') || document.querySelector('#lastName-10');
+    const firstNameInput = document.querySelector('input[name="firstName"]') || document.querySelector('#firstName-13') || document.querySelector('#firstName-11');
     if (lastNameInput && firstNameInput && lastNameInput.offsetParent !== null) {
       log('📋 Étape 2 : Données personnelles', 2);
       fillInput(lastNameInput, profile.lastname || profile.last_name);
@@ -187,14 +214,14 @@
         await new Promise(r => setTimeout(r, 200));
       }
 
-      const phoneInput = document.querySelector('input.phone-row__input') || document.querySelector('input[type="tel"][aria-label*="téléphone"]') || document.querySelector('.phone-row input[type="tel"]');
+      const phoneInput = document.querySelector('input.phone-row__input') || document.querySelector('input[type="tel"][aria-label*="téléphone"]') || document.querySelector('.phone-row input[type="tel"]') || Array.from(document.querySelectorAll('input[type="tel"]')).find(i => i.value || !i.disabled);
       const phoneNumber = (profile.phone_number || profile.phone || '').replace(/\D/g, '');
       if (phoneInput && phoneNumber && phoneInput.offsetParent !== null) {
         fillInput(phoneInput, phoneNumber);
         log('   ✅ Téléphone renseigné', 2);
       }
 
-      const countryCodeDropdown = document.querySelector('#country-codes-dropdownphoneNumber') || document.querySelector('input[name="phoneNumber"][role="combobox"]');
+      const countryCodeDropdown = document.querySelector('#country-codes-dropdownphoneNumber') || document.querySelector('input[name="phoneNumber"][role="combobox"]') || document.querySelector('input[role="combobox"]');
       const phoneCountryCode = (profile.phone_country_code || '+33').trim();
       if (countryCodeDropdown && phoneCountryCode && countryCodeDropdown.offsetParent !== null) {
         fillInput(countryCodeDropdown, phoneCountryCode);
@@ -330,8 +357,29 @@
     });
 
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'local' && changes.taleos_pending_bpce?.newValue) {
-        setTimeout(runAutomation, 1200);
+      if (area === 'local') {
+        if (changes.taleos_pending_bpce?.newValue) {
+          setTimeout(runAutomation, 1200);
+        }
+        if (changes.taleos_bpce_pin_code?.newValue) {
+          log('📌 Code PIN reçu via message → relance de l\'automatisation', 2);
+          setTimeout(runAutomation, 500);
+        }
+      }
+    });
+
+    // Écouteur pour recevoir le code PIN via message (depuis background.js ou API email)
+    chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+      if (msg.action === 'bpce_pin_code') {
+        const pinCode = String(msg.pinCode || '').trim();
+        if (pinCode.length === 6) {
+          log('📌 Code PIN reçu via message : ' + pinCode, 2);
+          chrome.storage.local.set({ taleos_bpce_pin_code: pinCode });
+          sendResponse({ ok: true });
+        } else {
+          log('❌ Code PIN invalide (doit avoir 6 chiffres)', 2);
+          sendResponse({ ok: false, error: 'Code invalide' });
+        }
       }
     });
   }
@@ -341,4 +389,10 @@
   } else {
     init();
   }
+
+  // Fonction publique pour injecter le code PIN manuellement (utile pour tests)
+  window.__taleosBpceInjectPin = function(pinCode) {
+    chrome.storage.local.set({ taleos_bpce_pin_code: pinCode });
+    log('📌 Code PIN injecté manuellement : ' + pinCode, 2);
+  };
 })();

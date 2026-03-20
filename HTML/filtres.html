@@ -1699,51 +1699,212 @@
             'normandie': 'Normandie', 'bourgogne-franche-comte': 'Bourgogne-Franche-Comté'
         };
         const cityToRegion = {
+            // Île-de-France (noms normalisés sans accent pour la clé)
             "paris": "Île-de-France", "montrouge": "Île-de-France", "villejuif": "Île-de-France",
             "massy": "Île-de-France", "guyancourt": "Île-de-France", "la defense": "Île-de-France", "la défense": "Île-de-France",
             "paris la defense": "Île-de-France", "paris la défense": "Île-de-France",
-            "charenton-le-pont": "Île-de-France", "charenton le pont": "Île-de-France",
-            "puteaux": "Île-de-France", "courbevoie": "Île-de-France", "nanterre": "Île-de-France",
-            "boulogne-billancourt": "Île-de-France", "issy-les-moulineaux": "Île-de-France",
-            "levallois-perret": "Île-de-France", "neuilly-sur-seine": "Île-de-France",
-            "saint-denis": "Île-de-France", "st-denis": "Île-de-France",
+            "puteaux": "Île-de-France", "courbevoie": "Île-de-France",
+            "nanterre": "Île-de-France", "boulogne-billancourt": "Île-de-France",
+            "issy-les-moulineaux": "Île-de-France", "levallois-perret": "Île-de-France",
+            "neuilly-sur-seine": "Île-de-France", "saint-denis": "Île-de-France", "st-denis": "Île-de-France",
             "saint-quentin-en-yvelines": "Île-de-France", "saint quentin en yvelines": "Île-de-France",
             "region parisienne": "Île-de-France", "région parisienne": "Île-de-France",
             "cergy": "Île-de-France", "evry": "Île-de-France", "évry": "Île-de-France",
             "versailles": "Île-de-France", "st denis": "Île-de-France", "issy": "Île-de-France",
+            "charenton-le-pont": "Île-de-France", "charenton le pont": "Île-de-France",
             "fontenay-sous-bois": "Île-de-France", "fontenay sous bois": "Île-de-France",
             "argenteuil": "Île-de-France", "montreuil": "Île-de-France", "pantin": "Île-de-France",
-            "lyon": "Auvergne-Rhône-Alpes", "grenoble": "Auvergne-Rhône-Alpes", "villeurbanne": "Auvergne-Rhône-Alpes",
-            "saint-etienne": "Auvergne-Rhône-Alpes", "saint-étienne": "Auvergne-Rhône-Alpes", "annecy": "Auvergne-Rhône-Alpes",
-            "toulouse": "Occitanie", "montpellier": "Occitanie", "balma": "Occitanie",
+            "millénaire 4": "Île-de-France", "millenaire 4": "Île-de-France",
+            "aubervilliers": "Île-de-France", "drancy": "Île-de-France", "bobigny": "Île-de-France",
+            "saint-ouen": "Île-de-France", "colombes": "Île-de-France", "asnieres": "Île-de-France",
+            "asnieres-sur-seine": "Île-de-France", "asnieres sur seine": "Île-de-France",
+            "bezons": "Île-de-France",
+            "rueil-malmaison": "Île-de-France", "suresnes": "Île-de-France", "clamart": "Île-de-France",
+            "meudon": "Île-de-France", "vanves": "Île-de-France", "malakoff": "Île-de-France",
+            "vincennes": "Île-de-France", "saint-mande": "Île-de-France", "nogent-sur-marne": "Île-de-France",
+            "creteil": "Île-de-France", "vitry-sur-seine": "Île-de-France", "ivry-sur-seine": "Île-de-France",
+            "alfortville": "Île-de-France", "maisons-alfort": "Île-de-France", "cdg": "Île-de-France",
+
+            // Auvergne-Rhone-Alpes
+            "lyon": "Auvergne-Rhône-Alpes", "grenoble": "Auvergne-Rhône-Alpes", "valence": "Auvergne-Rhône-Alpes",
+            "saint-etienne": "Auvergne-Rhône-Alpes", "saint-étienne": "Auvergne-Rhône-Alpes",
+            "villeurbanne": "Auvergne-Rhône-Alpes", "annecy": "Auvergne-Rhône-Alpes", "clermont-ferrand": "Auvergne-Rhône-Alpes",
+
+            // Occitanie
+            "toulouse": "Occitanie", "montpellier": "Occitanie", "balma": "Occitanie", "nimes": "Occitanie",
+
+            // Provence-Alpes-Cote d'Azur
             "marseille": "Provence-Alpes-Côte d'Azur", "nice": "Provence-Alpes-Côte d'Azur",
             "aix-en-provence": "Provence-Alpes-Côte d'Azur", "aix en provence": "Provence-Alpes-Côte d'Azur",
-            "nantes": "Pays de la Loire", "angers": "Pays de la Loire", "saint-herblain": "Pays de la Loire", "orvault": "Pays de la Loire",
-            "lille": "Hauts-de-France", "roubaix": "Hauts-de-France", "reims": "Hauts-de-France", "amiens": "Hauts-de-France", "croix": "Hauts-de-France",
+
+            // Pays de la Loire
+            "nantes": "Pays de la Loire", "angers": "Pays de la Loire", "saint-herblain": "Pays de la Loire",
+            "orvault": "Pays de la Loire",
+
+            // Hauts-de-France
+            "lille": "Hauts-de-France", "roubaix": "Hauts-de-France", "reims": "Hauts-de-France", "amiens": "Hauts-de-France",
+            "croix": "Hauts-de-France", "tourcoing": "Hauts-de-France",
+
+            // Grand Est
             "strasbourg": "Grand Est", "nancy": "Grand Est", "metz": "Grand Est",
-            "bordeaux": "Nouvelle-Aquitaine", "limoges": "Nouvelle-Aquitaine", "poitiers": "Nouvelle-Aquitaine", "merignac": "Nouvelle-Aquitaine", "mérignac": "Nouvelle-Aquitaine",
+
+            // Nouvelle-Aquitaine
+            "bordeaux": "Nouvelle-Aquitaine", "limoges": "Nouvelle-Aquitaine", "poitiers": "Nouvelle-Aquitaine",
+            "merignac": "Nouvelle-Aquitaine", "mérignac": "Nouvelle-Aquitaine",
+
+            // Bretagne
             "rennes": "Bretagne", "brest": "Bretagne", "saint-gregoire": "Bretagne", "saint-grégoire": "Bretagne",
+
+            // Centre-Val de Loire
             "orleans": "Centre-Val de Loire", "orléans": "Centre-Val de Loire", "tours": "Centre-Val de Loire",
-            "rouen": "Normandie", "caen": "Normandie", "dijon": "Bourgogne-Franche-Comté",
-            "londres": "Londres", "london": "Londres", "new york": "New York", "singapour": "Singapour",
-            "millénaire 4": "Île-de-France", "millenaire 4": "Île-de-France",
-            "asnieres": "Île-de-France", "asnieres-sur-seine": "Île-de-France", "asnieres sur seine": "Île-de-France",
-            "bezons": "Île-de-France"
+
+            // Normandie
+            "rouen": "Normandie", "caen": "Normandie",
+
+            // Bourgogne-Franche-Comte
+            "dijon": "Bourgogne-Franche-Comté",
+
+            // International
+            "londres": "Londres", "london": "Londres", "new york": "New York", "hong-kong": "Hong-Kong",
+            "singapour": "Singapour", "singapore": "Singapour", "tokyo": "Tokyo", "francfort": "Francfort",
+            "frankfurt": "Francfort", "munich": "Munich", "milan": "Milan", "milano": "Milan",
+            "luxembourg": "Luxembourg", "bruxelles": "Bruxelles", "brussels": "Bruxelles",
+            "geneve": "Genève", "genève": "Genève", "zurich": "Zurich",
+            "montreal": "Montréal", "montréal": "Montréal",
+            "montréal-la-cluse": "Auvergne-Rhône-Alpes", "montreal-la-cluse": "Auvergne-Rhône-Alpes",
+            "casablanca": "Casablanca", "dublin": "Dublin",
+            "madrid": "Madrid", "barcelone": "Barcelone", "barcelona": "Barcelone", "amsterdam": "Amsterdam"
         };
-        const CITY_TO_COUNTRY_FILTRES = {
-            'bruxelles': 'Belgique', 'brussels': 'Belgique', 'zaventem': 'Belgique',
-            'montreal': 'Canada', 'montréal': 'Canada'
+        function isJunkLocation(s) {
+            if (!s || typeof s !== 'string') return true;
+            const t = s.trim().toLowerCase();
+            if (t.length < 2) return true;
+            if (/ce\s+lien\s+s'ouvre\s+dans\s+un\s+nouvel\s+onglet/.test(t)) return true;
+            if (/\d{1,2}\s*(th|st|nd|rd)\s*floor/i.test(t)) return true;
+            if (/\d+\s*(allée|allee|rue|avenue|boulevard|blvd|floor|fl)/i.test(t)) return true;
+            if (/\b(gmbh|kg|&|co\.|sarl|sas)\b/i.test(t)) return true;
+            if (/\s+or\s+/i.test(t)) return true;
+            if (/^(shiodome|palazzo|provincia|palazzo\s)/i.test(t)) return true;
+            if (/bldg\.?|building|floor$/i.test(t)) return true;
+            if (/crédit agricole|credit agricole/i.test(t)) return true;
+            if (/^\d+\s/i.test(t) && t.length < 25) return true;
+            if (/provincia\s+di|e\s+provincia|e\s+valtellina/i.test(t)) return true;
+            if (/allee|allée|boulevard|central\s+boulevard/i.test(t) && /\d/.test(t)) return true;
+            if (/^deutschlandweit$/i.test(t)) return true;
+            return false;
+        }
+
+        const CITY_NORMALIZATION = {
+            'frankfurt': 'Francfort', 'francfort': 'Francfort',
+            'bombay': 'Bombay', 'mumbai': 'Bombay',
+            'hong kong': 'Hong-Kong', 'hong-kong': 'Hong-Kong',
+            'new delhi': 'New Delhi', 'delhi': 'New Delhi',
+            'beijing': 'Pékin', 'pekin': 'Pékin', 'pékin': 'Pékin',
+            'hamburg': 'Hambourg', 'hambourg': 'Hambourg',
+            'aachen': 'Aix-la-Chapelle', 'aix-la-chapelle': 'Aix-la-Chapelle',
+            'aschheim': 'Aschheim',
+            'quebec': 'Québec', 'québec': 'Québec',
+            'bucarest': 'Bucarest', 'bucharest': 'Bucarest',
+            'bistrita-nasaud': 'Bistrița-Năsăud', 'bistrita': 'Bistrița-Năsăud',
+            'chennai': 'Chennai', 'madras': 'Chennai',
+            'chengalpattu': 'Chengalpattu',
+            'shanghai': 'Shanghai',
+            'new york ny': 'New York', 'new york': 'New York',
+            'iselin nj': 'New Jersey', 'iselin': 'New Jersey', 'new jersey': 'New Jersey',
+            'chicago': 'Chicago', 'illinois': 'Illinois', 'texas': 'Texas',
+            'seoul': 'Séoul', 'séoul': 'Séoul'
         };
+
+        const CITY_TO_COUNTRY = {
+            'paris': 'France', 'lyon': 'France', 'marseille': 'France', 'lille': 'France',
+            'bruxelles': 'Belgique', 'brussels': 'Belgique', 'zaventem': 'Belgique', 'grimbergen': 'Belgique',
+            'montreal': 'Canada', 'montréal': 'Canada', 'toronto': 'Canada', 'quebec': 'Canada', 'québec': 'Canada',
+            'londres': 'Royaume-Uni', 'london': 'Royaume-Uni', 'madrid': 'Espagne', 'barcelone': 'Espagne',
+            'lisbonne': 'Portugal', 'lisbon': 'Portugal', 'amsterdam': 'Pays-Bas', 'luxembourg': 'Luxembourg',
+            'kiev': 'Ukraine', 'kyiv': 'Ukraine', 'kharkiv': 'Ukraine', 'bogota': 'Colombie', 'medellin': 'Colombie',
+            'alger': 'Algérie', 'oran': 'Algérie', 'manille': 'Philippines', 'manila': 'Philippines',
+            'seoul': 'Corée du Sud', 'séoul': 'Corée du Sud'
+        };
+
+        const COUNTRY_NORMALIZATION = {
+            'république du kenya': 'Kenya', 'republic of kenya': 'Kenya', 'kenya': 'Kenya',
+            'république démocratique du congo': 'RD Congo', 'rd congo': 'RD Congo', 'congo (rdc)': 'RD Congo',
+            'taiwan': 'Taïwan', 'taïwan': 'Taïwan',
+            'hong kong': 'Hong-Kong', 'hong-kong': 'Hong-Kong',
+            'corée du sud': 'Corée du Sud', 'corée Du Sud': 'Corée du Sud', 'corée du sud (ce lien s\'ouvre dans un nouvel onglet)': 'Corée du Sud',
+            'algerie': 'Algérie', 'algérie': 'Algérie', 'algeria': 'Algérie',
+            'deutschlandweit': 'Allemagne', 'turquie': 'Turquie', 'turkey': 'Turquie',
+            'millénaire 4': 'France', 'millenaire 4': 'France',
+            'afrique du sud': 'Afrique du Sud',
+            'tunisie': 'Tunisie', 'tunisia': 'Tunisie', 'roumanie': 'Roumanie', 'romania': 'Roumanie'
+        };
+
+        const ITALY_CITY_TO_REGION = {
+            'milan': 'Lombardie', 'milano': 'Lombardie', 'parma': 'Émilie-Romagne', 'parme': 'Émilie-Romagne',
+            'pavia': 'Lombardie', 'pavie': 'Lombardie', 'fidenza': 'Émilie-Romagne', 'rome': 'Latium',
+            'roma': 'Latium', 'lazio': 'Latium', 'latium': 'Latium', 'venetie': 'Vénétie', 'vénétie': 'Vénétie',
+            'émilie-romagne': 'Émilie-Romagne', 'emilie-romagne': 'Émilie-Romagne',
+            'la spezia': 'Ligurie', 'spezia': 'Ligurie', 'sondrio': 'Lombardie',
+            'piacenza': 'Émilie-Romagne', 'plaisance': 'Émilie-Romagne'
+        };
+
+        const CITY_TO_PARENT_REGION = {
+            'chicago': 'Illinois', 'illinois': null,
+            'new york': 'New York', 'new jersey': null, 'iselin': 'New Jersey',
+            'texas': null, 'houston': 'Texas', 'dallas': 'Texas',
+            'fidenza': 'Émilie-Romagne', 'parma': 'Émilie-Romagne', 'parme': 'Émilie-Romagne',
+            'milan': 'Lombardie', 'milano': 'Lombardie', 'pavia': 'Lombardie', 'pavie': 'Lombardie',
+            'lazio': null, 'latium': null, 'émilie-romagne': null, 'vénétie': null,
+            'la spezia': 'Ligurie', 'spezia': 'Ligurie', 'sondrio': 'Lombardie',
+            'plaisance': 'Émilie-Romagne', 'piacenza': 'Émilie-Romagne'
+        };
+
+        function deduplicateRegionLevel(regions, countries) {
+            const regs = [...regions];
+            const toRemove = new Set();
+            regs.forEach(r => {
+                const t = r.toLowerCase().trim();
+                const parent = CITY_TO_PARENT_REGION[t] || CITY_TO_PARENT_REGION[t.replace(/\s+/g, '-')];
+                if (parent) {
+                    const parentInRegs = regs.find(x => x.toLowerCase() === parent.toLowerCase());
+                    if (parentInRegs) toRemove.add(parentInRegs);
+                }
+            });
+            return regs.filter(r => !toRemove.has(r));
+        }
+
+        function normalizeCountryForFilter(c) {
+            if (!c) return c;
+            const t = c.trim().toLowerCase();
+            if (t === 'france') return 'France';
+            return COUNTRY_NORMALIZATION[t] || c.trim();
+        }
+
+        function normalizeCityForFilter(city, country) {
+            if (!city || !city.trim()) return null;
+            const t = city.trim().toLowerCase();
+            const norm = CITY_NORMALIZATION[t] || CITY_NORMALIZATION[t.replace(/\s+/g, '-')];
+            if (norm) return norm;
+            if (t.includes(' or ')) {
+                const parts = t.split(/\s+or\s+/i);
+                return normalizeCityForFilter(parts[0].trim(), country) || city.trim();
+            }
+            return city.trim();
+        }
 
         function getCityRegion(city, country) {
             if (!country || String(country).toLowerCase().trim() !== "france") return null;
             if (!city || !String(city).trim()) return "Autres régions françaises";
             const normalized = normalizeCityForLookup(city);
             if (!normalized) return "Autres régions françaises";
-            if (CITY_TO_COUNTRY_FILTRES[normalized] || CITY_TO_COUNTRY_FILTRES[city.trim().toLowerCase()]) return null;
+            // Bruxelles, Luxembourg, etc. : ville connue hors France → ne pas l'ajouter comme région française
+            const cityCountry = CITY_TO_COUNTRY[normalized] || CITY_TO_COUNTRY[city.trim().toLowerCase()];
+            if (cityCountry && cityCountry !== 'France') return null;
+            // Si la donnée contient déjà le nom de la région (ex: "Ile-De-France")
             const regionByKey = FRENCH_REGIONS_LOOKUP[normalized] || FRENCH_REGIONS_LOOKUP[normalized.replace(/-/g, ' ')];
             if (regionByKey) return regionByKey;
             if (cityToRegion[normalized]) return cityToRegion[normalized];
+            // Clés avec accents possibles (fallback)
             if (cityToRegion[city.trim().toLowerCase()]) return cityToRegion[city.trim().toLowerCase()];
             return "Autres régions françaises";
         }
@@ -1752,8 +1913,13 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Initialiser la navigation en premier pour éviter le flash
             initNav();
-            await loadJobs();
+            // Rendu immédiat de l'état vide pour éviter une page "bloquée" au premier chargement
+            renderAccordions();
+            // Démarrer l'auth sans attendre le chargement des offres
             await checkAuthAndInit();
+            // Charger ensuite les offres et rafraîchir l'affichage des filtres quand prêtes
+            await loadJobs();
+            if (currentUserId) renderAccordions();
         });
 
         async function loadJobs() {
@@ -1876,49 +2042,103 @@
                                     job.cleanCountries = [];
 
                                     if (job && job.location && typeof job.location === 'string') {
-                                        const loc = job.location.trim();
+                                        let loc = job.location.trim();
+                                        loc = loc.replace(/\s*\(?\s*Ce\s+[Ll]ien\s+[Ss]'[Oo]uvre\s+[Dd]ans\s+[Uu]n\s+[Nn]ouvel\s+[Oo]nglet\s*\)?/gi, '').trim();
+                                        job.location = loc;
                                         if (/^N\/A\s*-\s*/i.test(loc)) {
                                             job.location = loc.replace(/^N\/A\s*-\s*/i, '').trim();
                                         }
                                     }
                                     if (job && job.location && typeof job.location === 'string' && job.location.includes(' - ')) {
-                                        const parts = job.location.split(' - ');
-                                        const cityPart = parts[0] || '';
-                                        const country = parts[1] ? String(parts[1]).trim() : '';
-                                        
-                                        if (country && country.length > 0) {
-                                            const countryNorm = (String(country).toLowerCase().trim() === 'france') ? 'France' : String(country).trim();
-                                            job.cleanCountries.push(countryNorm);
+                                        try {
+                                            const parts = job.location.split(' - ');
+                                            const cityPart = parts[0] || '';
+                                            const country = parts[1] ? String(parts[1]).trim() : '';
+                                            
+                                            if (country && country.length > 0) {
+                                                let countryNorm = normalizeCountryForFilter(country) || (String(country).toLowerCase().trim() === 'france' ? 'France' : String(country).trim());
+                                                if (cityPart && countryNorm === 'France') {
+                                                    const cityPartsCheck = cityPart.split(/[\/,]|\s+or\s+/i);
+                                                    for (const cp of cityPartsCheck) {
+                                                        const c = cp.trim().toLowerCase();
+                                                        const cityCountry = CITY_TO_COUNTRY[c] || CITY_TO_COUNTRY[normalizeCityForLookup(cp)];
+                                                        if (cityCountry && cityCountry !== 'France') {
+                                                            countryNorm = cityCountry;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                job.cleanCountries.push(countryNorm);
 
-                                            if (cityPart) {
-                                                const cities = cityPart.split(/[\/,]/).map(c => String(c).trim().replace(/\(.*?\)/g, '').replace(/\d{5,6}/g, '').trim()).filter(c => c && c.length > 0);
-                                                
+                                                let cities = [];
+                                                try {
+                                                    const cityParts = cityPart.split(/[\/,]|\s+or\s+/i);
+                                                    cities = cityParts
+                                                        .map(c => {
+                                                            let clean = String(c).trim();
+                                                            if (!clean) return null;
+                                                            if (isJunkLocation(clean)) return null;
+                                                            clean = clean.replace(/\(.*?\)/g, '').trim();
+                                                            clean = clean.replace(/\d{5,6}/g, '').trim();
+                                                            if (isJunkLocation(clean)) return null;
+                                                            if (clean.includes(' ') && !cityToRegion[normalizeCityForLookup(clean)] && !cityToRegion[clean.toLowerCase()]) {
+                                                                const words = clean.split(/\s+/).filter(w => w.length > 0);
+                                                                for (let i = words.length - 1; i >= 0; i--) {
+                                                                    const w = words[i].toLowerCase();
+                                                                    const wNorm = normalizeCityForLookup(words[i]);
+                                                                    if (cityToRegion[w] || cityToRegion[wNorm]) {
+                                                                        clean = words[i];
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            }
+                                                            return clean && clean.length > 0 ? clean : null;
+                                                        })
+                                                        .filter(c => c !== null && c.length > 0);
+                                                } catch (e) {
+                                                    console.warn(`Erreur lors du split des villes pour "${cityPart}":`, e);
+                                                    cities = [];
+                                                }
+
                                                 if (cities.length === 0) {
                                                     const region = getCityRegion('', country);
                                                     if (region) job.cleanRegions.push(region);
                                                 } else {
                                                     cities.forEach(city => {
-                                                        const region = getCityRegion(city, country);
-                                                        if (region && !job.cleanRegions.includes(region)) {
-                                                            job.cleanRegions.push(region);
+                                                        try {
+                                                            const region = getCityRegion(city, country);
+                                                            if (region) job.cleanRegions.push(region);
+                                                            else if (countryNorm !== 'France' && city && city.trim()) {
+                                                                if (isJunkLocation(city)) return;
+                                                                const cityCountry = CITY_TO_COUNTRY[city.trim().toLowerCase()] || CITY_TO_COUNTRY[normalizeCityForLookup(city)];
+                                                                if (cityCountry && cityCountry !== countryNorm) return;
+                                                                let toAdd = null;
+                                                                if (countryNorm === 'Italie') {
+                                                                    const t = normalizeCityForLookup(city) || city.trim().toLowerCase();
+                                                                    toAdd = ITALY_CITY_TO_REGION[t] || ITALY_CITY_TO_REGION[t.replace(/\s+/g, '-')];
+                                                                }
+                                                                if (!toAdd) toAdd = normalizeCityForFilter(city, country);
+                                                                if (toAdd) job.cleanRegions.push(toAdd);
+                                                            }
+                                                        } catch (e) {
+                                                            console.warn(`Erreur getCityRegion pour "${city}", "${country}":`, e);
                                                         }
                                                     });
                                                 }
-                                            } else {
-                                                const region = getCityRegion('', country);
-                                                if (region) job.cleanRegions.push(region);
+
+                                                job.cleanCountries = Array.from(new Set(job.cleanCountries));
+                                                job.cleanRegions = Array.from(new Set(job.cleanRegions));
+                                                job.cleanRegions = deduplicateRegionLevel(job.cleanRegions);
                                             }
-                                            
-                                            // Dédupliquer
-                                            job.cleanCountries = Array.from(new Set(job.cleanCountries));
-                                            job.cleanRegions = Array.from(new Set(job.cleanRegions));
+                                        } catch (e) {
+                                            console.warn(`Erreur lors du traitement de la location "${job.location}":`, e);
                                         }
                                     } else if (job && job.location && typeof job.location === 'string' && job.location.trim()) {
                                         const countryOnly = job.location.trim();
                                         if (countryOnly) {
-                                            const cNorm = countryOnly.toLowerCase().trim() === 'france' ? 'France' : countryOnly;
+                                            const cNorm = normalizeCountryForFilter(countryOnly) || (countryOnly.toLowerCase() === 'france' ? 'France' : countryOnly);
                                             job.cleanCountries = [cNorm];
-                                            job.cleanRegions = countryOnly.toLowerCase() === "france" ? ["Autres régions françaises"] : [];
+                                            job.cleanRegions = cNorm === 'France' ? ["Autres régions françaises"] : ["__AUTRES__" + cNorm];
                                         }
                                     }
                                     
@@ -2991,7 +3211,7 @@
                     if (hideDisabled && countryCnt === 0 && !cvCountries.has(country)) return;
                     countriesAssigned.add(country);
                     const regionsForCountry = (countryToRegions && countryToRegions[country]) ? Array.from(countryToRegions[country]).sort((a, b) => (regionCounts[b] || 0) - (regionCounts[a] || 0)) : [];
-                    const hasRegions = regionsForCountry.length > 1;
+                    const hasRegions = regionsForCountry.length > 0;
                     const isCountryExpanded = countryExpanded[country] === true;
 
                     const countryHeader = document.createElement('div');

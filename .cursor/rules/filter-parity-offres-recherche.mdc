@@ -1,0 +1,14 @@
+# Parité obligatoire filtres Offres / Recherche avancée
+
+Objectif: garantir la même expérience utilisateur entre `HTML/offres.html` et `HTML/filtres.html`.
+
+Règles impératives:
+
+1. Toute modification de filtre faite dans `offres.html` doit être reproduite dans `filtres.html` dans le même changement.
+2. Toute modification de filtre faite dans `filtres.html` doit être reproduite dans `offres.html` dans le même changement.
+3. La hiérarchie `Pays > (Régions/Villes)` doit rester strictement cohérente entre les deux pages.
+4. Les mappings de normalisation géographique doivent rester alignés (pays, villes, régions).
+5. Avant de finaliser un changement lié aux filtres, exécuter:
+   - `python PYTHON/check_filters_parity.py`
+6. Si le script échoue, ne pas considérer la tâche terminée tant que la parité n’est pas rétablie.
+

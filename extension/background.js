@@ -1178,3 +1178,58 @@ async function fetchStorageFileAsBase64(storagePath) {
     r.readAsDataURL(blob);
   });
 }
+
+/**
+ * Interception automatique du code PIN BPCE/Oracle via l'API Gmail
+ */
+async function checkGmailForBpcePin(tabId) {
+  try {
+    const { taleosIdToken } = await chrome.storage.local.get('taleosIdToken');
+    if (!taleosIdToken) return;
+
+    console.log('[Taleos BPCE] Recherche du code PIN dans Gmail...');
+    
+    // Requête Gmail : chercher les emails de l'expéditeur Oracle BPCE reçus récemment
+    const q = encodeURIComponent('from:ekez.fa.sender@workflow.mail.em2.cloud.oracle.com "Confirmer votre identité"');
+    const res = await fetch(`https://www.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=1`, {
+      headers: { Authorization: `Bearer ${taleosIdToken}` }
+    });
+    
+    if (!res.ok) return;
+    const data = await res.json();
+    
+    if (data.messages && data.messages.length > 0) {
+      const msgId = data.messages[0].id;
+      const msgRes = await fetch(`https://www.googleapis.com/gmail/v1/users/me/messages/${msgId}`, {
+        headers: { Authorization: `Bearer ${taleosIdToken}` }
+      });
+      const msgData = await msgRes.json();
+      
+      // Extraction du corps du message (snippet ou body)
+      const snippet = msgData.snippet || '';
+      const pinMatch = snippet.match(/\b(\d{6})\b/);
+      
+      if (pinMatch) {
+        const pinCode = pinMatch[1];
+        console.log('[Taleos BPCE] Code PIN intercepté :', pinCode);
+        chrome.tabs.sendMessage(tabId, { action: 'bpce_pin_code', pinCode });
+        // Stockage temporaire pour le content script
+        chrome.storage.local.set({ taleos_bpce_pin_code: pinCode });
+      }
+    }
+  } catch (e) {
+    console.error('[Taleos BPCE] Erreur interception Gmail:', e);
+  }
+}
+
+// Surveillance des onglets pour déclencher la recherche du PIN
+chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
+  if (info.status === 'complete' && tab.url?.includes('oraclecloud.com') && tab.url?.includes('/apply/email')) {
+    // On lance une recherche toutes les 5 secondes pendant 2 minutes max
+    let attempts = 0;
+    const interval = setInterval(() => {
+      checkGmailForBpcePin(tabId);
+      if (++attempts > 24) clearInterval(interval);
+    }, 5000);
+  }
+});

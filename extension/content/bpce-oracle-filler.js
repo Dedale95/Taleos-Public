@@ -1,7 +1,7 @@
 /**
  * Taleos - Remplissage formulaire BPCE Oracle Cloud (ekez.fa.em2.oraclecloud.com)
  * Flux multi-étapes : Email+CGU → Code PIN → Données personnelles → Questions → Documents → Alertes
- * Version 1.0.54 : Amélioration de la détection des boutons Oui/Non et des questions
+ * Version 1.0.55 : Correction des sélecteurs pour les boutons (Oui/Non) et textarea avec espaces
  */
 (function() {
   'use strict';
@@ -48,10 +48,15 @@
   }
 
   function clickButtonByText(textToFind, container = document) {
-    const buttons = container.querySelectorAll('button, .cx-select-pill-section, [role="button"]');
-    for (const btn of buttons) {
-      const btnText = (btn.textContent || '').trim();
-      if (btnText === textToFind || btnText.toLowerCase() === textToFind.toLowerCase()) {
+    // On cherche tous les boutons et les spans de texte (Oracle met souvent le texte dans un span)
+    const elements = container.querySelectorAll('button, .cx-select-pill-section, .cx-select-pill-name, [role="button"]');
+    const target = String(textToFind || '').trim().toLowerCase();
+    
+    for (const el of elements) {
+      const elText = (el.textContent || '').trim().toLowerCase();
+      if (elText === target) {
+        // Si on a trouvé le span, on clique sur le bouton parent
+        const btn = el.closest('button') || el.closest('.cx-select-pill-section') || el;
         const isSelected = btn.classList.contains('cx-select-pill-section--selected') || 
                            btn.getAttribute('aria-pressed') === 'true' ||
                            btn.getAttribute('aria-checked') === 'true';
@@ -172,22 +177,19 @@
       const countryDropdown = document.querySelector('input[id*="country-codes-dropdown"]');
       if (countryDropdown) fillInput(countryDropdown, profile.phone_country_code || '+33');
 
-      // --- Étape 3 : Questions (souvent sur la même page ou après un scroll) ---
+      // --- Étape 3 : Questions ---
       log('📋 Étape 3 : Questions de candidature', 2);
       
       // Question Handicap
       const handicapVal = (profile.bpce_handicap || 'Non').trim();
-      const handicapContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.includes('handicap'));
+      const handicapContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.toLowerCase().includes('handicap'));
       if (handicapContainer) {
         const ok = clickButtonByText(handicapVal, handicapContainer);
         if (ok) log(`   ✅ Handicap → ${handicapVal}`, 2);
-      } else {
-        // Fallback global
-        clickButtonByText(handicapVal);
       }
 
-      // Disponibilité
-      const disponibiliteTextarea = document.querySelector('textarea[id*="300000620007177"]') || document.querySelector('textarea');
+      // Disponibilité (Sélecteur ID dynamique robuste)
+      const disponibiliteTextarea = document.querySelector('textarea[name="300000620007177"]') || document.querySelector('textarea[id^="300000620007177"]');
       const availableFrom = (profile.available_from || profile.available_date || '').trim();
       if (disponibiliteTextarea && availableFrom) {
         fillInput(disponibiliteTextarea, availableFrom);
@@ -196,7 +198,7 @@
 
       // Vivier Natixis
       const vivierVal = (profile.bpce_vivier_natixis || 'Oui').trim();
-      const vivierContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.includes('vivier') || el.textContent.includes('Natixis'));
+      const vivierContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.toLowerCase().includes('vivier') || el.textContent.toLowerCase().includes('natixis'));
       if (vivierContainer) {
         const ok = clickButtonByText(vivierVal, vivierContainer);
         if (ok) log(`   ✅ Vivier Natixis → ${vivierVal}`, 2);
@@ -236,7 +238,7 @@
       }, 1000);
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    log('👁️  MutationObserver actif (V1.0.54)', 2);
+    log('👁️  MutationObserver actif (V1.0.55)', 2);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

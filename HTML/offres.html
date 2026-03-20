@@ -3562,13 +3562,20 @@
                     if (hasRegions) contChildren.appendChild(countryChildren);
                 });
 
-                const allCountriesOrRegionsChecked = countries.every(c => {
+                // Ne considérer que les pays réellement cochables (rendus et non désactivés)
+                const requiredCountries = countries.filter(c => {
+                    const countryCnt = counts[c] || 0;
+                    const skipped = hideDisabled && countryCnt === 0 && !checkedCountries.has(c);
+                    const disabled = disabledValues.has(c);
+                    return !skipped && !disabled;
+                });
+                const allCountriesOrRegionsChecked = requiredCountries.length > 0 && requiredCountries.every(c => {
                     const regs = countryToRegions && countryToRegions[c] ? Array.from(countryToRegions[c]) : [];
                     const countryChecked = checkedCountries.has(c);
                     const allRegionsChecked = regs.length > 0 ? regs.every(r => checkedRegions.has(r)) : false;
                     return countryChecked || allRegionsChecked;
                 });
-                if (allCountriesOrRegionsChecked && countries.length > 0) {
+                if (allCountriesOrRegionsChecked) {
                     contCb.checked = true;
                 }
 

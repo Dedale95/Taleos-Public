@@ -1,24 +1,29 @@
 /**
  * Taleos - Remplissage formulaire BPCE Oracle Cloud (ekez.fa.em2.oraclecloud.com)
- * Version 1.0.59 : Mode "Surveillance Totale" avec Heartbeat périodique (indépendant des étapes).
+ * Version 1.0.60 : Logs anti-spam, correction disponibilité ("Immédiatement") et vivier Natixis.
  */
 (function() {
   'use strict';
 
   const BANNER_ID = 'taleos-bpce-oracle-banner';
   let isAutomationRunning = false;
+  let loggedMessages = new Set();
   let filledFields = new Set();
 
-  function log(msg, stepNum) {
+  function logOnce(msg, stepNum) {
     const prefix = stepNum ? `[STEP ${stepNum}] ` : '';
-    console.log(`[${new Date().toLocaleTimeString('fr-FR')}] [Taleos BPCE Oracle] ${prefix}${msg}`);
+    const fullMsg = `${prefix}${msg}`;
+    if (!loggedMessages.has(fullMsg)) {
+      console.log(`[${new Date().toLocaleTimeString('fr-FR')}] [Taleos BPCE Oracle] ${fullMsg}`);
+      loggedMessages.add(fullMsg);
+    }
   }
 
   function showBanner() {
     if (document.getElementById(BANNER_ID)) return;
     const banner = document.createElement('div');
     banner.id = BANNER_ID;
-    banner.textContent = '⏳ Automatisation Taleos active (V1.0.59) — Ne touchez à rien.';
+    banner.textContent = '⏳ Automatisation Taleos active (V1.0.60) — Ne touchez à rien.';
     Object.assign(banner.style, {
       position: 'fixed', top: '0', left: '0', right: '0', zIndex: '2147483647',
       background: 'linear-gradient(135deg, #003366 0%, #0055a4 100%)', color: 'white',
@@ -29,43 +34,62 @@
     document.body?.insertBefore(banner, document.body.firstChild);
   }
 
-  function fillInput(input, value, label) {
+  function smartFillInput(label, input, value) {
     if (!input || value == null) return false;
     const newVal = String(value).trim();
     const currentVal = (input.value || '').trim();
+
     if (currentVal === newVal) {
-      if (label) log(`   — ${label} → déjà "${currentVal}" (Skip)`);
+      logOnce(`   — ${label} → déjà "${currentVal}" (Skip)`);
       return false;
     }
-    input.focus();
-    const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set || 
-                         Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
-    if (nativeSetter) nativeSetter.call(input, newVal);
-    else input.value = newVal;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-    input.blur();
-    if (label) log(`   ✅ ${label} → "${newVal}" (Mis à jour)`);
-    return true;
+
+    try {
+      input.focus();
+      // Utilisation d'une méthode de remplissage plus robuste pour éviter "Illegal invocation"
+      const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set || 
+                           Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
+      
+      if (nativeSetter) {
+        nativeSetter.call(input, newVal);
+      } else {
+        input.value = newVal;
+      }
+      
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      input.blur();
+      logOnce(`   ✅ ${label} → "${newVal}" (Mis à jour)`);
+      return true;
+    } catch (e) {
+      // Fallback simple si le setter natif échoue
+      input.value = newVal;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    }
   }
 
-  function clickButtonByText(textToFind, container = document, label) {
+  function smartClickButton(label, textToFind, container = document) {
     const elements = container.querySelectorAll('button, .cx-select-pill-section, .cx-select-pill-name, [role="button"]');
     const target = String(textToFind || '').trim().toLowerCase();
+    
     for (const el of elements) {
       const elText = (el.textContent || '').trim().toLowerCase();
       if (elText === target) {
         const btn = el.closest('button') || el.closest('.cx-select-pill-section') || el;
         const isSelected = btn.classList.contains('cx-select-pill-section--selected') || 
                            btn.getAttribute('aria-pressed') === 'true' ||
-                           btn.getAttribute('aria-checked') === 'true';
-        if (!isSelected) {
+                           btn.getAttribute('aria-checked') === 'true' ||
+                           btn.classList.contains('active');
+        
+        if (isSelected) {
+          logOnce(`   — ${label} → déjà "${textToFind}" (Skip)`);
+          return 'already_selected';
+        } else {
           btn.click();
-          if (label) log(`   ✅ ${label} → "${textToFind}" (Cliqué)`);
+          logOnce(`   ✅ ${label} → "${textToFind}" (Cliqué)`);
           return true;
         }
-        if (label) log(`   — ${label} → déjà "${textToFind}" (Skip)`);
-        return 'already_selected';
       }
     }
     return false;
@@ -87,88 +111,95 @@
       // --- Étape 1 : Email + CGU ---
       const emailInput = document.querySelector('#primary-email-0') || document.querySelector('input[type="email"]');
       if (emailInput && emailInput.offsetParent !== null && !document.querySelector('[id*="pin-code"]')) {
-        if (!filledFields.has('email')) {
-          log('📋 Étape 1 : Email + CGU', 1);
-          fillInput(emailInput, profile.email || profile.auth_email, 'Email');
-          const cgu = document.querySelector('span.apply-flow-input-checkbox__button') || document.querySelector('.apply-flow-input-checkbox__button');
-          if (cgu && !cgu.classList.contains('apply-flow-input-checkbox__button--checked')) {
-            cgu.click();
-            log('   ✅ CGU cochée');
-          }
-          const nextBtn = document.querySelector('button[title="Suivant"]') || Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Suivant'));
-          if (nextBtn) {
-            nextBtn.click();
-            filledFields.add('email');
-            log('✅ Clic Suivant → Code PIN');
-          }
+        logOnce('📋 Étape 1 : Email + CGU', 1);
+        smartFillInput('Email', emailInput, profile.email || profile.auth_email);
+        const cgu = document.querySelector('span.apply-flow-input-checkbox__button') || document.querySelector('.apply-flow-input-checkbox__button');
+        if (cgu && !cgu.classList.contains('apply-flow-input-checkbox__button--checked')) {
+          cgu.click();
+          logOnce('   ✅ CGU cochée');
+        }
+        const nextBtn = document.querySelector('button[title="Suivant"]') || Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Suivant'));
+        if (nextBtn && !filledFields.has('step1_submitted')) {
+          nextBtn.click();
+          filledFields.add('step1_submitted');
+          logOnce('✅ Clic Suivant → Code PIN');
         }
       }
 
       // --- Étape 1b : Code PIN ---
       const pinInput = document.querySelector('#pin-code-1');
       if (pinInput && pinInput.offsetParent !== null) {
-        if (!filledFields.has('pin')) {
-          log('📋 Étape 1b : Vérification d\'identité (Code PIN)', 1.5);
-          const { taleos_bpce_pin_code } = await chrome.storage.local.get('taleos_bpce_pin_code');
-          if (taleos_bpce_pin_code && String(taleos_bpce_pin_code).length === 6) {
-            const pin = String(taleos_bpce_pin_code);
-            for (let i = 0; i < 6; i++) {
-              const field = document.querySelector(`#pin-code-${i + 1}`);
-              if (field) fillInput(field, pin[i]);
-            }
-            const verifyBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('VÉRIFIER'));
-            if (verifyBtn) {
-              verifyBtn.click();
-              filledFields.add('pin');
-              log('✅ Code PIN soumis');
-            }
-          } else {
-            log('   ⏳ En attente du code PIN...');
+        logOnce('📋 Étape 1b : Vérification d\'identité (Code PIN)', 1.5);
+        const { taleos_bpce_pin_code } = await chrome.storage.local.get('taleos_bpce_pin_code');
+        if (taleos_bpce_pin_code && String(taleos_bpce_pin_code).length === 6) {
+          const pin = String(taleos_bpce_pin_code);
+          for (let i = 0; i < 6; i++) {
+            const field = document.querySelector(`#pin-code-${i + 1}`);
+            if (field) smartFillInput(`Digit ${i+1}`, field, pin[i]);
           }
+          const verifyBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('VÉRIFIER'));
+          if (verifyBtn && !filledFields.has('pin_submitted')) {
+            verifyBtn.click();
+            filledFields.add('pin_submitted');
+            logOnce('✅ Code PIN soumis');
+          }
+        } else {
+          logOnce('   ⏳ En attente du code PIN...');
         }
       }
 
-      // --- Étape 2 : Formulaire complet (Détection indépendante) ---
+      // --- Étape 2 : Formulaire complet ---
       const lastNameInput = document.querySelector('input[id*="lastName"]') || document.querySelector('input[autocomplete="family-name"]');
-      const firstNameInput = document.querySelector('input[id*="firstName"]') || document.querySelector('input[autocomplete="given-name"]');
-      
       if (lastNameInput && lastNameInput.offsetParent !== null) {
-        log('📋 Étape 2 : Formulaire complet détecté !', 2);
+        logOnce('📋 Étape 2 : Formulaire complet détecté !', 2);
         
         // Contact
-        fillInput(lastNameInput, profile.last_name || profile.lastname, 'Nom');
-        fillInput(firstNameInput, profile.first_name || profile.firstname, 'Prénom');
+        smartFillInput('Nom', lastNameInput, profile.last_name || profile.lastname);
+        smartFillInput('Prénom', document.querySelector('input[id*="firstName"]') || document.querySelector('input[autocomplete="given-name"]'), profile.first_name || profile.firstname);
         
         const civ = (profile.civility || '').toLowerCase();
-        if (civ.includes('monsieur')) clickButtonByText('M.', document, 'Titre');
-        else if (civ.includes('madame')) clickButtonByText('Mme', document, 'Titre');
+        if (civ.includes('monsieur')) smartClickButton('Titre', 'M.');
+        else if (civ.includes('madame')) smartClickButton('Titre', 'Mme');
 
-        fillInput(document.querySelector('input[type="tel"]'), profile.phone || profile.phone_number, 'Téléphone');
-        fillInput(document.querySelector('input[id*="country-codes-dropdown"]'), profile.phone_country_code || '+33', 'Code Pays');
+        smartFillInput('Téléphone', document.querySelector('input[type="tel"]'), profile.phone || profile.phone_number);
+        smartFillInput('Code Pays', document.querySelector('input[id*="country-codes-dropdown"]'), profile.phone_country_code || '+33');
 
         // Questions
+        logOnce('📋 Étape 3 : Questions de candidature', 3);
         const handicapVal = (profile.bpce_handicap || 'Non').trim();
         const handicapContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.toLowerCase().includes('handicap'));
-        if (handicapContainer) clickButtonByText(handicapVal, handicapContainer, 'Handicap');
+        if (handicapContainer) smartClickButton('Handicap', handicapVal, handicapContainer);
 
-        const disponibiliteTextarea = document.querySelector('textarea[name="300000620007177"]') || document.querySelector('textarea[id^="300000620007177"]');
-        if (disponibiliteTextarea) fillInput(disponibiliteTextarea, profile.available_from || profile.available_date, 'Disponibilité');
+        // Disponibilité (Correction : Support du texte "Immédiatement")
+        const disponibiliteTextarea = document.querySelector('textarea[name="300000620007177"]') || 
+                                     document.querySelector('textarea[id^="300000620007177"]') ||
+                                     document.querySelector('.input-row__control--autoheight');
+        
+        // On cherche la valeur dans profile.available_from ou profile.disponibilite
+        const availableFrom = (profile.available_from || profile.available_date || profile.disponibilite || 'Immédiatement').trim();
+        if (disponibiliteTextarea) {
+          smartFillInput('Disponibilité', disponibiliteTextarea, availableFrom);
+        }
 
+        // Vivier Natixis (Correction du sélecteur)
         const vivierVal = (profile.bpce_vivier_natixis || 'Oui').trim();
-        const vivierContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => el.textContent.toLowerCase().includes('vivier') || el.textContent.toLowerCase().includes('natixis'));
-        if (vivierContainer) clickButtonByText(vivierVal, vivierContainer, 'Vivier Natixis');
+        const vivierContainer = Array.from(document.querySelectorAll('.apply-flow-block, .input-row')).find(el => 
+          el.textContent.toLowerCase().includes('vivier') || 
+          el.textContent.toLowerCase().includes('natixis') ||
+          el.textContent.toLowerCase().includes('conserve mon profil')
+        );
+        if (vivierContainer) {
+          smartClickButton('Vivier Natixis', vivierVal, vivierContainer);
+        }
 
         // LinkedIn
         const linkedinInput = document.querySelector('input[id*="siteLink"]');
-        if (linkedinInput) fillInput(linkedinInput, profile.linkedin_url, 'LinkedIn');
+        if (linkedinInput) smartFillInput('LinkedIn', linkedinInput, profile.linkedin_url);
 
-        if (!filledFields.has('complete')) {
-          log('✅ Formulaire rempli ! Veuillez vérifier et SOUMETTRE.');
-          filledFields.add('complete');
-        }
+        logOnce('✅ Formulaire rempli ! Veuillez vérifier et SOUMETTRE.', 2);
       }
     } catch (e) {
-      log('❌ Erreur automation: ' + e.message);
+      logOnce('❌ Erreur automation: ' + e.message);
     } finally {
       isAutomationRunning = false;
     }
@@ -177,9 +208,8 @@
   function init() {
     if (window.__taleosBpceOracleInit) return;
     window.__taleosBpceOracleInit = true;
-    log('👁️  Surveillance Totale active (V1.0.59)');
+    logOnce('👁️  Surveillance Totale active (V1.0.60)');
     
-    // Heartbeat : On vérifie la page toutes les 1.5 secondes quoi qu'il arrive
     setInterval(runAutomation, 1500);
 
     const observer = new MutationObserver(() => {

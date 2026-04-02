@@ -2649,6 +2649,14 @@
                 ['lcl', 'caceis', 'amundi', 'bforbank', 'indosuez wealth management',
                  'gruppo bancario crédit agricole italia', 'idia capital investissement', 'uptevia'].some(s => n.includes(s));
         }
+        /** Filtre entreprise : inclut la clé groupe CA si présente dans les filtres sauvegardés. */
+        function jobMatchesCompanyFilter(job, filters) {
+            if (!filters.companies || filters.companies.length === 0) return true;
+            const cn = job.company_name;
+            if (cn && filters.companies.includes(cn)) return true;
+            if (filters.companies.includes(CREDIT_AGRICOLE_GROUP_KEY) && isCreditAgricoleSubsidiary(cn)) return true;
+            return false;
+        }
         function isBPCEBrand(name) {
             if (!name || typeof name !== 'string') return false;
             const n = name.toLowerCase();
@@ -2781,17 +2789,8 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    bpceBrands.forEach(c => {
-                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
-                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
-                        updateFilter(accordionId, 'companies', c, groupCb.checked);
-                    });
-                    requestAnimationFrame(() => {
-                        const groupCbNew = container.querySelector(`input[value="${BPCE_GROUP_KEY}"]`);
-                        const childrenDiv = container.querySelector('.company-group-children[data-group="bpce"]');
-                        const childCbs = childrenDiv ? Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]')) : [];
-                        if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
-                    });
+                    const on = groupCb.checked;
+                    batchSetCompanyFilters(accordionId, bpceBrands.map(c => ({ value: c, checked: on })));
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
@@ -2875,17 +2874,8 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    bnpBrands.forEach(c => {
-                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"][data-bnp-brand]`);
-                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
-                        updateFilter(accordionId, 'companies', c, groupCb.checked);
-                    });
-                    requestAnimationFrame(() => {
-                        const groupCbNew = container.querySelector(`input[value="${BNP_PARIBAS_GROUP_KEY}"]`);
-                        const childrenDiv = container.querySelector('.company-group-children[data-group="bnp"]');
-                        const childCbs = childrenDiv ? Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]')) : [];
-                        if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
-                    });
+                    const on = groupCb.checked;
+                    batchSetCompanyFilters(accordionId, bnpBrands.map(c => ({ value: c, checked: on })));
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
@@ -2899,7 +2889,7 @@
                 container.appendChild(childrenDiv);
             }
 
-            const groupChecked = caSubs.every(c => cv.has(c));
+            const groupChecked = cv.has(CREDIT_AGRICOLE_GROUP_KEY) || caSubs.every(c => cv.has(c));
             const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
             if (caSubs.length > 0 && (!hideDisabled || groupCount > 0 || groupChecked)) {
                 const groupDiv = document.createElement('div');
@@ -2966,13 +2956,9 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    childCheckboxes.forEach(cb => {
-                        if (!cb.disabled) {
-                            cb.checked = groupCb.checked;
-                            updateFilter(accordionId, 'companies', cb.value, groupCb.checked);
-                        }
-                    });
-                    groupCb.checked = childCheckboxes.length === 0 || childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    const on = groupCb.checked;
+                    const entries = childCheckboxes.filter(cb => !cb.disabled).map(cb => ({ value: cb.value, checked: on }));
+                    batchSetCompanyFilters(accordionId, entries);
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
@@ -3051,17 +3037,8 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    cmSubs.forEach(c => {
-                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
-                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
-                        updateFilter(accordionId, 'companies', c, groupCb.checked);
-                    });
-                    requestAnimationFrame(() => {
-                        const groupCbNew = container.querySelector(`input[value="${CREDIT_MUTUEL_GROUP_KEY}"]`);
-                        const childrenDiv = container.querySelector('.company-group-children[data-group="cm"]');
-                        const childCbs = childrenDiv ? Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]')) : [];
-                        if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
-                    });
+                    const on = groupCb.checked;
+                    batchSetCompanyFilters(accordionId, cmSubs.map(c => ({ value: c, checked: on })));
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
@@ -3700,7 +3677,7 @@
 
                     // Entreprises
                     if (excludeFilterType !== 'company' && filters.companies && filters.companies.length > 0) {
-                        if (!filters.companies.includes(job.company_name)) return false;
+                        if (!jobMatchesCompanyFilter(job, filters)) return false;
                     }
 
                     // Éducations
@@ -4916,7 +4893,7 @@
 
                 // Entreprises
                 if (filters.companies && filters.companies.length > 0) {
-                    if (!filters.companies.includes(job.company_name)) return false;
+                    if (!jobMatchesCompanyFilter(job, filters)) return false;
                 }
 
                 // Éducations
@@ -5061,6 +5038,26 @@
             accordion.filters.searchKeywords = accordion.filters.searchKeywords.filter(k => k !== keyword);
             saveAccordion(accordion);
             renderAccordions();
+        }
+
+        /** Mise à jour groupée des entreprises : un seul refresh DOM (évite de casser la case groupe CA si updateFilter × N). */
+        function batchSetCompanyFilters(accordionId, entries) {
+            const accordion = accordions.find(a => (a.id || '').toString() === (accordionId || '').toString());
+            if (!accordion) return;
+            if (!accordion.filters) accordion.filters = {};
+            if (!accordion.filters.companies) accordion.filters.companies = [];
+            let list = [...accordion.filters.companies];
+            entries.forEach(({ value, checked }) => {
+                if (checked) {
+                    if (!list.includes(value)) list.push(value);
+                } else {
+                    list = list.filter(v => v !== value);
+                }
+            });
+            accordion.filters.companies = list;
+            saveAccordion(accordion);
+            updateFiltersDisplay(accordionId, accordion.filters);
+            updateAccordionDisplay(accordionId);
         }
 
         function updateFilter(accordionId, filterType, value, checked) {

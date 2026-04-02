@@ -2795,6 +2795,7 @@
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -2888,6 +2889,7 @@
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -2974,6 +2976,7 @@
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -3062,6 +3065,7 @@
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -3474,6 +3478,7 @@
                 });
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (groupLabelEl.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);

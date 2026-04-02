@@ -2964,17 +2964,13 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    caSubs.forEach(c => {
-                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
-                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
-                        updateFilter(accordionId, 'companies', c, groupCb.checked);
+                    childCheckboxes.forEach(cb => {
+                        if (!cb.disabled) {
+                            cb.checked = groupCb.checked;
+                            updateFilter(accordionId, 'companies', cb.value, groupCb.checked);
+                        }
                     });
-                    requestAnimationFrame(() => {
-                        const groupCbNew = container.querySelector(`input[value="${CREDIT_AGRICOLE_GROUP_KEY}"]`);
-                        const childrenDiv = container.querySelector('.company-group-children[data-group="ca"]');
-                        const childCbs = childrenDiv ? Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]')) : [];
-                        if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
-                    });
+                    groupCb.checked = childCheckboxes.length === 0 || childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;

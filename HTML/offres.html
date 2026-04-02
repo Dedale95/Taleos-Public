@@ -3025,15 +3025,6 @@
                 groupCb.type = 'checkbox';
                 groupCb.value = CREDIT_AGRICOLE_GROUP_KEY;
                 groupCb.checked = groupChecked;
-                groupCb.onchange = () => {
-                    caSubs.forEach(c => {
-                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
-                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
-                    });
-                    groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
-                    updateActiveFiltersBadge();
-                    applyFilters();
-                };
                 groupLabel.appendChild(groupCb);
                 const span = document.createElement('span');
                 span.textContent = `Groupe Crédit Agricole (${groupCount})`;
@@ -3081,6 +3072,14 @@
                         applyFilters();
                     };
                 });
+                groupCb.onchange = () => {
+                    childCheckboxes.forEach(cb2 => {
+                        if (!cb2.disabled) cb2.checked = groupCb.checked;
+                    });
+                    groupCb.checked = childCheckboxes.length === 0 || childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    updateActiveFiltersBadge();
+                    applyFilters();
+                };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
                     e.preventDefault();
@@ -4403,6 +4402,15 @@
                     const expiredIds = JSON.parse(localStorage.getItem(key) || '[]');
                     expiredIds.forEach(id => {
                         const sid = String(id || '').trim();
+                        if (sid) applicationStatuses.set(sid, 'expirée');
+                    });
+                } catch (_) {}
+                // Charger aussi les offres expirées globales (partagées entre utilisateurs)
+                try {
+                    const globalExpiredSnapshot = await db.collection('expired_jobs').get();
+                    globalExpiredSnapshot.forEach(doc => {
+                        const d = doc.data() || {};
+                        const sid = String(d.jobId || doc.id || '').trim();
                         if (sid) applicationStatuses.set(sid, 'expirée');
                     });
                 } catch (_) {}

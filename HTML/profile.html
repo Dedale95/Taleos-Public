@@ -1783,15 +1783,39 @@
                     </div>
                 </div>
 
-                <!-- Section Historique par entreprise (Deloitte, etc.) -->
+                <!-- Informations complémentaires (préavis / UE, Deloitte, etc.) -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Historique par entreprise</h2>
+                        <h2>Informations complémentaires</h2>
                         <span class="accordion-icon">▼</span>
                     </div>
                     <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont nécessaires pour certaines candidatures (Deloitte, etc.).</p>
-                        
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Champs parfois demandés sur les formulaires internationaux ou multilingues.</p>
+
+                        <div class="form-group">
+                            <label for="sgEuWorkAuthorization">Êtes-vous autorisé·e à travailler dans l’Union européenne ?</label>
+                            <select id="sgEuWorkAuthorization" name="sgEuWorkAuthorization">
+                                <option value="">Sélectionnez…</option>
+                                <option value="yes">Oui</option>
+                                <option value="no">Non</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sgNoticePeriod">Préavis de départ</label>
+                            <select id="sgNoticePeriod" name="sgNoticePeriod">
+                                <option value="">Sélectionnez…</option>
+                                <option value="none">Aucun / non applicable (départ immédiat ou sans emploi en cours)</option>
+                                <option value="1_month">1 mois</option>
+                                <option value="2_months">2 mois</option>
+                                <option value="3_months">3 mois</option>
+                                <option value="more_than_3_months">Plus de 3 mois</option>
+                            </select>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
+
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Deloitte — ancienne collaboration.</p>
+
                         <div class="form-group">
                             <label for="deloitteWorked">Avez-vous déjà travaillé pour Deloitte ?</label>
                             <select id="deloitteWorked" name="deloitteWorked" onchange="toggleDeloitteDetails(this.value)">
@@ -1817,35 +1841,6 @@
                                     <!-- Options générées par JS -->
                                 </select>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section Société Générale (offres hors France / questions en anglais sur Taleo) -->
-                <div class="form-section accordion-section" id="sgScreeningSection">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Candidatures Société Générale</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Pour certaines offres (hors France), le site SG peut poser des questions en anglais. Renseignez-les ici : l’extension pourra y répondre à votre place si le formulaire les affiche.</p>
-                        <div class="form-group">
-                            <label for="sgEuWorkAuthorization">Êtes-vous autorisé·e à travailler dans l’Union européenne ?</label>
-                            <select id="sgEuWorkAuthorization" name="sgEuWorkAuthorization">
-                                <option value="">Sélectionnez…</option>
-                                <option value="yes">Oui</option>
-                                <option value="no">Non</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="sgNoticePeriod">Préavis de départ (si demandé sur le formulaire)</label>
-                            <select id="sgNoticePeriod" name="sgNoticePeriod">
-                                <option value="">Sélectionnez…</option>
-                                <option value="1_month">1 mois</option>
-                                <option value="2_months">2 mois</option>
-                                <option value="3_months">3 mois</option>
-                                <option value="more_than_3_months">Plus de 3 mois</option>
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -3021,8 +3016,8 @@
                 'Niveau d\'expérience': [
                     { id: 'experienceLevel', section: 'Niveau d\'expérience' }
                 ],
-                'Historique par entreprise': [
-                    { id: 'deloitteWorked', section: 'Historique par entreprise' }
+                'Informations complémentaires': [
+                    { id: 'deloitteWorked', section: 'Informations complémentaires' }
                 ],
                 'Formation': [
                     { id: 'educationLevel', section: 'Formation' },
@@ -3068,21 +3063,6 @@
             });
         }
 
-        function applySgSectionState() {
-            const eu = document.getElementById('sgEuWorkAuthorization')?.value?.trim() || '';
-            const notice = document.getElementById('sgNoticePeriod')?.value?.trim() || '';
-            const sgHasContent = !!(eu || notice);
-            document.querySelectorAll('.accordion-header h2').forEach(header => {
-                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Candidatures Société Générale') {
-                    const section = header.closest('.accordion-section');
-                    if (section) {
-                        section.classList.remove('incomplete', 'complete');
-                        section.classList.add(sgHasContent ? 'complete' : 'incomplete');
-                    }
-                }
-            });
-        }
-
         function validateProfile() {
             // Réinitialiser toutes les classes "incomplete" et "complete"
             document.querySelectorAll('.incomplete').forEach(el => el.classList.remove('incomplete'));
@@ -3121,8 +3101,8 @@
                 'Niveau d\'expérience': [
                     { id: 'experienceLevel', label: 'Niveau d\'expérience', section: 'Niveau d\'expérience' }
                 ],
-                'Historique par entreprise': [
-                    { id: 'deloitteWorked', label: 'Avez-vous déjà travaillé pour Deloitte ?', section: 'Historique par entreprise' }
+                'Informations complémentaires': [
+                    { id: 'deloitteWorked', label: 'Avez-vous déjà travaillé pour Deloitte ?', section: 'Informations complémentaires' }
                 ],
                 'Formation': [
                     { id: 'educationLevel', label: 'Niveau d\'études', section: 'Formation' },
@@ -3210,7 +3190,6 @@
 
             // Préférences BPCE : section optionnelle — verte uniquement si au moins un champ rempli
             applyBpceSectionState();
-            applySgSectionState();
 
             // Si des champs sont incomplets, afficher un toast et retourner false
             if (incompleteFields.length > 0) {

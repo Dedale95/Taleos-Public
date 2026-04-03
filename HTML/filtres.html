@@ -1691,6 +1691,7 @@
         }
         const FRENCH_REGIONS_LOOKUP = {
             'ile-de-france': 'Île-de-France', 'île-de-france': 'Île-de-France',
+            'ile de france': 'Île-de-France', 'ile-de france': 'Île-de-France',
             'auvergne-rhone-alpes': 'Auvergne-Rhône-Alpes', 'auvergne-rhône-alpes': 'Auvergne-Rhône-Alpes',
             'occitanie': 'Occitanie', 'provence-alpes-cote-dazur': "Provence-Alpes-Côte d'Azur",
             'pays de la loire': 'Pays de la Loire', 'hauts-de-france': 'Hauts-de-France',
@@ -1724,6 +1725,13 @@
             "vincennes": "Île-de-France", "saint-mande": "Île-de-France", "nogent-sur-marne": "Île-de-France",
             "creteil": "Île-de-France", "vitry-sur-seine": "Île-de-France", "ivry-sur-seine": "Île-de-France",
             "alfortville": "Île-de-France", "maisons-alfort": "Île-de-France", "cdg": "Île-de-France",
+            "noisy-le-grand": "Île-de-France", "noisy le grand": "Île-de-France",
+            "clichy": "Île-de-France", "clichy-la-garenne": "Île-de-France",
+            "clichy-levallois": "Île-de-France", "clichy levallois": "Île-de-France",
+            "st quentin en yvelines": "Île-de-France", "saint-germain-en-laye": "Île-de-France",
+            "st-germain-en-laye": "Île-de-France", "sarcelles": "Île-de-France", "poissy": "Île-de-France",
+            "chelles": "Île-de-France", "melun": "Île-de-France", "trappes": "Île-de-France",
+            "evry-courcouronnes": "Île-de-France", "corbeil-essonnes": "Île-de-France",
 
             // Auvergne-Rhone-Alpes
             "lyon": "Auvergne-Rhône-Alpes", "grenoble": "Auvergne-Rhône-Alpes", "valence": "Auvergne-Rhône-Alpes",
@@ -1895,19 +1903,30 @@
             return city.trim();
         }
 
+        function inferIleDeFranceFromLocationLabel(rawCity) {
+            const raw = String(rawCity || '').trim();
+            if (!raw) return false;
+            const compact = normalizeCityForLookup(raw).replace(/\s+/g, ' ').trim();
+            if (/^ile(\s|-)+de(\s|-)+france$/i.test(compact)) return true;
+            if (/\b(75|77|78|91|92|93|94|95)\d{3}\b/.test(raw)) return true;
+            if (/(yvelines|essonne|seine-et-marne|seine et marne|seine-saint-denis|seine saint denis|hauts-de-seine|hauts de seine|val-de-marne|val de marne|val-d'oise|val d'oise|val-doise|plaine commune|marne-la-vallee|marne-la-vallée)/i.test(raw)) return true;
+            return false;
+        }
+
         function getCityRegion(city, country) {
             if (!country || String(country).toLowerCase().trim() !== "france") return null;
             if (!city || !String(city).trim()) return "Autres régions françaises";
+            const rawTrim = String(city).trim();
+            if (inferIleDeFranceFromLocationLabel(rawTrim)) return "Île-de-France";
             const normalized = normalizeCityForLookup(city);
             if (!normalized) return "Autres régions françaises";
-            // Bruxelles, Luxembourg, etc. : ville connue hors France → ne pas l'ajouter comme région française
             const cityCountry = CITY_TO_COUNTRY[normalized] || CITY_TO_COUNTRY[city.trim().toLowerCase()];
             if (cityCountry && cityCountry !== 'France') return null;
-            // Si la donnée contient déjà le nom de la région (ex: "Ile-De-France")
-            const regionByKey = FRENCH_REGIONS_LOOKUP[normalized] || FRENCH_REGIONS_LOOKUP[normalized.replace(/-/g, ' ')];
+            const regionByKey = FRENCH_REGIONS_LOOKUP[normalized]
+                || FRENCH_REGIONS_LOOKUP[normalized.replace(/-/g, ' ')]
+                || FRENCH_REGIONS_LOOKUP[normalized.replace(/\s+/g, '-')];
             if (regionByKey) return regionByKey;
             if (cityToRegion[normalized]) return cityToRegion[normalized];
-            // Clés avec accents possibles (fallback)
             if (cityToRegion[city.trim().toLowerCase()]) return cityToRegion[city.trim().toLowerCase()];
             return "Autres régions françaises";
         }

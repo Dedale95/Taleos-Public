@@ -2913,6 +2913,7 @@
                 });
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -2999,6 +3000,7 @@
                 });
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -3008,7 +3010,8 @@
                 container.appendChild(childrenDiv);
             }
 
-            const groupChecked = checkedValues.has(CREDIT_AGRICOLE_GROUP_KEY) || caSubs.every(c => checkedValues.has(c));
+            const renderedCaSubsList = caSubs.filter(c => !(hideDisabled && (counts[c] || 0) === 0 && !checkedValues.has(c)));
+            const groupChecked = checkedValues.has(CREDIT_AGRICOLE_GROUP_KEY) || (renderedCaSubsList.length > 0 && renderedCaSubsList.every(c => checkedValues.has(c)));
             const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
             if (caSubs.length > 0 && (!hideDisabled || groupCount > 0 || groupChecked)) {
                 const groupDiv = document.createElement('div');
@@ -3082,6 +3085,7 @@
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -3091,7 +3095,8 @@
                 container.appendChild(childrenDiv);
             }
 
-            const cmGroupChecked = checkedValues.has(CREDIT_MUTUEL_GROUP_KEY) || cmSubs.every(c => checkedValues.has(c));
+            const renderedCmSubsList = cmSubs.filter(c => !(hideDisabled && (counts[c] || 0) === 0 && !checkedValues.has(c)));
+            const cmGroupChecked = checkedValues.has(CREDIT_MUTUEL_GROUP_KEY) || (renderedCmSubsList.length > 0 && renderedCmSubsList.every(c => checkedValues.has(c)));
             const cmGroupCount = cmSubs.reduce((s, c) => s + (counts[c] || 0), 0);
             if (cmSubs.length > 0 && (!hideDisabled || cmGroupCount > 0 || cmGroupChecked)) {
                 const groupDiv = document.createElement('div');
@@ -3165,6 +3170,7 @@
                 });
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -3293,6 +3299,7 @@
                 });
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    if (groupLabelEl.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);

@@ -2889,7 +2889,8 @@
                 container.appendChild(childrenDiv);
             }
 
-            const groupChecked = cv.has(CREDIT_AGRICOLE_GROUP_KEY) || caSubs.every(c => cv.has(c));
+            const renderedCaSubsList = caSubs.filter(c => !(hideDisabled && (counts[c] || 0) === 0));
+            const groupChecked = cv.has(CREDIT_AGRICOLE_GROUP_KEY) || (renderedCaSubsList.length > 0 && renderedCaSubsList.every(c => cv.has(c)));
             const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
             if (caSubs.length > 0 && (!hideDisabled || groupCount > 0 || groupChecked)) {
                 const groupDiv = document.createElement('div');
@@ -2930,12 +2931,9 @@
                 groupDiv.appendChild(expandSpan);
                 container.appendChild(groupDiv);
 
-                const renderedCaSubs = [];
                 const childCheckboxes = [];
-                caSubs.forEach(c => {
+                renderedCaSubsList.forEach(c => {
                     const cnt = counts[c] || 0;
-                    if (hideDisabled && cnt === 0) return;
-                    renderedCaSubs.push(c);
                     const disabled = disabledValues.has(c);
                     const label = document.createElement('label');
                     const cb = document.createElement('input');
@@ -2957,8 +2955,7 @@
                 });
                 groupCb.onchange = () => {
                     const on = groupCb.checked;
-                    const entries = childCheckboxes.filter(cb => !cb.disabled).map(cb => ({ value: cb.value, checked: on }));
-                    batchSetCompanyFilters(accordionId, entries);
+                    batchSetCompanyFilters(accordionId, caSubs.map(c => ({ value: c, checked: on })));
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
@@ -2972,7 +2969,8 @@
                 container.appendChild(childrenDiv);
             }
 
-            const cmGroupChecked = cv.has(CREDIT_MUTUEL_GROUP_KEY) || cmSubs.every(c => cv.has(c));
+            const renderedCmSubsList = cmSubs.filter(c => !(hideDisabled && (counts[c] || 0) === 0));
+            const cmGroupChecked = cv.has(CREDIT_MUTUEL_GROUP_KEY) || (renderedCmSubsList.length > 0 && renderedCmSubsList.every(c => cv.has(c)));
             const cmGroupCount = cmSubs.reduce((s, c) => s + (counts[c] || 0), 0);
             if (cmSubs.length > 0 && (!hideDisabled || cmGroupCount > 0 || cmGroupChecked)) {
                 const groupDiv = document.createElement('div');
@@ -3013,9 +3011,8 @@
                 groupDiv.appendChild(expandSpan);
                 container.appendChild(groupDiv);
                 const childCheckboxes = [];
-                cmSubs.forEach(c => {
+                renderedCmSubsList.forEach(c => {
                     const cnt = counts[c] || 0;
-                    if (hideDisabled && cnt === 0) return;
                     const disabled = disabledValues.has(c);
                     const label = document.createElement('label');
                     const cb = document.createElement('input');

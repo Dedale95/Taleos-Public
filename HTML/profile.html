@@ -1874,6 +1874,23 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="bpceApplicationSource">Origine de votre candidature (libellés Oracle / Natixis)</label>
+                            <select id="bpceApplicationSource" name="bpceApplicationSource">
+                                <option value="">Sélectionnez...</option>
+                                <option value="Contacted by Natixis HR">Contacted by Natixis HR</option>
+                                <option value="Employee Referral">Employee Referral</option>
+                                <option value="Indeed.com">Indeed.com</option>
+                                <option value="Internal Applicant">Internal Applicant</option>
+                                <option value="LinkedIn">LinkedIn</option>
+                                <option value="Natixis Website">Natixis Website</option>
+                                <option value="School Posting">School Posting</option>
+                                <option value="Glassdoor">Glassdoor</option>
+                                <option value="Handshake">Handshake</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
                             <label for="linkedinUrl">URL de votre profil LinkedIn <span style="color:#888;font-weight:400;font-size:0.85em">(facultatif)</span></label>
                             <input type="url" id="linkedinUrl" name="linkedinUrl" placeholder="https://www.linkedin.com/in/votre-profil">
                         </div>
@@ -2708,6 +2725,8 @@
             const jobAlertsCheck = document.getElementById('bpceJobAlerts');
             if (handicapSelect && profile.bpce_handicap) handicapSelect.value = profile.bpce_handicap;
             if (vivierSelect && profile.bpce_vivier_natixis) vivierSelect.value = profile.bpce_vivier_natixis;
+            const bpceSrc = document.getElementById('bpceApplicationSource');
+            if (bpceSrc && profile.bpce_application_source) bpceSrc.value = profile.bpce_application_source;
             if (linkedinInput && profile.linkedin_url) linkedinInput.value = profile.linkedin_url;
             if (jobAlertsCheck) jobAlertsCheck.checked = !!profile.bpce_job_alerts;
         }
@@ -3050,9 +3069,10 @@
         function applyBpceSectionState() {
             const bpceHandicap = document.getElementById('bpceHandicap')?.value?.trim() || '';
             const bpceVivier = document.getElementById('bpceVivierNatixis')?.value?.trim() || '';
+            const bpceApplicationSource = document.getElementById('bpceApplicationSource')?.value?.trim() || '';
             const linkedinUrl = document.getElementById('linkedinUrl')?.value?.trim() || '';
             const bpceJobAlerts = document.getElementById('bpceJobAlerts')?.checked || false;
-            const bpceHasContent = !!(bpceHandicap || bpceVivier || linkedinUrl || bpceJobAlerts);
+            const bpceHasContent = !!(bpceHandicap || bpceVivier || bpceApplicationSource || linkedinUrl || bpceJobAlerts);
 
             document.querySelectorAll('.accordion-header h2').forEach(header => {
                 if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Préférences BPCE') {
@@ -3337,6 +3357,7 @@
                 deloitte_country: document.getElementById('deloitteCountry')?.value || '',
                 bpce_handicap: document.getElementById('bpceHandicap')?.value || '',
                 bpce_vivier_natixis: document.getElementById('bpceVivierNatixis')?.value || '',
+                bpce_application_source: document.getElementById('bpceApplicationSource')?.value || '',
                 linkedin_url: document.getElementById('linkedinUrl')?.value?.trim() || '',
                 bpce_job_alerts: document.getElementById('bpceJobAlerts')?.checked || false,
                 sg_eu_work_authorization: document.getElementById('sgEuWorkAuthorization')?.value || '',

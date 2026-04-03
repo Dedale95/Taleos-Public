@@ -4119,7 +4119,9 @@
                     availableFrom: 'Disponible à partir de', continents: 'Continents',
                     preferredCountries: 'Pays préférés', experienceLevel: 'Niveau d\'expérience',
                     educationLevel: 'Niveau d\'études', institutionType: 'Type d\'établissement',
-                    diplomaStatus: 'Statut du diplôme', deloitteWorked: 'Avez-vous déjà travaillé pour Deloitte ?'
+                    diplomaStatus: 'Statut du diplôme', deloitteWorked: 'Avez-vous déjà travaillé pour Deloitte ?',
+                    sg_eu_work_authorization: 'Autorisation de travail dans l’UE',
+                    sg_notice_period: 'Préavis de départ'
                 };
                 const requiredFields = {
                     civility: profile.civility,
@@ -4140,7 +4142,11 @@
                     educationLevel: profile.education_level,
                     institutionType: profile.institution_type,
                     diplomaStatus: profile.diploma_status,
-                    deloitteWorked: profile.deloitte_worked === 'yes' || profile.deloitte_worked === 'no'
+                    deloitteWorked: profile.deloitte_worked === 'yes' || profile.deloitte_worked === 'no',
+                    sg_eu_work_authorization: profile.sg_eu_work_authorization === 'yes' || profile.sg_eu_work_authorization === 'no',
+                    sg_notice_period: ['none', '1_month', '2_months', '3_months', 'more_than_3_months'].includes(
+                        String(profile.sg_notice_period || '').trim()
+                    )
                 };
 
                 const missingFields = [];

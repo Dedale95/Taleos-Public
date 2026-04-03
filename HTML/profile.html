@@ -2388,7 +2388,7 @@
                         
                         // Valider le profil après chargement pour afficher les indicateurs visuels
                         setTimeout(() => {
-                            validateProfile();
+                            validateProfile({ silent: true });
                         }, 500);
                         
                         return;
@@ -2443,7 +2443,7 @@
                         
                         // Valider le profil après chargement pour afficher les indicateurs visuels
                         setTimeout(() => {
-                            validateProfile();
+                            validateProfile({ silent: true });
                         }, 500);
                         
                         // Si Firestore est disponible, synchroniser les données vers Firestore
@@ -3017,6 +3017,8 @@
                     { id: 'experienceLevel', section: 'Niveau d\'expérience' }
                 ],
                 'Informations complémentaires': [
+                    { id: 'sgEuWorkAuthorization', section: 'Informations complémentaires' },
+                    { id: 'sgNoticePeriod', section: 'Informations complémentaires' },
                     { id: 'deloitteWorked', section: 'Informations complémentaires' }
                 ],
                 'Formation': [
@@ -3063,7 +3065,8 @@
             });
         }
 
-        function validateProfile() {
+        function validateProfile(opts) {
+            const silent = !!(opts && opts.silent);
             // Réinitialiser toutes les classes "incomplete" et "complete"
             document.querySelectorAll('.incomplete').forEach(el => el.classList.remove('incomplete'));
             document.querySelectorAll('.complete').forEach(el => el.classList.remove('complete'));
@@ -3102,6 +3105,8 @@
                     { id: 'experienceLevel', label: 'Niveau d\'expérience', section: 'Niveau d\'expérience' }
                 ],
                 'Informations complémentaires': [
+                    { id: 'sgEuWorkAuthorization', label: 'Autorisation de travail dans l’UE', section: 'Informations complémentaires' },
+                    { id: 'sgNoticePeriod', label: 'Préavis de départ', section: 'Informations complémentaires' },
                     { id: 'deloitteWorked', label: 'Avez-vous déjà travaillé pour Deloitte ?', section: 'Informations complémentaires' }
                 ],
                 'Formation': [
@@ -3191,16 +3196,18 @@
             // Préférences BPCE : section optionnelle — verte uniquement si au moins un champ rempli
             applyBpceSectionState();
 
-            // Si des champs sont incomplets, afficher un toast et retourner false
+            // Si des champs sont incomplets, afficher un toast (sauf validation silencieuse) et retourner false
             if (incompleteFields.length > 0) {
                 const fieldsList = incompleteFields.slice(0, 5).join(', ');
                 const moreText = incompleteFields.length > 5 ? ` et ${incompleteFields.length - 5} autre(s)` : '';
                 const suffix = (fieldsList + moreText).match(/[?!]$/) ? '' : '.';
-                showToast(
-                    'warning',
-                    '⚠️ Profil incomplet',
-                    `Pour activer l'automatisation des candidatures, veuillez compléter tous les champs obligatoires : ${fieldsList}${moreText}${suffix}`
-                );
+                if (!silent) {
+                    showToast(
+                        'warning',
+                        '⚠️ Profil incomplet',
+                        `Pour activer l'automatisation des candidatures, veuillez compléter tous les champs obligatoires : ${fieldsList}${moreText}${suffix}`
+                    );
+                }
 
                 // Scroller vers la première section incomplète
                 const firstIncompleteSection = document.querySelector('.accordion-section.incomplete');
@@ -3585,7 +3592,7 @@
                     // Valider après un court délai pour éviter trop de validations
                     clearTimeout(window.validationTimeout);
                     window.validationTimeout = setTimeout(() => {
-                        validateProfile();
+                        validateProfile({ silent: true });
                     }, 500);
                 });
 
@@ -3593,7 +3600,7 @@
                 form.addEventListener('input', function(e) {
                     clearTimeout(window.validationTimeout);
                     window.validationTimeout = setTimeout(() => {
-                        validateProfile();
+                        validateProfile({ silent: true });
                     }, 500);
                 });
             }

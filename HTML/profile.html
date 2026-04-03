@@ -1821,6 +1821,35 @@
                     </div>
                 </div>
 
+                <!-- Section Société Générale (offres hors France / questions en anglais sur Taleo) -->
+                <div class="form-section accordion-section" id="sgScreeningSection">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2>Candidatures Société Générale</h2>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Pour certaines offres (hors France), le site SG peut poser des questions en anglais. Renseignez-les ici : l’extension pourra y répondre à votre place si le formulaire les affiche.</p>
+                        <div class="form-group">
+                            <label for="sgEuWorkAuthorization">Êtes-vous autorisé·e à travailler dans l’Union européenne ?</label>
+                            <select id="sgEuWorkAuthorization" name="sgEuWorkAuthorization">
+                                <option value="">Sélectionnez…</option>
+                                <option value="yes">Oui</option>
+                                <option value="no">Non</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sgNoticePeriod">Préavis de départ (si demandé sur le formulaire)</label>
+                            <select id="sgNoticePeriod" name="sgNoticePeriod">
+                                <option value="">Sélectionnez…</option>
+                                <option value="1_month">1 mois</option>
+                                <option value="2_months">2 mois</option>
+                                <option value="3_months">3 mois</option>
+                                <option value="more_than_3_months">Plus de 3 mois</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Section Préférences BPCE -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -2350,6 +2379,7 @@
                         loadEducationInfo(profile);
                         loadDeloitteInfo(profile);
                         loadBpceInfo(profile);
+                        loadSgScreeningInfo(profile);
 
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
@@ -2410,6 +2440,7 @@
                         loadEducationInfo(profile);
                         loadDeloitteInfo(profile);
                         loadBpceInfo(profile);
+                        loadSgScreeningInfo(profile);
 
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
@@ -2684,6 +2715,13 @@
             if (vivierSelect && profile.bpce_vivier_natixis) vivierSelect.value = profile.bpce_vivier_natixis;
             if (linkedinInput && profile.linkedin_url) linkedinInput.value = profile.linkedin_url;
             if (jobAlertsCheck) jobAlertsCheck.checked = !!profile.bpce_job_alerts;
+        }
+
+        function loadSgScreeningInfo(profile) {
+            const eu = document.getElementById('sgEuWorkAuthorization');
+            const notice = document.getElementById('sgNoticePeriod');
+            if (eu && profile.sg_eu_work_authorization) eu.value = profile.sg_eu_work_authorization;
+            if (notice && profile.sg_notice_period) notice.value = profile.sg_notice_period;
         }
 
         // Fonction pour charger les informations Deloitte
@@ -3030,6 +3068,21 @@
             });
         }
 
+        function applySgSectionState() {
+            const eu = document.getElementById('sgEuWorkAuthorization')?.value?.trim() || '';
+            const notice = document.getElementById('sgNoticePeriod')?.value?.trim() || '';
+            const sgHasContent = !!(eu || notice);
+            document.querySelectorAll('.accordion-header h2').forEach(header => {
+                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Candidatures Société Générale') {
+                    const section = header.closest('.accordion-section');
+                    if (section) {
+                        section.classList.remove('incomplete', 'complete');
+                        section.classList.add(sgHasContent ? 'complete' : 'incomplete');
+                    }
+                }
+            });
+        }
+
         function validateProfile() {
             // Réinitialiser toutes les classes "incomplete" et "complete"
             document.querySelectorAll('.incomplete').forEach(el => el.classList.remove('incomplete'));
@@ -3157,6 +3210,7 @@
 
             // Préférences BPCE : section optionnelle — verte uniquement si au moins un champ rempli
             applyBpceSectionState();
+            applySgSectionState();
 
             // Si des champs sont incomplets, afficher un toast et retourner false
             if (incompleteFields.length > 0) {
@@ -3299,6 +3353,8 @@
                 bpce_vivier_natixis: document.getElementById('bpceVivierNatixis')?.value || '',
                 linkedin_url: document.getElementById('linkedinUrl')?.value?.trim() || '',
                 bpce_job_alerts: document.getElementById('bpceJobAlerts')?.checked || false,
+                sg_eu_work_authorization: document.getElementById('sgEuWorkAuthorization')?.value || '',
+                sg_notice_period: document.getElementById('sgNoticePeriod')?.value || '',
                 email: userEmail || '',
                 updated_at: new Date().toISOString(),
                 created_at: null // Sera défini lors de la première création

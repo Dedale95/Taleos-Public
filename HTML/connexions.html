@@ -718,6 +718,33 @@
             <p style="margin-top: 15px;"><strong>🔒 Sécurité :</strong> Vos identifiants sont cryptés et stockés de manière sécurisée. Nous ne les utilisons que pour les actions que vous autorisez.</p>
         </div>
 
+        <div class="bank-module" id="gmailIntegrationCard" style="margin-bottom: 20px;">
+            <div class="bank-header" style="cursor: default;">
+                <div class="bank-header-left">
+                    <div class="bank-logo" style="display:flex;align-items:center;justify-content:center;font-size:28px;">📬</div>
+                    <div class="bank-info">
+                        <h3>Liaison Gmail (codes de vérification)</h3>
+                        <p>Permet à Taleos de lire uniquement les emails OTP nécessaires (ex: BPCE).</p>
+                    </div>
+                </div>
+                <div class="bank-status disconnected" id="gmailLinkStatusBadge">○ Non lié</div>
+            </div>
+            <div class="bank-content" style="max-height:none;opacity:1;">
+                <div class="bank-content-inner">
+                    <p style="color:#4b5563; margin-bottom: 16px;">
+                        La liaison demande le scope Google <code>gmail.readonly</code>. Le token OAuth Gmail reste stocké localement dans l’extension.
+                        Firestore conserve uniquement l’état de liaison.
+                    </p>
+                    <div id="gmailLinkedEmail" style="font-size: 0.95rem; color:#065f46; margin-bottom: 10px; display:none;"></div>
+                    <div class="connection-status" id="gmail-status"></div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="btn-gmail-link" onclick="linkGmailAccount()">🔗 Lier mon compte Gmail</button>
+                        <button type="button" class="btn btn-danger" id="btn-gmail-unlink" onclick="unlinkGmailAccount()" style="display:none;">✕ Délier Gmail</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="banks-container" id="banksContainer">
             <!-- Modules générés dynamiquement -->
         </div>
@@ -839,6 +866,173 @@
 
         let userConnections = {};
         let currentUser = null;
+
+        function callExtensionBridge(requestEventName, responseEventName, detail) {
+            return new Promise((resolve) => {
+                const timeout = setTimeout(() => {
+                    window.removeEventListener(responseEventName, handler);
+                    resolve({ ok: false, message: 'Timeout extension' });
+                }, 15000);
+                const handler = (e) => {
+                    clearTimeout(timeout);
+                    window.removeEventListener(responseEventName, handler);
+                    resolve(e.detail || { ok: false, message: 'Réponse vide' });
+                };
+                window.addEventListener(responseEventName, handler);
+                window.dispatchEvent(new CustomEvent(requestEventName, { detail: detail || {} }));
+            });
+        }
+
+        function setGmailUiState(state) {
+            const badge = document.getElementById('gmailLinkStatusBadge');
+            const status = document.getElementById('gmail-status');
+            const emailLine = document.getElementById('gmailLinkedEmail');
+            const btnLink = document.getElementById('btn-gmail-link');
+            const btnUnlink = document.getElementById('btn-gmail-unlink');
+            if (!badge || !status || !btnLink || !btnUnlink) return;
+
+            const connected = !!(state && state.connected);
+            badge.className = `bank-status ${connected ? 'connected' : 'disconnected'}`;
+            badge.textContent = connected ? '✓ Gmail lié' : '○ Non lié';
+            btnLink.style.display = connected ? 'none' : 'inline-flex';
+            btnUnlink.style.display = connected ? 'inline-flex' : 'none';
+
+            if (connected && state.gmail_email) {
+                emailLine.style.display = 'block';
+                emailLine.textContent = `Compte lié : ${state.gmail_email}`;
+            } else {
+                emailLine.style.display = 'none';
+                emailLine.textContent = '';
+            }
+        }
+
+        async function refreshGmailStatus(showMessage) {
+            const status = document.getElementById('gmail-status');
+            if (!status) return;
+            if (showMessage) {
+                status.className = 'connection-status show info';
+                status.textContent = '⏳ Vérification de l’état Gmail...';
+            }
+            if (!isExtensionReady()) {
+                setGmailUiState({ connected: false });
+                status.className = 'connection-status show error';
+                status.textContent = 'Extension Taleos non détectée.';
+                return;
+            }
+            const res = await callExtensionBridge('taleos-request-gmail-status', 'taleos-gmail-status-result');
+            if (!res.ok) {
+                setGmailUiState({ connected: false });
+                status.className = 'connection-status show error';
+                status.textContent = `❌ ${res.message || 'Impossible de lire l’état Gmail.'}`;
+                return;
+            }
+            setGmailUiState(res);
+            status.className = 'connection-status show success';
+            status.textContent = res.connected
+                ? '✅ Gmail lié. Lecture OTP activée pour les sites compatibles.'
+                : 'ℹ️ Gmail non lié. L’auto-récupération OTP est désactivée.';
+        }
+
+        async function linkGmailAccount() {
+            const status = document.getElementById('gmail-status');
+            const btn = document.getElementById('btn-gmail-link');
+            if (!currentUser) {
+                if (status) {
+                    status.className = 'connection-status show error';
+                    status.textContent = 'Vous devez être connecté pour lier Gmail.';
+                }
+                return;
+            }
+            if (!isExtensionReady()) {
+                if (status) {
+                    status.className = 'connection-status show error';
+                    status.textContent = 'Extension non détectée. Rechargez la page et l’extension.';
+                }
+                return;
+            }
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Liaison Gmail...';
+            }
+            if (status) {
+                status.className = 'connection-status show info';
+                status.textContent = '⏳ Ouverture du popup Google...';
+            }
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('https://www.googleapis.com/auth/gmail.readonly');
+                provider.addScope('email');
+                provider.addScope('profile');
+
+                let result;
+                try {
+                    result = await currentUser.linkWithPopup(provider);
+                } catch (err) {
+                    if (err && (err.code === 'auth/provider-already-linked' || err.code === 'auth/credential-already-in-use')) {
+                        result = await currentUser.reauthenticateWithPopup(provider);
+                    } else {
+                        throw err;
+                    }
+                }
+
+                const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+                const accessToken = credential && credential.accessToken ? credential.accessToken : '';
+                if (!accessToken) throw new Error('Token OAuth Gmail non récupéré.');
+
+                const saveRes = await callExtensionBridge(
+                    'taleos-request-gmail-link-save',
+                    'taleos-gmail-link-save-result',
+                    {
+                        accessToken,
+                        expiresInSec: 3600,
+                        gmailEmail: (result.user && result.user.email) || currentUser.email || ''
+                    }
+                );
+                if (!saveRes.ok) throw new Error(saveRes.message || 'Échec sauvegarde liaison Gmail');
+                await refreshGmailStatus(false);
+            } catch (e) {
+                if (status) {
+                    status.className = 'connection-status show error';
+                    status.textContent = `❌ ${e.message || 'Erreur pendant la liaison Gmail.'}`;
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🔗 Lier mon compte Gmail';
+                }
+            }
+        }
+
+        async function unlinkGmailAccount() {
+            const status = document.getElementById('gmail-status');
+            const btn = document.getElementById('btn-gmail-unlink');
+            if (!isExtensionReady()) {
+                if (status) {
+                    status.className = 'connection-status show error';
+                    status.textContent = 'Extension non détectée.';
+                }
+                return;
+            }
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Suppression...';
+            }
+            try {
+                const res = await callExtensionBridge('taleos-request-gmail-unlink', 'taleos-gmail-unlink-result');
+                if (!res.ok) throw new Error(res.message || 'Échec déliaison Gmail');
+                await refreshGmailStatus(false);
+            } catch (e) {
+                if (status) {
+                    status.className = 'connection-status show error';
+                    status.textContent = `❌ ${e.message || 'Erreur pendant la déliaison.'}`;
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '✕ Délier Gmail';
+                }
+            }
+        }
 
         // Mise à jour de la navigation
         function updateNavigation(user) {
@@ -1426,7 +1620,9 @@
                 currentUser = user;
                 await loadUserConnections();
                 renderBanks();
+                await refreshGmailStatus(true);
             } else {
+                setGmailUiState({ connected: false });
                 // Vérifier localStorage en cas de connexion persistante
                 const token = localStorage.getItem('authToken');
                 const email = localStorage.getItem('userEmail');

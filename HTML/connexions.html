@@ -968,12 +968,19 @@
                 provider.addScope('https://www.googleapis.com/auth/gmail.readonly');
                 provider.addScope('email');
                 provider.addScope('profile');
+                provider.setCustomParameters({ prompt: 'select_account' });
 
                 let result;
                 try {
                     result = await currentUser.linkWithPopup(provider);
                 } catch (err) {
-                    if (err && (err.code === 'auth/provider-already-linked' || err.code === 'auth/credential-already-in-use')) {
+                    const recoverable = err && (
+                        err.code === 'auth/provider-already-linked' ||
+                        err.code === 'auth/credential-already-in-use' ||
+                        err.code === 'auth/email-already-in-use' ||
+                        err.code === 'auth/account-exists-with-different-credential'
+                    );
+                    if (recoverable) {
                         result = await currentUser.reauthenticateWithPopup(provider);
                     } else {
                         throw err;
@@ -1010,9 +1017,9 @@
                 }
                 if (rawCode === 'auth/email-already-in-use' || rawCode === 'auth/account-exists-with-different-credential') {
                     const help = [
-                        'Cette adresse email est déjà associée à un autre mode de connexion.',
-                        'Connectez-vous avec le même email Google que votre compte Taleos,',
-                        'ou utilisez d’abord ce compte Google puis relancez la liaison Gmail.'
+                        'Impossible de lier ce compte Google à votre session actuelle.',
+                        'Dans la fenêtre Google, choisissez le même email que votre compte Taleos.',
+                        'Si besoin, déconnectez d’abord vos sessions Google puis réessayez.'
                     ].join(' ');
                     if (status) {
                         status.className = 'connection-status show error';

@@ -2256,6 +2256,8 @@
 
             try {
                 isLoadingAccordions = true;
+                // Évite le flash "Créez votre première recherche" pendant le fetch Firestore
+                renderAccordions();
                 const db = firebase.firestore();
                 console.log('🔄 [loadAccordions] Lecture Firestore: profiles/' + currentUserId + '/advanced_searches');
                 
@@ -2565,6 +2567,12 @@
             const emptyState = document.getElementById('emptyState');
 
             if (accordions.length === 0) {
+                // Tant que le premier chargement Firestore n'est pas fini, ne pas afficher l'état vide.
+                if (isLoadingAccordions || !accordionsLoaded) {
+                    emptyState.style.display = 'none';
+                    container.style.opacity = '1';
+                    return;
+                }
                 container.innerHTML = '';
                 emptyState.style.display = 'block';
                 container.style.opacity = '1';

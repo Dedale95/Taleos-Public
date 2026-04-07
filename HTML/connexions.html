@@ -721,10 +721,17 @@
         <div class="bank-module" id="gmailIntegrationCard" style="margin-bottom: 20px;">
             <div class="bank-header" style="cursor: default;">
                 <div class="bank-header-left">
-                    <div class="bank-logo" style="display:flex;align-items:center;justify-content:center;font-size:28px;">📬</div>
+                    <div class="bank-logo" style="display:flex;align-items:center;justify-content:center;padding:10px;">
+                        <svg viewBox="0 0 48 48" width="32" height="32" aria-hidden="true">
+                            <path fill="#EA4335" d="M24 24L7.5 12.5V36c0 2.2 1.8 4 4 4H17V24z"/>
+                            <path fill="#FBBC04" d="M40.5 12.5L24 24l7 16h5.5c2.2 0 4-1.8 4-4z"/>
+                            <path fill="#34A853" d="M17 40h14l-7-16z"/>
+                            <path fill="#4285F4" d="M40.5 12.5c0-2.2-1.8-4-4-4H11.5c-2.2 0-4 1.8-4 4L24 24z"/>
+                        </svg>
+                    </div>
                     <div class="bank-info">
                         <h3>Liaison Gmail (codes de vérification)</h3>
-                        <p>Permet à Taleos de lire uniquement les emails OTP nécessaires (ex: BPCE).</p>
+                        <p>Permet à Taleos de récupérer automatiquement les codes reçus par email pour vous authentifier pendant certaines candidatures (ex : BPCE).</p>
                     </div>
                 </div>
                 <div class="bank-status disconnected" id="gmailLinkStatusBadge">○ Non lié</div>
@@ -927,7 +934,7 @@
                 return;
             }
             setGmailUiState(res);
-            status.className = 'connection-status show success';
+            status.className = `connection-status show ${res.connected ? 'success' : 'info'}`;
             status.textContent = res.connected
                 ? '✅ Gmail lié. Lecture OTP activée pour les sites compatibles.'
                 : 'ℹ️ Gmail non lié. L’auto-récupération OTP est désactivée.';
@@ -991,6 +998,18 @@
                 if (!saveRes.ok) throw new Error(saveRes.message || 'Échec sauvegarde liaison Gmail');
                 await refreshGmailStatus(false);
             } catch (e) {
+                const rawCode = String(e && e.code ? e.code : '');
+                if (rawCode === 'auth/operation-not-allowed') {
+                    const help = [
+                        'Connexion Google désactivée côté Firebase.',
+                        'Activez-la dans Firebase Console > Authentication > Sign-in method > Google, puis réessayez.'
+                    ].join(' ');
+                    if (status) {
+                        status.className = 'connection-status show error';
+                        status.textContent = `❌ ${help}`;
+                    }
+                    return;
+                }
                 if (status) {
                     status.className = 'connection-status show error';
                     status.textContent = `❌ ${e.message || 'Erreur pendant la liaison Gmail.'}`;

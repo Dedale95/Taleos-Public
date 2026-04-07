@@ -763,6 +763,16 @@
             <div class="bank-content" style="max-height:none;opacity:1;">
                 <div class="bank-content-inner">
                     <div id="outlookLinkedEmail" style="font-size: 0.95rem; color:#065f46; margin-bottom: 10px; display:none;"></div>
+                    <div id="outlookCredentialsForm">
+                        <div class="form-group">
+                            <label for="outlook-email">📧 Email Outlook</label>
+                            <input type="email" id="outlook-email" placeholder="votre.email@outlook.com" autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="outlook-password">🔐 Mot de passe Outlook</label>
+                            <input type="password" id="outlook-password" placeholder="Votre mot de passe Outlook" autocomplete="current-password">
+                        </div>
+                    </div>
                     <div class="connection-status" id="outlook-status"></div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" id="btn-outlook-link" onclick="linkOutlookAccount()">🔗 Lier mon compte Outlook</button>
@@ -1098,12 +1108,14 @@
             const emailLine = document.getElementById('outlookLinkedEmail');
             const btnLink = document.getElementById('btn-outlook-link');
             const btnUnlink = document.getElementById('btn-outlook-unlink');
+            const credsForm = document.getElementById('outlookCredentialsForm');
             if (!badge || !status || !btnLink || !btnUnlink) return;
             const connected = !!(state && state.connected);
             badge.className = `bank-status ${connected ? 'connected' : 'disconnected'}`;
             badge.textContent = connected ? '✓ Outlook lié' : '○ Non lié';
             btnLink.style.display = connected ? 'none' : 'inline-flex';
             btnUnlink.style.display = connected ? 'inline-flex' : 'none';
+            if (credsForm) credsForm.style.display = connected ? 'none' : 'block';
             if (connected && state.outlook_email) {
                 emailLine.style.display = 'block';
                 emailLine.textContent = `Compte lié : ${state.outlook_email}`;
@@ -1143,8 +1155,19 @@
         async function linkOutlookAccount() {
             const status = document.getElementById('outlook-status');
             const btn = document.getElementById('btn-outlook-link');
+            const emailEl = document.getElementById('outlook-email');
+            const pwdEl = document.getElementById('outlook-password');
             if (!currentUser) return;
             if (!isExtensionReady()) return;
+            const outlookEmail = (emailEl && emailEl.value ? emailEl.value : (currentUser.email || '')).trim();
+            const outlookPassword = (pwdEl && pwdEl.value ? pwdEl.value : '').trim();
+            if (!outlookEmail || !outlookEmail.includes('@') || !outlookPassword) {
+                if (status) {
+                    status.className = 'connection-status show error';
+                    status.textContent = '❌ Renseignez un email Outlook valide et un mot de passe.';
+                }
+                return;
+            }
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner"></span> Liaison Outlook...';
@@ -1155,7 +1178,8 @@
             }
             try {
                 const res = await callExtensionBridge('taleos-request-outlook-link', 'taleos-outlook-link-result', {
-                    outlookEmail: currentUser.email || ''
+                    outlookEmail: outlookEmail,
+                    outlookPassword: outlookPassword
                 });
                 if (!res.ok) throw new Error(res.message || 'Échec liaison Outlook');
                 await refreshOutlookStatus(false);

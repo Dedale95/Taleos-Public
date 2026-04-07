@@ -747,6 +747,31 @@
             </div>
         </div>
 
+        <div class="bank-module" id="outlookIntegrationCard" style="margin-bottom: 20px;">
+            <div class="bank-header" style="cursor: default;">
+                <div class="bank-header-left">
+                    <div class="bank-logo" style="display:flex;align-items:center;justify-content:center;padding:6px;background:#f3f4f6;">
+                        <img src="https://res.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/brand-icons/product/svg/outlook_48x1.svg" alt="Outlook" style="width:36px;height:36px;object-fit:contain;display:block;">
+                    </div>
+                    <div class="bank-info">
+                        <h3>Liaison Outlook (codes de vérification)</h3>
+                        <p>Permet à Taleos de récupérer automatiquement les codes reçus par email pendant certaines candidatures.</p>
+                    </div>
+                </div>
+                <div class="bank-status disconnected" id="outlookLinkStatusBadge">○ Non lié</div>
+            </div>
+            <div class="bank-content" style="max-height:none;opacity:1;">
+                <div class="bank-content-inner">
+                    <div id="outlookLinkedEmail" style="font-size: 0.95rem; color:#065f46; margin-bottom: 10px; display:none;"></div>
+                    <div class="connection-status" id="outlook-status"></div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="btn-outlook-link" onclick="linkOutlookAccount()">🔗 Lier mon compte Outlook</button>
+                        <button type="button" class="btn btn-danger" id="btn-outlook-unlink" onclick="unlinkOutlookAccount()" style="display:none;">✕ Délier Outlook</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="banks-container" id="banksContainer">
             <!-- Modules générés dynamiquement -->
         </div>
@@ -1063,6 +1088,111 @@
                 if (btn) {
                     btn.disabled = false;
                     btn.textContent = '✕ Délier Gmail';
+                }
+            }
+        }
+
+        function setOutlookUiState(state) {
+            const badge = document.getElementById('outlookLinkStatusBadge');
+            const status = document.getElementById('outlook-status');
+            const emailLine = document.getElementById('outlookLinkedEmail');
+            const btnLink = document.getElementById('btn-outlook-link');
+            const btnUnlink = document.getElementById('btn-outlook-unlink');
+            if (!badge || !status || !btnLink || !btnUnlink) return;
+            const connected = !!(state && state.connected);
+            badge.className = `bank-status ${connected ? 'connected' : 'disconnected'}`;
+            badge.textContent = connected ? '✓ Outlook lié' : '○ Non lié';
+            btnLink.style.display = connected ? 'none' : 'inline-flex';
+            btnUnlink.style.display = connected ? 'inline-flex' : 'none';
+            if (connected && state.outlook_email) {
+                emailLine.style.display = 'block';
+                emailLine.textContent = `Compte lié : ${state.outlook_email}`;
+            } else {
+                emailLine.style.display = 'none';
+                emailLine.textContent = '';
+            }
+        }
+
+        async function refreshOutlookStatus(showMessage) {
+            const status = document.getElementById('outlook-status');
+            if (!status) return;
+            if (showMessage) {
+                status.className = 'connection-status show info';
+                status.textContent = '⏳ Vérification de l’état Outlook...';
+            }
+            if (!isExtensionReady()) {
+                setOutlookUiState({ connected: false });
+                status.className = 'connection-status show error';
+                status.textContent = 'Extension Taleos non détectée.';
+                return;
+            }
+            const res = await callExtensionBridge('taleos-request-outlook-status', 'taleos-outlook-status-result');
+            if (!res.ok) {
+                setOutlookUiState({ connected: false });
+                status.className = 'connection-status show error';
+                status.textContent = `❌ ${res.message || 'Impossible de lire l’état Outlook.'}`;
+                return;
+            }
+            setOutlookUiState(res);
+            status.className = `connection-status show ${res.connected ? 'success' : 'info'}`;
+            status.textContent = res.connected
+                ? '✅ Outlook lié. Pensez à rester connecté sur Outlook Web.'
+                : 'ℹ️ Outlook non lié. L’auto-récupération OTP Outlook est désactivée.';
+        }
+
+        async function linkOutlookAccount() {
+            const status = document.getElementById('outlook-status');
+            const btn = document.getElementById('btn-outlook-link');
+            if (!currentUser) return;
+            if (!isExtensionReady()) return;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Liaison Outlook...';
+            }
+            if (status) {
+                status.className = 'connection-status show info';
+                status.textContent = '⏳ Liaison Outlook en cours...';
+            }
+            try {
+                const res = await callExtensionBridge('taleos-request-outlook-link', 'taleos-outlook-link-result', {
+                    outlookEmail: currentUser.email || ''
+                });
+                if (!res.ok) throw new Error(res.message || 'Échec liaison Outlook');
+                await refreshOutlookStatus(false);
+            } catch (e) {
+                if (status) {
+                    status.className = 'connection-status show error';
+                    status.textContent = `❌ ${e.message || 'Erreur pendant la liaison Outlook.'}`;
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🔗 Lier mon compte Outlook';
+                }
+            }
+        }
+
+        async function unlinkOutlookAccount() {
+            const status = document.getElementById('outlook-status');
+            const btn = document.getElementById('btn-outlook-unlink');
+            if (!isExtensionReady()) return;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Suppression...';
+            }
+            try {
+                const res = await callExtensionBridge('taleos-request-outlook-unlink', 'taleos-outlook-unlink-result');
+                if (!res.ok) throw new Error(res.message || 'Échec déliaison Outlook');
+                await refreshOutlookStatus(false);
+            } catch (e) {
+                if (status) {
+                    status.className = 'connection-status show error';
+                    status.textContent = `❌ ${e.message || 'Erreur pendant la déliaison Outlook.'}`;
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '✕ Délier Outlook';
                 }
             }
         }
@@ -1654,8 +1784,10 @@
                 await loadUserConnections();
                 renderBanks();
                 await refreshGmailStatus(true);
+                await refreshOutlookStatus(true);
             } else {
                 setGmailUiState({ connected: false });
+                setOutlookUiState({ connected: false });
                 // Vérifier localStorage en cas de connexion persistante
                 const token = localStorage.getItem('authToken');
                 const email = localStorage.getItem('userEmail');

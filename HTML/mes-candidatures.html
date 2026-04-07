@@ -247,28 +247,33 @@
             flex-wrap: wrap;
         }
 
-        .filter-btn {
-            padding: 8px 16px;
+        .status-checkboxes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
             border: 2px solid #e5e7eb;
-            background: white;
-            color: #666;
             border-radius: 20px;
+            background: white;
             cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
+            user-select: none;
+            transition: all 0.2s ease;
             font-size: 0.9rem;
+            color: #4b5563;
+            font-weight: 600;
         }
 
-        .filter-btn:hover {
+        .status-check:hover {
             border-color: #667eea;
-            color: #667eea;
         }
 
-        .filter-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-color: transparent;
-        }
+        .status-check input { accent-color: #667eea; }
 
         .applications-list {
             display: grid;
@@ -830,13 +835,12 @@
                 <div class="applications-section">
                     <div class="applications-header">
                         <h2>Liste de vos candidatures</h2>
-                        <div class="filters">
-                            <button class="filter-btn active" data-filter="all">Toutes</button>
-                            <button class="filter-btn" data-filter="pending">En attente</button>
-                            <button class="filter-btn" data-filter="screening">Screening</button>
-                            <button class="filter-btn" data-filter="interview">Entretiens</button>
-                            <button class="filter-btn" data-filter="accepted">Acceptées</button>
-                            <button class="filter-btn" data-filter="rejected">Refusées</button>
+                        <div class="filters status-checkboxes" id="statusFilters">
+                            <label class="status-check"><input type="checkbox" data-status="pending"> En attente</label>
+                            <label class="status-check"><input type="checkbox" data-status="screening" checked> Screening</label>
+                            <label class="status-check"><input type="checkbox" data-status="interview" checked> Entretiens</label>
+                            <label class="status-check"><input type="checkbox" data-status="accepted" checked> Acceptées</label>
+                            <label class="status-check"><input type="checkbox" data-status="rejected"> Refusées</label>
                         </div>
                     </div>
                     <div id="applicationsList" class="applications-list"></div>
@@ -862,8 +866,23 @@
         }
 
         let applications = [];
-        let currentFilter = 'all';
+        let selectedStatusFilters = new Set(['screening', 'interview', 'accepted']);
         let charts = {};
+
+        function initStatusFilters() {
+            const boxContainer = document.getElementById('statusFilters');
+            if (!boxContainer || boxContainer.dataset.bound === '1') return;
+            boxContainer.querySelectorAll('input[type="checkbox"][data-status]').forEach((cb) => {
+                cb.addEventListener('change', () => {
+                    const status = cb.dataset.status;
+                    if (!status) return;
+                    if (cb.checked) selectedStatusFilters.add(status);
+                    else selectedStatusFilters.delete(status);
+                    renderApplications();
+                });
+            });
+            boxContainer.dataset.bound = '1';
+        }
 
         // Fonction pour obtenir le chemin du logo d'une compagnie
         function getCompanyLogo(companyName) {
@@ -1406,12 +1425,10 @@
         // Render applications list
         function renderApplications() {
             const container = document.getElementById('applicationsList');
-            const filteredApps = currentFilter === 'all' 
-                ? applications 
-                : applications.filter(app => app.status === currentFilter);
+            const filteredApps = applications.filter(app => selectedStatusFilters.has(app.status));
 
             if (filteredApps.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 40px;"><div class="empty-state-icon" style="font-size: 3rem;">🔍</div><h2 style="font-size: 1.3rem;">Aucune candidature dans cette catégorie</h2></div>';
+                container.innerHTML = '<div class="empty-state" style="padding: 40px;"><div class="empty-state-icon" style="font-size: 3rem;">🔍</div><h2 style="font-size: 1.3rem;">Aucune candidature pour les statuts sélectionnés</h2></div>';
                 return;
             }
 
@@ -1472,15 +1489,7 @@
             }).join('');
         }
 
-        // Filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = btn.dataset.filter;
-                renderApplications();
-            });
-        });
+        initStatusFilters();
 
         // Change status
         async function changeStatus(appId) {

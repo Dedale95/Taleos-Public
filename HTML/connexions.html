@@ -1011,6 +1011,18 @@
                     }
                     return;
                 }
+                if (rawCode === 'auth/email-already-in-use' || rawCode === 'auth/account-exists-with-different-credential') {
+                    const help = [
+                        'Cette adresse email est déjà associée à un autre mode de connexion.',
+                        'Connectez-vous avec le même email Google que votre compte Taleos,',
+                        'ou utilisez d’abord ce compte Google puis relancez la liaison Gmail.'
+                    ].join(' ');
+                    if (status) {
+                        status.className = 'connection-status show error';
+                        status.textContent = `❌ ${help}`;
+                    }
+                    return;
+                }
                 if (status) {
                     status.className = 'connection-status show error';
                     status.textContent = `❌ ${e.message || 'Erreur pendant la liaison Gmail.'}`;

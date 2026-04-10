@@ -978,7 +978,6 @@
         async function linkGmailAccount() {
             const status = document.getElementById('gmail-status');
             const btn = document.getElementById('btn-gmail-link');
-            let provider = null;
             if (!currentUser) {
                 if (status) {
                     status.className = 'connection-status show error';
@@ -1011,89 +1010,14 @@
                     throw new Error(directRes.message || 'Connexion Gmail via extension impossible');
                 }
                 await refreshGmailStatus(false);
-                return;
-            } catch (_) {
-                // Fallback legacy Firebase si l'extension n'est pas à jour.
-            }
-            try {
-                provider = new firebase.auth.GoogleAuthProvider();
-                provider.addScope('https://www.googleapis.com/auth/gmail.readonly');
-                provider.addScope('email');
-                provider.addScope('profile');
-                provider.setCustomParameters({
-                    prompt: 'select_account',
-                    login_hint: currentUser.email || ''
-                });
-
-                let result;
-                try {
-                    result = await currentUser.linkWithPopup(provider);
-                } catch (err) {
-                    const recoverable = err && (
-                        err.code === 'auth/provider-already-linked' ||
-                        err.code === 'auth/credential-already-in-use' ||
-                        err.code === 'auth/email-already-in-use' ||
-                        err.code === 'auth/account-exists-with-different-credential'
-                    );
-                    if (recoverable) {
-                        result = await currentUser.reauthenticateWithPopup(provider);
-                    } else {
-                        throw err;
-                    }
+                if (status) {
+                    status.className = 'connection-status show success';
+                    status.textContent = '✅ Gmail lié via extension.';
                 }
-
-                const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-                const accessToken = credential && credential.accessToken ? credential.accessToken : '';
-                if (!accessToken) throw new Error('Token OAuth Gmail non récupéré.');
-
-                const saveRes = await callExtensionBridge(
-                    'taleos-request-gmail-link-save',
-                    'taleos-gmail-link-save-result',
-                    {
-                        accessToken,
-                        expiresInSec: 3600,
-                        gmailEmail: (result.user && result.user.email) || currentUser.email || ''
-                    }
-                );
-                if (!saveRes.ok) throw new Error(saveRes.message || 'Échec sauvegarde liaison Gmail');
-                await refreshGmailStatus(false);
             } catch (e) {
-                const rawCode = String(e && e.code ? e.code : '');
-                if (rawCode === 'auth/operation-not-allowed') {
-                    const help = [
-                        'Connexion Google désactivée côté Firebase.',
-                        'Activez-la dans Firebase Console > Authentication > Sign-in method > Google, puis réessayez.'
-                    ].join(' ');
-                    if (status) {
-                        status.className = 'connection-status show error';
-                        status.textContent = `❌ ${help}`;
-                    }
-                    return;
-                }
-                if (rawCode === 'auth/user-mismatch' || rawCode === 'auth/email-already-in-use' || rawCode === 'auth/account-exists-with-different-credential') {
-                    const help = [
-                        'Impossible de lier ce compte Google à votre session actuelle.',
-                        'Dans la fenêtre Google, choisissez le même email que votre compte Taleos.',
-                        'Si besoin, déconnectez d’abord vos sessions Google puis réessayez.'
-                    ].join(' ');
-                    if (status) {
-                        status.className = 'connection-status show error';
-                        status.textContent = `❌ ${help}`;
-                    }
-                    return;
-                }
-                if (rawCode === 'auth/popup-blocked') {
-                    if (status) {
-                        status.className = 'connection-status show info';
-                        status.textContent = '⚠️ Popup bloqué. Redirection Google en cours...';
-                    }
-                    if (!provider) throw e;
-                    await currentUser.linkWithRedirect(provider);
-                    return;
-                }
                 if (status) {
                     status.className = 'connection-status show error';
-                    status.textContent = `❌ ${e.message || 'Erreur pendant la liaison Gmail.'}`;
+                    status.textContent = `❌ ${e.message || 'Liaison Gmail impossible. Rechargez l’extension sur chrome://extensions puis réessayez.'}`;
                 }
             } finally {
                 if (btn) {

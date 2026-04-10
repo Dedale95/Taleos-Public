@@ -911,6 +911,7 @@
         const ALL_STATUSES = ['pending', 'screening', 'interview', 'accepted', 'rejected'];
         let selectedStatuses = new Set(ALL_STATUSES);
         let charts = {};
+        const FILTER_PREFS_STORAGE_KEY = 'mes_candidatures_selected_statuses_v1';
 
         // Fonction pour obtenir le chemin du logo d'une compagnie
         function getCompanyLogo(companyName) {
@@ -1158,7 +1159,31 @@
             return db.collection('profiles').doc(currentUserId).collection('ui_preferences').doc('mes_candidatures');
         }
 
+        function loadFilterPreferencesFromStorage() {
+            try {
+                const raw = localStorage.getItem(FILTER_PREFS_STORAGE_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) return null;
+                const cleaned = parsed.filter((s) => ALL_STATUSES.includes(s));
+                return cleaned.length ? cleaned : ALL_STATUSES;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function saveFilterPreferencesToStorage() {
+            try {
+                localStorage.setItem(FILTER_PREFS_STORAGE_KEY, JSON.stringify(Array.from(selectedStatuses)));
+            } catch (_) {}
+        }
+
         async function loadFilterPreferences() {
+            const localPrefs = loadFilterPreferencesFromStorage();
+            if (localPrefs) {
+                selectedStatuses = new Set(localPrefs);
+                syncFilterUIFromState();
+            }
             const docRef = getFilterPrefsDocRef();
             if (!docRef) return;
             try {
@@ -1167,17 +1192,19 @@
                 if (Array.isArray(rawStatuses)) {
                     const cleaned = rawStatuses.filter((s) => ALL_STATUSES.includes(s));
                     selectedStatuses = new Set(cleaned.length ? cleaned : ALL_STATUSES);
+                    saveFilterPreferencesToStorage();
                 } else {
-                    selectedStatuses = new Set(ALL_STATUSES);
+                    selectedStatuses = new Set(localPrefs || ALL_STATUSES);
                 }
             } catch (e) {
                 console.warn('⚠️ Impossible de charger les préférences de filtres:', e);
-                selectedStatuses = new Set(ALL_STATUSES);
+                selectedStatuses = new Set(localPrefs || ALL_STATUSES);
             }
             syncFilterUIFromState();
         }
 
         async function saveFilterPreferences() {
+            saveFilterPreferencesToStorage();
             const docRef = getFilterPrefsDocRef();
             if (!docRef) return;
             try {

@@ -1727,11 +1727,6 @@
                             <button class="btn btn-secondary" onclick="changeStatus('${app.id}')">
                                 Changer le statut
                             </button>
-                            ${app.status === 'pending' || app.status === 'screening' ? `
-                                <button class="btn btn-danger" onclick="cancelApplication('${app.id}', '${(app.jobTitle || '').replace(/'/g, "\\'")}')">
-                                    ✕ Annuler
-                                </button>
-                            ` : ''}
                         </div>
                     </div>
                 `;

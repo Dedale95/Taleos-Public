@@ -999,7 +999,21 @@
             }
             if (status) {
                 status.className = 'connection-status show info';
-                status.textContent = '⏳ Ouverture du popup Google...';
+                status.textContent = '⏳ Connexion Gmail via extension...';
+            }
+            try {
+                const directRes = await callExtensionBridge(
+                    'taleos-request-gmail-link-direct',
+                    'taleos-gmail-link-direct-result',
+                    {}
+                );
+                if (!directRes.ok) {
+                    throw new Error(directRes.message || 'Connexion Gmail via extension impossible');
+                }
+                await refreshGmailStatus(false);
+                return;
+            } catch (_) {
+                // Fallback legacy Firebase si l'extension n'est pas à jour.
             }
             try {
                 provider = new firebase.auth.GoogleAuthProvider();

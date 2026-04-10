@@ -247,33 +247,55 @@
             flex-wrap: wrap;
         }
 
-        .status-checkboxes {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .status-check {
+        .filter-chip {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 12px;
+            padding: 8px 14px;
             border: 2px solid #e5e7eb;
             border-radius: 20px;
             background: white;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
-            color: #4b5563;
+            color: #444;
             font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
         }
 
-        .status-check:hover {
+        .filter-chip:hover {
             border-color: #667eea;
+            color: #667eea;
         }
 
-        .status-check input { accent-color: #667eea; }
+        .filter-chip input {
+            accent-color: #667eea;
+            width: 15px;
+            height: 15px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            color: #666;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
 
         .applications-list {
             display: grid;
@@ -835,12 +857,31 @@
                 <div class="applications-section">
                     <div class="applications-header">
                         <h2>Liste de vos candidatures</h2>
-                        <div class="filters status-checkboxes" id="statusFilters">
-                            <label class="status-check"><input type="checkbox" data-status="pending"> En attente</label>
-                            <label class="status-check"><input type="checkbox" data-status="screening" checked> Screening</label>
-                            <label class="status-check"><input type="checkbox" data-status="interview" checked> Entretiens</label>
-                            <label class="status-check"><input type="checkbox" data-status="accepted" checked> Acceptées</label>
-                            <label class="status-check"><input type="checkbox" data-status="rejected"> Refusées</label>
+                        <div class="filters" id="statusFilters">
+                            <label class="filter-chip">
+                                <input type="checkbox" id="filter-all" checked>
+                                <span>Toutes</span>
+                            </label>
+                            <label class="filter-chip">
+                                <input type="checkbox" class="status-filter" data-status="pending" checked>
+                                <span>En attente</span>
+                            </label>
+                            <label class="filter-chip">
+                                <input type="checkbox" class="status-filter" data-status="screening" checked>
+                                <span>Screening</span>
+                            </label>
+                            <label class="filter-chip">
+                                <input type="checkbox" class="status-filter" data-status="interview" checked>
+                                <span>Entretiens</span>
+                            </label>
+                            <label class="filter-chip">
+                                <input type="checkbox" class="status-filter" data-status="accepted" checked>
+                                <span>Acceptées</span>
+                            </label>
+                            <label class="filter-chip">
+                                <input type="checkbox" class="status-filter" data-status="rejected" checked>
+                                <span>Refusées</span>
+                            </label>
                         </div>
                     </div>
                     <div id="applicationsList" class="applications-list"></div>
@@ -866,23 +907,10 @@
         }
 
         let applications = [];
-        let selectedStatusFilters = new Set(['screening', 'interview', 'accepted']);
+        let currentUserId = null;
+        const ALL_STATUSES = ['pending', 'screening', 'interview', 'accepted', 'rejected'];
+        let selectedStatuses = new Set(ALL_STATUSES);
         let charts = {};
-
-        function initStatusFilters() {
-            const boxContainer = document.getElementById('statusFilters');
-            if (!boxContainer || boxContainer.dataset.bound === '1') return;
-            boxContainer.querySelectorAll('input[type="checkbox"][data-status]').forEach((cb) => {
-                cb.addEventListener('change', () => {
-                    const status = cb.dataset.status;
-                    if (!status) return;
-                    if (cb.checked) selectedStatusFilters.add(status);
-                    else selectedStatusFilters.delete(status);
-                    renderApplications();
-                });
-            });
-            boxContainer.dataset.bound = '1';
-        }
 
         // Fonction pour obtenir le chemin du logo d'une compagnie
         function getCompanyLogo(companyName) {
@@ -1124,6 +1152,87 @@
             }
         });
 
+        function getFilterPrefsDocRef() {
+            if (!currentUserId) return null;
+            const db = firebase.firestore();
+            return db.collection('profiles').doc(currentUserId).collection('ui_preferences').doc('mes_candidatures');
+        }
+
+        async function loadFilterPreferences() {
+            const docRef = getFilterPrefsDocRef();
+            if (!docRef) return;
+            try {
+                const snap = await docRef.get();
+                const rawStatuses = snap.exists ? snap.data()?.selectedStatuses : null;
+                if (Array.isArray(rawStatuses)) {
+                    const cleaned = rawStatuses.filter((s) => ALL_STATUSES.includes(s));
+                    selectedStatuses = new Set(cleaned.length ? cleaned : ALL_STATUSES);
+                } else {
+                    selectedStatuses = new Set(ALL_STATUSES);
+                }
+            } catch (e) {
+                console.warn('⚠️ Impossible de charger les préférences de filtres:', e);
+                selectedStatuses = new Set(ALL_STATUSES);
+            }
+            syncFilterUIFromState();
+        }
+
+        async function saveFilterPreferences() {
+            const docRef = getFilterPrefsDocRef();
+            if (!docRef) return;
+            try {
+                await docRef.set({
+                    selectedStatuses: Array.from(selectedStatuses),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } catch (e) {
+                console.warn('⚠️ Impossible de sauvegarder les préférences de filtres:', e);
+            }
+        }
+
+        function syncFilterUIFromState() {
+            const allCheckbox = document.getElementById('filter-all');
+            const statusCheckboxes = Array.from(document.querySelectorAll('.status-filter'));
+            statusCheckboxes.forEach((cb) => {
+                cb.checked = selectedStatuses.has(cb.dataset.status);
+            });
+            if (allCheckbox) {
+                allCheckbox.checked = selectedStatuses.size === ALL_STATUSES.length;
+            }
+        }
+
+        function setupFilterEvents() {
+            const allCheckbox = document.getElementById('filter-all');
+            const statusCheckboxes = Array.from(document.querySelectorAll('.status-filter'));
+            if (!allCheckbox || statusCheckboxes.length === 0) return;
+
+            allCheckbox.addEventListener('change', async () => {
+                if (allCheckbox.checked) {
+                    selectedStatuses = new Set(ALL_STATUSES);
+                } else {
+                    selectedStatuses = new Set();
+                }
+                syncFilterUIFromState();
+                renderApplications();
+                await saveFilterPreferences();
+            });
+
+            statusCheckboxes.forEach((cb) => {
+                cb.addEventListener('change', async () => {
+                    const status = cb.dataset.status;
+                    if (!status) return;
+                    if (cb.checked) {
+                        selectedStatuses.add(status);
+                    } else {
+                        selectedStatuses.delete(status);
+                    }
+                    syncFilterUIFromState();
+                    renderApplications();
+                    await saveFilterPreferences();
+                });
+            });
+        }
+
         // Load applications from Firestore
         async function loadApplications() {
             try {
@@ -1134,6 +1243,9 @@
                     window.location.href = 'auth.html';
                     return;
                 }
+
+                currentUserId = currentUser.uid;
+                await loadFilterPreferences();
 
                 const db = firebase.firestore();
                 const applicationsRef = db.collection('profiles').doc(currentUser.uid).collection('job_applications');
@@ -1425,10 +1537,10 @@
         // Render applications list
         function renderApplications() {
             const container = document.getElementById('applicationsList');
-            const filteredApps = applications.filter(app => selectedStatusFilters.has(app.status));
+            const filteredApps = applications.filter(app => selectedStatuses.has(app.status || 'pending'));
 
             if (filteredApps.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 40px;"><div class="empty-state-icon" style="font-size: 3rem;">🔍</div><h2 style="font-size: 1.3rem;">Aucune candidature pour les statuts sélectionnés</h2></div>';
+                container.innerHTML = '<div class="empty-state" style="padding: 40px;"><div class="empty-state-icon" style="font-size: 3rem;">🔍</div><h2 style="font-size: 1.3rem;">Aucune candidature dans cette catégorie</h2></div>';
                 return;
             }
 
@@ -1489,7 +1601,7 @@
             }).join('');
         }
 
-        initStatusFilters();
+        setupFilterEvents();
 
         // Change status
         async function changeStatus(appId) {
@@ -1613,7 +1725,7 @@
                 <span>Conçu avec ❤️ pour les futurs talents de la finance</span>
             </div>
             <div class="footer-links">
-                <a href="mailto:contact@taleos.co">Contact</a>
+                <a href="contact.html">Contact</a>
             </div>
             <div class="footer-social">
                 <a href="https://instagram.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="Instagram">

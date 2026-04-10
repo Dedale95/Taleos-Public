@@ -302,6 +302,28 @@
             gap: 20px;
         }
 
+        .filters-summary {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .summary-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #f3f4f6;
+            color: #374151;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
         .application-card {
             background: #f9fafb;
             padding: 25px;
@@ -885,6 +907,14 @@
                         </div>
                     </div>
                     <div id="applicationsList" class="applications-list"></div>
+                    <div class="filters-summary">
+                        <span class="summary-chip">Affichées: <strong id="visibleCount">0</strong></span>
+                        <span class="summary-chip">En attente: <strong id="filterCount-pending">0</strong></span>
+                        <span class="summary-chip">Screening: <strong id="filterCount-screening">0</strong></span>
+                        <span class="summary-chip">Entretiens: <strong id="filterCount-interview">0</strong></span>
+                        <span class="summary-chip">Acceptées: <strong id="filterCount-accepted">0</strong></span>
+                        <span class="summary-chip">Refusées: <strong id="filterCount-rejected">0</strong></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1567,10 +1597,27 @@
             });
         }
 
+        function updateFilterCounters(filteredApps) {
+            const byStatus = {
+                pending: applications.filter((a) => a.status === 'pending').length,
+                screening: applications.filter((a) => a.status === 'screening').length,
+                interview: applications.filter((a) => a.status === 'interview').length,
+                accepted: applications.filter((a) => a.status === 'accepted').length,
+                rejected: applications.filter((a) => a.status === 'rejected').length
+            };
+            const visibleEl = document.getElementById('visibleCount');
+            if (visibleEl) visibleEl.textContent = String(filteredApps.length);
+            for (const key of Object.keys(byStatus)) {
+                const el = document.getElementById(`filterCount-${key}`);
+                if (el) el.textContent = String(byStatus[key]);
+            }
+        }
+
         // Render applications list
         function renderApplications() {
             const container = document.getElementById('applicationsList');
             const filteredApps = applications.filter(app => selectedStatuses.has(app.status || 'pending'));
+            updateFilterCounters(filteredApps);
 
             if (filteredApps.length === 0) {
                 container.innerHTML = '<div class="empty-state" style="padding: 40px;"><div class="empty-state-icon" style="font-size: 3rem;">🔍</div><h2 style="font-size: 1.3rem;">Aucune candidature dans cette catégorie</h2></div>';

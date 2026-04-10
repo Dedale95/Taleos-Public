@@ -868,6 +868,7 @@
 
         let userConnections = {};
         let currentUser = null;
+        let gmailRedirectHandled = false;
 
         function callExtensionBridge(requestEventName, responseEventName, detail) {
             return new Promise((resolve) => {
@@ -933,6 +934,37 @@
             status.textContent = res.connected
                 ? '✅ Gmail lié. Lecture OTP activée pour les sites compatibles.'
                 : 'ℹ️ Gmail non lié. L’auto-récupération OTP est désactivée.';
+        }
+
+        async function handleGmailRedirectResult() {
+            if (gmailRedirectHandled) return;
+            gmailRedirectHandled = true;
+            const status = document.getElementById('gmail-status');
+            try {
+                const result = await auth.getRedirectResult();
+                const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+                const accessToken = credential && credential.accessToken ? credential.accessToken : '';
+                if (!accessToken) return;
+                const saveRes = await callExtensionBridge(
+                    'taleos-request-gmail-link-save',
+                    'taleos-gmail-link-save-result',
+                    {
+                        accessToken,
+                        expiresInSec: 3600,
+                        gmailEmail: (result.user && result.user.email) || (currentUser && currentUser.email) || ''
+                    }
+                );
+                if (!saveRes.ok) throw new Error(saveRes.message || 'Échec sauvegarde après redirection Gmail');
+                if (status) {
+                    status.className = 'connection-status show success';
+                    status.textContent = '✅ Gmail lié après redirection OAuth.';
+                }
+            } catch (e) {
+                if (status) {
+                    status.className = 'connection-status show error';
+                    status.textContent = `❌ ${e.message || 'Erreur lors du retour OAuth Gmail.'}`;
+                }
+            }
         }
 
         async function linkGmailAccount() {
@@ -1022,6 +1054,14 @@
                         status.className = 'connection-status show error';
                         status.textContent = `❌ ${help}`;
                     }
+                    return;
+                }
+                if (rawCode === 'auth/popup-blocked') {
+                    if (status) {
+                        status.className = 'connection-status show info';
+                        status.textContent = '⚠️ Popup bloqué. Redirection Google en cours...';
+                    }
+                    await currentUser.linkWithRedirect(provider);
                     return;
                 }
                 if (status) {
@@ -1756,6 +1796,7 @@
                 currentUser = user;
                 await loadUserConnections();
                 renderBanks();
+                await handleGmailRedirectResult();
                 await refreshGmailStatus(true);
                 await refreshOutlookStatus(true);
             } else {

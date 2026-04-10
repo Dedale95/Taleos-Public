@@ -302,28 +302,6 @@
             gap: 20px;
         }
 
-        .filters-summary {
-            margin-top: 18px;
-            padding-top: 14px;
-            border-top: 1px solid #e5e7eb;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .summary-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 999px;
-            background: #f3f4f6;
-            color: #374151;
-            font-size: 0.82rem;
-            font-weight: 600;
-        }
-
         .application-card {
             background: #f9fafb;
             padding: 25px;
@@ -907,14 +885,6 @@
                         </div>
                     </div>
                     <div id="applicationsList" class="applications-list"></div>
-                    <div class="filters-summary">
-                        <span class="summary-chip">Affichées: <strong id="visibleCount">0</strong></span>
-                        <span class="summary-chip">En attente: <strong id="filterCount-pending">0</strong></span>
-                        <span class="summary-chip">Screening: <strong id="filterCount-screening">0</strong></span>
-                        <span class="summary-chip">Entretiens: <strong id="filterCount-interview">0</strong></span>
-                        <span class="summary-chip">Acceptées: <strong id="filterCount-accepted">0</strong></span>
-                        <span class="summary-chip">Refusées: <strong id="filterCount-rejected">0</strong></span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1651,8 +1621,6 @@
                 rejected: applications.filter((a) => a.status === 'rejected').length
             };
             const total = applications.length;
-            const visibleEl = document.getElementById('visibleCount');
-            if (visibleEl) visibleEl.textContent = String(filteredApps.length);
             const allLabel = document.getElementById('filterLabel-all');
             if (allLabel) allLabel.textContent = `Toutes ${total}`;
             const labelMap = {
@@ -1663,8 +1631,6 @@
                 rejected: 'Refusées'
             };
             for (const key of Object.keys(byStatus)) {
-                const el = document.getElementById(`filterCount-${key}`);
-                if (el) el.textContent = String(byStatus[key]);
                 const labelEl = document.getElementById(`filterLabel-${key}`);
                 if (labelEl) labelEl.textContent = `${labelMap[key]} ${byStatus[key]}`;
             }

@@ -960,6 +960,14 @@
                     status.textContent = '✅ Gmail lié après redirection OAuth.';
                 }
             } catch (e) {
+                const rawCode = String(e && e.code ? e.code : '');
+                if (rawCode === 'auth/user-mismatch' || rawCode === 'auth/email-already-in-use' || rawCode === 'auth/account-exists-with-different-credential') {
+                    if (status) {
+                        status.className = 'connection-status show error';
+                        status.textContent = '❌ Le compte Google sélectionné ne correspond pas à votre session Taleos. Choisissez le même email que celui connecté à Taleos.';
+                    }
+                    return;
+                }
                 if (status) {
                     status.className = 'connection-status show error';
                     status.textContent = `❌ ${e.message || 'Erreur lors du retour OAuth Gmail.'}`;
@@ -970,6 +978,7 @@
         async function linkGmailAccount() {
             const status = document.getElementById('gmail-status');
             const btn = document.getElementById('btn-gmail-link');
+            let provider = null;
             if (!currentUser) {
                 if (status) {
                     status.className = 'connection-status show error';
@@ -993,11 +1002,14 @@
                 status.textContent = '⏳ Ouverture du popup Google...';
             }
             try {
-                const provider = new firebase.auth.GoogleAuthProvider();
+                provider = new firebase.auth.GoogleAuthProvider();
                 provider.addScope('https://www.googleapis.com/auth/gmail.readonly');
                 provider.addScope('email');
                 provider.addScope('profile');
-                provider.setCustomParameters({ prompt: 'select_account' });
+                provider.setCustomParameters({
+                    prompt: 'select_account',
+                    login_hint: currentUser.email || ''
+                });
 
                 let result;
                 try {
@@ -1044,7 +1056,7 @@
                     }
                     return;
                 }
-                if (rawCode === 'auth/email-already-in-use' || rawCode === 'auth/account-exists-with-different-credential') {
+                if (rawCode === 'auth/user-mismatch' || rawCode === 'auth/email-already-in-use' || rawCode === 'auth/account-exists-with-different-credential') {
                     const help = [
                         'Impossible de lier ce compte Google à votre session actuelle.',
                         'Dans la fenêtre Google, choisissez le même email que votre compte Taleos.',
@@ -1061,6 +1073,7 @@
                         status.className = 'connection-status show info';
                         status.textContent = '⚠️ Popup bloqué. Redirection Google en cours...';
                     }
+                    if (!provider) throw e;
                     await currentUser.linkWithRedirect(provider);
                     return;
                 }

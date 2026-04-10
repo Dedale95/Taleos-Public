@@ -942,11 +942,55 @@
         let selectedStatuses = new Set(ALL_STATUSES);
         let charts = {};
         const FILTER_PREFS_STORAGE_KEY = 'mes_candidatures_selected_statuses_v1';
+        let jobCatalogById = null;
 
         function normalizeStatus(rawStatus) {
             const s = String(rawStatus || '').trim().toLowerCase();
             if (ALL_STATUSES.includes(s)) return s;
             return 'pending';
+        }
+
+        function isMissingField(v) {
+            const s = String(v || '').trim().toLowerCase();
+            return !s || s === 'non spécifié' || s === 'non specifie' || s === 'type non spécifié' || s === 'lieu non spécifié';
+        }
+
+        async function ensureJobCatalogLoaded() {
+            if (jobCatalogById) return;
+            jobCatalogById = {};
+            const candidates = ['scraped_jobs_live.json', '../scraped_jobs_live.json'];
+            for (const u of candidates) {
+                try {
+                    const res = await fetch(u, { cache: 'no-store' });
+                    if (!res.ok) continue;
+                    const arr = await res.json();
+                    if (!Array.isArray(arr)) continue;
+                    for (const j of arr) {
+                        const id = String(j.job_id || j.jobId || '').trim();
+                        if (!id) continue;
+                        jobCatalogById[id] = j;
+                    }
+                    if (Object.keys(jobCatalogById).length > 0) return;
+                } catch (_) {}
+            }
+        }
+
+        async function enrichApplicationsFromCatalog() {
+            await ensureJobCatalogLoaded();
+            if (!jobCatalogById || Object.keys(jobCatalogById).length === 0) return;
+            applications = applications.map((app) => {
+                const id = String(app.jobId || '').trim();
+                const ref = id ? jobCatalogById[id] : null;
+                if (!ref) return app;
+                return {
+                    ...app,
+                    location: isMissingField(app.location) ? (ref.location || app.location) : app.location,
+                    contractType: isMissingField(app.contractType) ? (ref.contract_type || app.contractType) : app.contractType,
+                    experienceLevel: isMissingField(app.experienceLevel) ? (ref.experience_level || app.experienceLevel) : app.experienceLevel,
+                    jobFamily: isMissingField(app.jobFamily) ? (ref.job_family || app.jobFamily) : app.jobFamily,
+                    publicationDate: isMissingField(app.publicationDate) ? (ref.publication_date || app.publicationDate) : app.publicationDate
+                };
+            });
         }
 
         // Fonction pour obtenir le chemin du logo d'une compagnie
@@ -1324,6 +1368,7 @@
                         status: normalizeStatus(data.status)
                     });
                 });
+                await enrichApplicationsFromCatalog();
 
                 console.log(`📋 ${applications.length} candidature(s) chargée(s)`);
 

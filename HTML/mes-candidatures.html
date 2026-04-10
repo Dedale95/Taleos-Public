@@ -882,27 +882,27 @@
                         <div class="filters" id="statusFilters">
                             <label class="filter-chip">
                                 <input type="checkbox" id="filter-all" checked>
-                                <span>Toutes</span>
+                                <span id="filterLabel-all">Toutes 0</span>
                             </label>
                             <label class="filter-chip">
                                 <input type="checkbox" class="status-filter" data-status="pending" checked>
-                                <span>En attente</span>
+                                <span id="filterLabel-pending">En attente 0</span>
                             </label>
                             <label class="filter-chip">
                                 <input type="checkbox" class="status-filter" data-status="screening" checked>
-                                <span>Screening</span>
+                                <span id="filterLabel-screening">Screening 0</span>
                             </label>
                             <label class="filter-chip">
                                 <input type="checkbox" class="status-filter" data-status="interview" checked>
-                                <span>Entretiens</span>
+                                <span id="filterLabel-interview">Entretiens 0</span>
                             </label>
                             <label class="filter-chip">
                                 <input type="checkbox" class="status-filter" data-status="accepted" checked>
-                                <span>Acceptées</span>
+                                <span id="filterLabel-accepted">Acceptées 0</span>
                             </label>
                             <label class="filter-chip">
                                 <input type="checkbox" class="status-filter" data-status="rejected" checked>
-                                <span>Refusées</span>
+                                <span id="filterLabel-rejected">Refusées 0</span>
                             </label>
                         </div>
                     </div>
@@ -1605,11 +1605,23 @@
                 accepted: applications.filter((a) => a.status === 'accepted').length,
                 rejected: applications.filter((a) => a.status === 'rejected').length
             };
+            const total = applications.length;
             const visibleEl = document.getElementById('visibleCount');
             if (visibleEl) visibleEl.textContent = String(filteredApps.length);
+            const allLabel = document.getElementById('filterLabel-all');
+            if (allLabel) allLabel.textContent = `Toutes ${total}`;
+            const labelMap = {
+                pending: 'En attente',
+                screening: 'Screening',
+                interview: 'Entretiens',
+                accepted: 'Acceptées',
+                rejected: 'Refusées'
+            };
             for (const key of Object.keys(byStatus)) {
                 const el = document.getElementById(`filterCount-${key}`);
                 if (el) el.textContent = String(byStatus[key]);
+                const labelEl = document.getElementById(`filterLabel-${key}`);
+                if (labelEl) labelEl.textContent = `${labelMap[key]} ${byStatus[key]}`;
             }
         }
 

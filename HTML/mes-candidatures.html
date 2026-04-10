@@ -807,14 +807,9 @@
                         <div class="stat-label">Total</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">⏳</div>
-                        <div class="stat-value" id="pendingCount">0</div>
-                        <div class="stat-label">En attente</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📞</div>
-                        <div class="stat-value" id="screeningCount">0</div>
-                        <div class="stat-label">Screening</div>
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-value" id="acceptedCount">0</div>
+                        <div class="stat-label">Acceptées</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">💼</div>
@@ -822,9 +817,14 @@
                         <div class="stat-label">Entretiens</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-value" id="acceptedCount">0</div>
-                        <div class="stat-label">Acceptées</div>
+                        <div class="stat-icon">📞</div>
+                        <div class="stat-value" id="screeningCount">0</div>
+                        <div class="stat-label">Screening</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏳</div>
+                        <div class="stat-value" id="pendingCount">0</div>
+                        <div class="stat-label">En attente</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">❌</div>
@@ -863,20 +863,20 @@
                                 <span id="filterLabel-all">Toutes 0</span>
                             </label>
                             <label class="filter-chip">
-                                <input type="checkbox" class="status-filter" data-status="pending" checked>
-                                <span id="filterLabel-pending">En attente 0</span>
-                            </label>
-                            <label class="filter-chip">
-                                <input type="checkbox" class="status-filter" data-status="screening" checked>
-                                <span id="filterLabel-screening">Screening 0</span>
+                                <input type="checkbox" class="status-filter" data-status="accepted" checked>
+                                <span id="filterLabel-accepted">Acceptées 0</span>
                             </label>
                             <label class="filter-chip">
                                 <input type="checkbox" class="status-filter" data-status="interview" checked>
                                 <span id="filterLabel-interview">Entretiens 0</span>
                             </label>
                             <label class="filter-chip">
-                                <input type="checkbox" class="status-filter" data-status="accepted" checked>
-                                <span id="filterLabel-accepted">Acceptées 0</span>
+                                <input type="checkbox" class="status-filter" data-status="screening" checked>
+                                <span id="filterLabel-screening">Screening 0</span>
+                            </label>
+                            <label class="filter-chip">
+                                <input type="checkbox" class="status-filter" data-status="pending" checked>
+                                <span id="filterLabel-pending">En attente 0</span>
                             </label>
                             <label class="filter-chip">
                                 <input type="checkbox" class="status-filter" data-status="rejected" checked>
@@ -908,7 +908,7 @@
 
         let applications = [];
         let currentUserId = null;
-        const ALL_STATUSES = ['pending', 'screening', 'interview', 'accepted', 'rejected'];
+        const ALL_STATUSES = ['accepted', 'interview', 'screening', 'pending', 'rejected'];
         let selectedStatuses = new Set(ALL_STATUSES);
         let charts = {};
         const FILTER_PREFS_STORAGE_KEY = 'mes_candidatures_selected_statuses_v1';
@@ -1614,20 +1614,20 @@
 
         function updateFilterCounters(filteredApps) {
             const byStatus = {
-                pending: applications.filter((a) => a.status === 'pending').length,
-                screening: applications.filter((a) => a.status === 'screening').length,
-                interview: applications.filter((a) => a.status === 'interview').length,
                 accepted: applications.filter((a) => a.status === 'accepted').length,
+                interview: applications.filter((a) => a.status === 'interview').length,
+                screening: applications.filter((a) => a.status === 'screening').length,
+                pending: applications.filter((a) => a.status === 'pending').length,
                 rejected: applications.filter((a) => a.status === 'rejected').length
             };
             const total = applications.length;
             const allLabel = document.getElementById('filterLabel-all');
             if (allLabel) allLabel.textContent = `Toutes ${total}`;
             const labelMap = {
-                pending: 'En attente',
-                screening: 'Screening',
-                interview: 'Entretiens',
                 accepted: 'Acceptées',
+                interview: 'Entretiens',
+                screening: 'Screening',
+                pending: 'En attente',
                 rejected: 'Refusées'
             };
             for (const key of Object.keys(byStatus)) {

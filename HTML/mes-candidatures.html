@@ -1647,7 +1647,22 @@
                 return;
             }
 
-            container.innerHTML = filteredApps.map(app => {
+            const statusPriority = ALL_STATUSES.reduce((acc, status, index) => {
+                acc[status] = index;
+                return acc;
+            }, {});
+            const sortedApps = [...filteredApps].sort((a, b) => {
+                const aStatus = a.status || 'pending';
+                const bStatus = b.status || 'pending';
+                const aPriority = statusPriority[aStatus] ?? Number.MAX_SAFE_INTEGER;
+                const bPriority = statusPriority[bStatus] ?? Number.MAX_SAFE_INTEGER;
+                if (aPriority !== bPriority) return aPriority - bPriority;
+                const aDate = a.appliedDate instanceof Date ? a.appliedDate.getTime() : new Date(a.appliedDate || 0).getTime();
+                const bDate = b.appliedDate instanceof Date ? b.appliedDate.getTime() : new Date(b.appliedDate || 0).getTime();
+                return bDate - aDate;
+            });
+
+            container.innerHTML = sortedApps.map(app => {
                 const statusConfig = STATUS_CONFIG[app.status] || STATUS_CONFIG.pending;
                 const dateStr = app.appliedDate.toLocaleDateString('fr-FR', { 
                     day: 'numeric', 

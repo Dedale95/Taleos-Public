@@ -1,0 +1,255 @@
+# Dépôt : Taleos-Public — consommation Actions sur dépôt public (runners standard).
+# Copier les secrets optionnels depuis l’ancien dépôt privé : TALEOS_NTFY_TOPIC, TALEOS_SCRAPER_ALERT_WEBHOOK
+# (Settings → Secrets and variables → Actions sur ce dépôt).
+#
+# Mise à jour quotidienne des offres d'emploi (CA, SG, Deloitte, BNP Paribas)
+# Exécution tous les jours à 6h00 (heure de Paris)
+# Les fichiers JSON mis à jour sont commités (scraped_jobs.csv est dans .gitignore)
+# IMPORTANT : scraped_jobs.json et scraped_jobs_live.json contiennent UNIQUEMENT les offres Live
+# (les offres expirées sont exclues - le site affiche le nombre d'offres live uniquement)
+
+name: Mise à jour offres quotidienne
+
+permissions:
+  contents: write # push des JSON
+  issues: write # issue d’alerte si le pipeline échoue (job scraper-failure-alert)
+
+on:
+  schedule:
+    # 6h00 Paris = 5h00 UTC (hiver) / 4h00 UTC (été). On utilise 5h00 UTC.
+    - cron: '0 5 * * *'
+  workflow_dispatch:  # Permet de lancer manuellement depuis l'onglet Actions
+    inputs:
+      source:
+        description: "Source à lancer (all = toutes)"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - credit_agricole
+          - societe_generale
+          - deloitte
+          - bnp_paribas
+          - bpce
+          - bpifrance
+          - credit_mutuel
+          - oddo_bhf
+
+jobs:
+  scrape:
+    name: Scraper ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ matrix.timeout_minutes }}
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - name: Crédit Agricole
+            key: credit_agricole
+            script: credit_agricole_scraper.py
+            db_file: credit_agricole_jobs.db
+            timeout_minutes: 90
+          - name: Société Générale
+            key: societe_generale
+            script: societe_generale_scraper_improved.py
+            db_file: societe_generale_jobs.db
+            timeout_minutes: 90
+          - name: Deloitte
+            key: deloitte
+            script: deloitte_scraper.py
+            db_file: deloitte_jobs.db
+            timeout_minutes: 90
+          - name: BNP Paribas
+            key: bnp_paribas
+            script: bnp_paribas_scraper.py
+            db_file: bnp_paribas_jobs.db
+            timeout_minutes: 180
+          - name: BPCE
+            key: bpce
+            script: bpce_scraper.py
+            db_file: bpce_jobs.db
+            timeout_minutes: 90
+          - name: Bpifrance
+            key: bpifrance
+            script: bpifrance_scraper.py
+            db_file: bpifrance_jobs.db
+            timeout_minutes: 90
+          - name: Crédit Mutuel
+            key: credit_mutuel
+            script: credit_mutuel_scraper.py
+            db_file: credit_mutuel_jobs.db
+            timeout_minutes: 90
+          - name: ODDO BHF
+            key: oddo_bhf
+            script: oddo_bhf_scraper.py
+            db_file: oddo_bhf_jobs.db
+            timeout_minutes: 90
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      BNP_MAX_CONCURRENT_LISTING: "18"
+      BNP_MAX_CONCURRENT_DETAILS: "18"
+      PYTHONUNBUFFERED: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configuration Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: PYTHON/requirements_scrapers.txt
+
+      - name: Installation des dépendances
+        run: |
+          pip install -r PYTHON/requirements_scrapers.txt
+          playwright install chromium firefox
+          playwright install-deps chromium
+          playwright install-deps firefox
+
+      - name: Exécuter le scraper
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.source == 'all' || inputs.source == matrix.key }}
+        run: python "PYTHON/${{ matrix.script }}"
+
+      - name: Vérifier la base générée
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.source == 'all' || inputs.source == matrix.key }}
+        run: |
+          test -f "PYTHON/${{ matrix.db_file }}"
+
+      - name: Upload artifact base SQLite
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.source == 'all' || inputs.source == matrix.key }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-${{ matrix.key }}
+          path: PYTHON/${{ matrix.db_file }}
+          if-no-files-found: error
+
+  consolidate:
+    name: Consolidation + export
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    needs: scrape
+    if: always()
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      # Limite la revalidation HTTP par base (voir update_all_jobs.py) pour finir dans les temps
+      TALEOS_REVALIDATE_MAX_PER_SOURCE: "600"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configuration Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: PYTHON/requirements_scrapers.txt
+
+      - name: Installation des dépendances
+        run: |
+          pip install -r PYTHON/requirements_scrapers.txt
+
+      - name: Télécharger les bases produites
+        uses: actions/download-artifact@v4
+        with:
+          pattern: db-*
+          merge-multiple: true
+          path: PYTHON
+
+      - name: Consolider (revalidation + merge + export JSON)
+        run: |
+          python - <<'PY'
+          import sys
+          import subprocess
+          from pathlib import Path
+          root = Path.cwd()
+          sys.path.insert(0, str(root / "PYTHON"))
+          import update_all_jobs as jobs
+          jobs.revalidate_live_offers_all_sources()
+          jobs.merge_from_databases()
+          subprocess.run([sys.executable, str(root / "PYTHON" / "export_sqlite_to_json.py")], check=True)
+          PY
+
+      - name: Vérifier les changements
+        id: changes
+        run: |
+          if git diff --quiet HTML/scraped_jobs_live.json HTML/scraped_jobs.json 2>/dev/null; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit et push des mises à jour
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add HTML/scraped_jobs_live.json HTML/scraped_jobs.json
+          git commit -m "chore: mise à jour quotidienne des offres (pipeline parallèle)"
+          git push origin main
+
+  # S’exécute si au moins un scraper échoue (la consolidation tourne quand même).
+  scraper-failure-alert:
+    name: Alerte échec pipeline offres
+    needs: scrape
+    if: ${{ needs.scrape.result == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Résumé dans les logs
+        run: |
+          echo "::error::Pipeline mise à jour des offres en échec."
+          echo "Run : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      # Optionnel : topic ntfy.sh — secret repo TALEOS_NTFY_TOPIC = nom du topic
+      - name: Notification ntfy (optionnel)
+        env:
+          NTFY_TOPIC: ${{ secrets.TALEOS_NTFY_TOPIC }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          MSG="Échec pipeline offres Taleos — ${RUN_URL}"
+          if [ -n "$NTFY_TOPIC" ]; then
+            curl -fsS -o /dev/null -d "$MSG" "https://ntfy.sh/$NTFY_TOPIC" || true
+          fi
+
+      # Optionnel : webhook Slack / Zapier / Make — JSON { "text": "..." }
+      - name: Webhook générique (optionnel)
+        env:
+          WEBHOOK_URL: ${{ secrets.TALEOS_SCRAPER_ALERT_WEBHOOK }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          if [ -n "$WEBHOOK_URL" ]; then
+            curl -fsS -X POST -H "Content-Type: application/json" \
+              -d "{\"text\":\"Échec pipeline offres Taleos — $RUN_URL\"}" "$WEBHOOK_URL" || true
+          fi
+
+      - name: Créer une issue GitHub
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = process.env.RUN_URL;
+            const title = `[offres] Échec mise à jour quotidienne (${new Date().toISOString().slice(0, 10)})`;
+            const body = [
+              'Le workflow **Mise à jour offres quotidienne** a échoué.',
+              '',
+              `**Run :** ${runUrl}`,
+              '',
+              'Vérifier les logs du pas « Mise à jour des offres » (souvent timeout ou erreur réseau sur le scraper BNP).',
+              '',
+              '_Issue créée automatiquement._'
+            ].join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body
+            });
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

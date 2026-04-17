@@ -11,10 +11,11 @@ import re
 import time
 import sqlite3
 import json
+import random
 import pandas as pd
 from pathlib import Path
 from typing import List, Dict, Set, Optional
-from playwright.async_api import async_playwright, BrowserContext
+from playwright.async_api import async_playwright, BrowserContext, Page
 from bs4 import BeautifulSoup
 from tqdm.asyncio import tqdm
 from urllib.parse import urljoin
@@ -60,9 +61,9 @@ CONTRACT_FILTERS = [
 
 # ================= Config =================
 class Config:
-    MAX_CONCURRENT_LISTING = 12   # Pages de liste (légères)
-    MAX_CONCURRENT_DETAILS = 12   # Pages détail (augmenté pour ~2600 offres)
-    PAGE_TIMEOUT = 30000
+    MAX_CONCURRENT_LISTING = 8    # Pages de liste (réduit pour stabilité)
+    MAX_CONCURRENT_DETAILS = 5    # Pages détail (réduit pour éviter TargetClosedError/Timeout)
+    PAGE_TIMEOUT = 60000
     WAIT_TIMEOUT = 10000
     HEADLESS = True
     BASE_DIR = Path(__file__).parent
@@ -73,6 +74,14 @@ class Config:
         "image", "font", "media", "texttrack",
         "object", "beacon", "csp_report", "imageset"
     }
+
+    USER_AGENTS = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:123.0) Gecko/20100101 Firefox/123.0",
+    ]
 
 config = Config()
 
@@ -397,21 +406,30 @@ def extract_offer_field(soup: BeautifulSoup, css_class: str) -> Optional[str]:
 # =========================================================
 # GET TOTAL PAGES
 # =========================================================
-async def navigate_with_retry(page, url: str, max_retries: int = 6):
+async def navigate_with_retry(page: Page, url: str, context: BrowserContext = None, max_retries: int = 6):
     """Navigate with retry and exponential backoff for transient errors (CDN blocks)."""
     for attempt in range(max_retries):
         try:
-            await page.goto(url, timeout=config.PAGE_TIMEOUT, wait_until="domcontentloaded")
+            # Si la page est fermée ou le contexte perdu, on tente de recréer si possible
+            if page.is_closed():
+                if context:
+                    logging.info(f"Re-opening closed page for {url}")
+                    page = await context.new_page()
+                else:
+                    return False
+
+            await page.goto(url, timeout=config.PAGE_TIMEOUT, wait_until="load")
             return True
         except Exception as e:
             error_str = str(e)
-            if "ERR_HTTP2" in error_str or "net::" in error_str or "timeout" in error_str.lower():
-                wait = 15 * (2 ** attempt)  # 15s, 30s, 60s, 120s, 240s, 480s
-                logging.warning(f"Network error on {url} (attempt {attempt+1}/{max_retries}), retrying in {wait}s...")
+            if any(x in error_str.lower() for x in ["err_http2", "net::", "timeout", "closed", "target"]):
+                wait = 20 * (2 ** attempt)
+                logging.warning(f"Network/Browser error on {url} (attempt {attempt+1}/{max_retries}): {error_str}. Retrying in {wait}s...")
                 await asyncio.sleep(wait)
             else:
-                raise
-    raise Exception(f"Failed after {max_retries} retries: {url}")
+                logging.error(f"Unrecoverable error on {url}: {error_str}")
+                return False
+    return False
 
 
 def _get_listing_url(filter_slug: str, page_num: int) -> str:
@@ -427,7 +445,7 @@ async def get_total_pages_for_filter(
     """Retourne le nombre de pages pour un filtre contrat donné."""
     page = await context.new_page()
     url = _get_listing_url(filter_slug, 1)
-    await navigate_with_retry(page, url)
+    await navigate_with_retry(page, url, context=context)
 
     if not cookie_banner_dismissed:
         try:
@@ -472,7 +490,7 @@ async def fetch_listing_page(
         page = await context.new_page()
         try:
             url = _get_listing_url(filter_slug, page_num)
-            await navigate_with_retry(page, url)
+            await navigate_with_retry(page, url, context=context)
             await asyncio.sleep(0.4)
 
             html = await page.content()
@@ -512,10 +530,13 @@ async def fetch_job_details(
     context: BrowserContext, job: Dict, sem: asyncio.Semaphore
 ) -> Dict:
     async with sem:
-        page = await context.new_page()
+        page = None
         try:
-            await navigate_with_retry(page, job["job_url"])
-            await asyncio.sleep(0.4)  # Légère pause pour le rendu
+            page = await context.new_page()
+            success = await navigate_with_retry(page, job["job_url"], context=context)
+            if not success:
+                return job
+            await asyncio.sleep(0.8)  # Pause accrue pour le rendu complet
 
             html = await page.content()
             soup = BeautifulSoup(html, "html.parser")
@@ -633,7 +654,11 @@ async def fetch_job_details(
         except Exception as e:
             logging.warning(f"Detail failed: {job.get('job_url')} ({e})")
         finally:
-            await page.close()
+            if page:
+                try:
+                    await page.close()
+                except:
+                    pass
 
     return job
 
@@ -659,7 +684,7 @@ async def main():
             browser = await p.chromium.launch(headless=config.HEADLESS)
             logging.info("Using Chromium (Firefox fallback)")
         context = await browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            user_agent=random.choice(config.USER_AGENTS),
             viewport={"width": 1920, "height": 1080},
         )
 

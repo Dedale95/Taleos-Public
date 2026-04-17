@@ -13,9 +13,19 @@ import os
 import re
 import sqlite3
 import json
+import requests
+import time
 from datetime import datetime
 from pathlib import Path
-from country_normalizer import get_country_from_city, normalize_country
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Optional
+
+try:
+    from country_normalizer import get_country_from_city, normalize_country
+except ImportError:
+    import sys
+    sys.path.append(str(Path(__file__).parent))
+    from country_normalizer import get_country_from_city, normalize_country
 
 # Configuration des chemins
 BASE_DIR = Path(__file__).parent.parent
@@ -33,18 +43,179 @@ BPCE_DB = PYTHON_DIR / "bpce_jobs.db"
 CREDIT_MUTUEL_DB = PYTHON_DIR / "credit_mutuel_jobs.db"
 ODDO_BHF_DB = PYTHON_DIR / "oddo_bhf_jobs.db"
 
-def run_script(script_name, cwd=PYTHON_DIR, timeout=3600):
-    print(f"🚀 Lancement de {script_name}...")
+EXPIRED_PAGE_PATTERNS = [
+    "la page que vous recherchez est introuvable",
+    "page introuvable",
+    "offre non disponible",
+    "offre n'est plus en ligne",
+    "offre expirée",
+    "error 404",
+    "page not found",
+    "job position is no longer online",
+    "the requested page no longer exists",
+]
+
+
+def _is_offer_url_expired(url: str, timeout_sec: int = 12) -> bool:
+    """Détecte rapidement si une URL d'offre est expirée/introuvable."""
+    raw = (url or "").strip()
+    if not raw:
+        return True
+    low = raw.lower()
+    if "/404/" in low or low.endswith("/404"):
+        return True
     try:
-        result = subprocess.run([sys.executable, script_name], 
-                              cwd=cwd, capture_output=True, text=True, timeout=timeout)
-        if result.returncode == 0:
+        resp = requests.get(
+            raw,
+            timeout=timeout_sec,
+            allow_redirects=True,
+            headers={"User-Agent": "Mozilla/5.0 (Taleos-Revalidator)"},
+        )
+        final_url = (resp.url or raw).lower()
+        if resp.status_code >= 400:
+            return True
+        if "/404/" in final_url or final_url.endswith("/404"):
+            return True
+        txt = (resp.text or "")[:20000].lower()
+        return any(p in txt for p in EXPIRED_PAGE_PATTERNS)
+    except Exception:
+        # En cas d'erreur réseau, on ne force pas l'expiration
+        return False
+
+
+def revalidate_live_offers_in_db(
+    db_path: Path,
+    source_name: str,
+    max_workers: int = 20,
+    max_urls: Optional[int] = None,
+):
+    """Revalide toutes les offres Live d'une base et expire celles devenues introuvables."""
+    if not db_path.exists():
+        print(f"⚠️ Revalidation ignorée ({source_name}) : base absente")
+        return 0
+
+    conn = sqlite3.connect(db_path)
+    try:
+        rows = conn.execute(
+            "SELECT job_url FROM jobs WHERE status = 'Live' AND is_valid = 1"
+        ).fetchall()
+        urls = [r[0] for r in rows if r and r[0]]
+        if max_urls is not None and len(urls) > max_urls:
+            print(
+                f"   ↳ {source_name}: plafond revalidation {max_urls}/{len(urls)} URL "
+                f"(TALEOS_REVALIDATE_MAX_PER_SOURCE)"
+            )
+            urls = urls[:max_urls]
+        if not urls:
+            print(f"🔎 Revalidation {source_name}: 0 URL Live à vérifier")
+            return 0
+
+        print(f"🔎 Revalidation {source_name}: vérification de {len(urls)} URL Live...")
+        to_expire = set()
+
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futures = {ex.submit(_is_offer_url_expired, u): u for u in urls}
+            for fut in as_completed(futures):
+                u = futures[fut]
+                try:
+                    if fut.result():
+                        to_expire.add(u)
+                except Exception:
+                    continue
+
+        if to_expire:
+            conn.executemany(
+                "UPDATE jobs SET status = 'Expired', last_updated = CURRENT_TIMESTAMP WHERE job_url = ?",
+                [(u,) for u in to_expire],
+            )
+            conn.commit()
+        print(f"   ↳ {source_name}: {len(to_expire)} offres revalidées comme expirées")
+        return len(to_expire)
+    finally:
+        conn.close()
+
+
+def revalidate_live_offers_all_sources():
+    """Passe globale de revalidation sur toutes les bases d'offres."""
+    print("\n🔁 Revalidation globale des offres Live (HTTP + détection 404)...")
+    raw = (os.environ.get("TALEOS_REVALIDATE_MAX_PER_SOURCE") or "").strip()
+    max_per = int(raw) if raw.isdigit() else None
+    if max_per is not None:
+        print(f"   (max {max_per} URL par source — variable TALEOS_REVALIDATE_MAX_PER_SOURCE)")
+    total = 0
+    for name, db_path in [
+        ("Crédit Agricole", CA_DB),
+        ("Société Générale", SG_DB),
+        ("Deloitte", DELOITTE_DB),
+        ("BNP Paribas", BNP_DB),
+        ("BPCE", BPCE_DB),
+        ("Bpifrance", BPIFRANCE_DB),
+        ("Crédit Mutuel", CREDIT_MUTUEL_DB),
+        ("ODDO BHF", ODDO_BHF_DB),
+    ]:
+        total += revalidate_live_offers_in_db(
+            db_path, name, max_urls=max_per
+        )
+    print(f"✅ Revalidation globale terminée: {total} offres supplémentaires expirées")
+    return total
+
+def _scraper_timeout_sec(script_name: str) -> int:
+    """Timeout subprocess par scraper (secondes). BNP est souvent le plus long (~4000+ offres)."""
+    default_other = 3600
+    default_bnp = 10800  # 3 h — le scraper BNP a déjà dépassé 1 h en CI
+    if script_name == "bnp_paribas_scraper.py":
+        raw = os.environ.get("TALEOS_BNP_SCRAPER_TIMEOUT_SEC", str(default_bnp)).strip()
+    else:
+        raw = os.environ.get("TALEOS_SCRAPER_TIMEOUT_SEC", str(default_other)).strip()
+    try:
+        sec = int(raw)
+        return max(120, min(sec, 18_000))  # plafond ~5 h pour rester sous le job GH (6 h)
+    except ValueError:
+        return default_bnp if script_name == "bnp_paribas_scraper.py" else default_other
+
+
+def run_script(script_name, cwd=PYTHON_DIR, timeout=None):
+    if timeout is None:
+        timeout = _scraper_timeout_sec(script_name)
+    print(f"🚀 Lancement de {script_name} (timeout {timeout}s)...")
+    try:
+        start = time.time()
+        proc = subprocess.Popen([sys.executable, script_name], cwd=cwd)
+        heartbeat_every_sec = 60
+        last_heartbeat = 0
+
+        while True:
+            rc = proc.poll()
+            elapsed = int(time.time() - start)
+
+            if rc is not None:
+                break
+
+            # Évite les jobs "silencieux" en CI (GitHub peut tuer un step sans logs).
+            if elapsed - last_heartbeat >= heartbeat_every_sec:
+                print(f"   ⏳ {script_name} en cours... {elapsed}s écoulées")
+                last_heartbeat = elapsed
+
+            if elapsed > timeout:
+                print(f"⏱️ Timeout atteint pour {script_name} après {elapsed}s — terminaison du process...")
+                proc.terminate()
+                try:
+                    proc.wait(timeout=20)
+                except subprocess.TimeoutExpired:
+                    print(f"🛑 {script_name} ne répond pas à SIGTERM, kill forcé.")
+                    proc.kill()
+                    proc.wait(timeout=10)
+                return False
+
+            time.sleep(2)
+
+        if rc == 0:
             print(f"✅ {script_name} terminé avec succès")
             return True
         else:
-            print(f"⚠️ {script_name} a échoué (code {result.returncode})")
-            print(f"Erreur: {result.stderr[:500]}")
+            print(f"⚠️ {script_name} a échoué (code {rc})")
             return False
+
     except Exception as e:
         print(f"❌ Erreur lors de l'exécution de {script_name}: {e}")
         return False
@@ -71,6 +242,9 @@ def merge_from_databases():
         country = (parts[1] or '').strip()
         if not city or country.lower() != 'france':
             return loc
+        # Aligné front : "Ile-De France" / "Ile-de France" → libellé canonique (filtre Île-de-France)
+        if re.match(r'^î?le(\s|-)+de(\s|-)+france$', city, re.IGNORECASE):
+            return f"Île-de-France - {country}"
         correct_country = get_country_from_city(city)
         if correct_country:
             return f"{city} - {normalize_country(correct_country)}"
@@ -289,10 +463,13 @@ if __name__ == "__main__":
     # 7b. Scraper ODDO BHF
     run_script("oddo_bhf_scraper.py")
 
-    # 8. Fusion des données depuis les bases SQLite
+    # 8. Revalidation
+    revalidate_live_offers_all_sources()
+
+    # 9. Fusion des données depuis les bases SQLite
     merge_from_databases()
 
-    # 9. Export JSON pour les fichiers HTML
+    # 10. Export JSON pour les fichiers HTML
     print()
     print("🔄 Export JSON pour les fichiers HTML...")
     try:
@@ -306,7 +483,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"⚠️ Erreur lors de l'export JSON: {e}")
 
-    # 10. Récapitulatif visuel Live vs Expired par entité
+    # 11. Récapitulatif visuel Live vs Expired par entité
     print()
     print("=" * 60)
     print("📊 OFFRES PAR ENTITÉ (Live / Expired)")
@@ -342,4 +519,3 @@ if __name__ == "__main__":
     print("=" * 80)
     print("✅ PROCESSUS TERMINÉ")
     print("=" * 80)
-

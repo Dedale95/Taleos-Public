@@ -1424,34 +1424,72 @@
             }
 
             charts.timeline = new Chart(ctx, {
-                type: 'line',
+                type: 'bar',
                 data: {
                     labels: sortedDates,
-                    datasets: [{
-                        label: 'Candidatures cumulées',
-                        data: cumulativeData,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: '#667eea',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2
-                    }]
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Candidatures du jour',
+                            data,
+                            backgroundColor: 'rgba(118, 75, 162, 0.75)',
+                            borderColor: '#764ba2',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: 'Candidatures cumulées',
+                            data: cumulativeData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.12)',
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#667eea',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            yAxisID: 'yCumulative',
+                            order: 1
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
                         legend: {
-                            display: false
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Candidatures du jour'
+                            },
+                            ticks: {
+                                precision: 0
+                            }
+                        },
+                        yCumulative: {
+                            beginAtZero: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Cumul'
+                            },
                             ticks: {
                                 precision: 0
                             }

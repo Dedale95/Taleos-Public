@@ -1462,6 +1462,117 @@
             return `${text.slice(0, maxLength - 1).trimEnd()}…`;
         }
 
+        function normalizeCompanyGroup(companyName) {
+            const raw = String(companyName || '').trim();
+            if (!raw) return 'Non spécifié';
+            const n = raw
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+
+            if (
+                n.includes('credit agricole') ||
+                n.includes('amundi') ||
+                n.includes('caceis') ||
+                n.includes('lcl') ||
+                n.includes('indosuez') ||
+                n.includes('bforbank') ||
+                n.includes('uptevia') ||
+                n.includes('idia')
+            ) {
+                return 'Groupe Crédit Agricole';
+            }
+
+            if (
+                n.includes('bpce') ||
+                n.includes('natixis') ||
+                n.includes('caisse d epargne') ||
+                n.includes("caisse d'epargne") ||
+                n.includes('banque populaire') ||
+                n.includes('credit cooperatif') ||
+                n.includes('oney') ||
+                n.includes('aew') ||
+                n.includes('mirova') ||
+                n.includes('ostrum') ||
+                n.includes('banque palatine') ||
+                n.includes('credit foncier') ||
+                n.includes('casden') ||
+                n.includes('capitole finance')
+            ) {
+                return 'Groupe BPCE';
+            }
+
+            if (
+                n.includes('societe generale') ||
+                n.includes('société générale')
+            ) {
+                return 'Groupe Société Générale';
+            }
+
+            if (
+                n.includes('credit mutuel') ||
+                n.includes('crédit mutuel') ||
+                n.includes('cic') ||
+                n.includes('cofidis') ||
+                n.includes('euro information') ||
+                n.includes('banque transatlantique') ||
+                n.includes('lyonnaise de banque') ||
+                n.includes('afedim') ||
+                n.includes('creatis') ||
+                n.includes('factofrance') ||
+                n.includes('monabanq')
+            ) {
+                return 'Groupe Crédit Mutuel';
+            }
+
+            if (n.includes('bnp')) return 'Groupe BNP Paribas';
+            if (n.includes('bpifrance')) return 'Bpifrance';
+            if (n.includes('oddo')) return 'ODDO BHF';
+            if (n.includes('deloitte')) return 'Deloitte';
+
+            return raw;
+        }
+
+        function normalizeLocationGroup(location) {
+            const raw = String(location || '').trim();
+            if (!raw || /non specifie|non spécifié/i.test(raw)) return 'Non spécifié';
+
+            const n = raw
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+
+            if (
+                n.includes('paris') ||
+                n.includes('montrouge') ||
+                n.includes('la defense') ||
+                n.includes('courbevoie') ||
+                n.includes('puteaux') ||
+                n.includes('saint-quentin-en-yvelines') ||
+                n.includes('saint quentin en yvelines') ||
+                n.includes('region parisienne') ||
+                n.includes('ile-de-france') ||
+                n.includes('ile de france')
+            ) {
+                return 'Île-de-France';
+            }
+
+            if (n.includes('luxembourg')) return 'Luxembourg';
+            if (n.includes('suisse') || n.includes('geneve') || n.includes('geneve')) return 'Suisse';
+            if (n.includes('belgique') || n.includes('bruxelles')) return 'Belgique';
+            if (n.includes('royaume-uni') || n.includes('royaume uni') || n.includes('londres')) return 'Royaume-Uni';
+            if (n.includes('espagne') || n.includes('madrid') || n.includes('barcelone')) return 'Espagne';
+            if (n.includes('italie') || n.includes('milan') || n.includes('rome')) return 'Italie';
+            if (n.includes('allemagne') || n.includes('francfort') || n.includes('frankfurt') || n.includes('berlin')) return 'Allemagne';
+            if (n.includes('inde') || n.includes('mumbai') || n.includes('chennai') || n.includes('bengaluru') || n.includes('bangalore')) return 'Inde';
+            if (n.includes('singapour')) return 'Singapour';
+            if (n.includes('hong kong')) return 'Hong Kong';
+            if (n.includes('etats-unis') || n.includes('etats unis') || n.includes('new york') || n.includes('usa')) return 'États-Unis';
+            if (n.includes('france')) return 'France';
+
+            return raw;
+        }
+
         // Timeline Chart
         function createTimelineChart() {
             const ctx = document.getElementById('timelineChart').getContext('2d');
@@ -1643,7 +1754,7 @@
             
             const companyMap = new Map();
             applications.forEach(app => {
-                const company = app.companyName || 'Non spécifié';
+                const company = normalizeCompanyGroup(app.companyName);
                 companyMap.set(company, (companyMap.get(company) || 0) + 1);
             });
 
@@ -1789,7 +1900,7 @@
             
             const locationMap = new Map();
             applications.forEach(app => {
-                const location = app.location || 'Non spécifié';
+                const location = normalizeLocationGroup(app.location);
                 locationMap.set(location, (locationMap.get(location) || 0) + 1);
             });
 

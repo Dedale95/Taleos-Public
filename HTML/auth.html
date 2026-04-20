@@ -357,6 +357,68 @@
             transform: none;
         }
 
+        .career-connection-box {
+            margin-top: 24px;
+            padding: 20px;
+            border: 1px solid #dbe4ff;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+        }
+
+        .career-connection-box-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+
+        .career-connection-box-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: white;
+            padding: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            object-fit: contain;
+        }
+
+        .career-connection-box h3 {
+            font-size: 1.05rem;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .career-connection-box p {
+            color: #4b5563;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            margin: 0 0 12px 0;
+        }
+
+        .career-connection-box small {
+            display: block;
+            color: #2563eb;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .career-connection-box .btn-secondary-link {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid #bfdbfe;
+            background: white;
+            color: #1d4ed8;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .career-connection-box .btn-secondary-link:hover {
+            background: #eff6ff;
+        }
+
         .password-requirements {
             font-size: 0.85rem;
             color: #666;
@@ -921,6 +983,16 @@
                 </div>
 
                 <button type="submit" class="btn" id="loginBtn">Se connecter</button>
+
+                <div class="career-connection-box">
+                    <div class="career-connection-box-header">
+                        <img src="images/logos/bpce.svg" alt="BPCE" class="career-connection-box-logo" onerror="this.style.display='none'">
+                        <h3>Connecter BPCE</h3>
+                    </div>
+                    <p>Pour BPCE, seul votre email est nécessaire. Le mot de passe n’est pas demandé ici.</p>
+                    <small>Le code de vérification sera envoyé ensuite sur votre adresse email pendant la candidature.</small>
+                    <button type="button" class="btn-secondary-link" onclick="goToBpceConnection()">Configurer mon email BPCE</button>
+                </div>
             </form>
 
             <!-- Formulaire d'inscription -->
@@ -1370,6 +1442,20 @@
             clearMessages();
         }
 
+        function goToBpceConnection() {
+            const target = 'connexions.html?bank=bpce';
+            const token = localStorage.getItem('authToken');
+            const email = localStorage.getItem('userEmail');
+            if (token && email) {
+                window.location.href = target;
+                return;
+            }
+            localStorage.setItem('postLoginRedirect', target);
+            switchTab('login');
+            const loginEmail = document.getElementById('loginEmail');
+            if (loginEmail) loginEmail.focus();
+        }
+
         // Fonctions pour le modal Mot de passe oublié
         function openForgotPasswordModal() {
             const modal = document.getElementById('forgotPasswordModal');
@@ -1803,7 +1889,9 @@
                 
                 // Rediriger après un délai
                 setTimeout(() => {
-                    window.location.href = 'offres.html';
+                    const target = localStorage.getItem('postLoginRedirect') || 'offres.html';
+                    localStorage.removeItem('postLoginRedirect');
+                    window.location.href = target;
                 }, 1800);
                 
             } catch (error) {

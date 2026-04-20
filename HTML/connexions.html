@@ -1359,6 +1359,7 @@
         // Toggle module banque
         function toggleBank(bankId) {
             const module = document.getElementById(`bank-${bankId}`);
+            if (!module) return;
             const isExpanded = module.classList.contains('expanded');
             
             // Fermer tous les autres modules
@@ -1769,6 +1770,15 @@
             const container = document.getElementById('banksContainer');
             if (!container) return;
             container.innerHTML = banks.map(bank => getBankCardHTML(bank)).join('');
+            const requestedBank = new URLSearchParams(window.location.search).get('bank');
+            if (requestedBank && banks.some(bank => bank.id === requestedBank)) {
+                const target = document.getElementById(`bank-${requestedBank}`);
+                if (target) {
+                    document.querySelectorAll('.bank-module').forEach(m => m.classList.remove('expanded'));
+                    target.classList.add('expanded');
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
         }
 
         // Vérification immédiate de l'authentification (avant Firebase)

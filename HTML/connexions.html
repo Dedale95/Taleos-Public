@@ -718,7 +718,7 @@
             <p style="margin-top: 15px;"><strong>🔒 Sécurité :</strong> Vos identifiants sont cryptés et stockés de manière sécurisée. Nous ne les utilisons que pour les actions que vous autorisez.</p>
         </div>
 
-        <div class="bank-module" id="gmailIntegrationCard" style="margin-bottom: 20px;">
+        <div class="bank-module" id="gmailIntegrationCard" style="margin-bottom: 20px; display:none;">
             <div class="bank-header" style="cursor: default;">
                 <div class="bank-header-left">
                     <div class="bank-logo" style="display:flex;align-items:center;justify-content:center;padding:6px;background:#f3f4f6;">
@@ -851,6 +851,13 @@
                 description: 'Site carrière du Crédit Agricole'
             },
             {
+                id: 'bpce',
+                name: 'BPCE',
+                url: 'https://recrutement.bpce.fr',
+                logo: 'images/logos/bpce.svg',
+                description: 'Site carrière du Groupe BPCE (authentification par code email)'
+            },
+            {
                 id: 'societe_generale',
                 name: 'Société Générale',
                 url: 'https://careers.societegenerale.com',
@@ -868,6 +875,7 @@
 
         let userConnections = {};
         let currentUser = null;
+        const GMAIL_INTEGRATION_ENABLED = false;
         let gmailRedirectHandled = false;
 
         function callExtensionBridge(requestEventName, responseEventName, detail) {
@@ -887,6 +895,7 @@
         }
 
         function setGmailUiState(state) {
+            if (!GMAIL_INTEGRATION_ENABLED) return;
             const badge = document.getElementById('gmailLinkStatusBadge');
             const status = document.getElementById('gmail-status');
             const emailLine = document.getElementById('gmailLinkedEmail');
@@ -910,6 +919,7 @@
         }
 
         async function refreshGmailStatus(showMessage) {
+            if (!GMAIL_INTEGRATION_ENABLED) return;
             const status = document.getElementById('gmail-status');
             if (!status) return;
             if (showMessage) {
@@ -937,6 +947,7 @@
         }
 
         async function handleGmailRedirectResult() {
+            if (!GMAIL_INTEGRATION_ENABLED) return;
             if (gmailRedirectHandled) return;
             gmailRedirectHandled = true;
             const status = document.getElementById('gmail-status');
@@ -976,6 +987,7 @@
         }
 
         async function linkGmailAccount() {
+            if (!GMAIL_INTEGRATION_ENABLED) return;
             const status = document.getElementById('gmail-status');
             const btn = document.getElementById('btn-gmail-link');
             if (!currentUser) {
@@ -1028,6 +1040,7 @@
         }
 
         async function unlinkGmailAccount() {
+            if (!GMAIL_INTEGRATION_ENABLED) return;
             const status = document.getElementById('gmail-status');
             const btn = document.getElementById('btn-gmail-unlink');
             if (!isExtensionReady()) {
@@ -1382,6 +1395,7 @@
             const passwordEl = document.getElementById(passwordInputId);
             const emailValue = (emailEl && emailEl.value != null ? emailEl.value : email || '').trim();
             const passwordValue = (passwordEl && passwordEl.value != null ? passwordEl.value : password || '');
+            const isBpce = bankId === 'bpce';
 
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span> Validation en cours...';
@@ -1393,7 +1407,7 @@
                 if (!emailValue) {
                     throw new Error(isSocieteGenerale ? 'Identifiant invalide' : 'Email invalide');
                 }
-                if (!passwordValue) {
+                if (!isBpce && !passwordValue) {
                     throw new Error('Mot de passe invalide');
                 }
                 if (!isSocieteGenerale && !emailValue.includes('@')) {
@@ -1408,6 +1422,36 @@
                     throw new Error('Vous devez être connecté pour lier un compte. Rechargez la page si le problème persiste.');
                 }
                 console.log("Test de connexion via extension Taleos:", firebaseUserId);
+
+                if (isBpce) {
+                    await db.collection('profiles')
+                        .doc(firebaseUserId)
+                        .collection('career_connections')
+                        .doc(bankId)
+                        .set({
+                            bankId,
+                            bankName: bank.name,
+                            email: emailValue,
+                            password: '',
+                            status: 'connected',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+
+                    userConnections[bankId] = {
+                        email: emailValue,
+                        connected: true,
+                        connectedAt: new Date().toISOString()
+                    };
+                    statusDiv.className = 'connection-status show success';
+                    statusDiv.innerHTML = `✅ <strong>Succès !</strong> Votre compte ${bank.name} est maintenant lié.`;
+                    btn.style.display = 'none';
+                    setTimeout(() => {
+                        updateBankCard(bankId);
+                        const bankModule = document.getElementById(`bank-${bankId}`);
+                        if (bankModule) bankModule.classList.add('expanded');
+                    }, 1000);
+                    return;
+                }
 
                 // Attendre que l'extension soit détectée (max 3 s)
                 for (let i = 0; i < 6 && !isExtensionReady(); i++) {
@@ -1675,8 +1719,9 @@
                                 <p style="color: #666; margin-bottom: 20px;">
                                     Connectez votre compte <strong>${bank.name}</strong> pour postuler automatiquement aux offres.
                                     ${bank.id === 'societe_generale' ? '<br><small style="color: #f59e0b; font-weight: 500;">ℹ️ Société Générale utilise un identifiant (sans @) plutôt qu\'un email.</small>' : ''}
+                                    ${bank.id === 'bpce' ? '<br><small style="color: #2563eb; font-weight: 500;">ℹ️ BPCE utilise un code de vérification par email : seul votre email est nécessaire ici.</small>' : ''}
                                 </p>
-                                <form onsubmit="testConnection('${bank.id}', document.getElementById('${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}').value, document.getElementById('password-${bank.id}').value, event); return false;">
+                                <form onsubmit="testConnection('${bank.id}', document.getElementById('${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}').value, ${bank.id === 'bpce' ? '\'\'': `document.getElementById('password-${bank.id}').value`}, event); return false;">
                                     <div class="form-group">
                                         <label for="${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}">
                                             ${bank.id === 'societe_generale' ? '👤 Identifiant' : '📧 Email'}
@@ -1686,16 +1731,18 @@
                                                placeholder="${bank.id === 'societe_generale' ? 'Votre identifiant (sans @)' : 'votre.email@exemple.com'}" 
                                                required>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="password-${bank.id}">Mot de passe</label>
-                                        <div class="password-input-wrapper">
-                                            <input type="password" id="password-${bank.id}" placeholder="Votre mot de passe" required>
-                                            <button type="button" class="password-toggle" onclick="togglePassword('password-${bank.id}', this)" aria-label="Afficher le mot de passe">
-                                                <span class="pwd-icon pwd-icon-show" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
-                                                <span class="pwd-icon pwd-icon-hide" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
-                                            </button>
+                                    ${bank.id === 'bpce' ? '' : `
+                                        <div class="form-group">
+                                            <label for="password-${bank.id}">Mot de passe</label>
+                                            <div class="password-input-wrapper">
+                                                <input type="password" id="password-${bank.id}" placeholder="Votre mot de passe" required>
+                                                <button type="button" class="password-toggle" onclick="togglePassword('password-${bank.id}', this)" aria-label="Afficher le mot de passe">
+                                                    <span class="pwd-icon pwd-icon-show" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                                                    <span class="pwd-icon pwd-icon-hide" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    `}
                                     <div class="connection-status" id="status-${bank.id}"></div>
                                     <div class="form-actions">
                                         <button type="submit" class="btn btn-primary" id="btn-${bank.id}">🔗 Lier mon compte</button>
@@ -1747,11 +1794,15 @@
                 currentUser = user;
                 await loadUserConnections();
                 renderBanks();
-                await handleGmailRedirectResult();
-                await refreshGmailStatus(true);
+                if (GMAIL_INTEGRATION_ENABLED) {
+                    await handleGmailRedirectResult();
+                    await refreshGmailStatus(true);
+                }
                 await refreshOutlookStatus(true);
             } else {
-                setGmailUiState({ connected: false });
+                if (GMAIL_INTEGRATION_ENABLED) {
+                    setGmailUiState({ connected: false });
+                }
                 setOutlookUiState({ connected: false });
                 // Vérifier localStorage en cas de connexion persistante
                 const token = localStorage.getItem('authToken');

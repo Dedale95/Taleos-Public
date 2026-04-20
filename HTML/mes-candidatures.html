@@ -206,6 +206,12 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
+        .chart-card.chart-card-featured {
+            padding: 28px;
+            border: 1px solid rgba(102, 126, 234, 0.12);
+            box-shadow: 0 18px 45px rgba(79, 70, 229, 0.08);
+        }
+
         .chart-card h3 {
             margin-bottom: 20px;
             color: #333;
@@ -213,6 +219,41 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .chart-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .chart-card-copy p {
+            margin-top: 6px;
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+
+        .chart-badge {
+            flex-shrink: 0;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.14), rgba(118, 75, 162, 0.14));
+            color: #5b56d6;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .chart-shell {
+            padding: 18px 18px 12px;
+            border-radius: 20px;
+            background:
+                radial-gradient(circle at top left, rgba(102, 126, 234, 0.10), transparent 38%),
+                linear-gradient(180deg, #fbfcff 0%, #f3f6ff 100%);
+            border: 1px solid rgba(102, 126, 234, 0.10);
         }
 
         .chart-card canvas {
@@ -729,6 +770,14 @@
                 grid-template-columns: 1fr;
             }
 
+            .chart-card-header {
+                flex-direction: column;
+            }
+
+            .chart-badge {
+                align-self: flex-start;
+            }
+
             .page-header h1 {
                 font-size: 1.8rem;
             }
@@ -835,9 +884,17 @@
 
                 <!-- Charts -->
                 <div class="charts-grid">
-                    <div class="chart-card">
-                        <h3>📈 Évolution des candidatures</h3>
-                        <canvas id="timelineChart"></canvas>
+                    <div class="chart-card chart-card-featured">
+                        <div class="chart-card-header">
+                            <div class="chart-card-copy">
+                                <h3>📈 Évolution des candidatures</h3>
+                                <p>Les barres montrent le volume quotidien, la courbe suit votre progression cumulée.</p>
+                            </div>
+                            <div class="chart-badge">Journalier + cumul</div>
+                        </div>
+                        <div class="chart-shell">
+                            <canvas id="timelineChart"></canvas>
+                        </div>
                     </div>
                     <div class="chart-card">
                         <h3>🏢 Par entreprise</h3>
@@ -1410,6 +1467,14 @@
             });
 
             const data = sortedDates.map(date => dateMap.get(date));
+            const shortDateLabels = sortedDates.map((date) => {
+                const [day, month, year] = date.split('/');
+                const parsed = new Date(`${year}-${month}-${day}T12:00:00`);
+                return parsed.toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: 'short'
+                }).replace('.', '');
+            });
 
             // Cumulative sum
             const cumulativeData = [];
@@ -1426,16 +1491,20 @@
             charts.timeline = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: sortedDates,
+                    labels: shortDateLabels,
                     datasets: [
                         {
                             type: 'bar',
                             label: 'Candidatures du jour',
                             data,
-                            backgroundColor: 'rgba(118, 75, 162, 0.75)',
+                            backgroundColor: 'rgba(118, 75, 162, 0.60)',
                             borderColor: '#764ba2',
                             borderWidth: 1,
-                            borderRadius: 6,
+                            borderRadius: 10,
+                            borderSkipped: false,
+                            maxBarThickness: 26,
+                            categoryPercentage: 0.72,
+                            barPercentage: 0.86,
                             order: 2
                         },
                         {
@@ -1443,14 +1512,15 @@
                             label: 'Candidatures cumulées',
                             data: cumulativeData,
                             borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.12)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.08)',
                             fill: true,
-                            tension: 0.35,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
+                            tension: 0.32,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
                             pointBackgroundColor: '#667eea',
                             pointBorderColor: '#fff',
                             pointBorderWidth: 2,
+                            borderWidth: 3,
                             yAxisID: 'yCumulative',
                             order: 1
                         }
@@ -1462,22 +1532,73 @@
                     plugins: {
                         legend: {
                             display: true,
-                            position: 'bottom'
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                padding: 18,
+                                color: '#4b5563',
+                                font: {
+                                    size: 13,
+                                    weight: '600'
+                                }
+                            }
                         },
                         tooltip: {
                             mode: 'index',
-                            intersect: false
+                            intersect: false,
+                            backgroundColor: 'rgba(17, 24, 39, 0.92)',
+                            padding: 12,
+                            titleColor: '#fff',
+                            bodyColor: '#e5e7eb',
+                            displayColors: true,
+                            callbacks: {
+                                title(items) {
+                                    const index = items?.[0]?.dataIndex ?? 0;
+                                    return sortedDates[index] || '';
+                                }
+                            }
                         }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Candidatures du jour'
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
                             },
                             ticks: {
-                                precision: 0
+                                color: '#6b7280',
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 8,
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            },
+                            border: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: Math.max(...data, 0) + 1,
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.18)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                precision: 0,
+                                color: '#6b7280',
+                                padding: 10,
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            },
+                            border: {
+                                display: false
                             }
                         },
                         yCumulative: {
@@ -1486,12 +1607,17 @@
                             grid: {
                                 drawOnChartArea: false
                             },
-                            title: {
-                                display: true,
-                                text: 'Cumul'
-                            },
                             ticks: {
-                                precision: 0
+                                precision: 0,
+                                color: '#667eea',
+                                padding: 10,
+                                font: {
+                                    size: 12,
+                                    weight: '700'
+                                }
+                            },
+                            border: {
+                                display: false
                             }
                         }
                     }

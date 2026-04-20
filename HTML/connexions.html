@@ -855,7 +855,7 @@
                 name: 'BPCE',
                 url: 'https://recrutement.bpce.fr',
                 logo: 'images/logos/bpce.svg',
-                description: 'Site carrière du Groupe BPCE (authentification par code email)'
+                description: 'Site carrière du Groupe BPCE'
             },
             {
                 id: 'societe_generale',
@@ -1718,9 +1718,8 @@
                                 </div>
                             ` : `
                                 <p style="color: #666; margin-bottom: 20px;">
-                                    Connectez votre compte <strong>${bank.name}</strong> pour postuler automatiquement aux offres.
+                                    Connectez votre compte <strong>${bank.id === 'bpce' ? 'du Groupe BPCE' : bank.name}</strong> pour postuler automatiquement aux offres.
                                     ${bank.id === 'societe_generale' ? '<br><small style="color: #f59e0b; font-weight: 500;">ℹ️ Société Générale utilise un identifiant (sans @) plutôt qu\'un email.</small>' : ''}
-                                    ${bank.id === 'bpce' ? '<br><small style="color: #2563eb; font-weight: 500;">ℹ️ BPCE utilise un code de vérification par email : seul votre email est nécessaire ici.</small>' : ''}
                                 </p>
                                 <form onsubmit="testConnection('${bank.id}', document.getElementById('${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}').value, ${bank.id === 'bpce' ? '\'\'': `document.getElementById('password-${bank.id}').value`}, event); return false;">
                                     <div class="form-group">

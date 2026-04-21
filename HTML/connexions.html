@@ -3,290 +3,400 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Connexions - Taleos</title>
-    <!-- Firebase SDK -->
+    <title>Connexions — Taleos</title>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <link rel="stylesheet" href="taleos-theme.css">
-    
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --ink:         #0a0a0f;
+            --ink-soft:    #14141c;
+            --ink-mid:     #1e1e2a;
+            --surface:     #f5f3ef;
+            --surface2:    #ede9e3;
+            --surface3:    #e4dfd7;
+            --gold:        #c8a96e;
+            --gold-light:  #e2cfa0;
+            --gold-dim:    rgba(200,169,110,0.12);
+            --gold-border: rgba(200,169,110,0.22);
+            --muted:       #7a7a8a;
+            --text-body:   #3a3a48;
+            --white:       #ffffff;
+            --serif:       'Playfair Display', Georgia, serif;
+            --sans:        'DM Sans', system-ui, sans-serif;
+            --radius:      4px;
+            --radius-md:   8px;
+            --transition:  0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: var(--sans);
+            background: var(--surface);
+            color: var(--text-body);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            line-height: 1.6;
         }
 
-        /* Navigation */
+        /* ─── NAV ─── */
         nav {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 15px 30px;
             position: sticky;
             top: 0;
-            z-index: 1000;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1a1a1a;
+            z-index: 9999;
+            background: var(--ink);
+            border-bottom: 1px solid rgba(200,169,110,0.12);
+            padding: 0 48px;
         }
 
         .nav-container {
             max-width: 1400px;
             margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
+            height: 68px;
         }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            text-decoration: none;
+            justify-self: start;
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            background: var(--ink-mid);
+            border: 1.5px solid rgba(200,169,110,0.5);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-mark svg { width: 20px; height: 20px; }
+
+        .logo-text {
+            font-family: var(--sans);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.01em;
+        }
+
+        .logo-text span { color: var(--gold); }
 
         .nav-links {
             display: flex;
-            gap: 20px;
             align-items: center;
+            gap: 4px;
+            justify-self: center;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-self: end;
         }
 
         .nav-link {
+            color: rgba(255,255,255,0.55);
             text-decoration: none;
-            color: #666;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            display: inline-block;
-            box-sizing: border-box;
-            min-width: fit-content;
-            position: relative;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            transition: color var(--transition);
+            white-space: nowrap;
         }
 
-        .nav-link:hover {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
+        .nav-link:hover { color: var(--white); }
         .nav-link.active,
-        .nav-link-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white !important;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            /* Même padding pour éviter décalage */
-            padding: 8px 16px;
-        }
-
+        .nav-link-primary { color: var(--gold) !important; }
         .nav-link.active:hover,
-        .nav-link-primary:hover {
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-            /* Pas de transform pour éviter décalage */
-        }
+        .nav-link-primary:hover { background: var(--gold-dim); }
 
         .logout-btn {
             background: transparent;
-            margin-left: 10px;
-            color: #666 !important;
-            border: 1px solid #e5e7eb;
-            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.45);
+            font-size: 0.85rem;
             font-weight: 500;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            font-family: inherit;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--sans);
+            transition: all var(--transition);
         }
 
-        .logout-btn:hover {
-            background: #f3f4f6;
-            color: #374151 !important;
-            border-color: #d1d5db;
+        .logout-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+
+        /* ─── PAGE HEADER ─── */
+        .page-top {
+            background: var(--ink);
+            padding: 52px 48px 48px;
+            border-bottom: 1px solid rgba(200,169,110,0.1);
         }
 
-        /* Container principal */
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-            flex: 1;
+        .page-top-inner { max-width: 1200px; margin: 0 auto; }
+
+        .page-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 16px;
         }
 
-        /* Header */
-        .page-header {
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-bottom: 30px;
+        .page-label::before {
+            content: '';
+            display: block;
+            width: 20px;
+            height: 1px;
+            background: var(--gold);
+        }
+
+        .page-top h1 {
+            font-family: var(--serif);
+            font-size: clamp(1.8rem, 3vw, 2.6rem);
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1.15;
+            margin-bottom: 10px;
+        }
+
+        .page-top h1 em { font-style: italic; color: var(--gold-light); }
+
+        .page-top p { font-size: 0.95rem; color: rgba(255,255,255,0.45); }
+
+        /* ─── DOMAIN WARNING ─── */
+        .domain-warning {
+            display: none;
+            background: rgba(245,158,11,0.08);
+            border-bottom: 1px solid rgba(245,158,11,0.25);
+            padding: 12px 48px;
+            font-size: 0.82rem;
+            color: #d97706;
             text-align: center;
         }
 
-        .page-header h1 {
-            color: #333;
-            font-size: 2rem;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        /* ─── MAIN ─── */
+        .main-content { flex: 1; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 48px;
         }
 
-        .page-header p {
-            color: #666;
-            font-size: 1.1rem;
+        /* ─── EXTENSION STATUS BANNER ─── */
+        .extension-banner {
+            display: none;
+            padding: 12px 18px;
+            border-radius: var(--radius);
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            border: 1px solid transparent;
         }
 
-        /* Info box */
+        .extension-banner.ok {
+            background: rgba(16,185,129,0.07);
+            border-color: rgba(16,185,129,0.25);
+            color: #059669;
+        }
+
+        .extension-banner.warn {
+            background: rgba(245,158,11,0.07);
+            border-color: rgba(245,158,11,0.25);
+            color: #d97706;
+        }
+
+        /* ─── INFO BOX ─── */
         .info-box {
-            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-            border-left: 4px solid #667eea;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
+            background: var(--white);
+            border: 1px solid var(--surface2);
+            border-left: 3px solid var(--gold);
+            border-radius: var(--radius-md);
+            padding: 24px 28px;
+            margin-bottom: 28px;
         }
 
         .info-box h3 {
-            color: #333;
-            margin-bottom: 10px;
+            font-family: var(--sans);
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .info-box p {
-            color: #666;
-            line-height: 1.6;
+            font-size: 0.88rem;
+            color: var(--muted);
+            line-height: 1.7;
+            margin-bottom: 10px;
         }
+
+        .info-box p:last-child { margin-bottom: 0; }
 
         .info-box ul {
-            margin-top: 10px;
-            margin-left: 20px;
-            color: #666;
-            line-height: 1.8;
+            margin: 8px 0 10px 18px;
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.9;
         }
 
-        /* Modules des banques */
+        .info-box ul li strong { color: var(--text-body); font-weight: 600; }
+
+        .info-box .security-note {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--surface2);
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        /* ─── BANKS CONTAINER ─── */
         .banks-container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 12px;
         }
 
+        /* ─── BANK MODULE ─── */
         .bank-module {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            background: var(--white);
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius-md);
             overflow: hidden;
-            transition: all 0.3s;
+            transition: border-color var(--transition), box-shadow var(--transition);
         }
 
         .bank-module:hover {
-            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);
+            border-color: var(--gold-border);
+        }
+
+        .bank-module.expanded {
+            border-color: var(--gold-border);
+            box-shadow: 0 4px 24px rgba(200,169,110,0.08);
         }
 
         .bank-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 25px 30px;
+            padding: 22px 28px;
             cursor: pointer;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            transition: all 0.3s;
+            background: var(--white);
+            transition: background var(--transition);
+            gap: 20px;
         }
 
-        .bank-header:hover {
-            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-        }
+        .bank-header:hover { background: #fafaf8; }
 
         .bank-header-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 18px;
+            flex: 1;
+            min-width: 0;
         }
 
         .bank-logo {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius);
             object-fit: contain;
-            background: white;
-            padding: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: var(--surface);
+            padding: 6px;
+            border: 1px solid var(--surface2);
+            flex-shrink: 0;
         }
 
         .bank-info h3 {
-            color: #333;
-            font-size: 1.3rem;
-            margin-bottom: 5px;
+            font-family: var(--sans);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 3px;
         }
 
         .bank-info p {
-            color: #666;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .bank-header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
         }
 
         .bank-status {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 16px;
-            border-radius: 20px;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 2px;
+            font-size: 0.72rem;
             font-weight: 600;
-            font-size: 0.9rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .bank-status.connected {
-            background: #d1fae5;
-            color: #065f46;
+            background: rgba(16,185,129,0.08);
+            color: #10b981;
         }
 
         .bank-status.disconnected {
-            background: #fee2e2;
-            color: #991b1b;
+            background: var(--surface2);
+            color: var(--muted);
         }
 
         .bank-status.connecting {
-            background: #fef3c7;
-            color: #92400e;
+            background: rgba(245,158,11,0.08);
+            color: #d97706;
         }
 
         .toggle-icon {
-            font-size: 1.2rem;
-            transition: transform 0.3s;
+            color: var(--muted);
+            font-size: 0.75rem;
+            transition: transform var(--transition);
+            flex-shrink: 0;
         }
 
-        .bank-module.expanded .toggle-icon {
-            transform: rotate(180deg);
-        }
+        .bank-module.expanded .toggle-icon { transform: rotate(180deg); }
 
-        /* Contenu du module */
+        /* ─── BANK CONTENT (accordion) ─── */
         .bank-content {
             max-height: 0;
             overflow: hidden;
@@ -295,96 +405,88 @@
         }
 
         .bank-module.expanded .bank-content {
-            max-height: 600px;
+            max-height: 700px;
             opacity: 1;
         }
 
         .bank-content-inner {
-            padding: 30px;
-            border-top: 1px solid #e5e7eb;
+            padding: 28px;
+            border-top: 1px solid var(--surface2);
         }
 
-        .form-group {
+        /* ─── CONNECTED STATE ─── */
+        .connected-info {
+            background: rgba(16,185,129,0.06);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: var(--radius);
+            padding: 16px 20px;
             margin-bottom: 20px;
         }
 
+        .connected-info p:first-child {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #10b981;
+            margin-bottom: 4px;
+        }
+
+        .connected-info p:last-child {
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+
+        /* ─── FORM ─── */
+        .form-group { margin-bottom: 18px; }
+
         .form-group label {
             display: block;
-            color: #333;
+            font-size: 0.8rem;
             font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--muted);
             margin-bottom: 8px;
-            font-size: 0.95rem;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s;
+            padding: 11px 14px;
+            border: 1px solid var(--surface3);
+            border-radius: var(--radius);
+            font-family: var(--sans);
+            font-size: 0.9rem;
+            color: var(--ink);
+            background: var(--white);
+            transition: border-color var(--transition), box-shadow var(--transition);
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(200,169,110,0.1);
         }
 
-        .form-actions {
+        .form-note {
+            font-size: 0.78rem;
+            color: #d97706;
+            margin-top: 6px;
             display: flex;
-            gap: 15px;
-            margin-top: 25px;
+            align-items: flex-start;
+            gap: 5px;
         }
 
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: center;
+        .connect-desc {
+            font-size: 0.88rem;
+            color: var(--muted);
+            margin-bottom: 20px;
+            line-height: 1.65;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            flex: 1;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
-        }
-
-        .password-input-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-        .password-input-wrapper input {
-            padding-right: 50px;
-        }
+        /* Password toggle */
+        .password-input-wrapper { position: relative; }
+        .password-input-wrapper input { padding-right: 48px; }
 
         .password-toggle {
             position: absolute;
@@ -394,55 +496,127 @@
             background: none;
             border: none;
             cursor: pointer;
-            color: #666;
-            font-size: 1.2rem;
-            padding: 8px;
+            color: var(--muted);
+            padding: 6px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: color 0.3s;
+            transition: color var(--transition);
             z-index: 10;
         }
 
-        .password-toggle:hover {
-            color: #667eea;
+        .password-toggle:hover { color: var(--gold); }
+        .password-toggle:focus { outline: none; }
+        .password-toggle svg { width: 18px; height: 18px; }
+        .password-toggle .pwd-icon-hide { display: none; }
+        .password-toggle.is-visible .pwd-icon-show { display: none; }
+        .password-toggle.is-visible .pwd-icon-hide { display: inline-flex; }
+
+        /* ─── FORM ACTIONS ─── */
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+            flex-wrap: wrap;
         }
 
-        .password-toggle:focus {
-            outline: none;
-        }
-
-        .password-toggle .pwd-icon {
+        /* ─── BUTTONS ─── */
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-family: var(--sans);
+            font-weight: 600;
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
+            transition: all var(--transition);
             display: inline-flex;
             align-items: center;
+            gap: 7px;
             justify-content: center;
+            white-space: nowrap;
         }
 
-        .password-toggle .pwd-icon-hide {
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        .btn-primary {
+            background: var(--ink);
+            color: var(--white);
+            border-color: var(--ink);
+            flex: 1;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--ink-mid);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: #ef4444;
+            border-color: rgba(239,68,68,0.3);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: rgba(239,68,68,0.05);
+            border-color: #ef4444;
+        }
+
+        /* ─── CONNECTION STATUS ─── */
+        .connection-status {
             display: none;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-top: 16px;
+            font-size: 0.85rem;
+            border-left: 3px solid transparent;
         }
 
-        .password-toggle.is-visible .pwd-icon-show {
-            display: none;
+        .connection-status.show { display: block; }
+
+        .connection-status.success {
+            background: rgba(16,185,129,0.07);
+            border-left-color: #10b981;
+            color: #059669;
         }
 
-        .password-toggle.is-visible .pwd-icon-hide {
-            display: inline-flex;
+        .connection-status.error {
+            background: rgba(239,68,68,0.07);
+            border-left-color: #ef4444;
+            color: #dc2626;
         }
 
-        .password-toggle svg {
-            width: 22px;
-            height: 22px;
+        .connection-status.info {
+            background: rgba(200,169,110,0.08);
+            border-left-color: var(--gold);
+            color: var(--text-body);
         }
 
-        /* Modale de confirmation personnalisée */
+        /* ─── SPINNER ─── */
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        .spinner.dark {
+            border-color: rgba(0,0,0,0.15);
+            border-top-color: var(--ink);
+        }
+
+        /* ─── MODAL ─── */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
+            inset: 0;
+            background: rgba(0,0,0,0.6);
             backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
@@ -453,292 +627,248 @@
             transition: all 0.3s ease;
         }
 
-        .modal-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
 
         .modal {
-            background: white;
-            border-radius: 16px;
-            padding: 0;
-            max-width: 480px;
+            background: var(--white);
+            border-radius: var(--radius-md);
+            max-width: 460px;
             width: 90%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            transform: scale(0.9) translateY(20px);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+            transform: scale(0.95) translateY(12px);
             transition: transform 0.3s ease;
             overflow: hidden;
+            border: 1px solid var(--surface2);
         }
 
-        .modal-overlay.show .modal {
-            transform: scale(1) translateY(0);
-        }
+        .modal-overlay.show .modal { transform: scale(1) translateY(0); }
 
         .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 24px 30px;
-            color: white;
+            background: var(--ink);
+            padding: 22px 28px;
+            border-bottom: 1px solid rgba(200,169,110,0.15);
         }
 
         .modal-header h3 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-family: var(--sans);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.7);
             display: flex;
             align-items: center;
-            gap: 12px;
-        }
-
-        .modal-header h3::before {
-            content: '⚠️';
-            font-size: 2rem;
+            gap: 10px;
         }
 
         .modal-body {
-            padding: 30px;
+            padding: 28px;
         }
 
         .modal-body p {
-            margin: 0;
-            font-size: 1.1rem;
-            color: #333;
-            line-height: 1.6;
+            font-size: 0.9rem;
+            color: var(--text-body);
+            line-height: 1.7;
         }
 
         .modal-footer {
-            padding: 20px 30px;
-            background: #f8f9fa;
+            padding: 18px 28px;
+            background: var(--surface);
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: flex-end;
+            border-top: 1px solid var(--surface2);
         }
 
         .modal-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
+            padding: 10px 22px;
+            border-radius: var(--radius);
+            border: 1px solid transparent;
+            font-family: var(--sans);
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
             cursor: pointer;
-            transition: all 0.3s;
-            min-width: 120px;
+            transition: all var(--transition);
+            min-width: 100px;
         }
 
         .modal-btn-cancel {
-            background: white;
-            color: #666;
-            border: 2px solid #ddd;
+            background: var(--white);
+            color: var(--muted);
+            border-color: var(--surface3);
         }
 
-        .modal-btn-cancel:hover {
-            background: #f5f5f5;
-            border-color: #bbb;
-        }
+        .modal-btn-cancel:hover { border-color: var(--muted); color: var(--text-body); }
 
         .modal-btn-confirm {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: var(--ink);
+            color: var(--white);
+            border-color: var(--ink);
         }
 
-        .modal-btn-confirm:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
+        .modal-btn-confirm:hover { background: var(--ink-mid); }
 
-        .connection-status {
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .connection-status.show {
-            display: block;
-        }
-
-        .connection-status.success {
-            background: #d1fae5;
-            color: #065f46;
-            border-left: 4px solid #10b981;
-        }
-
-        .connection-status.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border-left: 4px solid #ef4444;
-        }
-
-        .connection-status.info {
-            background: #dbeafe;
-            color: #1e40af;
-            border-left: 4px solid #3b82f6;
-        }
-
-        /* Spinner */
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        /* Footer */
+        /* ─── FOOTER ─── */
         footer {
-            background: #1a1a1a;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
+            background: #070709;
+            color: rgba(255,255,255,0.3);
+            padding: 48px;
+            border-top: 1px solid rgba(200,169,110,0.1);
             margin-top: auto;
-            width: 100%;
-            box-sizing: border-box;
         }
 
-        footer .container {
+        .footer-inner {
             max-width: 1400px;
             margin: 0 auto;
-        }
-
-        footer p {
-            opacity: 0.7;
-            margin: 0;
-        }
-
-        .footer-love {
-            margin-top: 15px;
-            font-size: 0.95rem;
-        }
-
-        .footer-links {
-            margin-top: 12px;
-        }
-
-        .footer-links a {
-            color: inherit;
-            opacity: 0.85;
-            text-decoration: none;
-        }
-
-        .footer-links a:hover {
-            opacity: 1;
-            text-decoration: underline;
-        }
-
-        .footer-social {
-            margin-top: 15px;
             display: flex;
-            justify-content: center;
-            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 24px;
         }
+
+        .footer-logo {
+            font-family: var(--sans);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: -0.01em;
+        }
+
+        .footer-logo span { color: var(--gold); }
+
+        .footer-nav { display: flex; gap: 24px; flex-wrap: wrap; }
+
+        .footer-nav a {
+            color: rgba(255,255,255,0.3);
+            text-decoration: none;
+            font-size: 0.82rem;
+            transition: color var(--transition);
+        }
+
+        .footer-nav a:hover { color: var(--gold); }
+
+        .footer-social { display: flex; gap: 16px; }
 
         .footer-social a {
-            color: white;
-            opacity: 0.85;
-            display: inline-flex;
-            transition: opacity 0.2s;
+            color: rgba(255,255,255,0.25);
+            text-decoration: none;
+            transition: color var(--transition);
         }
 
-        .footer-social a:hover {
-            opacity: 1;
+        .footer-social a:hover { color: var(--gold); }
+        .footer-social svg { width: 16px; height: 16px; }
+
+        .footer-copy {
+            width: 100%;
+            font-size: 0.75rem;
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
 
-        .footer-social svg {
-            width: 24px;
-            height: 24px;
-        }
-
-        /* Responsive */
+        /* ─── RESPONSIVE ─── */
         @media (max-width: 768px) {
-            .nav-container,
-            .nav-links {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .bank-header-left {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
+            nav { padding: 0 20px; }
+            .nav-container { display: flex; justify-content: space-between; }
+            .nav-links { display: none; }
+            .page-top { padding: 40px 20px 36px; }
+            .domain-warning { padding: 12px 20px; }
+            .container { padding: 24px 20px; }
+            .bank-header { padding: 18px 20px; }
+            .bank-content-inner { padding: 20px; }
+            .bank-header-left { gap: 12px; }
+            footer { padding: 32px 20px; }
+            .footer-inner { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
 <body class="connections-page">
-    <nav>
-        <div class="nav-container">
-            <a href="landing_page_finance.html" class="logo">
-                <div class="logo-icon">T</div>
-                <div class="logo-text">Taleos</div>
-            </a>
-            <div class="nav-links">
-                <a href="landing_page_finance.html" class="nav-link">Présentation</a>
-                <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
-                <a href="mes-candidatures.html" class="nav-link" id="navCandidatures" style="display: none;">Mes candidatures</a>
-                <a href="connexions.html" class="nav-link active" id="navConnexions" style="display: none;">Connexions</a>
-                <a href="tarifs.html" class="nav-link">Tarifs</a>
-                <a href="auth.html" class="nav-link" id="navAuth">Inscription / Connexion</a>
-                <a href="profile.html" class="nav-link" id="navProfile" style="display: none;">Mon Profil</a>
-                <button class="nav-link logout-btn" id="btnLogout" style="display: none;" onclick="logout()">Déconnexion</button>
+
+<!-- ─── NAV ─── -->
+<nav>
+    <div class="nav-container">
+        <a href="landing_page_finance.html" class="logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 6H15M10 6V15" stroke="#c8a96e" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="logo-text">Tale<span>os</span></div>
+        </a>
+
+        <div class="nav-links">
+            <a href="landing_page_finance.html" class="nav-link">Présentation</a>
+            <a href="offres.html" class="nav-link">Offres</a>
+            <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
+            <a href="mes-candidatures.html" class="nav-link" id="navCandidatures" style="display:none">Mes candidatures</a>
+            <a href="connexions.html" class="nav-link active" id="navConnexions" style="display:none">Connexions</a>
+            <a href="tarifs.html" class="nav-link">Tarifs</a>
+        </div>
+
+        <div class="nav-actions">
+            <a href="auth.html" class="nav-link" id="navAuth">Connexion</a>
+            <a href="profile.html" class="nav-link" id="navProfile" style="display:none">Mon profil</a>
+            <button class="logout-btn" id="btnLogout" style="display:none" onclick="logout()">Déconnexion</button>
+        </div>
+    </div>
+</nav>
+
+<!-- Domain warning -->
+<div id="extensionDomainWarning" class="domain-warning">
+    <strong>⚠️ L'extension Taleos ne fonctionne pas sur cette page.</strong> Utilisez <strong>https://taleos.co</strong> ou <strong>https://dedale95.github.io</strong> pour lier vos comptes.
+</div>
+
+<!-- ─── PAGE HEADER ─── -->
+<div class="page-top">
+    <div class="page-top-inner">
+        <div class="page-label">Comptes liés</div>
+        <h1>Mes <em>connexions</em></h1>
+        <p>Liez vos comptes des sites carrière pour postuler automatiquement</p>
+    </div>
+</div>
+
+<!-- ─── MAIN ─── -->
+<div class="main-content">
+    <div class="container">
+
+        <!-- Extension status banner -->
+        <div id="extensionStatusBanner" class="extension-banner"></div>
+
+        <!-- Info box -->
+        <div class="info-box">
+            <h3>Pourquoi lier vos comptes ?</h3>
+            <p>En connectant vos comptes des sites carrière, vous pouvez :</p>
+            <ul>
+                <li><strong>Postuler automatiquement</strong> sans ressaisir vos informations à chaque fois</li>
+                <li><strong>Synchroniser vos candidatures</strong> entre toutes les plateformes</li>
+                <li><strong>Suivre l'état</strong> de vos candidatures directement depuis votre espace Taleos</li>
+            </ul>
+            <div class="security-note">
+                🔒 <span>Vos identifiants sont chiffrés et stockés de manière sécurisée. Nous ne les utilisons que pour les actions que vous autorisez explicitement.</span>
             </div>
         </div>
-    </nav>
 
-    <!-- Bandeau d'avertissement si domaine non supporté par l'extension -->
-    <div id="extensionDomainWarning" style="display: none; background: #fef3c7; border-bottom: 2px solid #f59e0b; padding: 12px 24px; text-align: center; font-size: 14px; color: #92400e;">
-        <strong>⚠️ L'extension Taleos ne fonctionne pas sur cette page.</strong> Utilisez <strong>https://taleos.co</strong> ou <strong>https://dedale95.github.io</strong> pour lier vos comptes. Évitez d'ouvrir les fichiers en local (file://).
-    </div>
-
-    <div class="container">
-        <div class="page-header">
-            <h1>Mes Connexions</h1>
-            <p>Liez vos comptes des sites carrière pour une expérience optimisée</p>
-        </div>
-
-        <div id="extensionStatusBanner" style="display: none; margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; font-size: 14px;"></div>
-
-        <div class="info-box">
-            <h3>ℹ️ Pourquoi lier vos comptes ?</h3>
-            <p>En liant vos comptes des sites carrière des banques, vous pourrez :</p>
-            <ul>
-                <li><strong>Postuler automatiquement</strong> depuis Taleos sans ressaisir vos informations</li>
-                <li><strong>Synchroniser vos candidatures</strong> entre les plateformes</li>
-                <li><strong>Suivre l'état</strong> de vos candidatures directement depuis votre espace</li>
-            </ul>
-            <p style="margin-top: 15px;"><strong>🔒 Sécurité :</strong> Vos identifiants sont cryptés et stockés de manière sécurisée. Nous ne les utilisons que pour les actions que vous autorisez.</p>
-        </div>
-
-        <div class="bank-module" id="gmailIntegrationCard" style="margin-bottom: 20px; display:none;">
-            <div class="bank-header" style="cursor: default;">
+        <!-- Gmail integration (hidden by default) -->
+        <div class="bank-module" id="gmailIntegrationCard" style="margin-bottom:12px;display:none;">
+            <div class="bank-header" style="cursor:default;">
                 <div class="bank-header-left">
-                    <div class="bank-logo" style="display:flex;align-items:center;justify-content:center;padding:6px;background:#f3f4f6;">
-                        <img
-                            src="https://www.gstatic.com/images/branding/product/2x/gmail_2020q4_48dp.png"
-                            alt="Gmail"
-                            style="width:36px;height:36px;object-fit:contain;display:block;"
-                        >
+                    <div class="bank-logo" style="display:flex;align-items:center;justify-content:center;">
+                        <img src="https://www.gstatic.com/images/branding/product/2x/gmail_2020q4_48dp.png" alt="Gmail" style="width:32px;height:32px;object-fit:contain;">
                     </div>
                     <div class="bank-info">
-                        <h3>Liaison Gmail (codes de vérification)</h3>
-                        <p>Permet à Taleos de récupérer automatiquement les codes reçus par email pendant certaines candidatures.</p>
+                        <h3>Gmail — codes de vérification</h3>
+                        <p>Récupération automatique des OTP reçus par email</p>
                     </div>
                 </div>
-                <div class="bank-status disconnected" id="gmailLinkStatusBadge">○ Non lié</div>
+                <div class="bank-header-right">
+                    <div class="bank-status disconnected" id="gmailLinkStatusBadge">○ Non lié</div>
+                </div>
             </div>
             <div class="bank-content" style="max-height:none;opacity:1;">
                 <div class="bank-content-inner">
-                    <div id="gmailLinkedEmail" style="font-size: 0.95rem; color:#065f46; margin-bottom: 10px; display:none;"></div>
+                    <div id="gmailLinkedEmail" style="display:none;font-size:0.88rem;color:#059669;margin-bottom:12px;"></div>
                     <div class="connection-status" id="gmail-status"></div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" id="btn-gmail-link" onclick="linkGmailAccount()">🔗 Lier mon compte Gmail</button>
@@ -748,1098 +878,608 @@
             </div>
         </div>
 
-        <div class="banks-container" id="banksContainer">
-            <!-- Modules générés dynamiquement -->
-        </div>
-    </div>
-
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 Taleos. Tous droits réservés.</p>
-            <div class="footer-love">
-                <span>Conçu avec ❤️ pour les futurs talents de la finance</span>
-            </div>
-            <div class="footer-links">
-                <a href="mailto:contact@taleos.co">Contact</a>
-            </div>
-            <div class="footer-social">
-                <a href="https://instagram.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
-                <a href="https://twitter.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                </a>
-                <a href="https://youtube.com/@taleos" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                </a>
-                <a href="https://linkedin.com/company/taleos" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                </a>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // Vérifier si le domaine est supporté par l'extension Taleos
-        (function() {
-            const host = window.location.hostname || '';
-            const protocol = window.location.protocol || '';
-            const isSupported = protocol === 'file:' ? false : (
-                host === 'taleos.co' ||
-                host.endsWith('.taleos.co') ||
-                host === 'localhost' ||
-                host === '127.0.0.1' ||
-                host.endsWith('.github.io')
-            );
-            if (!isSupported) {
-                const el = document.getElementById('extensionDomainWarning');
-                if (el) el.style.display = 'block';
-            }
-        })();
-
-        // Vérifier si l'extension Taleos est détectée (data attribute posé par taleos-injector)
-        function isExtensionReady() {
-            return document.documentElement.getAttribute('data-taleos-injector') === 'ready';
-        }
-        function checkExtensionStatus() {
-            const banner = document.getElementById('extensionStatusBanner');
-            if (!banner) return;
-            if (isExtensionReady()) {
-                banner.style.display = 'block';
-                banner.style.background = '#d1fae5';
-                banner.style.border = '1px solid #10b981';
-                banner.style.color = '#065f46';
-                banner.innerHTML = '✅ Extension Taleos détectée';
-            } else {
-                banner.style.display = 'block';
-                banner.style.background = '#fef3c7';
-                banner.style.border = '1px solid #f59e0b';
-                banner.style.color = '#92400e';
-                banner.innerHTML = '⚠️ Extension Taleos non détectée. <strong>Rechargez la page (F5)</strong> et assurez-vous que l\'extension est installée. Si le problème persiste, ouvrez <code>chrome://extensions</code> et rechargez l\'extension Taleos.';
-            }
-        }
-        setTimeout(checkExtensionStatus, 1500);
-        setTimeout(checkExtensionStatus, 3500);
-
-        // Configuration Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",
-            authDomain: "project-taleos.firebaseapp.com",
-            projectId: "project-taleos",
-            storageBucket: "project-taleos.firebasestorage.app",
-            messagingSenderId: "747525128323",
-            appId: "1:747525128323:web:b1c67154edf2b63afb1d78"
-        };
-
-        // Initialiser Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // Configuration de l'API backend AWS
-        // Remplacez par l'URL de votre serveur AWS, ex: 'http://VOTRE_IP_AWS:443' ou 'https://api.taleos.co'
-        const API_BASE_URL = 'https://api.taleos.co';
-        const API_KEY = 'Thibault_Secure_987654321_Validator';
-
-        // Configuration des banques. Les "id" doivent correspondre exactement au BOTS_MAP côté serveur AWS
-        // (minuscules, underscores). Jamais le nom affiché (ex: "Crédit Agricole") dans les appels API.
-        const banks = [
-            {
-                id: 'credit_agricole',
-                name: 'Crédit Agricole',
-                url: 'https://www.ca-recrute.fr',
-                logo: 'images/logos/credit_agricole.png',
-                description: 'Site carrière du Crédit Agricole'
-            },
-            {
-                id: 'bpce',
-                name: 'BPCE',
-                url: 'https://recrutement.bpce.fr',
-                logo: 'images/logos/bpce.svg',
-                description: 'Site carrière du Groupe BPCE'
-            },
-            {
-                id: 'societe_generale',
-                name: 'Société Générale',
-                url: 'https://careers.societegenerale.com',
-                logo: 'images/logos/societe_generale.png',
-                description: 'Site carrière de la Société Générale'
-            },
-            {
-                id: 'deloitte',
-                name: 'Deloitte',
-                url: 'https://jobs2.deloitte.com',
-                logo: 'images/logos/deloitte.png',
-                description: 'Site carrière de Deloitte'
-            }
-        ];
-
-        let userConnections = {};
-        let currentUser = null;
-        const GMAIL_INTEGRATION_ENABLED = false;
-        let gmailRedirectHandled = false;
-
-        function callExtensionBridge(requestEventName, responseEventName, detail) {
-            return new Promise((resolve) => {
-                const timeout = setTimeout(() => {
-                    window.removeEventListener(responseEventName, handler);
-                    resolve({ ok: false, message: 'Timeout extension' });
-                }, 15000);
-                const handler = (e) => {
-                    clearTimeout(timeout);
-                    window.removeEventListener(responseEventName, handler);
-                    resolve(e.detail || { ok: false, message: 'Réponse vide' });
-                };
-                window.addEventListener(responseEventName, handler);
-                window.dispatchEvent(new CustomEvent(requestEventName, { detail: detail || {} }));
-            });
-        }
-
-        function setGmailUiState(state) {
-            if (!GMAIL_INTEGRATION_ENABLED) return;
-            const badge = document.getElementById('gmailLinkStatusBadge');
-            const status = document.getElementById('gmail-status');
-            const emailLine = document.getElementById('gmailLinkedEmail');
-            const btnLink = document.getElementById('btn-gmail-link');
-            const btnUnlink = document.getElementById('btn-gmail-unlink');
-            if (!badge || !status || !btnLink || !btnUnlink) return;
-
-            const connected = !!(state && state.connected);
-            badge.className = `bank-status ${connected ? 'connected' : 'disconnected'}`;
-            badge.textContent = connected ? '✓ Gmail lié' : '○ Non lié';
-            btnLink.style.display = connected ? 'none' : 'inline-flex';
-            btnUnlink.style.display = connected ? 'inline-flex' : 'none';
-
-            if (connected && state.gmail_email) {
-                emailLine.style.display = 'block';
-                emailLine.textContent = `Compte lié : ${state.gmail_email}`;
-            } else {
-                emailLine.style.display = 'none';
-                emailLine.textContent = '';
-            }
-        }
-
-        async function refreshGmailStatus(showMessage) {
-            if (!GMAIL_INTEGRATION_ENABLED) return;
-            const status = document.getElementById('gmail-status');
-            if (!status) return;
-            if (showMessage) {
-                status.className = 'connection-status show info';
-                status.textContent = '⏳ Vérification de l’état Gmail...';
-            }
-            if (!isExtensionReady()) {
-                setGmailUiState({ connected: false });
-                status.className = 'connection-status show error';
-                status.textContent = 'Extension Taleos non détectée.';
-                return;
-            }
-            const res = await callExtensionBridge('taleos-request-gmail-status', 'taleos-gmail-status-result');
-            if (!res.ok) {
-                setGmailUiState({ connected: false });
-                status.className = 'connection-status show error';
-                status.textContent = `❌ ${res.message || 'Impossible de lire l’état Gmail.'}`;
-                return;
-            }
-            setGmailUiState(res);
-            status.className = `connection-status show ${res.connected ? 'success' : 'info'}`;
-            status.textContent = res.connected
-                ? '✅ Gmail lié. Lecture OTP activée pour les sites compatibles.'
-                : 'ℹ️ Gmail non lié. L’auto-récupération OTP est désactivée.';
-        }
-
-        async function handleGmailRedirectResult() {
-            if (!GMAIL_INTEGRATION_ENABLED) return;
-            if (gmailRedirectHandled) return;
-            gmailRedirectHandled = true;
-            const status = document.getElementById('gmail-status');
-            try {
-                const result = await auth.getRedirectResult();
-                const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-                const accessToken = credential && credential.accessToken ? credential.accessToken : '';
-                if (!accessToken) return;
-                const saveRes = await callExtensionBridge(
-                    'taleos-request-gmail-link-save',
-                    'taleos-gmail-link-save-result',
-                    {
-                        accessToken,
-                        expiresInSec: 3600,
-                        gmailEmail: (result.user && result.user.email) || (currentUser && currentUser.email) || ''
-                    }
-                );
-                if (!saveRes.ok) throw new Error(saveRes.message || 'Échec sauvegarde après redirection Gmail');
-                if (status) {
-                    status.className = 'connection-status show success';
-                    status.textContent = '✅ Gmail lié après redirection OAuth.';
-                }
-            } catch (e) {
-                const rawCode = String(e && e.code ? e.code : '');
-                if (rawCode === 'auth/user-mismatch' || rawCode === 'auth/email-already-in-use' || rawCode === 'auth/account-exists-with-different-credential') {
-                    if (status) {
-                        status.className = 'connection-status show error';
-                        status.textContent = '❌ Le compte Google sélectionné ne correspond pas à votre session Taleos. Choisissez le même email que celui connecté à Taleos.';
-                    }
-                    return;
-                }
-                if (status) {
-                    status.className = 'connection-status show error';
-                    status.textContent = `❌ ${e.message || 'Erreur lors du retour OAuth Gmail.'}`;
-                }
-            }
-        }
-
-        async function linkGmailAccount() {
-            if (!GMAIL_INTEGRATION_ENABLED) return;
-            const status = document.getElementById('gmail-status');
-            const btn = document.getElementById('btn-gmail-link');
-            if (!currentUser) {
-                if (status) {
-                    status.className = 'connection-status show error';
-                    status.textContent = 'Vous devez être connecté pour lier Gmail.';
-                }
-                return;
-            }
-            if (!isExtensionReady()) {
-                if (status) {
-                    status.className = 'connection-status show error';
-                    status.textContent = 'Extension non détectée. Rechargez la page et l’extension.';
-                }
-                return;
-            }
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner"></span> Liaison Gmail...';
-            }
-            if (status) {
-                status.className = 'connection-status show info';
-                status.textContent = '⏳ Connexion Gmail via extension...';
-            }
-            try {
-                const directRes = await callExtensionBridge(
-                    'taleos-request-gmail-link-direct',
-                    'taleos-gmail-link-direct-result',
-                    {}
-                );
-                if (!directRes.ok) {
-                    throw new Error(directRes.message || 'Connexion Gmail via extension impossible');
-                }
-                await refreshGmailStatus(false);
-                if (status) {
-                    status.className = 'connection-status show success';
-                    status.textContent = '✅ Gmail lié via extension.';
-                }
-            } catch (e) {
-                if (status) {
-                    status.className = 'connection-status show error';
-                    status.textContent = `❌ ${e.message || 'Liaison Gmail impossible. Rechargez l’extension sur chrome://extensions puis réessayez.'}`;
-                }
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = '🔗 Lier mon compte Gmail';
-                }
-            }
-        }
-
-        async function unlinkGmailAccount() {
-            if (!GMAIL_INTEGRATION_ENABLED) return;
-            const status = document.getElementById('gmail-status');
-            const btn = document.getElementById('btn-gmail-unlink');
-            if (!isExtensionReady()) {
-                if (status) {
-                    status.className = 'connection-status show error';
-                    status.textContent = 'Extension non détectée.';
-                }
-                return;
-            }
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner"></span> Suppression...';
-            }
-            try {
-                const res = await callExtensionBridge('taleos-request-gmail-unlink', 'taleos-gmail-unlink-result');
-                if (!res.ok) throw new Error(res.message || 'Échec déliaison Gmail');
-                await refreshGmailStatus(false);
-            } catch (e) {
-                if (status) {
-                    status.className = 'connection-status show error';
-                    status.textContent = `❌ ${e.message || 'Erreur pendant la déliaison.'}`;
-                }
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = '✕ Délier Gmail';
-                }
-            }
-        }
-
-        function setOutlookUiState(state) {
-            const badge = document.getElementById('outlookLinkStatusBadge');
-            const status = document.getElementById('outlook-status');
-            const emailLine = document.getElementById('outlookLinkedEmail');
-            const btnLink = document.getElementById('btn-outlook-link');
-            const btnUnlink = document.getElementById('btn-outlook-unlink');
-            if (!badge || !status || !btnLink || !btnUnlink) return;
-            const connected = !!(state && state.connected);
-            badge.className = `bank-status ${connected ? 'connected' : 'disconnected'}`;
-            badge.textContent = connected ? '✓ Outlook lié' : '○ Non lié';
-            btnLink.style.display = connected ? 'none' : 'inline-flex';
-            btnUnlink.style.display = connected ? 'inline-flex' : 'none';
-            if (connected && state.outlook_email) {
-                emailLine.style.display = 'block';
-                emailLine.textContent = `Compte lié : ${state.outlook_email}`;
-            } else {
-                emailLine.style.display = 'none';
-                emailLine.textContent = '';
-            }
-        }
-
-        async function refreshOutlookStatus(showMessage) {
-            const status = document.getElementById('outlook-status');
-            if (!status) return;
-            if (showMessage) {
-                status.className = 'connection-status show info';
-                status.textContent = '⏳ Vérification de l’état Outlook...';
-            }
-            if (!isExtensionReady()) {
-                setOutlookUiState({ connected: false });
-                status.className = 'connection-status show error';
-                status.textContent = 'Extension Taleos non détectée.';
-                return;
-            }
-            const res = await callExtensionBridge('taleos-request-outlook-status', 'taleos-outlook-status-result');
-            if (!res.ok) {
-                setOutlookUiState({ connected: false });
-                status.className = 'connection-status show error';
-                status.textContent = `❌ ${res.message || 'Impossible de lire l’état Outlook.'}`;
-                return;
-            }
-            setOutlookUiState(res);
-            status.className = `connection-status show ${res.connected ? 'success' : 'info'}`;
-            status.textContent = res.connected
-                ? '✅ Outlook lié. Pensez à rester connecté sur Outlook Web.'
-                : 'ℹ️ Outlook non lié. L’auto-récupération OTP Outlook est désactivée.';
-        }
-
-        async function linkOutlookAccount() {
-            const status = document.getElementById('outlook-status');
-            const btn = document.getElementById('btn-outlook-link');
-            if (!currentUser) return;
-            if (!isExtensionReady()) return;
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner"></span> Liaison Outlook...';
-            }
-            if (status) {
-                status.className = 'connection-status show info';
-                status.textContent = '⏳ Ouverture de la connexion Microsoft...';
-            }
-            try {
-                const res = await callExtensionBridge('taleos-request-outlook-link', 'taleos-outlook-link-result', {});
-                if (!res.ok) throw new Error(res.message || 'Échec liaison Outlook');
-                await refreshOutlookStatus(false);
-            } catch (e) {
-                if (status) {
-                    status.className = 'connection-status show error';
-                    status.textContent = `❌ ${e.message || 'Erreur pendant la liaison Outlook.'}`;
-                }
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = '🔗 Lier mon compte Outlook';
-                }
-            }
-        }
-
-        async function unlinkOutlookAccount() {
-            const status = document.getElementById('outlook-status');
-            const btn = document.getElementById('btn-outlook-unlink');
-            if (!isExtensionReady()) return;
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner"></span> Suppression...';
-            }
-            try {
-                const res = await callExtensionBridge('taleos-request-outlook-unlink', 'taleos-outlook-unlink-result');
-                if (!res.ok) throw new Error(res.message || 'Échec déliaison Outlook');
-                await refreshOutlookStatus(false);
-            } catch (e) {
-                if (status) {
-                    status.className = 'connection-status show error';
-                    status.textContent = `❌ ${e.message || 'Erreur pendant la déliaison Outlook.'}`;
-                }
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = '✕ Délier Outlook';
-                }
-            }
-        }
-
-        // Mise à jour de la navigation
-        function updateNavigation(user) {
-            const navAuth = document.getElementById('navAuth');
-            const navProfile = document.getElementById('navProfile');
-            const navCandidatures = document.getElementById('navCandidatures');
-            const navConnexions = document.getElementById('navConnexions');
-            const btnLogout = document.getElementById('btnLogout');
-            const rechercheLink = document.getElementById('rechercheLink');
-
-            if (user && user.emailVerified) {
-                navAuth.style.display = 'none';
-                navProfile.style.display = 'block';
-                navCandidatures.style.display = 'block';
-                navConnexions.style.display = 'block';
-                if (rechercheLink) rechercheLink.style.display = 'inline-block';
-                btnLogout.style.display = 'block';
-            } else {
-                navAuth.style.display = 'block';
-                navProfile.style.display = 'none';
-                navCandidatures.style.display = 'none';
-                navConnexions.style.display = 'none';
-                if (rechercheLink) rechercheLink.style.display = 'none';
-                btnLogout.style.display = 'none';
-            }
-        }
-
-        // Mise à jour immédiate de la navigation (avant Firebase) pour éviter le flash
-        function updateNavigationImmediate() {
-            const navAuth = document.getElementById('navAuth');
-            const navProfile = document.getElementById('navProfile');
-            const navCandidatures = document.getElementById('navCandidatures');
-            const navConnexions = document.getElementById('navConnexions');
-            const btnLogout = document.getElementById('btnLogout');
-
-            if (!navAuth || !navProfile || !btnLogout) {
-                return;
-            }
-
-            // Vérifier localStorage immédiatement
-            const token = localStorage.getItem('authToken');
-            const email = localStorage.getItem('userEmail');
-            const isAuthenticated = !!(token && email);
-
-            const rechercheLink = document.getElementById('rechercheLink');
-            if (isAuthenticated) {
-                // Utilisateur connecté - afficher les liens appropriés
-                navAuth.style.display = 'none';
-                navProfile.style.display = 'block';
-                if (navCandidatures) navCandidatures.style.display = 'block';
-                if (navConnexions) navConnexions.style.display = 'block';
-                if (rechercheLink) rechercheLink.style.display = 'inline-block';
-                btnLogout.style.display = 'block';
-            } else {
-                // Utilisateur non connecté
-                navAuth.style.display = 'block';
-                navProfile.style.display = 'none';
-                if (navCandidatures) navCandidatures.style.display = 'none';
-                if (navConnexions) navConnexions.style.display = 'none';
-                if (rechercheLink) rechercheLink.style.display = 'none';
-                btnLogout.style.display = 'none';
-            }
-        }
-
-        // Déconnexion
-        function logout() {
-            auth.signOut().then(() => {
-                window.location.href = 'landing_page_finance.html';
-            }).catch((error) => {
-                console.error('Erreur déconnexion:', error);
-            });
-        }
-
-        // Fonction pour crypter les données (simple base64 pour l'exemple, à améliorer)
-        function encryptData(data) {
-            return btoa(data);
-        }
-
-        // Fonction pour décrypter les données
-        function decryptData(data) {
-            try {
-                return atob(data);
-            } catch (e) {
-                return '';
-            }
-        }
-
-        // Charger les connexions : profiles/{uid}/career_connections/{bankId}
-        async function loadUserConnections() {
-            if (!currentUser) return;
-
-            try {
-                const snapshot = await db.collection('profiles')
-                    .doc(currentUser.uid)
-                    .collection('career_connections')
-                    .get();
-
-                userConnections = {};
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const bankId = data.bankId || doc.id;
-                    if (data.status === 'connected' || !data.status) {
-                        userConnections[bankId] = {
-                            email: data.email,
-                            connected: true,
-                            connectedAt: data.timestamp ? data.timestamp.toDate().toISOString() : new Date().toISOString()
-                        };
-                    }
-                });
-            } catch (error) {
-                console.error('Erreur chargement connexions:', error);
-            }
-
-            renderBanks();
-        }
-
-        // Fonction pour afficher/masquer le mot de passe
-        function togglePassword(inputId, button) {
-            const input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                button.classList.add('is-visible');
-                button.setAttribute('aria-label', 'Masquer le mot de passe');
-            } else {
-                input.type = 'password';
-                button.classList.remove('is-visible');
-                button.setAttribute('aria-label', 'Afficher le mot de passe');
-            }
-        }
-
-        // Callbacks actuels de la modale (pour éviter que "Confirmer" exécute l'ancien callback d'une autre banque)
-        let _confirmModalOnConfirm = null;
-        let _confirmModalOnCancel = null;
-
-        // Fonction pour afficher une modale de confirmation personnalisée
-        function showConfirmModal(message, onConfirm, onCancel) {
-            _confirmModalOnConfirm = onConfirm;
-            _confirmModalOnCancel = onCancel;
-
-            let overlay = document.getElementById('confirmModalOverlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = 'confirmModalOverlay';
-                overlay.className = 'modal-overlay';
-                overlay.innerHTML = `
-                    <div class="modal">
-                        <div class="modal-header">
-                            <h3>Confirmation</h3>
-                        </div>
-                        <div class="modal-body">
-                            <p id="confirmModalMessage"></p>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="modal-btn modal-btn-cancel" id="confirmModalCancel">Annuler</button>
-                            <button class="modal-btn modal-btn-confirm" id="confirmModalConfirm">Confirmer</button>
-                        </div>
+        <!-- Outlook integration -->
+        <div class="bank-module" id="outlookIntegrationCard" style="margin-bottom:12px;">
+            <div class="bank-header" style="cursor:default;">
+                <div class="bank-header-left">
+                    <div class="bank-logo" style="display:flex;align-items:center;justify-content:center;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook" style="width:32px;height:32px;object-fit:contain;" onerror="this.src='';this.style.display='none'">
                     </div>
-                `;
-                document.body.appendChild(overlay);
-
-                document.getElementById('confirmModalCancel').addEventListener('click', () => {
-                    overlay.classList.remove('show');
-                    if (_confirmModalOnCancel) _confirmModalOnCancel();
-                });
-
-                document.getElementById('confirmModalConfirm').addEventListener('click', () => {
-                    overlay.classList.remove('show');
-                    if (_confirmModalOnConfirm) _confirmModalOnConfirm();
-                });
-
-                overlay.addEventListener('click', (e) => {
-                    if (e.target === overlay) {
-                        overlay.classList.remove('show');
-                        if (_confirmModalOnCancel) _confirmModalOnCancel();
-                    }
-                });
-            }
-
-            document.getElementById('confirmModalMessage').textContent = message;
-            overlay.classList.add('show');
-        }
-
-        // Toggle module banque
-        function toggleBank(bankId) {
-            const module = document.getElementById(`bank-${bankId}`);
-            if (!module) return;
-            const isExpanded = module.classList.contains('expanded');
-            
-            // Fermer tous les autres modules
-            document.querySelectorAll('.bank-module').forEach(m => {
-                m.classList.remove('expanded');
-            });
-
-            // Ouvrir celui-ci si il était fermé
-            if (!isExpanded) {
-                module.classList.add('expanded');
-            }
-        }
-
-        // Tester la connexion à un site carrière (validateCredentials).
-        // Récupère email/password depuis le DOM au moment du clic pour éviter null/absent.
-        async function testConnection(bankId, email, password, event) {
-            if (event) {
-                event.preventDefault();
-            }
-
-            const bank = banks.find(b => b.id === bankId);
-            const statusDiv = document.getElementById(`status-${bankId}`);
-            const btn = document.getElementById(`btn-${bankId}`);
-
-            if (!bank || !statusDiv || !btn) {
-                console.error('Éléments manquants pour la banque:', bankId);
-                return;
-            }
-
-            // Récupération des valeurs depuis le DOM au moment du clic (évite null/absent)
-            const emailInputId = bankId === 'societe_generale' ? `identifier-${bankId}` : `email-${bankId}`;
-            const passwordInputId = `password-${bankId}`;
-            const emailEl = document.getElementById(emailInputId);
-            const passwordEl = document.getElementById(passwordInputId);
-            const emailValue = (emailEl && emailEl.value != null ? emailEl.value : email || '').trim();
-            const passwordValue = (passwordEl && passwordEl.value != null ? passwordEl.value : password || '');
-            const isBpce = bankId === 'bpce';
-
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> Validation en cours...';
-            statusDiv.className = 'connection-status show info';
-            statusDiv.innerHTML = '⏳ Validation de vos identifiants en cours...<br><small>Veuillez patienter, cela peut prendre quelques secondes.</small>';
-
-            try {
-                const isSocieteGenerale = bankId === 'societe_generale';
-                if (!emailValue) {
-                    throw new Error(isSocieteGenerale ? 'Identifiant invalide' : 'Email invalide');
-                }
-                if (!isBpce && !passwordValue) {
-                    throw new Error('Mot de passe invalide');
-                }
-                if (!isSocieteGenerale && !emailValue.includes('@')) {
-                    throw new Error('Veuillez entrer une adresse email valide (format: nom@domaine.com)');
-                }
-
-                // 1. Auth : récupérer l'UID Firebase (auth.currentUser.uid)
-                const auth = firebase.auth();
-                // 2. État de connexion : si auth.currentUser est nul au clic, fallback sur l'état global (currentUser)
-                const firebaseUserId = (auth.currentUser && auth.currentUser.uid) || (currentUser && currentUser.uid) || null;
-                if (!firebaseUserId || typeof firebaseUserId !== 'string' || firebaseUserId.trim() === '') {
-                    throw new Error('Vous devez être connecté pour lier un compte. Rechargez la page si le problème persiste.');
-                }
-                console.log("Test de connexion via extension Taleos:", firebaseUserId);
-
-                if (isBpce) {
-                    await db.collection('profiles')
-                        .doc(firebaseUserId)
-                        .collection('career_connections')
-                        .doc(bankId)
-                        .set({
-                            bankId,
-                            bankName: bank.name,
-                            email: emailValue,
-                            password: '',
-                            status: 'connected',
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                        }, { merge: true });
-
-                    userConnections[bankId] = {
-                        email: emailValue,
-                        connected: true,
-                        connectedAt: new Date().toISOString()
-                    };
-                    statusDiv.className = 'connection-status show success';
-                    statusDiv.innerHTML = `✅ <strong>Succès !</strong> Votre compte ${bank.name} est maintenant lié.`;
-                    btn.style.display = 'none';
-                    setTimeout(() => {
-                        updateBankCard(bankId);
-                        const bankModule = document.getElementById(`bank-${bankId}`);
-                        if (bankModule) bankModule.classList.add('expanded');
-                    }, 1000);
-                    return;
-                }
-
-                // Attendre que l'extension soit détectée (max 3 s)
-                for (let i = 0; i < 6 && !isExtensionReady(); i++) {
-                    await new Promise(r => setTimeout(r, 500));
-                }
-                if (!isExtensionReady()) {
-                    throw new Error('Extension Taleos non détectée. Rechargez la page (F5), vérifiez que l\'extension est installée, puis allez sur chrome://extensions et rechargez l\'extension Taleos.');
-                }
-
-                // Utiliser l'extension Taleos pour tester la connexion (ouvre un onglet, teste, sauvegarde Firebase)
-                const data = await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => {
-                        window.removeEventListener('taleos-test-connection-result', handler);
-                        resolve({ success: false, message: 'Timeout (60 s). Un onglet a-t-il été ouvert ? Si non, rechargez la page et l\'extension.' });
-                    }, 60000);
-                    const handler = (e) => {
-                        clearTimeout(timeout);
-                        window.removeEventListener('taleos-test-connection-result', handler);
-                        resolve(e.detail || {});
-                    };
-                    window.addEventListener('taleos-test-connection-result', handler);
-                    window.dispatchEvent(new CustomEvent('taleos-request-test-connection', {
-                        detail: {
-                            bankId: bankId,
-                            email: emailValue,
-                            password: passwordValue,
-                            firebaseUserId: firebaseUserId,
-                            bankName: bank.name
-                        }
-                    }));
-                });
-
-                const isSuccess = data.success === true;
-                if (isSuccess) {
-                    // L'extension a déjà sauvegardé dans Firebase
-                    userConnections[bankId] = {
-                        email: emailValue,
-                        connected: true,
-                        connectedAt: new Date().toISOString()
-                    };
-                    statusDiv.className = 'connection-status show success';
-                    statusDiv.innerHTML = `✅ <strong>Succès !</strong> Votre compte ${bank.name} est maintenant lié.`;
-                    btn.style.display = 'none';
-                    setTimeout(() => {
-                        updateBankCard(bankId);
-                        const bankModule = document.getElementById(`bank-${bankId}`);
-                        if (bankModule) bankModule.classList.add('expanded');
-                    }, 1000);
-                } else {
-                    // Validation échouée (success: false)
-                    statusDiv.className = 'connection-status show error';
-                    statusDiv.innerHTML = `❌ ${data.message || 'La connexion a échoué'}<br><small style="color: #dc2626;">Vérifiez vos identifiants et réessayez.</small>`;
-
-                    btn.disabled = false;
-                    btn.innerHTML = '🔗 Lier mon compte';
-                }
-
-            } catch (error) {
-                console.error('Erreur dans testConnection:', error);
-                statusDiv.className = 'connection-status show error';
-
-                let errorMessage = error.message || 'Une erreur est survenue';
-
-                // Messages d'erreur plus spécifiques
-                if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('Failed to fetch')) {
-                    errorMessage = 'Impossible de contacter le serveur. Vérifiez votre connexion internet.';
-                } else if (error.message.includes('CORS')) {
-                    errorMessage = 'Erreur CORS. Vérifiez la configuration du backend.';
-                } else if (error.message.includes('timeout')) {
-                    errorMessage = 'Le test a pris trop de temps. Vérifiez votre connexion internet.';
-                } else if (error.message.includes('permissions') || error.message.includes('Permission')) {
-                    errorMessage = 'Erreur de permissions Firestore. Vérifiez les règles de sécurité.';
-                }
-
-                statusDiv.innerHTML = `❌ Échec de la connexion : ${errorMessage}<br><small>Vérifiez vos identifiants et réessayez.</small>`;
-
-                // Réactiver le bouton
-                btn.disabled = false;
-                btn.innerHTML = '🔗 Lier mon compte';
-            }
-        }
-
-        // Sauvegarder une connexion
-        async function saveConnection(bankId, email, password) {
-            if (!currentUser) return;
-
-            const encryptedPassword = encryptData(password);
-
-            const connectionData = {
-                [bankId]: {
-                    email: email,
-                    password: encryptedPassword,
-                    connected: true,
-                    connectedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }
-            };
-
-            await db.collection('profiles').doc(currentUser.uid)
-                .collection('career_connections')
-                .doc('connections')
-                .set(connectionData, { merge: true });
-        }
-
-        // Supprimer une connexion
-        async function disconnectBank(bankId, event) {
-            if (!currentUser) {
-                console.error('❌ Pas d\'utilisateur connecté');
-                showConfirmModal(
-                    'Vous devez être connecté pour délier un compte.',
-                    () => {
-                        window.location.href = 'HTML/auth.html';
-                    },
-                    () => { }
-                );
-                return;
-            }
-
-            // Récupérer le nom de la banque
-            const bank = banks.find(b => b.id === bankId);
-            const bankName = bank ? bank.name : 'ce compte';
-
-            // Afficher la modale de confirmation
-            showConfirmModal(
-                `Êtes-vous sûr de vouloir délier votre compte ${bankName} ?\n\nVous devrez reconnecter votre compte pour postuler aux offres. Vous pourrez le faire à tout moment.`,
-                () => {
-                    // L'utilisateur a confirmé, procéder à la suppression
-                    performDisconnect(bankId, event);
-                },
-                () => {
-                    // L'utilisateur a annulé, ne rien faire
-                    console.log('Annulation de la suppression');
-                }
-            );
-        }
-
-        async function performDisconnect(bankId, event) {
-
-            // Récupérer le bouton correctement
-            const btn = event ? event.target : document.getElementById(`btn-disconnect-${bankId}`);
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner"></span> Suppression...';
-            }
-
-            // Récupérer ou créer le statusDiv
-            let statusDiv = document.getElementById(`status-${bankId}`);
-            if (!statusDiv) {
-                const bankContent = document.querySelector(`#bank-${bankId} .bank-content`);
-                if (bankContent) {
-                    statusDiv = document.createElement('div');
-                    statusDiv.id = `status-${bankId}`;
-                    statusDiv.className = 'connection-status';
-                    const disconnectBtn = document.getElementById(`btn-disconnect-${bankId}`);
-                    if (disconnectBtn && disconnectBtn.parentElement) {
-                        disconnectBtn.parentElement.insertBefore(statusDiv, disconnectBtn);
-                    } else {
-                        bankContent.appendChild(statusDiv);
-                    }
-                }
-            }
-
-            if (statusDiv) {
-                statusDiv.className = 'connection-status show info';
-                statusDiv.innerHTML = '⏳ Suppression en cours...';
-            }
-
-            try {
-                console.log(`🗑️ Suppression de la connexion ${bankId} pour l'utilisateur ${currentUser.uid}`);
-
-                const docRef = db.collection('profiles')
-                    .doc(currentUser.uid)
-                    .collection('career_connections')
-                    .doc(bankId);
-
-                const docSnap = await docRef.get();
-                if (!docSnap.exists) {
-                    console.warn(`⚠️ Aucun document trouvé pour bankId: ${bankId}`);
-                    delete userConnections[bankId];
-                    if (statusDiv) {
-                        statusDiv.className = 'connection-status show success';
-                        statusDiv.innerHTML = '✅ Compte délié avec succès';
-                    }
-                    setTimeout(() => renderBanks(), 1500);
-                    return;
-                }
-
-                await docRef.delete();
-                console.log(`✅ Connexion ${bankId} supprimée avec succès`);
-
-                // Mettre à jour l'objet local
-                delete userConnections[bankId];
-
-                if (statusDiv) {
-                    statusDiv.className = 'connection-status show success';
-                    statusDiv.innerHTML = '✅ Compte délié avec succès';
-                }
-
-                // Réafficher la liste de manière élégante
-                setTimeout(() => {
-                    renderBanks();
-                }, 1500);
-
-            } catch (error) {
-                console.error('❌ Erreur suppression connexion:', error);
-                
-                let errorMessage = 'Erreur lors de la suppression';
-                if (error.code === 'permission-denied') {
-                    errorMessage = 'Erreur de permissions Firestore. Vérifiez les règles pour career_connections dans Firebase Console.';
-                } else if (error.code === 'not-found') {
-                    errorMessage = 'La connexion n\'existe pas ou a déjà été supprimée.';
-                } else if (error.message) {
-                    errorMessage = `Erreur: ${error.message}`;
-                }
-
-                if (statusDiv) {
-                    statusDiv.className = 'connection-status show error';
-                    statusDiv.innerHTML = `❌ ${errorMessage}`;
-                } else {
-                    alert(errorMessage);
-                }
-
-                // Réactiver le bouton en cas d'erreur
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '✕ Délier ce compte';
-                }
-            }
-        }
-
-        // Retourne le HTML d'une seule carte banque (pour mise à jour ciblée sans toucher aux autres formulaires).
-        function getBankCardHTML(bank) {
-            const isConnected = userConnections[bank.id]?.connected || false;
-            const connectedEmail = userConnections[bank.id]?.email || '';
-            return `
-                <div class="bank-module" id="bank-${bank.id}">
-                    <div class="bank-header" onclick="toggleBank('${bank.id}')">
-                        <div class="bank-header-left">
-                            <img src="${bank.logo}" alt="${bank.name}" class="bank-logo" onerror="this.style.display='none'">
-                            <div class="bank-info">
-                                <h3>${bank.name}</h3>
-                                <p>${bank.description}</p>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <div class="bank-status ${isConnected ? 'connected' : 'disconnected'}">
-                                ${isConnected ? '✓ Connecté' : '○ Non connecté'}
-                            </div>
-                            <span class="toggle-icon">🔽</span>
-                        </div>
-                    </div>
-                    <div class="bank-content">
-                        <div class="bank-content-inner">
-                            ${isConnected ? `
-                                <div style="padding: 20px; background: #d1fae5; border-radius: 8px; margin-bottom: 20px;">
-                                    <p style="color: #065f46; font-weight: 600; margin-bottom: 5px;">✓ Compte lié</p>
-                                    <p style="color: #065f46; font-size: 0.9rem;">
-                                        ${bank.id === 'societe_generale' ? 'Identifiant' : 'Email'}: ${connectedEmail}
-                                    </p>
-                                </div>
-                                <div class="connection-status" id="status-${bank.id}"></div>
-                                <div class="form-actions">
-                                    <button class="btn btn-danger" id="btn-disconnect-${bank.id}" onclick="disconnectBank('${bank.id}', event)">✕ Délier ce compte</button>
-                                </div>
-                            ` : `
-                                <p style="color: #666; margin-bottom: 20px;">
-                                    Connectez votre compte <strong>${bank.id === 'bpce' ? 'du Groupe BPCE' : bank.name}</strong> pour postuler automatiquement aux offres.
-                                    ${bank.id === 'societe_generale' ? '<br><small style="color: #f59e0b; font-weight: 500;">ℹ️ Société Générale utilise un identifiant (sans @) plutôt qu\'un email.</small>' : ''}
-                                </p>
-                                <form onsubmit="testConnection('${bank.id}', document.getElementById('${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}').value, ${bank.id === 'bpce' ? '\'\'': `document.getElementById('password-${bank.id}').value`}, event); return false;">
-                                    <div class="form-group">
-                                        <label for="${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}">
-                                            ${bank.id === 'societe_generale' ? '👤 Identifiant' : '📧 Email'}
-                                        </label>
-                                        <input type="${bank.id === 'societe_generale' ? 'text' : 'email'}" 
-                                               id="${bank.id === 'societe_generale' ? 'identifier' : 'email'}-${bank.id}" 
-                                               placeholder="${bank.id === 'societe_generale' ? 'Votre identifiant (sans @)' : 'votre.email@exemple.com'}" 
-                                               required>
-                                    </div>
-                                    ${bank.id === 'bpce' ? '' : `
-                                        <div class="form-group">
-                                            <label for="password-${bank.id}">Mot de passe</label>
-                                            <div class="password-input-wrapper">
-                                                <input type="password" id="password-${bank.id}" placeholder="Votre mot de passe" required>
-                                                <button type="button" class="password-toggle" onclick="togglePassword('password-${bank.id}', this)" aria-label="Afficher le mot de passe">
-                                                    <span class="pwd-icon pwd-icon-show" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
-                                                    <span class="pwd-icon pwd-icon-hide" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `}
-                                    <div class="connection-status" id="status-${bank.id}"></div>
-                                    <div class="form-actions">
-                                        <button type="submit" class="btn btn-primary" id="btn-${bank.id}">🔗 Lier mon compte</button>
-                                    </div>
-                                </form>
-                            `}
-                        </div>
+                    <div class="bank-info">
+                        <h3>Outlook — codes de vérification</h3>
+                        <p>Récupération automatique des OTP reçus via Outlook</p>
                     </div>
                 </div>
-            `;
-        }
+                <div class="bank-header-right">
+                    <div class="bank-status disconnected" id="outlookLinkStatusBadge">○ Non lié</div>
+                </div>
+            </div>
+            <div class="bank-content" style="max-height:none;opacity:1;">
+                <div class="bank-content-inner">
+                    <div id="outlookLinkedEmail" style="display:none;font-size:0.88rem;color:#059669;margin-bottom:12px;"></div>
+                    <div class="connection-status" id="outlook-status"></div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="btn-outlook-link" onclick="linkOutlookAccount()">🔗 Lier mon compte Outlook</button>
+                        <button type="button" class="btn btn-danger" id="btn-outlook-unlink" onclick="unlinkOutlookAccount()" style="display:none;">✕ Délier Outlook</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        // Met à jour une seule carte (évite de re-render tout le conteneur et de vider les formulaires des autres banques).
-        function updateBankCard(bankId) {
-            const bank = banks.find(b => b.id === bankId);
-            if (!bank) return;
-            const el = document.getElementById('bank-' + bankId);
-            if (!el) return;
-            el.outerHTML = getBankCardHTML(bank);
-        }
+        <!-- Banks container -->
+        <div class="banks-container" id="banksContainer"></div>
 
-        // Render de tous les modules banques
-        function renderBanks() {
-            const container = document.getElementById('banksContainer');
-            if (!container) return;
-            container.innerHTML = banks.map(bank => getBankCardHTML(bank)).join('');
-            const requestedBank = new URLSearchParams(window.location.search).get('bank');
-            if (requestedBank && banks.some(bank => bank.id === requestedBank)) {
-                const target = document.getElementById(`bank-${requestedBank}`);
-                if (target) {
-                    document.querySelectorAll('.bank-module').forEach(m => m.classList.remove('expanded'));
-                    target.classList.add('expanded');
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    </div>
+</div>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-logo">Tale<span>os</span></div>
+        <nav class="footer-nav">
+            <a href="landing_page_finance.html">Présentation</a>
+            <a href="offres.html">Offres</a>
+            <a href="tarifs.html">Tarifs</a>
+            <a href="mailto:contact@taleos.co">Contact</a>
+        </nav>
+        <div class="footer-social">
+            <a href="https://instagram.com/taleos" aria-label="Instagram">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="https://twitter.com/taleos" aria-label="X">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a href="https://linkedin.com/company/taleos" aria-label="LinkedIn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </a>
+            <a href="https://youtube.com/@taleos" aria-label="YouTube">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
+        </div>
+        <div class="footer-copy">© 2026 Taleos. Tous droits réservés. · 🇫🇷 Made in France</div>
+    </div>
+</footer>
+
+<script>
+    // ─── Domain warning ───
+    (function() {
+        const host = window.location.hostname || '';
+        const protocol = window.location.protocol || '';
+        const isSupported = protocol === 'file:' ? false : (
+            host === 'taleos.co' || host.endsWith('.taleos.co') ||
+            host === 'localhost' || host === '127.0.0.1' || host.endsWith('.github.io')
+        );
+        if (!isSupported) document.getElementById('extensionDomainWarning').style.display = 'block';
+    })();
+
+    // ─── Extension detection ───
+    function isExtensionReady() {
+        return document.documentElement.getAttribute('data-taleos-injector') === 'ready';
+    }
+
+    function checkExtensionStatus() {
+        const banner = document.getElementById('extensionStatusBanner');
+        if (!banner) return;
+        if (isExtensionReady()) {
+            banner.className = 'extension-banner ok';
+            banner.style.display = 'block';
+            banner.innerHTML = '✅ Extension Taleos détectée et active';
+        } else {
+            banner.className = 'extension-banner warn';
+            banner.style.display = 'block';
+            banner.innerHTML = '⚠️ Extension Taleos non détectée. <strong>Rechargez la page (F5)</strong> et assurez-vous que l\'extension est installée. Si le problème persiste, ouvrez <code>chrome://extensions</code> et rechargez l\'extension.';
+        }
+    }
+
+    setTimeout(checkExtensionStatus, 1500);
+    setTimeout(checkExtensionStatus, 3500);
+
+    // ─── Firebase ───
+    const firebaseConfig = {
+        apiKey: "AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",
+        authDomain: "project-taleos.firebaseapp.com",
+        projectId: "project-taleos",
+        storageBucket: "project-taleos.firebasestorage.app",
+        messagingSenderId: "747525128323",
+        appId: "1:747525128323:web:b1c67154edf2b63afb1d78"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const API_BASE_URL = 'https://api.taleos.co';
+    const API_KEY = 'Thibault_Secure_987654321_Validator';
+
+    const banks = [
+        { id: 'credit_agricole', name: 'Crédit Agricole',   url: 'https://www.ca-recrute.fr',          logo: 'images/logos/credit_agricole.png',  description: 'Site carrière du Crédit Agricole' },
+        { id: 'bpce',            name: 'BPCE',               url: 'https://recrutement.bpce.fr',         logo: 'images/logos/bpce.svg',             description: 'Site carrière du Groupe BPCE' },
+        { id: 'societe_generale',name: 'Société Générale',   url: 'https://careers.societegenerale.com', logo: 'images/logos/societe_generale.png', description: 'Site carrière de la Société Générale' },
+        { id: 'deloitte',        name: 'Deloitte',           url: 'https://jobs2.deloitte.com',          logo: 'images/logos/deloitte.png',         description: 'Site carrière de Deloitte' }
+    ];
+
+    let userConnections = {};
+    let currentUser = null;
+    const GMAIL_INTEGRATION_ENABLED = false;
+    let gmailRedirectHandled = false;
+
+    // ─── Extension bridge ───
+    function callExtensionBridge(reqEvent, resEvent, detail) {
+        return new Promise(resolve => {
+            const timeout = setTimeout(() => {
+                window.removeEventListener(resEvent, handler);
+                resolve({ ok: false, message: 'Timeout extension' });
+            }, 15000);
+            const handler = e => {
+                clearTimeout(timeout);
+                window.removeEventListener(resEvent, handler);
+                resolve(e.detail || { ok: false, message: 'Réponse vide' });
+            };
+            window.addEventListener(resEvent, handler);
+            window.dispatchEvent(new CustomEvent(reqEvent, { detail: detail || {} }));
+        });
+    }
+
+    // ─── Gmail ───
+    function setGmailUiState(state) {
+        if (!GMAIL_INTEGRATION_ENABLED) return;
+        const badge = document.getElementById('gmailLinkStatusBadge');
+        const emailLine = document.getElementById('gmailLinkedEmail');
+        const btnLink = document.getElementById('btn-gmail-link');
+        const btnUnlink = document.getElementById('btn-gmail-unlink');
+        if (!badge || !btnLink || !btnUnlink) return;
+        const connected = !!(state && state.connected);
+        badge.className = `bank-status ${connected ? 'connected' : 'disconnected'}`;
+        badge.textContent = connected ? '✓ Gmail lié' : '○ Non lié';
+        btnLink.style.display = connected ? 'none' : 'inline-flex';
+        btnUnlink.style.display = connected ? 'inline-flex' : 'none';
+        if (connected && state.gmail_email) {
+            emailLine.style.display = 'block';
+            emailLine.textContent = `Compte lié : ${state.gmail_email}`;
+        } else {
+            emailLine.style.display = 'none';
+        }
+    }
+
+    async function refreshGmailStatus(showMsg) {
+        if (!GMAIL_INTEGRATION_ENABLED) return;
+        const status = document.getElementById('gmail-status');
+        if (!status) return;
+        if (showMsg) { status.className = 'connection-status show info'; status.textContent = '⏳ Vérification...'; }
+        if (!isExtensionReady()) { setGmailUiState({connected:false}); status.className='connection-status show error'; status.textContent='Extension non détectée.'; return; }
+        const res = await callExtensionBridge('taleos-request-gmail-status','taleos-gmail-status-result');
+        if (!res.ok) { setGmailUiState({connected:false}); status.className='connection-status show error'; status.textContent=`❌ ${res.message||'Impossible de lire l\'état Gmail.'}`; return; }
+        setGmailUiState(res);
+        status.className=`connection-status show ${res.connected?'success':'info'}`;
+        status.textContent=res.connected?'✅ Gmail lié. Lecture OTP activée.':'ℹ️ Gmail non lié.';
+    }
+
+    async function handleGmailRedirectResult() {
+        if (!GMAIL_INTEGRATION_ENABLED || gmailRedirectHandled) return;
+        gmailRedirectHandled = true;
+        try {
+            const result = await auth.getRedirectResult();
+            const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+            const accessToken = credential?.accessToken;
+            if (!accessToken) return;
+            await callExtensionBridge('taleos-request-gmail-link-save','taleos-gmail-link-save-result',{accessToken,expiresInSec:3600,gmailEmail:result.user?.email||''});
+            await refreshGmailStatus(false);
+        } catch(e) { console.error('Gmail redirect error:',e); }
+    }
+
+    async function linkGmailAccount() {
+        if (!GMAIL_INTEGRATION_ENABLED || !currentUser || !isExtensionReady()) return;
+        const btn = document.getElementById('btn-gmail-link');
+        const status = document.getElementById('gmail-status');
+        if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Connexion Gmail...'; }
+        if (status) { status.className='connection-status show info'; status.textContent='⏳ Ouverture de la connexion Google...'; }
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.addScope('https://www.googleapis.com/auth/gmail.readonly');
+            await auth.signInWithRedirect(provider);
+        } catch(e) {
+            if (status) { status.className='connection-status show error'; status.textContent=`❌ ${e.message||'Erreur.'}`; }
+        } finally {
+            if (btn) { btn.disabled=false; btn.textContent='🔗 Lier mon compte Gmail'; }
+        }
+    }
+
+    async function unlinkGmailAccount() {
+        if (!GMAIL_INTEGRATION_ENABLED || !isExtensionReady()) return;
+        const btn = document.getElementById('btn-gmail-unlink');
+        const status = document.getElementById('gmail-status');
+        if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Suppression...'; }
+        try {
+            const res = await callExtensionBridge('taleos-request-gmail-unlink','taleos-gmail-unlink-result');
+            if (!res.ok) throw new Error(res.message||'Échec');
+            await refreshGmailStatus(false);
+        } catch(e) {
+            if (status) { status.className='connection-status show error'; status.textContent=`❌ ${e.message}`; }
+        } finally {
+            if (btn) { btn.disabled=false; btn.textContent='✕ Délier Gmail'; }
+        }
+    }
+
+    // ─── Outlook ───
+    function setOutlookUiState(state) {
+        const badge = document.getElementById('outlookLinkStatusBadge');
+        const emailLine = document.getElementById('outlookLinkedEmail');
+        const btnLink = document.getElementById('btn-outlook-link');
+        const btnUnlink = document.getElementById('btn-outlook-unlink');
+        if (!badge || !btnLink || !btnUnlink) return;
+        const connected = !!(state && state.connected);
+        badge.className = `bank-status ${connected ? 'connected' : 'disconnected'}`;
+        badge.textContent = connected ? '✓ Outlook lié' : '○ Non lié';
+        btnLink.style.display = connected ? 'none' : 'inline-flex';
+        btnUnlink.style.display = connected ? 'inline-flex' : 'none';
+        if (connected && state.outlook_email) { emailLine.style.display='block'; emailLine.textContent=`Compte lié : ${state.outlook_email}`; }
+        else { emailLine.style.display='none'; }
+    }
+
+    async function refreshOutlookStatus(showMsg) {
+        const status = document.getElementById('outlook-status');
+        if (!status) return;
+        if (showMsg) { status.className='connection-status show info'; status.textContent='⏳ Vérification Outlook...'; }
+        if (!isExtensionReady()) { setOutlookUiState({connected:false}); status.className='connection-status show error'; status.textContent='Extension non détectée.'; return; }
+        const res = await callExtensionBridge('taleos-request-outlook-status','taleos-outlook-status-result');
+        if (!res.ok) { setOutlookUiState({connected:false}); status.className='connection-status show error'; status.textContent=`❌ ${res.message||'Impossible.'}`; return; }
+        setOutlookUiState(res);
+        status.className=`connection-status show ${res.connected?'success':'info'}`;
+        status.textContent=res.connected?'✅ Outlook lié.':'ℹ️ Outlook non lié.';
+    }
+
+    async function linkOutlookAccount() {
+        const status = document.getElementById('outlook-status');
+        const btn = document.getElementById('btn-outlook-link');
+        if (!currentUser || !isExtensionReady()) return;
+        if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Liaison Outlook...'; }
+        if (status) { status.className='connection-status show info'; status.textContent='⏳ Ouverture Microsoft...'; }
+        try {
+            const res = await callExtensionBridge('taleos-request-outlook-link','taleos-outlook-link-result',{});
+            if (!res.ok) throw new Error(res.message||'Échec');
+            await refreshOutlookStatus(false);
+        } catch(e) {
+            if (status) { status.className='connection-status show error'; status.textContent=`❌ ${e.message}`; }
+        } finally {
+            if (btn) { btn.disabled=false; btn.textContent='🔗 Lier mon compte Outlook'; }
+        }
+    }
+
+    async function unlinkOutlookAccount() {
+        const status = document.getElementById('outlook-status');
+        const btn = document.getElementById('btn-outlook-unlink');
+        if (!isExtensionReady()) return;
+        if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Suppression...'; }
+        try {
+            const res = await callExtensionBridge('taleos-request-outlook-unlink','taleos-outlook-unlink-result');
+            if (!res.ok) throw new Error(res.message||'Échec');
+            await refreshOutlookStatus(false);
+        } catch(e) {
+            if (status) { status.className='connection-status show error'; status.textContent=`❌ ${e.message}`; }
+        } finally {
+            if (btn) { btn.disabled=false; btn.textContent='✕ Délier Outlook'; }
+        }
+    }
+
+    // ─── Navigation ───
+    function updateNavigation(user) {
+        const navAuth = document.getElementById('navAuth');
+        const navProfile = document.getElementById('navProfile');
+        const navCandidatures = document.getElementById('navCandidatures');
+        const navConnexions = document.getElementById('navConnexions');
+        const btnLogout = document.getElementById('btnLogout');
+        const rechercheLink = document.getElementById('rechercheLink');
+        if (user && user.emailVerified) {
+            navAuth.style.display = 'none';
+            navProfile.style.display = 'block';
+            if (navCandidatures) navCandidatures.style.display = 'block';
+            if (navConnexions) navConnexions.style.display = 'block';
+            if (rechercheLink) rechercheLink.style.display = 'inline-block';
+            btnLogout.style.display = 'block';
+        } else {
+            navAuth.style.display = 'block';
+            navProfile.style.display = 'none';
+            if (navCandidatures) navCandidatures.style.display = 'none';
+            if (navConnexions) navConnexions.style.display = 'none';
+            if (rechercheLink) rechercheLink.style.display = 'none';
+            btnLogout.style.display = 'none';
+        }
+    }
+
+    function updateNavigationImmediate() {
+        const token = localStorage.getItem('authToken');
+        const email = localStorage.getItem('userEmail');
+        if (token && email) {
+            document.getElementById('navAuth').style.display = 'none';
+            document.getElementById('navProfile').style.display = 'block';
+            document.getElementById('btnLogout').style.display = 'block';
+            const navCandidatures = document.getElementById('navCandidatures');
+            const navConnexions = document.getElementById('navConnexions');
+            const rechercheLink = document.getElementById('rechercheLink');
+            if (navCandidatures) navCandidatures.style.display = 'block';
+            if (navConnexions) navConnexions.style.display = 'block';
+            if (rechercheLink) rechercheLink.style.display = 'inline-block';
+        }
+    }
+
+    function logout() {
+        auth.signOut().then(() => { window.location.href = 'landing_page_finance.html'; }).catch(console.error);
+    }
+
+    function encryptData(data) { return btoa(data); }
+    function decryptData(data) { try { return atob(data); } catch(e) { return ''; } }
+
+    // ─── Load connections ───
+    async function loadUserConnections() {
+        if (!currentUser) return;
+        try {
+            const snapshot = await db.collection('profiles').doc(currentUser.uid).collection('career_connections').get();
+            userConnections = {};
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const bankId = data.bankId || doc.id;
+                if (data.status === 'connected' || !data.status) {
+                    userConnections[bankId] = { email: data.email, connected: true, connectedAt: data.timestamp?.toDate().toISOString() || new Date().toISOString() };
                 }
+            });
+        } catch(e) { console.error('Erreur chargement connexions:', e); }
+        renderBanks();
+    }
+
+    // ─── Password toggle ───
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.classList.add('is-visible');
+            button.setAttribute('aria-label', 'Masquer le mot de passe');
+        } else {
+            input.type = 'password';
+            button.classList.remove('is-visible');
+            button.setAttribute('aria-label', 'Afficher le mot de passe');
+        }
+    }
+
+    // ─── Confirm modal ───
+    let _confirmOnConfirm = null, _confirmOnCancel = null;
+
+    function showConfirmModal(message, onConfirm, onCancel) {
+        _confirmOnConfirm = onConfirm;
+        _confirmOnCancel = onCancel;
+        let overlay = document.getElementById('confirmModalOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'confirmModalOverlay';
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header"><h3>⚠️ Confirmation</h3></div>
+                    <div class="modal-body"><p id="confirmModalMessage"></p></div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-cancel" id="confirmModalCancel">Annuler</button>
+                        <button class="modal-btn modal-btn-confirm" id="confirmModalConfirm">Confirmer</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            document.getElementById('confirmModalCancel').addEventListener('click', () => { overlay.classList.remove('show'); if (_confirmOnCancel) _confirmOnCancel(); });
+            document.getElementById('confirmModalConfirm').addEventListener('click', () => { overlay.classList.remove('show'); if (_confirmOnConfirm) _confirmOnConfirm(); });
+            overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('show'); if (_confirmOnCancel) _confirmOnCancel(); } });
+        }
+        document.getElementById('confirmModalMessage').textContent = message;
+        overlay.classList.add('show');
+    }
+
+    // ─── Toggle bank accordion ───
+    function toggleBank(bankId) {
+        const module = document.getElementById(`bank-${bankId}`);
+        if (!module) return;
+        const isExpanded = module.classList.contains('expanded');
+        document.querySelectorAll('.bank-module').forEach(m => m.classList.remove('expanded'));
+        if (!isExpanded) module.classList.add('expanded');
+    }
+
+    // ─── Render bank card ───
+    function getBankCardHTML(bank) {
+        const isConnected = userConnections[bank.id]?.connected || false;
+        const connectedEmail = userConnections[bank.id]?.email || '';
+        const isSG = bank.id === 'societe_generale';
+        const isBPCE = bank.id === 'bpce';
+
+        return `
+        <div class="bank-module" id="bank-${bank.id}">
+            <div class="bank-header" onclick="toggleBank('${bank.id}')">
+                <div class="bank-header-left">
+                    <img src="${bank.logo}" alt="${bank.name}" class="bank-logo" onerror="this.style.display='none'">
+                    <div class="bank-info">
+                        <h3>${bank.name}</h3>
+                        <p>${bank.description}</p>
+                    </div>
+                </div>
+                <div class="bank-header-right">
+                    <div class="bank-status ${isConnected ? 'connected' : 'disconnected'}">
+                        ${isConnected ? '✓ Connecté' : '○ Non connecté'}
+                    </div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+            </div>
+            <div class="bank-content">
+                <div class="bank-content-inner">
+                    ${isConnected ? `
+                        <div class="connected-info">
+                            <p>Compte lié</p>
+                            <p>${isSG ? 'Identifiant' : 'Email'} : ${connectedEmail}</p>
+                        </div>
+                        <div class="connection-status" id="status-${bank.id}"></div>
+                        <div class="form-actions">
+                            <button class="btn btn-danger" id="btn-disconnect-${bank.id}" onclick="disconnectBank('${bank.id}', event)">✕ Délier ce compte</button>
+                        </div>
+                    ` : `
+                        <p class="connect-desc">
+                            Connectez votre compte <strong>${isBPCE ? 'du Groupe BPCE' : bank.name}</strong> pour postuler automatiquement aux offres.
+                            ${isSG ? '<br><span class="form-note">ℹ️ Société Générale utilise un identifiant (sans @) plutôt qu\'un email.</span>' : ''}
+                        </p>
+                        <form onsubmit="testConnection('${bank.id}', document.getElementById('${isSG ? 'identifier' : 'email'}-${bank.id}').value, ${isBPCE ? "''" : `document.getElementById('password-${bank.id}').value`}, event); return false;">
+                            <div class="form-group">
+                                <label for="${isSG ? 'identifier' : 'email'}-${bank.id}">${isSG ? 'Identifiant' : 'Email'}</label>
+                                <input type="${isSG ? 'text' : 'email'}" id="${isSG ? 'identifier' : 'email'}-${bank.id}" placeholder="${isSG ? 'Votre identifiant (sans @)' : 'votre.email@exemple.com'}" required>
+                            </div>
+                            ${isBPCE ? '' : `
+                            <div class="form-group">
+                                <label for="password-${bank.id}">Mot de passe</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="password-${bank.id}" placeholder="Votre mot de passe" required>
+                                    <button type="button" class="password-toggle" onclick="togglePassword('password-${bank.id}', this)" aria-label="Afficher le mot de passe">
+                                        <span class="pwd-icon pwd-icon-show"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                                        <span class="pwd-icon pwd-icon-hide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
+                                    </button>
+                                </div>
+                            </div>`}
+                            <div class="connection-status" id="status-${bank.id}"></div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" id="btn-${bank.id}">🔗 Lier mon compte</button>
+                            </div>
+                        </form>
+                    `}
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function updateBankCard(bankId) {
+        const bank = banks.find(b => b.id === bankId);
+        if (!bank) return;
+        const el = document.getElementById('bank-' + bankId);
+        if (!el) return;
+        el.outerHTML = getBankCardHTML(bank);
+    }
+
+    function renderBanks() {
+        const container = document.getElementById('banksContainer');
+        if (!container) return;
+        container.innerHTML = banks.map(bank => getBankCardHTML(bank)).join('');
+        const requestedBank = new URLSearchParams(window.location.search).get('bank');
+        if (requestedBank && banks.some(b => b.id === requestedBank)) {
+            const target = document.getElementById(`bank-${requestedBank}`);
+            if (target) {
+                document.querySelectorAll('.bank-module').forEach(m => m.classList.remove('expanded'));
+                target.classList.add('expanded');
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
+    }
 
-        // Vérification immédiate de l'authentification (avant Firebase)
-        (function checkAuthImmediate() {
+    // ─── testConnection ───
+    async function testConnection(bankId, email, password, event) {
+        if (event) event.preventDefault();
+        const bank = banks.find(b => b.id === bankId);
+        if (!bank) return;
+        const btn = document.getElementById(`btn-${bankId}`);
+        const statusDiv = document.getElementById(`status-${bankId}`);
+        if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Vérification...'; }
+        if (statusDiv) { statusDiv.className='connection-status show info'; statusDiv.innerHTML='⏳ Test de connexion en cours...'; }
+        const isSG = bankId === 'societe_generale';
+        const isBPCE = bankId === 'bpce';
+        const emailInput = document.getElementById(`${isSG?'identifier':'email'}-${bankId}`);
+        const passwordInput = isBPCE ? null : document.getElementById(`password-${bankId}`);
+        const emailValue = emailInput?.value?.trim() || email;
+        const passwordValue = passwordInput?.value || password;
+        const firebaseUserId = currentUser?.uid || '';
+
+        if (!isExtensionReady()) {
+            if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML='❌ Extension Taleos non détectée. Rechargez la page et assurez-vous que l\'extension est installée.'; }
+            if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
+            return;
+        }
+
+        try {
+            const data = await callExtensionBridge('taleos-request-validate-credentials','taleos-credentials-validated', JSON.parse(JSON.stringify({
+                action: 'validateCredentials', payload: { bankId, email: emailValue, password: passwordValue, firebaseUserId, bankName: bank.name }
+            })));
+            if (data.success === true) {
+                userConnections[bankId] = { email: emailValue, connected: true, connectedAt: new Date().toISOString() };
+                if (statusDiv) { statusDiv.className='connection-status show success'; statusDiv.innerHTML=`✅ <strong>Succès !</strong> Votre compte ${bank.name} est maintenant lié.`; }
+                if (btn) btn.style.display = 'none';
+                setTimeout(() => {
+                    updateBankCard(bankId);
+                    const mod = document.getElementById(`bank-${bankId}`);
+                    if (mod) mod.classList.add('expanded');
+                }, 1000);
+            } else {
+                if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML=`❌ ${data.message||'La connexion a échoué'}. Vérifiez vos identifiants.`; }
+                if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
+            }
+        } catch(error) {
+            console.error('Erreur testConnection:', error);
+            let msg = 'Une erreur est survenue.';
+            if (error.message?.includes('fetch')||error.message?.includes('network')) msg='Impossible de contacter le serveur.';
+            if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML=`❌ ${msg}`; }
+            if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
+        }
+    }
+
+    // ─── disconnectBank ───
+    async function disconnectBank(bankId, event) {
+        if (!currentUser) { showConfirmModal('Vous devez être connecté.', () => { window.location.href='auth.html'; }, ()=>{}); return; }
+        const bank = banks.find(b => b.id === bankId);
+        showConfirmModal(
+            `Êtes-vous sûr de vouloir délier votre compte ${bank?.name||'ce compte'} ? Vous pourrez le reconnecter à tout moment.`,
+            () => performDisconnect(bankId, event),
+            () => {}
+        );
+    }
+
+    async function performDisconnect(bankId, event) {
+        const btn = event?.target || document.getElementById(`btn-disconnect-${bankId}`);
+        if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner dark"></span> Suppression...'; }
+        let statusDiv = document.getElementById(`status-${bankId}`);
+        if (statusDiv) { statusDiv.className='connection-status show info'; statusDiv.innerHTML='⏳ Suppression en cours...'; }
+        try {
+            const docRef = db.collection('profiles').doc(currentUser.uid).collection('career_connections').doc(bankId);
+            const docSnap = await docRef.get();
+            if (!docSnap.exists) { delete userConnections[bankId]; if (statusDiv) { statusDiv.className='connection-status show success'; statusDiv.innerHTML='✅ Compte délié.'; } setTimeout(()=>renderBanks(),1500); return; }
+            await docRef.delete();
+            delete userConnections[bankId];
+            if (statusDiv) { statusDiv.className='connection-status show success'; statusDiv.innerHTML='✅ Compte délié avec succès.'; }
+            setTimeout(()=>renderBanks(),1500);
+        } catch(error) {
+            console.error('Erreur suppression:', error);
+            let msg = 'Erreur lors de la suppression.';
+            if (error.code==='permission-denied') msg='Erreur de permissions Firestore.';
+            if (error.code==='not-found') msg='La connexion n\'existe pas ou a déjà été supprimée.';
+            if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML=`❌ ${msg}`; }
+            if (btn) { btn.disabled=false; btn.innerHTML='✕ Délier ce compte'; }
+        }
+    }
+
+    // ─── Init ───
+    (function checkAuthImmediate() {
+        const token = localStorage.getItem('authToken');
+        const email = localStorage.getItem('userEmail');
+        if (!token || !email) window.location.href = 'auth.html';
+    })();
+
+    updateNavigationImmediate();
+
+    auth.onAuthStateChanged(async user => {
+        updateNavigation(user);
+        if (user) {
+            currentUser = user;
+            await loadUserConnections();
+            if (GMAIL_INTEGRATION_ENABLED) { await handleGmailRedirectResult(); await refreshGmailStatus(true); }
+            await refreshOutlookStatus(true);
+        } else {
+            if (GMAIL_INTEGRATION_ENABLED) setGmailUiState({connected:false});
+            setOutlookUiState({connected:false});
             const token = localStorage.getItem('authToken');
             const email = localStorage.getItem('userEmail');
-            
-            if (!token || !email) {
-                console.log('❌ Page Connexions - Accès refusé');
-                console.log('🔄 Redirection vers la page de connexion...');
-                window.location.href = 'auth.html';
-            }
-        })();
-
-        // Mise à jour immédiate de la navigation (avant Firebase) pour éviter le flash
-        updateNavigationImmediate();
-
-        // Initialisation
-        auth.onAuthStateChanged(async (user) => {
-            updateNavigation(user);
-
-            if (user) {
-                currentUser = user;
-                await loadUserConnections();
-                renderBanks();
-                if (GMAIL_INTEGRATION_ENABLED) {
-                    await handleGmailRedirectResult();
-                    await refreshGmailStatus(true);
-                }
-                await refreshOutlookStatus(true);
-            } else {
-                if (GMAIL_INTEGRATION_ENABLED) {
-                    setGmailUiState({ connected: false });
-                }
-                setOutlookUiState({ connected: false });
-                // Vérifier localStorage en cas de connexion persistante
-                const token = localStorage.getItem('authToken');
-                const email = localStorage.getItem('userEmail');
-                
-                if (token && email) {
-                    // Attendre un peu que Firebase charge la session
-                    setTimeout(async () => {
-                        if (auth.currentUser) {
-                            currentUser = auth.currentUser;
-                            await loadUserConnections();
-                            renderBanks();
-                        } else {
-                            // Toujours pas d'utilisateur après attente, rediriger
-                            console.log('❌ Accès refusé - Redirection vers la page de connexion');
-                            localStorage.removeItem('authToken');
-                            localStorage.removeItem('userEmail');
-                            window.location.href = 'auth.html';
-                        }
-                    }, 1500);
-                } else {
-                    // Aucun token dans localStorage, rediriger immédiatement
-                    console.log('❌ Accès refusé - Aucune session active');
-                    window.location.href = 'auth.html';
-                }
-            }
-        });
-    </script>
+            if (token && email) {
+                setTimeout(async () => {
+                    if (auth.currentUser) { currentUser=auth.currentUser; await loadUserConnections(); renderBanks(); }
+                    else { localStorage.removeItem('authToken'); localStorage.removeItem('userEmail'); window.location.href='auth.html'; }
+                }, 1500);
+            } else { window.location.href='auth.html'; }
+        }
+    });
+</script>
 </body>
 </html>

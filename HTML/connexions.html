@@ -146,48 +146,6 @@
 
         .logout-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
 
-        /* ─── PAGE HEADER ─── */
-        .page-top {
-            background: var(--ink);
-            padding: 52px 48px 48px;
-            border-bottom: 1px solid rgba(200,169,110,0.1);
-        }
-
-        .page-top-inner { max-width: 1200px; margin: 0 auto; }
-
-        .page-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.68rem;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 16px;
-        }
-
-        .page-label::before {
-            content: '';
-            display: block;
-            width: 20px;
-            height: 1px;
-            background: var(--gold);
-        }
-
-        .page-top h1 {
-            font-family: var(--serif);
-            font-size: clamp(1.8rem, 3vw, 2.6rem);
-            font-weight: 700;
-            color: var(--white);
-            line-height: 1.15;
-            margin-bottom: 10px;
-        }
-
-        .page-top h1 em { font-style: italic; color: var(--gold-light); }
-
-        .page-top p { font-size: 0.95rem; color: rgba(255,255,255,0.45); }
-
         /* ─── DOMAIN WARNING ─── */
         .domain-warning {
             display: none;
@@ -773,7 +731,6 @@
             nav { padding: 0 20px; }
             .nav-container { display: flex; justify-content: space-between; }
             .nav-links { display: none; }
-            .page-top { padding: 40px 20px 36px; }
             .domain-warning { padding: 12px 20px; }
             .container { padding: 24px 20px; }
             .bank-header { padding: 18px 20px; }
@@ -818,15 +775,6 @@
 <!-- Domain warning -->
 <div id="extensionDomainWarning" class="domain-warning">
     <strong>⚠️ L'extension Taleos ne fonctionne pas sur cette page.</strong> Utilisez <strong>https://taleos.co</strong> ou <strong>https://dedale95.github.io</strong> pour lier vos comptes.
-</div>
-
-<!-- ─── PAGE HEADER ─── -->
-<div class="page-top">
-    <div class="page-top-inner">
-        <div class="page-label">Comptes liés</div>
-        <h1>Mes <em>connexions</em></h1>
-        <p>Liez vos comptes des sites carrière pour postuler automatiquement</p>
-    </div>
 </div>
 
 <!-- ─── MAIN ─── -->
@@ -879,7 +827,7 @@
         </div>
 
         <!-- Outlook integration -->
-        <div class="bank-module" id="outlookIntegrationCard" style="margin-bottom:12px;">
+        <div class="bank-module" id="outlookIntegrationCard" style="margin-bottom:12px;display:none;">
             <div class="bank-header" style="cursor:default;">
                 <div class="bank-header-left">
                     <div class="bank-logo" style="display:flex;align-items:center;justify-content:center;">

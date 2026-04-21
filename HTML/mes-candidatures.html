@@ -780,7 +780,7 @@
         }
     </style>
 </head>
-<body>
+<body class="applications-page">
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
@@ -1621,8 +1621,8 @@
                             type: 'bar',
                             label: 'Candidatures du jour',
                             data,
-                            backgroundColor: 'rgba(118, 75, 162, 0.60)',
-                            borderColor: '#764ba2',
+                            backgroundColor: 'rgba(123, 90, 193, 0.56)',
+                            borderColor: '#7b5ac1',
                             borderWidth: 1,
                             borderRadius: 10,
                             borderSkipped: false,
@@ -1635,14 +1635,14 @@
                             type: 'line',
                             label: 'Candidatures cumulées',
                             data: cumulativeData,
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                            borderColor: '#c8a96e',
+                            backgroundColor: 'rgba(200, 169, 110, 0.08)',
                             fill: true,
                             tension: 0.32,
                             pointRadius: 3,
                             pointHoverRadius: 5,
-                            pointBackgroundColor: '#667eea',
-                            pointBorderColor: '#fff',
+                            pointBackgroundColor: '#c8a96e',
+                            pointBorderColor: '#fffdf9',
                             pointBorderWidth: 2,
                             borderWidth: 3,
                             yAxisID: 'yCumulative',
@@ -1662,7 +1662,7 @@
                                 boxWidth: 10,
                                 boxHeight: 10,
                                 padding: 14,
-                                color: '#4b5563',
+                                color: '#5f5a51',
                                 font: {
                                     size: 12,
                                     weight: '600'
@@ -1692,7 +1692,7 @@
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#6b7280',
+                                color: '#706d79',
                                 maxRotation: 0,
                                 autoSkip: true,
                                 maxTicksLimit: 7,
@@ -1714,7 +1714,7 @@
                             },
                             ticks: {
                                 precision: 0,
-                                color: '#6b7280',
+                                color: '#706d79',
                                 padding: 10,
                                 font: {
                                     size: 12,
@@ -1733,7 +1733,7 @@
                             },
                             ticks: {
                                 precision: 0,
-                                color: '#667eea',
+                                color: '#7b5ac1',
                                 padding: 10,
                                 font: {
                                     size: 12,
@@ -1774,8 +1774,8 @@
                     datasets: [{
                         label: 'Candidatures',
                         data: sortedCompanies.map(([, count]) => count),
-                        backgroundColor: 'rgba(118, 75, 162, 0.72)',
-                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(123, 90, 193, 0.62)',
+                        borderColor: '#7b5ac1',
                         borderWidth: 2,
                         borderRadius: 10,
                         borderSkipped: false,
@@ -1804,7 +1804,7 @@
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#6b7280',
+                                color: '#706d79',
                                 padding: 12,
                                 font: {
                                     size: 12,
@@ -1822,7 +1822,7 @@
                             },
                             ticks: {
                                 precision: 0,
-                                color: '#6b7280',
+                                color: '#706d79',
                                 padding: 8,
                                 font: {
                                     size: 12,
@@ -1848,7 +1848,7 @@
                 contractMap.set(contract, (contractMap.get(contract) || 0) + 1);
             });
 
-            const colors = ['#667eea', '#764ba2', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6'];
+            const colors = ['#7b5ac1', '#c8a96e', '#16161f', '#6f9777', '#b95d5d', '#9a7ad8'];
 
             if (charts.contract) {
                 charts.contract.destroy();
@@ -1862,7 +1862,7 @@
                         data: Array.from(contractMap.values()),
                         backgroundColor: colors,
                         borderWidth: 3,
-                        borderColor: '#fff'
+                        borderColor: '#fffdf9'
                     }]
                 },
                 options: {
@@ -1877,7 +1877,7 @@
                                 boxWidth: 10,
                                 boxHeight: 10,
                                 padding: 14,
-                                color: '#4b5563',
+                                color: '#5f5a51',
                                 font: {
                                     size: 12,
                                     weight: '600'
@@ -1920,8 +1920,8 @@
                     datasets: [{
                         label: 'Candidatures',
                         data: sortedLocations.map(([, count]) => count),
-                        backgroundColor: 'rgba(118, 75, 162, 0.72)',
-                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(123, 90, 193, 0.62)',
+                        borderColor: '#7b5ac1',
                         borderWidth: 2,
                         borderRadius: 10,
                         borderSkipped: false,
@@ -1950,7 +1950,7 @@
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#6b7280',
+                                color: '#706d79',
                                 padding: 12,
                                 font: {
                                     size: 12,
@@ -1968,7 +1968,7 @@
                             },
                             ticks: {
                                 precision: 0,
-                                color: '#6b7280',
+                                color: '#706d79',
                                 padding: 8,
                                 font: {
                                     size: 12,

@@ -2728,11 +2728,10 @@
                 (restoredFilters.families && restoredFilters.families.length > 0) ||
                 hasRestoredCompanies ||
                 (restoredFilters.educations && restoredFilters.educations.length > 0))) {
-                // Appliquer les filtres restaurés après un court délai pour que le DOM soit prêt
-                setTimeout(() => {
-                    applyFilters();
-                    updateActiveFiltersBadge();
-                }, 100);
+                // Le premier filtrage est déjà relancé une fois juste après initializeFilters()
+                // par le chargeur principal. On évite ici une seconde exécution asynchrone
+                // qui pouvait réécrire localStorage avec un état partiel des checkboxes.
+                updateActiveFiltersBadge();
             }
         }
 
@@ -3720,10 +3719,31 @@
             return state;
         }
 
+        function normalizeFilterArray(values) {
+            if (!Array.isArray(values)) return [];
+            return [...new Set(values.map(v => String(v || '').trim()).filter(Boolean))];
+        }
+
+        function normalizeFiltersPayload(filters) {
+            if (!filters || typeof filters !== 'object') return null;
+            return {
+                ...filters,
+                searchKeywords: normalizeFilterArray(filters.searchKeywords),
+                countries: normalizeFilterArray(filters.countries),
+                regions: normalizeFilterArray(filters.regions),
+                contracts: normalizeFilterArray(filters.contracts),
+                experiences: normalizeFilterArray(filters.experiences),
+                families: normalizeFilterArray(filters.families),
+                companies: normalizeFilterArray(filters.companies),
+                companiesExpanded: normalizeFilterArray(filters.companiesExpanded),
+                educations: normalizeFilterArray(filters.educations)
+            };
+        }
+
         // Sauvegarder les filtres dans localStorage ET Firestore (si connecté)
         async function saveFilters() {
             const { countries: locCountries, regions: locRegions } = getCheckedCountriesAndRegions();
-            const filters = {
+            const filters = normalizeFiltersPayload({
                 searchKeywords: Array.from(window.searchKeywords || []),
                 countries: locCountries,
                 regions: locRegions,
@@ -3743,7 +3763,7 @@
                 countryExpanded: getCountryExpandedState(),
                 familyGroupExpanded: familyGroupExpanded,
                 savedAt: new Date().toISOString()
-            };
+            });
             
             // Sauvegarder dans localStorage (toujours)
             localStorage.setItem('offresFilters', JSON.stringify(filters));
@@ -3775,7 +3795,7 @@
             
             try {
                 const savedFilters = localStorage.getItem('offresFilters');
-                if (savedFilters) filtersLocal = JSON.parse(savedFilters);
+                if (savedFilters) filtersLocal = normalizeFiltersPayload(JSON.parse(savedFilters));
             } catch (error) {
                 console.error('Erreur lors de la restauration localStorage des filtres:', error);
             }
@@ -3798,7 +3818,7 @@
                             .collection('user_preferences')
                             .doc('offres_filters')
                             .get();
-                        if (doc.exists) filtersFirestore = doc.data();
+                        if (doc.exists) filtersFirestore = normalizeFiltersPayload(doc.data());
                     } catch (error) {
                         console.error('Erreur lors de la restauration Firestore des filtres:', error);
                     }

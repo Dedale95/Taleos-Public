@@ -87,80 +87,25 @@
         .nav-link-primary { color:var(--gold) !important; }
         .nav-link-primary:hover { background:var(--gold-dim); }
 
-        /* ─── MAIN: SPLIT LAYOUT ─── */
+        /* ─── MAIN LAYOUT ─── */
         .auth-wrapper {
             flex: 1;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
             min-height: calc(100vh - 68px);
         }
-
-        /* ─── LEFT PANEL (brand) ─── */
-        .auth-brand {
-            background: var(--ink);
-            padding: 64px 56px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Gold orb */
-        .auth-brand::after {
-            content:'';
-            position:absolute; width:400px; height:400px;
-            bottom:-80px; left:-80px;
-            background:radial-gradient(circle,rgba(200,169,110,0.1) 0%,transparent 70%);
-            pointer-events:none;
-        }
-
-        .brand-label {
-            display:inline-flex; align-items:center; gap:8px;
-            font-size:0.65rem; font-weight:600; letter-spacing:0.12em;
-            text-transform:uppercase; color:var(--gold); margin-bottom:24px;
-        }
-        .brand-label::before { content:''; display:block; width:20px; height:1px; background:var(--gold); }
-
-        .brand-title {
-            font-family:var(--serif);
-            font-size:clamp(2rem, 3.5vw, 2.8rem);
-            font-weight:700; color:var(--white);
-            line-height:1.12; margin-bottom:24px;
-        }
-        .brand-title em { font-style:italic; color:var(--gold-light); }
-
-        .brand-desc {
-            font-size:0.9rem; color:rgba(255,255,255,0.45);
-            line-height:1.8; margin-bottom:48px; max-width:340px;
-        }
-
-        .brand-pillars {
-            display:flex; flex-direction:column; gap:16px;
-            position:relative; z-index:1;
-        }
-
-        .brand-pillar {
-            display:flex; align-items:flex-start; gap:14px;
-            font-size:0.85rem; color:rgba(255,255,255,0.6); line-height:1.5;
-        }
-
-        .pillar-icon {
-            width:32px; height:32px; flex-shrink:0;
-            background:var(--gold-dim);
-            border:1px solid rgba(200,169,110,0.2);
-            border-radius:var(--radius);
-            display:flex; align-items:center; justify-content:center;
-            font-size:0.9rem;
-        }
-
-        /* ─── RIGHT PANEL (form) ─── */
         .auth-form-panel {
             background: var(--white);
             padding: 64px 56px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            width: min(100%, 640px);
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius-md);
+            box-shadow: 0 18px 48px rgba(10,10,15,0.08);
         }
 
         /* Tabs */
@@ -279,66 +224,6 @@
         }
         .btn-submit:hover:not(:disabled) { background:var(--ink-mid); transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,0.15); }
         .btn-submit:disabled { opacity:0.55; cursor:not-allowed; transform:none; }
-
-        .career-connection-box {
-            margin-top: 24px;
-            padding: 20px;
-            border: 1px solid rgba(200,169,110,0.22);
-            border-radius: var(--radius-md);
-            background: linear-gradient(135deg, rgba(200,169,110,0.08) 0%, rgba(10,10,15,0.02) 100%);
-        }
-
-        .career-connection-box-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 12px;
-        }
-
-        .career-connection-box-logo {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: var(--white);
-            padding: 8px;
-            border: 1px solid var(--surface2);
-            object-fit: contain;
-            flex-shrink: 0;
-        }
-
-        .career-connection-box h3 {
-            font-family: var(--sans);
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--ink);
-            margin: 0;
-        }
-
-        .career-connection-box p {
-            color: var(--muted);
-            font-size: 0.88rem;
-            line-height: 1.65;
-            margin: 0 0 14px 0;
-        }
-
-        .career-connection-box .btn-secondary-link {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: var(--radius);
-            border: 1px solid rgba(200,169,110,0.3);
-            background: var(--white);
-            color: var(--ink);
-            font-size: 0.82rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            cursor: pointer;
-            transition: all var(--transition);
-        }
-
-        .career-connection-box .btn-secondary-link:hover {
-            background: var(--gold-dim);
-            border-color: var(--gold);
-        }
 
         /* Password requirements */
         .password-requirements {
@@ -572,8 +457,7 @@
 
         /* ─── RESPONSIVE ─── */
         @media (max-width: 900px) {
-            .auth-wrapper { grid-template-columns:1fr; }
-            .auth-brand { display:none; }
+            .auth-wrapper { padding: 40px 20px; }
             .auth-form-panel { padding:48px 32px; }
         }
 
@@ -581,6 +465,7 @@
             nav { padding:0 20px; }
             .nav-container { display:flex; justify-content:space-between; }
             .nav-links { display:none; }
+            .auth-wrapper { padding: 28px 16px; }
             .auth-form-panel { padding:40px 20px; }
             footer { padding:28px 20px; }
             .footer-inner { flex-direction:column; align-items:flex-start; }
@@ -612,36 +497,8 @@
     </div>
 </nav>
 
-<!-- ─── SPLIT LAYOUT ─── -->
+<!-- ─── AUTH LAYOUT ─── -->
 <div class="auth-wrapper">
-
-    <!-- Left: brand panel -->
-    <div class="auth-brand">
-        <div class="brand-label">Votre partenaire finance</div>
-        <h1 class="brand-title">Postulez plus.<br><em>Cherchez moins.</em></h1>
-        <p class="brand-desc">Taleos automatise vos candidatures en finance — banque, audit, conseil, asset management — pour que vous puissiez vous concentrer sur l'essentiel.</p>
-
-        <div class="brand-pillars">
-            <div class="brand-pillar">
-                <div class="pillar-icon">⏱</div>
-                <span>Gagnez des dizaines d'heures sur vos candidatures</span>
-            </div>
-            <div class="brand-pillar">
-                <div class="pillar-icon">🏦</div>
-                <span>Toutes les offres au même endroit — BNP, Rothschild, Deloitte...</span>
-            </div>
-            <div class="brand-pillar">
-                <div class="pillar-icon">📋</div>
-                <span>Suivez toutes vos candidatures en un tableau de bord unique</span>
-            </div>
-            <div class="brand-pillar">
-                <div class="pillar-icon">🎯</div>
-                <span>Postulez à des offres auxquelles vous n'auriez jamais pensé</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Right: form panel -->
     <div class="auth-form-panel">
 
         <div class="auth-tabs">
@@ -682,15 +539,6 @@
             </div>
 
             <button type="submit" class="btn-submit" id="loginBtn">Se connecter</button>
-
-            <div class="career-connection-box">
-                <div class="career-connection-box-header">
-                    <img src="images/logos/bpce.svg" alt="BPCE" class="career-connection-box-logo" onerror="this.style.display='none'">
-                    <h3>Connecter le Groupe BPCE</h3>
-                </div>
-                <p>Pour les candidatures BPCE, Banque Populaire, Caisse d'Épargne, Natixis et les autres entités du groupe, seul votre email est nécessaire ici.</p>
-                <button type="button" class="btn-secondary-link" onclick="goToBpceConnection()">Configurer mon email BPCE</button>
-            </div>
         </form>
 
         <!-- Signup form -->
@@ -1032,20 +880,6 @@
                 btn.disabled = false; btn.textContent = 'Se connecter'; btn.style.display = 'block';
             }
         }
-    }
-
-    function goToBpceConnection() {
-        const target = 'connexions.html?bank=bpce';
-        const token = localStorage.getItem('authToken');
-        const email = localStorage.getItem('userEmail');
-        if (token && email) {
-            window.location.href = target;
-            return;
-        }
-        localStorage.setItem('postLoginRedirect', target);
-        switchTab('login');
-        const loginEmail = document.getElementById('loginEmail');
-        if (loginEmail) loginEmail.focus();
     }
 
     // ─── Forgot password ───

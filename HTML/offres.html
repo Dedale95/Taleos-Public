@@ -12,6 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="taleos-theme.css">
     
     <style>
         * {
@@ -1361,6 +1362,194 @@
             font-weight: 600;
         }
 
+        .sections-wrapper {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            margin-top: 24px;
+        }
+
+        .sections-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .sections-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .sections-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .sections-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: #eef2ff;
+            color: #4338ca;
+        }
+
+        .sections-btn:hover {
+            background: #e0e7ff;
+        }
+
+        .sections-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .sections-warning {
+            margin-bottom: 14px;
+            background: #fff7ed;
+            color: #9a3412;
+            border: 1px solid #fed7aa;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .sections-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: #f8fafc;
+            cursor: pointer;
+        }
+
+        .section-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .section-name {
+            font-weight: 700;
+            color: #111827;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 340px;
+        }
+
+        .section-badge {
+            border-radius: 999px;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .section-count {
+            border-radius: 999px;
+            padding: 3px 9px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #ede9fe;
+            color: #5b21b6;
+        }
+
+        .section-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-action-btn {
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            border-radius: 8px;
+            padding: 6px 8px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .section-action-btn:hover {
+            background: #f9fafb;
+        }
+
+        .section-action-btn.danger {
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+
+        .section-body {
+            display: none;
+            padding: 12px;
+            background: white;
+        }
+
+        .section-card.expanded .section-body {
+            display: block;
+        }
+
+        .section-empty {
+            border: 1px dashed #d1d5db;
+            border-radius: 10px;
+            padding: 16px;
+            color: #6b7280;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .section-jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 10px;
+        }
+
+        .section-job-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 10px;
+            background: #fcfcfd;
+        }
+
+        .section-job-item a {
+            text-decoration: none;
+            color: #111827;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .section-job-meta {
+            color: #6b7280;
+            font-size: 0.8rem;
+        }
+
 
         footer {
             background: #1a1a1a;
@@ -1476,6 +1665,10 @@
             .toggle-badge {
                 width: 100%;
                 text-align: center;
+            }
+
+            .section-name {
+                max-width: 150px;
             }
         }
     </style>
@@ -1626,6 +1819,19 @@
                 </div>
             </div>
         </div>
+
+        <div class="sections-wrapper" id="sectionsWrapper">
+            <div class="sections-toolbar">
+                <div class="sections-title">Sections personnalisees</div>
+                <div class="sections-actions">
+                    <button class="sections-btn" onclick="collapseAllSections()">Tout replier</button>
+                    <button class="sections-btn" onclick="expandAllSections()">Tout ouvrir</button>
+                    <button class="sections-btn primary" onclick="createSectionPrompt()">Nouvelle section</button>
+                </div>
+            </div>
+            <div class="sections-warning" id="sectionsWarning"></div>
+            <div class="sections-list" id="sectionsList"></div>
+        </div>
     </div>
 
 
@@ -1638,6 +1844,376 @@
         // Pagination variables
         let currentPage = 1;
         let itemsPerPage = 25;
+        const SECTIONS_MAX = 12;
+        let customSections = [];
+        let sectionsLoaded = false;
+        let sectionsLoading = false;
+        let sectionsMigrated = false;
+
+        function getCurrentUserIdForSections() {
+            try {
+                const auth = firebase?.auth?.();
+                const uid = auth?.currentUser?.uid;
+                if (uid) return uid;
+            } catch (_) {}
+            return null;
+        }
+
+        function getSectionsCollectionRef() {
+            const uid = getCurrentUserIdForSections();
+            if (!uid) return null;
+            const db = firebase.firestore();
+            return db.collection('profiles').doc(uid).collection('offres_sections');
+        }
+
+        function getNowIso() {
+            return new Date().toISOString();
+        }
+
+        function buildCurrentCriteria() {
+            const { countries, regions } = getCheckedCountriesAndRegions();
+            return {
+                searchKeywords: Array.from(window.searchKeywords || []),
+                countries: countries || [],
+                regions: regions || [],
+                contracts: getCheckedValues('contractFilter') || [],
+                experiences: getCheckedValues('experienceFilter') || [],
+                families: getSelectedFamilies() || [],
+                companies: getSelectedCompanies() || [],
+                educations: getCheckedValues('educationFilter') || []
+            };
+        }
+
+        function applyCriteriaToJobs(criteria) {
+            if (!criteria) return [];
+            const keywords = Array.isArray(criteria.searchKeywords) ? criteria.searchKeywords : [];
+            const countries = Array.isArray(criteria.countries) ? criteria.countries : [];
+            const regions = Array.isArray(criteria.regions) ? criteria.regions : [];
+            const contracts = Array.isArray(criteria.contracts) ? criteria.contracts : [];
+            const experiences = Array.isArray(criteria.experiences) ? criteria.experiences : [];
+            const families = Array.isArray(criteria.families) ? criteria.families : [];
+            const companies = Array.isArray(criteria.companies) ? criteria.companies : [];
+            const educations = Array.isArray(criteria.educations) ? criteria.educations : [];
+
+            return allJobs.filter((job) => {
+                const matchSearch = keywords.length === 0 || keywords.every((keyword) => {
+                    const k = String(keyword || '').toLowerCase();
+                    const title = (job.job_title || '').toLowerCase();
+                    const desc = (job.job_description || '').toLowerCase();
+                    return title.includes(k) || desc.includes(k);
+                });
+                const jobCountry = job.cleanCountries && job.cleanCountries.length ? job.cleanCountries : null;
+                const matchCountry = !countries.length ||
+                    (countries.includes('Non spécifié') && !jobCountry) ||
+                    (jobCountry && jobCountry.some((c) => countries.includes(c)));
+                const matchRegion = !regions.length || (job.cleanRegions && job.cleanRegions.some((r) => regions.includes(r)));
+                const jobContractTypes = job.contract_types || (job.contract_type ? [String(job.contract_type).trim()] : []);
+                const matchContract = !contracts.length ||
+                    (contracts.includes('Non spécifié') && !job.contract_type) ||
+                    contracts.some((s) => jobContractTypes.includes(s));
+                const jobExp = job.experience_level && String(job.experience_level).trim();
+                const matchExperience = !experiences.length || experiences.includes(jobExp) ||
+                    (experiences.includes('Non spécifié') && !jobExp);
+                const matchFamily = !families.length || families.includes(job.job_family);
+                const matchCompany = !companies.length || companies.includes(job.company_name);
+                const jobEdu = job.education_level && String(job.education_level).trim();
+                const matchEducation = !educations.length || educations.includes(jobEdu) ||
+                    (educations.includes('Non spécifié') && !jobEdu);
+                return matchSearch && matchCountry && matchRegion && matchContract &&
+                    matchExperience && matchFamily && matchCompany && matchEducation;
+            });
+        }
+
+        function getJobsForSection(section) {
+            if (!section) return [];
+            if (section.type === 'manual') {
+                const rule = section.manualRules?.source || '';
+                if (rule === 'favorites') {
+                    return allJobs.filter((job) => userApplications.has(job.job_id));
+                }
+                if (rule === 'relancer') {
+                    return allJobs.filter((job) => {
+                        const st = (applicationStatuses.get(job.job_id) || '').toLowerCase();
+                        return userApplications.has(job.job_id) && (st === 'screening' || st === 'entretien' || st === 'interview');
+                    });
+                }
+                return [];
+            }
+            return applyCriteriaToJobs(section.criteria || {});
+        }
+
+        function sectionTypeLabel(section) {
+            if (section.type === 'manual') return 'Manuelle';
+            return 'Recherche';
+        }
+
+        function renderSectionJobs(jobs) {
+            if (!jobs.length) {
+                return '<div class="section-empty">Aucune offre pour cette section. Ajustez les filtres ou choisissez une autre source.</div>';
+            }
+            const preview = jobs.slice(0, 12);
+            const cards = preview.map((job) => {
+                const title = cleanJobTitle(job.job_title || 'Sans titre');
+                const company = job.company_name || 'Entreprise non specifiee';
+                const location = job.location || 'Lieu non specifie';
+                const url = job.job_url || '#';
+                return `
+                    <div class="section-job-item">
+                        <a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>
+                        <div class="section-job-meta">${company} - ${location}</div>
+                    </div>
+                `;
+            }).join('');
+            const extra = jobs.length > preview.length
+                ? `<div class="section-empty">+ ${jobs.length - preview.length} autres offres dans cette section.</div>`
+                : '';
+            return `<div class="section-jobs-grid">${cards}</div>${extra}`;
+        }
+
+        function renderCustomSections() {
+            const list = document.getElementById('sectionsList');
+            const warning = document.getElementById('sectionsWarning');
+            if (!list || !warning) return;
+
+            warning.style.display = customSections.length >= SECTIONS_MAX ? 'block' : 'none';
+            warning.textContent = customSections.length >= SECTIONS_MAX
+                ? `Vous avez atteint la limite douce de ${SECTIONS_MAX} sections pour conserver une interface lisible.`
+                : '';
+
+            if (!customSections.length) {
+                list.innerHTML = '<div class="section-empty">Aucune section pour le moment. Cliquez sur "Nouvelle section".</div>';
+                return;
+            }
+
+            const html = customSections
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .map((section) => {
+                    const jobs = getJobsForSection(section);
+                    const expanded = section.expanded === true;
+                    return `
+                        <div class="section-card ${expanded ? 'expanded' : ''}" id="section-${section.id}">
+                            <div class="section-header" onclick="toggleSection('${section.id}')">
+                                <div class="section-header-left">
+                                    <span class="section-name">${section.name || 'Section'}</span>
+                                    <span class="section-badge">${sectionTypeLabel(section)}</span>
+                                    <span class="section-count">${jobs.length}</span>
+                                </div>
+                                <div class="section-header-actions">
+                                    <button class="section-action-btn" onclick="event.stopPropagation(); moveSection('${section.id}', -1)">Monter</button>
+                                    <button class="section-action-btn" onclick="event.stopPropagation(); moveSection('${section.id}', 1)">Descendre</button>
+                                    <button class="section-action-btn" onclick="event.stopPropagation(); renameSection('${section.id}')">Renommer</button>
+                                    <button class="section-action-btn danger" onclick="event.stopPropagation(); deleteSection('${section.id}')">Supprimer</button>
+                                </div>
+                            </div>
+                            <div class="section-body">
+                                ${renderSectionJobs(jobs)}
+                            </div>
+                        </div>
+                    `;
+                })
+                .join('');
+            list.innerHTML = html;
+        }
+
+        async function saveSection(section) {
+            const ref = getSectionsCollectionRef();
+            if (!ref || !section?.id) return;
+            const payload = { ...section, updatedAt: getNowIso() };
+            await ref.doc(section.id).set(payload, { merge: true });
+        }
+
+        async function saveAllSectionsOrder() {
+            const ref = getSectionsCollectionRef();
+            if (!ref) return;
+            const batch = firebase.firestore().batch();
+            customSections.forEach((s, idx) => {
+                s.order = idx;
+                s.updatedAt = getNowIso();
+                batch.set(ref.doc(s.id), s, { merge: true });
+            });
+            await batch.commit();
+        }
+
+        async function loadCustomSections() {
+            const ref = getSectionsCollectionRef();
+            if (!ref || sectionsLoading) return;
+            sectionsLoading = true;
+            try {
+                const snap = await ref.get();
+                customSections = [];
+                snap.forEach((doc) => {
+                    const data = doc.data() || {};
+                    customSections.push({
+                        id: doc.id,
+                        name: data.name || 'Section',
+                        type: data.type || 'saved_search',
+                        order: data.order || 0,
+                        expanded: data.expanded === true,
+                        criteria: data.criteria || null,
+                        manualRules: data.manualRules || null,
+                        createdAt: data.createdAt || getNowIso(),
+                        updatedAt: data.updatedAt || getNowIso()
+                    });
+                });
+                sectionsLoaded = true;
+                await migrateAdvancedSearchesIfNeeded();
+                renderCustomSections();
+            } catch (e) {
+                console.error('Erreur chargement sections:', e);
+            } finally {
+                sectionsLoading = false;
+            }
+        }
+
+        async function createSectionPrompt() {
+            if (customSections.length >= SECTIONS_MAX) {
+                renderCustomSections();
+                return;
+            }
+            const typeRaw = prompt('Type de section : tapez "recherche", "favoris" ou "relancer"', 'recherche');
+            if (!typeRaw) return;
+            const type = String(typeRaw).trim().toLowerCase();
+            const sectionId = `sec_${Date.now()}`;
+            const defaultName = type === 'favoris' ? 'Favoris'
+                : type === 'relancer' ? 'A relancer'
+                : `Recherche ${customSections.filter((s) => s.type !== 'manual').length + 1}`;
+            const inputName = prompt('Nom de la section', defaultName);
+            if (!inputName) return;
+
+            const section = {
+                id: sectionId,
+                name: inputName.trim(),
+                type: (type === 'favoris' || type === 'relancer') ? 'manual' : 'saved_search',
+                order: customSections.length,
+                expanded: true,
+                criteria: (type === 'favoris' || type === 'relancer') ? null : buildCurrentCriteria(),
+                manualRules: type === 'favoris' ? { source: 'favorites' } :
+                    type === 'relancer' ? { source: 'relancer' } : null,
+                createdAt: getNowIso(),
+                updatedAt: getNowIso()
+            };
+            customSections.push(section);
+            renderCustomSections();
+            await saveSection(section);
+        }
+
+        async function renameSection(sectionId) {
+            const section = customSections.find((s) => s.id === sectionId);
+            if (!section) return;
+            const next = prompt('Nouveau nom de section', section.name || 'Section');
+            if (!next || !next.trim()) return;
+            section.name = next.trim();
+            renderCustomSections();
+            await saveSection(section);
+        }
+
+        async function deleteSection(sectionId) {
+            const section = customSections.find((s) => s.id === sectionId);
+            if (!section) return;
+            const count = getJobsForSection(section).length;
+            const ok = confirm(`Supprimer "${section.name}" ?${count > 0 ? ` (${count} offre(s))` : ''}`);
+            if (!ok) return;
+            customSections = customSections.filter((s) => s.id !== sectionId);
+            customSections.forEach((s, idx) => { s.order = idx; });
+            renderCustomSections();
+            const ref = getSectionsCollectionRef();
+            if (ref) {
+                await ref.doc(sectionId).delete().catch(() => {});
+                await saveAllSectionsOrder();
+            }
+        }
+
+        async function moveSection(sectionId, delta) {
+            const idx = customSections.findIndex((s) => s.id === sectionId);
+            if (idx < 0) return;
+            const target = idx + delta;
+            if (target < 0 || target >= customSections.length) return;
+            const tmp = customSections[idx];
+            customSections[idx] = customSections[target];
+            customSections[target] = tmp;
+            renderCustomSections();
+            await saveAllSectionsOrder();
+        }
+
+        async function toggleSection(sectionId) {
+            const section = customSections.find((s) => s.id === sectionId);
+            if (!section) return;
+            section.expanded = !section.expanded;
+            renderCustomSections();
+            await saveSection(section);
+        }
+
+        async function collapseAllSections() {
+            customSections.forEach((s) => { s.expanded = false; });
+            renderCustomSections();
+            await saveAllSectionsOrder();
+        }
+
+        async function expandAllSections() {
+            customSections.forEach((s) => { s.expanded = true; });
+            renderCustomSections();
+            await saveAllSectionsOrder();
+        }
+
+        async function migrateAdvancedSearchesIfNeeded() {
+            if (sectionsMigrated) return;
+            const uid = getCurrentUserIdForSections();
+            if (!uid) return;
+            if (customSections.length > 0) {
+                sectionsMigrated = true;
+                return;
+            }
+            try {
+                const db = firebase.firestore();
+                const migrationRef = db.collection('profiles').doc(uid).collection('user_preferences').doc('offres_sections_meta');
+                const migrationDoc = await migrationRef.get();
+                if (migrationDoc.exists && migrationDoc.data()?.advancedMigrated) {
+                    sectionsMigrated = true;
+                    return;
+                }
+                const advSnap = await db.collection('profiles').doc(uid).collection('advanced_searches').get();
+                if (advSnap.empty) {
+                    await migrationRef.set({ advancedMigrated: true, migratedAt: getNowIso() }, { merge: true });
+                    sectionsMigrated = true;
+                    return;
+                }
+                const imported = [];
+                advSnap.forEach((doc, idx) => {
+                    const d = doc.data() || {};
+                    imported.push({
+                        id: `migr_${doc.id}`,
+                        name: d.name || `Recherche ${idx + 1}`,
+                        type: 'saved_search',
+                        order: idx,
+                        expanded: false,
+                        criteria: d.filters || {
+                            searchKeywords: [],
+                            countries: [],
+                            regions: [],
+                            contracts: [],
+                            experiences: [],
+                            families: [],
+                            companies: [],
+                            educations: []
+                        },
+                        manualRules: null,
+                        createdAt: getNowIso(),
+                        updatedAt: getNowIso()
+                    });
+                });
+                customSections = imported;
+                const ref = getSectionsCollectionRef();
+                if (ref) {
+                    const batch = db.batch();
+                    imported.forEach((s) => batch.set(ref.doc(s.id), s, { merge: true }));
+                    batch.set(migrationRef, { advancedMigrated: true, migratedAt: getNowIso() }, { merge: true });
+                    await batch.commit();
+                }
+                sectionsMigrated = true;
+            } catch (e) {
+                console.warn('Migration advanced_searches ignoree:', e);
+            }
+        }
 
         // Normalisation pour la recherche : enlève accents et met en minuscules (clés cohérentes)
         function normalizeCityForLookup(s) {
@@ -2455,6 +3031,7 @@
                 await initializeFilters();
                 await renderJobs();
                 updateStats();
+                renderCustomSections();
                 console.log(`✅ Premier affichage : ${allJobs.length} offres (total ${totalCount})`);
 
                 if (firstEnd >= totalCount) {
@@ -2487,6 +3064,7 @@
                     await initializeFilters();
                     await applyFilters();
                     updateStats();
+                    renderCustomSections();
                     console.log(`✅ Chargement complet : ${allJobs.length} offres`);
                 })();
             } catch (error) {
@@ -4093,6 +4671,7 @@
 
             await renderJobs();
             updateActiveFiltersBadge();
+            renderCustomSections();
         }
 
         function getCheckedValues(containerId) {
@@ -5371,7 +5950,7 @@
                     connexionsLink.style.display = 'block';
                     connexionsLink.classList.remove('nav-link-primary');
                 }
-                if (rechercheLink) rechercheLink.style.display = 'inline-block';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 if (logoutBtn) {
                     logoutBtn.style.display = 'block';
                     logoutBtn.classList.remove('nav-link-primary');
@@ -5458,8 +6037,12 @@
                                 renderJobs();
                             }
                         });
+                        loadCustomSections().then(() => renderCustomSections());
                     } else {
                         userApplications.clear();
+                        customSections = [];
+                        sectionsLoaded = false;
+                        renderCustomSections();
                         // Re-render pour enlever les boutons "Candidature en cours"
                         if (jobsLoaded && filteredJobs.length > 0) {
                             renderJobs();

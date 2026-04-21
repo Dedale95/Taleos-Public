@@ -1,0 +1,261 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap");
+
+:root {
+    --taleos-ink: #0a0a0f;
+    --taleos-ink-soft: #14141c;
+    --taleos-ink-mid: #1e1e2a;
+    --taleos-surface: #f5f3ef;
+    --taleos-surface-2: #ece7de;
+    --taleos-panel: #fffdfa;
+    --taleos-gold: #c8a96e;
+    --taleos-gold-light: #e2cfa0;
+    --taleos-gold-border: rgba(200, 169, 110, 0.24);
+    --taleos-gold-wash: rgba(200, 169, 110, 0.12);
+    --taleos-text: #3a3a48;
+    --taleos-text-soft: #6f6d79;
+    --taleos-white: #ffffff;
+    --taleos-shadow: 0 24px 60px rgba(10, 10, 15, 0.08);
+    --taleos-serif: "Playfair Display", Georgia, serif;
+    --taleos-sans: "DM Sans", system-ui, sans-serif;
+}
+
+html {
+    background: linear-gradient(180deg, #ebe7df 0%, #f8f5f1 28%, #f5f3ef 100%) !important;
+}
+
+body {
+    font-family: var(--taleos-sans) !important;
+    color: var(--taleos-text) !important;
+    background:
+        radial-gradient(circle at top right, rgba(200, 169, 110, 0.1), transparent 28%),
+        linear-gradient(180deg, #ebe7df 0%, #f8f5f1 28%, #f5f3ef 100%) !important;
+}
+
+nav {
+    background: rgba(10, 10, 15, 0.96) !important;
+    border-bottom: 1px solid rgba(200, 169, 110, 0.16) !important;
+    box-shadow: none !important;
+    backdrop-filter: blur(14px);
+}
+
+.logo-icon {
+    background: var(--taleos-ink-mid) !important;
+    border: 1.5px solid rgba(200, 169, 110, 0.5) !important;
+    box-shadow: none !important;
+}
+
+.logo-text {
+    font-family: var(--taleos-sans) !important;
+    color: var(--taleos-white) !important;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.62) !important;
+    border-radius: 4px !important;
+}
+
+.nav-link:hover {
+    color: var(--taleos-white) !important;
+    background: rgba(200, 169, 110, 0.1) !important;
+}
+
+.nav-link-primary,
+.nav-link.active {
+    background: rgba(200, 169, 110, 0.14) !important;
+    border: 1px solid rgba(200, 169, 110, 0.22) !important;
+    color: var(--taleos-gold-light) !important;
+    box-shadow: none !important;
+}
+
+.logout-btn {
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.logout-btn:hover {
+    color: var(--taleos-white) !important;
+    border-color: rgba(200, 169, 110, 0.35) !important;
+    background: rgba(200, 169, 110, 0.08) !important;
+}
+
+.main-content,
+.container {
+    position: relative;
+}
+
+.auth-container,
+.career-connection-box,
+.bank-module,
+.chart-card,
+.chart-shell,
+.chart-shell-plain,
+.comparison-table,
+.filter-box,
+.info-box,
+.application-card,
+.profile-card,
+.pricing-card,
+.stat-card,
+.section-card,
+.accordion-content,
+.accordion-results,
+.modal-content,
+.modal-box,
+.profile-incomplete-modal-content,
+.toast-content,
+.empty-state {
+    background: linear-gradient(180deg, rgba(255, 253, 250, 0.98), rgba(251, 248, 243, 0.98)) !important;
+    border: 1px solid var(--taleos-gold-border) !important;
+    box-shadow: var(--taleos-shadow) !important;
+}
+
+.auth-container,
+.profile-card,
+.pricing-card,
+.chart-card,
+.application-card,
+.bank-module,
+.filter-box,
+.section-card,
+.empty-state {
+    border-radius: 22px !important;
+}
+
+.page-header h1,
+.advanced-search-header h1,
+.applications-header h1,
+.profile-header h1 {
+    font-family: var(--taleos-serif) !important;
+    letter-spacing: -0.02em;
+    color: var(--taleos-ink) !important;
+}
+
+.page-header p,
+.advanced-search-header p,
+.applications-header p,
+.profile-header p,
+.bank-info,
+.info-box,
+.stat-label,
+.app-detail,
+.filter-chip {
+    color: var(--taleos-text-soft) !important;
+}
+
+.btn,
+.btn-primary,
+.subscribe-btn,
+.job-apply-btn,
+.section-action-btn,
+.section-btn,
+.btn-add-accordion,
+.file-upload-btn,
+.auth-tab.active {
+    background: var(--taleos-ink) !important;
+    color: var(--taleos-gold-light) !important;
+    border: 1px solid rgba(200, 169, 110, 0.24) !important;
+    box-shadow: none !important;
+}
+
+.btn:hover,
+.btn-primary:hover,
+.subscribe-btn:hover,
+.job-apply-btn:hover,
+.section-action-btn:hover,
+.section-btn:hover,
+.btn-add-accordion:hover,
+.file-upload-btn:hover,
+.auth-tab.active:hover {
+    background: var(--taleos-ink-soft) !important;
+}
+
+.btn-secondary,
+.profile-incomplete-modal-btn-secondary,
+.toast-btn-cancel {
+    background: var(--taleos-white) !important;
+    color: var(--taleos-ink) !important;
+    border: 1px solid var(--taleos-gold-border) !important;
+}
+
+.btn-danger,
+.accordion-btn-danger {
+    background: #741b1b !important;
+    color: #f7dfdf !important;
+    border-color: rgba(180, 62, 62, 0.4) !important;
+}
+
+input,
+select,
+textarea,
+.modal-input {
+    font-family: var(--taleos-sans) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(200, 169, 110, 0.22) !important;
+    color: var(--taleos-ink) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.modal-input:focus {
+    outline: none !important;
+    border-color: rgba(200, 169, 110, 0.6) !important;
+    box-shadow: 0 0 0 4px rgba(200, 169, 110, 0.12) !important;
+}
+
+.job-card-badge,
+.status-filter.active,
+.toggle-badge,
+.section-badge {
+    background: rgba(200, 169, 110, 0.12) !important;
+    color: #7b5f2c !important;
+    border: 1px solid rgba(200, 169, 110, 0.22) !important;
+}
+
+.tag,
+.filter-chip,
+.status-option {
+    background: rgba(10, 10, 15, 0.04) !important;
+    border: 1px solid rgba(200, 169, 110, 0.14) !important;
+    color: var(--taleos-text) !important;
+}
+
+.footer-links a,
+.footer-social a,
+.footer-love {
+    color: rgba(58, 58, 72, 0.76) !important;
+}
+
+.footer-links a:hover,
+.footer-social a:hover {
+    color: var(--taleos-ink) !important;
+}
+
+.chart-card-featured {
+    background:
+        radial-gradient(circle at top left, rgba(200, 169, 110, 0.1), transparent 36%),
+        linear-gradient(180deg, rgba(255, 253, 250, 0.98), rgba(248, 244, 237, 0.98)) !important;
+}
+
+.company-logo {
+    background: rgba(255, 255, 255, 0.78) !important;
+    border: 1px solid rgba(200, 169, 110, 0.16) !important;
+}
+
+@media (max-width: 900px) {
+    nav {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    .nav-container {
+        gap: 12px;
+    }
+
+    .nav-links {
+        gap: 10px !important;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+}

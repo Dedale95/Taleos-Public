@@ -1,1679 +1,1469 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taleos - Automatisez vos candidatures en finance</title>
-    <!-- Firebase SDK -->
+    <title>Taleos — Automatisez vos candidatures en finance</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --ink:       #0a0a0f;
+            --ink-soft:  #14141c;
+            --ink-mid:   #1e1e2a;
+            --surface:   #f5f3ef;
+            --surface2:  #ede9e3;
+            --gold:      #c8a96e;
+            --gold-light:#e2cfa0;
+            --gold-dim:  rgba(200,169,110,0.15);
+            --muted:     #7a7a8a;
+            --text-body: #3a3a48;
+            --white:     #ffffff;
+            --serif: 'Playfair Display', Georgia, serif;
+            --sans: 'DM Sans', system-ui, sans-serif;
+            --radius: 4px;
+            --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #1a1a1a;
+            font-family: var(--sans);
+            color: var(--text-body);
+            background: var(--surface);
             overflow-x: hidden;
-            background: #f0f2f5;
+            line-height: 1.6;
         }
 
-        /* Navigation */
+        /* ─── NAV ─── */
         nav {
-            background: white;
-            padding: 20px 40px;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
             position: sticky;
             top: 0;
-            z-index: 10000;
+            z-index: 9999;
+            background: var(--ink);
+            border-bottom: 1px solid rgba(200,169,110,0.12);
+            padding: 0 48px;
         }
 
         .nav-container {
             max-width: 1400px;
             margin: 0 auto;
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: space-between;
+            height: 68px;
         }
+
+        /* Fix white band: hero starts right after nav — ensure no margin/padding leak */
+        nav + * { margin-top: 0; }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 11px;
             text-decoration: none;
+            justify-self: start;
         }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
+        /* Logo: dark square with gold T — matches dark/gold direction */
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            background: var(--ink-mid);
+            border: 1.5px solid rgba(200,169,110,0.5);
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.2rem;
+            flex-shrink: 0;
         }
+
+        .logo-mark svg { width: 20px; height: 20px; }
 
         .logo-text {
-            font-size: 1.5rem;
+            font-family: var(--sans);
+            font-size: 1.3rem;
             font-weight: 700;
-            color: #1a1a1a;
-            text-decoration: none;
-        }
-        
-        .logo:visited,
-        .logo:active,
-        .logo:focus {
-            text-decoration: none;
+            color: var(--white);
+            letter-spacing: -0.01em;
         }
 
-        .made-in-france {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #666;
-            font-size: 0.85rem;
-        }
+        .logo-text span { color: var(--gold); }
 
-        .flag {
-            font-size: 1.2rem;
-        }
+        /* made-in-france moved to footer */
 
         .nav-links {
             display: flex;
-            gap: 20px;
             align-items: center;
+            gap: 4px;
+            justify-self: center;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-self: end;
         }
 
         .nav-link {
-            color: #666;
+            color: rgba(255,255,255,0.6);
             text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            display: inline-block;
-            box-sizing: border-box;
-            min-width: fit-content;
-            position: relative;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            transition: color var(--transition);
+            white-space: nowrap;
         }
 
-        .nav-link:hover {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
+        .nav-link:hover { color: var(--white); }
 
         .nav-link-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white !important;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            /* Même padding pour éviter décalage */
-            padding: 8px 16px;
+            background: transparent;
+            color: var(--gold) !important;
+            border: none;
         }
 
         .nav-link-primary:hover {
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-            /* Pas de transform pour éviter décalage */
+            background: var(--gold-dim);
         }
 
         .logout-btn {
             background: transparent;
-            margin-left: 10px;
-            color: #666 !important;
-            border: 1px solid #e5e7eb;
-            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
             font-weight: 500;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            font-family: inherit;
+            letter-spacing: 0.04em;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--sans);
+            transition: all var(--transition);
         }
 
         .logout-btn:hover {
-            background: #f3f4f6;
-            color: #374151 !important;
-            border-color: #d1d5db;
+            color: var(--white);
+            border-color: rgba(255,255,255,0.3);
         }
 
-        /* Hero Section */
+        /* ─── HERO ─── */
         .hero {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.88) 0%, rgba(118, 75, 162, 0.88) 100%),
-                url('https://images.unsplash.com/photo-1758599543278-32d9d073941e?auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat;
-            color: white;
-            padding: 80px 20px 120px;
-            text-align: center;
+            background: var(--ink);
+            color: var(--white);
+            min-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 100px 48px 80px;
             position: relative;
             overflow: hidden;
         }
 
-        .hero::before {
+        /* No grid texture - clean background */
+
+        /* Gold orb */
+        .hero::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            opacity: 0.25;
+            width: 600px;
+            height: 600px;
+            right: -100px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: radial-gradient(circle, rgba(200,169,110,0.12) 0%, transparent 70%);
             pointer-events: none;
         }
 
-        .container {
+        .hero-inner {
             max-width: 1200px;
             margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 80px;
+            align-items: center;
             position: relative;
             z-index: 1;
         }
 
+        .hero-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 28px;
+        }
+
+        .hero-label::before {
+            content: '';
+            display: block;
+            width: 28px;
+            height: 1px;
+            background: var(--gold);
+        }
+
         .hero h1 {
-            font-size: 3rem;
+            font-family: var(--serif);
+            font-size: clamp(2.6rem, 5vw, 4rem);
             font-weight: 700;
-            margin-bottom: 20px;
-            animation: fadeInUp 0.8s ease;
+            line-height: 1.12;
+            margin-bottom: 28px;
+            letter-spacing: -0.01em;
         }
 
-        .hero .subtitle {
-            font-size: 1.3rem;
-            margin-bottom: 20px;
-            opacity: 0.95;
-            animation: fadeInUp 0.8s ease 0.2s both;
+        .hero h1 em {
+            font-style: italic;
+            color: var(--gold-light);
         }
 
-        .hero-keywords {
-            font-size: 0.95rem;
-            opacity: 0.9;
-            margin-bottom: 40px;
-            letter-spacing: 0.02em;
-            animation: fadeInUp 0.8s ease 0.25s both;
+        .hero-sub {
+            font-size: 1.05rem;
+            color: rgba(255,255,255,0.55);
+            max-width: 480px;
+            line-height: 1.75;
+            margin-bottom: 48px;
         }
 
-        .hero-keywords span {
-            margin: 0 6px;
-            white-space: nowrap;
+        .hero-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .cta-form {
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            margin: 0 auto;
-            animation: fadeInUp 0.8s ease 0.4s both;
-        }
-
-        .cta-form h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 1.5rem;
-        }
-
-        .cta-form p {
-            color: #666;
-            margin-bottom: 25px;
-            font-size: 0.95rem;
-        }
-
-        .early-access-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
+        .hero-tag {
+            font-size: 0.72rem;
             font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 6px 14px;
+            border-radius: 2px;
+        }
+
+        /* Hero 4 pillars */
+        .hero-pillars {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 40px;
+        }
+
+        .hero-pillar {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
             font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.5;
         }
 
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+        .hero-pillar-icon {
             font-size: 1rem;
-            transition: border 0.3s;
+            flex-shrink: 0;
+            margin-top: 1px;
         }
 
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
+        /* CTA Card */
+        .cta-card {
+            background: var(--surface);
+            border-radius: 6px;
+            padding: 44px 36px;
+            position: relative;
+            z-index: 1;
         }
 
-        .submit-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
+        .cta-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 6px;
+            border: 1px solid rgba(200,169,110,0.25);
+            pointer-events: none;
+        }
+
+        .cta-card-badge {
+            display: inline-block;
+            font-size: 0.68rem;
             font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.3s;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gold);
+            background: var(--gold-dim);
+            border: 1px solid rgba(200,169,110,0.3);
+            padding: 5px 12px;
+            border-radius: 2px;
+            margin-bottom: 20px;
         }
 
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        .cta-card h3 {
+            font-family: var(--serif);
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 10px;
+            line-height: 1.25;
         }
 
-        .cta-form .cta-secondary-link {
+        .cta-card p {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 30px;
+            line-height: 1.65;
+        }
+
+        .btn-primary {
             display: block;
-            margin-top: 14px;
-            color: rgba(255, 255, 255, 0.95);
-            font-size: 0.95rem;
-            text-decoration: none;
-            font-weight: 500;
-            transition: opacity 0.2s;
-        }
-
-        .cta-form .cta-secondary-link:hover {
-            opacity: 0.9;
-            text-decoration: underline;
-        }
-
-        .success-message {
-            display: none;
-            background: #10b981;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-weight: 500;
-        }
-
-        /* Stats Section */
-        .stats {
-            background: #f8f9fa;
-            padding: 60px 20px;
+            width: 100%;
+            padding: 16px 24px;
+            background: var(--ink);
+            color: var(--white);
             text-align: center;
+            text-decoration: none;
+            font-family: var(--sans);
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 40px;
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(200,169,110,0.15));
+            pointer-events: none;
+        }
+
+        .btn-primary:hover {
+            background: #1a1a28;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+        }
+
+        .btn-secondary-link {
+            display: block;
+            text-align: center;
+            margin-top: 14px;
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        .btn-secondary-link:hover { color: var(--ink); }
+
+        /* ─── STATS ─── */
+        .stats {
+            background: var(--ink-soft);
+            padding: 56px 48px;
+            border-bottom: 1px solid rgba(200,169,110,0.1);
+        }
+
+        .stats-inner {
             max-width: 1000px;
             margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
         }
 
         .stat-item {
-            animation: fadeIn 1s ease;
+            text-align: center;
+            padding: 0 40px;
+            position: relative;
+        }
+
+        .stat-item + .stat-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10%;
+            height: 80%;
+            width: 1px;
+            background: rgba(200,169,110,0.2);
         }
 
         .stat-number {
+            font-family: var(--serif);
             font-size: 3rem;
             font-weight: 700;
-            color: #667eea;
-            margin-bottom: 10px;
+            color: var(--gold);
+            margin-bottom: 8px;
+            line-height: 1;
         }
 
         .stat-label {
-            color: #666;
-            font-size: 1rem;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.45);
+            letter-spacing: 0.02em;
+            line-height: 1.5;
         }
 
-        /* Problem Section */
-        .problem {
-            padding: 80px 20px;
-            background: white;
+        /* ─── SECTION BASE ─── */
+        section { padding: 100px 48px; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .problem-visual {
-            max-width: 1000px;
-            margin: 0 auto 50px;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
-        }
-
-        .problem-visual img {
-            width: 100%;
-            height: auto;
-            display: block;
-            vertical-align: middle;
-        }
-
-        .problem h2 {
-            text-align: center;
-            font-size: 2.5rem;
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
             margin-bottom: 20px;
-            color: #1a1a1a;
         }
 
-        .problem-intro {
-            text-align: center;
-            max-width: 700px;
-            margin: 0 auto 50px;
-            color: #666;
-            font-size: 1.1rem;
+        .section-label::before {
+            content: '';
+            display: block;
+            width: 20px;
+            height: 1px;
+            background: var(--gold);
+        }
+
+        h2.display {
+            font-family: var(--serif);
+            font-size: clamp(2rem, 3.5vw, 2.8rem);
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.15;
+            margin-bottom: 20px;
+        }
+
+        h2.display em { font-style: italic; color: var(--gold); }
+
+        .section-intro {
+            font-size: 1rem;
+            color: var(--muted);
+            max-width: 560px;
+            line-height: 1.75;
+        }
+
+        /* ─── PROBLEM ─── */
+        .problem { background: var(--white); }
+
+        .problem-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: end;
+            margin-bottom: 70px;
         }
 
         .problem-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 30px;
-            max-width: 1000px;
-            margin: 0 auto;
+            gap: 2px;
+            background: var(--surface2);
         }
 
         .problem-card {
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
+            background: var(--white);
+            padding: 40px 36px;
+            transition: background var(--transition);
+            cursor: default;
             position: relative;
+            overflow: hidden;
         }
 
-        .problem-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 0;
+            background: var(--gold);
+            transition: height var(--transition);
         }
 
-        .problem-card .card-detail {
+        .problem-card:hover::before { height: 100%; }
+        .problem-card:hover { background: #fafaf8; }
+
+        .problem-icon {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: block;
+            line-height: 1;
+        }
+
+        .problem-card h3 {
+            font-family: var(--serif);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
+        .problem-card p {
+            font-size: 0.9rem;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .card-detail {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.4s ease;
         }
 
-        .problem-card:hover .card-detail {
-            max-height: 280px;
+        .problem-card:hover .card-detail,
+        .solution-card:hover .card-detail {
+            max-height: 300px;
         }
 
-        .problem-card .card-detail p {
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid rgba(102, 126, 234, 0.2);
-            font-size: 0.95rem;
+        .card-detail p {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--surface2);
+            font-size: 0.85rem !important;
+            color: var(--muted) !important;
         }
 
-        .problem-card .card-toggle {
-            display: none;
-        }
-
-        .problem-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-        }
-
-        .problem-card h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 1.3rem;
-        }
-
-        .problem-card p {
-            color: #666;
-            line-height: 1.6;
-        }
-
-        /* Solution Section */
+        /* ─── SOLUTION ─── */
         .solution {
-            padding: 80px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: var(--ink);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
         }
 
-        .solution h2 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 60px;
-        }
+        /* clean - no grid */
+
+        .solution .section-label,
+        .solution .display { color: var(--white); }
+        .solution .display em { color: var(--gold-light); }
+        .solution .section-intro { color: rgba(255,255,255,0.45); }
 
         .solution-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
+            gap: 1px;
+            background: rgba(200,169,110,0.12);
+            margin-top: 60px;
         }
 
         .solution-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.3s;
-            cursor: pointer;
+            background: var(--ink-soft);
+            padding: 44px 40px;
             position: relative;
-        }
-
-        .solution-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .solution-card .card-detail {
-            max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s ease;
+            cursor: default;
+            transition: background var(--transition);
         }
 
-        .solution-card:hover .card-detail {
-            max-height: 320px;
-        }
+        .solution-card:hover { background: var(--ink-mid); }
 
-        .solution-card .card-detail p {
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid rgba(255, 255, 255, 0.25);
-            font-size: 0.95rem;
-            opacity: 0.95;
-        }
-
-        .solution-card .card-toggle {
-            display: none;
+        .solution-number {
+            font-family: var(--serif);
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: rgba(200,169,110,0.15);
+            line-height: 1;
+            margin-bottom: 24px;
+            display: block;
         }
 
         .solution-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
+            font-family: var(--serif);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 14px;
         }
 
         .solution-card p {
-            opacity: 0.9;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
             line-height: 1.7;
         }
 
-        .solution-number {
+        .solution-card .card-detail p {
+            color: rgba(255,255,255,0.4) !important;
+            border-top-color: rgba(200,169,110,0.15) !important;
+        }
+
+        .solution-cta {
+            text-align: center;
+            margin-top: 56px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-gold {
             display: inline-block;
-            width: 40px;
-            height: 40px;
-            background: white;
-            color: #667eea;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 40px;
-            font-weight: 700;
-            margin-bottom: 20px;
+            padding: 16px 44px;
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            text-decoration: none;
+            font-family: var(--sans);
+            font-size: 0.88rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            border-radius: var(--radius);
+            transition: all var(--transition);
         }
 
-        /* Features Section */
-        .features {
-            padding: 80px 20px;
-            background: white;
+        .btn-gold:hover {
+            background: var(--gold);
+            color: var(--ink);
         }
 
-        .features h2 {
-            text-align: center;
-            font-size: 2.5rem;
+        /* ─── FEATURES ─── */
+        .features { background: var(--surface); }
+
+        .features-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: end;
             margin-bottom: 60px;
-            color: #1a1a1a;
         }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
         }
 
         .feature-card {
-            text-align: center;
-            padding: 30px;
+            background: var(--white);
+            border: 1px solid var(--surface2);
+            padding: 36px 30px;
+            border-radius: var(--radius);
+            transition: all var(--transition);
+            position: relative;
         }
 
-        .feature-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 2rem;
+        .feature-card:hover {
+            border-color: rgba(200,169,110,0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.07);
+        }
+
+        .feature-icon-wrap {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: block;
+            line-height: 1;
         }
 
         .feature-card h3 {
-            color: #667eea;
+            font-family: var(--sans);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ink);
             margin-bottom: 10px;
-            font-size: 1.2rem;
+            letter-spacing: -0.01em;
         }
 
         .feature-card p {
-            color: #666;
-            line-height: 1.6;
+            font-size: 0.875rem;
+            color: var(--muted);
+            line-height: 1.7;
         }
 
         .feature-badge {
             display: inline-block;
-            background: #fbbf24;
-            color: #78350f;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.75rem;
+            margin-top: 12px;
+            font-size: 0.65rem;
             font-weight: 600;
-            margin-top: 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--gold);
+            background: var(--gold-dim);
+            border: 1px solid rgba(200,169,110,0.25);
+            padding: 4px 10px;
+            border-radius: 2px;
         }
 
-        /* FAQ Section */
-        .faq {
-            padding: 80px 20px;
-            background: #f0f2f5;
-        }
-
-        .faq h2 {
+        .features-cta {
             text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 50px;
-            color: #1a1a1a;
+            margin-top: 56px;
         }
 
-        .faq-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .faq-item {
-            background: white;
-            margin-bottom: 20px;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .faq-question {
-            padding: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #1a1a1a;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.3s;
-        }
-
-        .faq-question:hover {
-            background: #f8f9fa;
-        }
-
-        .faq-answer {
-            padding: 0 25px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
-            opacity: 0;
-            color: #666;
-        }
-
-        .faq-item.active .faq-answer {
-            padding: 0 25px 25px;
-            max-height: 1000px;
-            opacity: 1;
-        }
-
-        .faq-toggle {
-            font-size: 1.5rem;
-            transition: transform 0.3s;
-        }
-
-        .faq-item.active .faq-toggle {
-            transform: rotate(45deg);
-        }
-
-        /* CTA de section (après Solution et Features) */
-        .section-cta {
-            text-align: center;
-            margin-top: 50px;
-        }
-
-        .section-cta-btn {
+        .btn-dark {
             display: inline-block;
-            padding: 14px 36px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1.05rem;
+            padding: 16px 44px;
+            background: var(--ink);
+            color: var(--white);
             text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.3s;
-        }
-
-        .solution .section-cta-btn {
-            background: white;
-            color: #667eea;
-        }
-
-        .solution .section-cta-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .features .section-cta-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .features .section-cta-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Qui sommes-nous / Contact */
-        .about-contact {
-            padding: 60px 20px;
-            background: #f0f2f5;
-            text-align: center;
-        }
-
-        .about-contact h2 {
-            font-size: 2rem;
-            color: #1a1a1a;
-            margin-bottom: 20px;
-        }
-
-        .about-contact-intro {
-            max-width: 600px;
-            margin: 0 auto 30px;
-            color: #666;
-            line-height: 1.7;
-            font-size: 1.05rem;
-        }
-
-        .about-contact-link {
-            display: inline-block;
-            padding: 14px 32px;
-            background: #667eea;
-            color: white;
-            border-radius: 8px;
+            font-family: var(--sans);
+            font-size: 0.88rem;
             font-weight: 600;
-            text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.3s;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            border-radius: var(--radius);
+            transition: all var(--transition);
         }
 
-        .about-contact-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        .btn-dark:hover {
+            background: var(--ink-mid);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.18);
         }
 
-        .about-contact-inner {
+        /* ─── ABOUT ─── */
+        .about {
+            background: var(--surface2);
+        }
+
+        .about-inner {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 60px;
+            gap: 80px;
             align-items: center;
-            max-width: 1000px;
-            margin: 0 auto;
         }
 
-        .about-contact-image {
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        .about-image-wrap {
+            position: relative;
         }
 
-        .about-contact-image img {
+        .about-image-wrap img {
             width: 100%;
-            height: auto;
+            height: 420px;
+            object-fit: cover;
+            border-radius: var(--radius);
             display: block;
         }
 
-        .about-contact-text h2 {
-            margin-bottom: 20px;
-            text-align: left;
+        .about-image-wrap::after {
+            content: '';
+            position: absolute;
+            bottom: -16px;
+            right: -16px;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(200,169,110,0.3);
+            border-radius: var(--radius);
+            pointer-events: none;
         }
 
-        .about-contact-text .about-contact-intro {
-            margin-bottom: 24px;
-            text-align: left;
+        .about-text h2.display { margin-bottom: 20px; }
+
+        .about-text p {
+            font-size: 0.95rem;
+            color: var(--muted);
+            line-height: 1.8;
+            margin-bottom: 32px;
         }
 
-        .about-contact-text .about-contact-cta {
-            text-align: left;
+        /* ─── FAQ ─── */
+        .faq { background: var(--white); }
+
+        .faq-header {
+            max-width: 560px;
+            margin-bottom: 56px;
         }
 
-        /* CTA Final */
+        .faq-list {
+            max-width: 780px;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--surface2);
+        }
+
+        .faq-question {
+            padding: 22px 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
+            transition: color var(--transition);
+            user-select: none;
+        }
+
+        .faq-question:hover { color: var(--gold); }
+
+        .faq-toggle {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--surface2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-left: 16px;
+            transition: all var(--transition);
+            color: var(--muted);
+        }
+
+        .faq-item.active .faq-toggle {
+            background: var(--ink);
+            border-color: var(--ink);
+            color: var(--white);
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.3s ease;
+            font-size: 0.9rem;
+            color: var(--muted);
+            line-height: 1.75;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 300px;
+            padding-bottom: 22px;
+        }
+
+        /* ─── CTA FINAL ─── */
         .cta-final {
-            padding: 80px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: var(--ink);
+            color: var(--white);
+            padding: 120px 48px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-final::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(200,169,110,0.1), transparent 70%);
+        }
+
+        .cta-final-inner {
+            position: relative;
+            z-index: 1;
         }
 
         .cta-final h2 {
-            font-size: 2.5rem;
+            font-family: var(--serif);
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 700;
             margin-bottom: 20px;
+            line-height: 1.15;
+        }
+
+        .cta-final h2 em {
+            font-style: italic;
+            color: var(--gold-light);
         }
 
         .cta-final p {
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 48px;
         }
 
-        .cta-final-btn {
-            display: inline-block;
-            padding: 18px 50px;
-            background: white;
-            color: #667eea;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.3s;
-        }
-
-        .cta-final-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Footer */
+        /* ─── FOOTER ─── */
         footer {
-            background: #1a1a1a;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-            width: 100%;
-            box-sizing: border-box;
+            background: #070709;
+            color: rgba(255,255,255,0.3);
+            padding: 48px;
+            border-top: 1px solid rgba(200,169,110,0.1);
         }
 
-        footer .container,
-        footer .container * {
-            background: transparent !important;
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 24px;
         }
 
-        /* Le nav du header a background: white ; on l’annule dans le footer */
-        footer nav,
-        footer .footer-nav {
-            background: transparent !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            position: static !important;
+        .footer-logo {
+            font-family: var(--sans);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: -0.01em;
         }
 
-        footer p {
-            opacity: 0.7;
-        }
+        .footer-logo span { color: var(--gold); }
 
         .footer-nav {
             display: flex;
+            gap: 24px;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 8px 24px;
-            margin-bottom: 20px;
         }
 
         .footer-nav a {
-            color: rgba(255, 255, 255, 0.85);
+            color: rgba(255,255,255,0.3);
             text-decoration: none;
-            font-size: 0.95rem;
+            font-size: 0.82rem;
+            letter-spacing: 0.03em;
+            transition: color var(--transition);
         }
 
-        .footer-nav a:hover {
-            color: white;
-            text-decoration: underline;
-        }
-
-        .footer-love {
-            margin-top: 10px;
-            font-size: 0.95rem;
-        }
-
-        .footer-links {
-            margin-top: 12px;
-        }
-
-        .footer-links a {
-            color: inherit;
-            opacity: 0.85;
-            text-decoration: none;
-        }
-
-        .footer-links a:hover {
-            opacity: 1;
-            text-decoration: underline;
-        }
+        .footer-nav a:hover { color: var(--gold); }
 
         .footer-social {
-            margin-top: 15px;
             display: flex;
-            justify-content: center;
-            gap: 20px;
+            gap: 16px;
         }
 
         .footer-social a {
-            color: white;
-            opacity: 0.85;
-            display: inline-flex;
-            transition: opacity 0.2s;
+            color: rgba(255,255,255,0.25);
+            text-decoration: none;
+            transition: color var(--transition);
         }
 
-        .footer-social a:hover {
-            opacity: 1;
+        .footer-social a:hover { color: var(--gold); }
+
+        .footer-social svg { width: 16px; height: 16px; }
+
+        .footer-copy {
+            width: 100%;
+            font-size: 0.75rem;
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
 
-        .footer-social svg {
-            width: 24px;
-            height: 24px;
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* Responsive */
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .hero-label   { animation: fadeUp 0.7s ease both; }
+        .hero h1      { animation: fadeUp 0.7s 0.1s ease both; }
+        .hero-sub     { animation: fadeUp 0.7s 0.2s ease both; }
+        .hero-tags    { animation: fadeUp 0.7s 0.3s ease both; }
+        .cta-card     { animation: fadeUp 0.7s 0.15s ease both; }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1024px) {
+            .hero-inner { grid-template-columns: 1fr; gap: 56px; }
+            .hero { min-height: auto; }
+            .cta-card { max-width: 520px; }
+            .problem-header { grid-template-columns: 1fr; gap: 24px; }
+            .features-header { grid-template-columns: 1fr; gap: 20px; }
+            .features-grid { grid-template-columns: repeat(2,1fr); }
+            .about-inner { grid-template-columns: 1fr; gap: 40px; }
         }
 
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .hero .subtitle {
-                font-size: 1.1rem;
-            }
-
-            .cta-form {
-                padding: 30px 20px;
-            }
-
-            h2 {
-                font-size: 2rem !important;
-            }
-
-            .problem-grid,
-            .solution-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .problem-card:hover .card-detail {
-                max-height: 380px;
-            }
-
-            .solution-card:hover .card-detail {
-                max-height: 420px;
-            }
-
-            .about-contact-inner {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
-
-            .about-contact-text h2,
-            .about-contact-text .about-contact-intro,
-            .about-contact-text .about-contact-cta {
-                text-align: center;
-            }
-
+            nav { padding: 0 20px; }
             .nav-container {
-                flex-direction: column;
-                gap: 15px;
+                display: flex;
+                justify-content: space-between;
             }
-
-            .nav-links {
-                flex-direction: column;
-                gap: 10px;
-                width: 100%;
-            }
-
-            .nav-link {
-                text-align: center;
-                width: 100%;
-            }
+            .nav-links { display: none; }
+            .nav-actions { justify-self: unset; }
+            section { padding: 72px 20px; }
+            .hero { padding: 72px 20px 56px; min-height: auto; }
+            .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+            .stats { padding: 48px 20px; }
+            .stats-inner { grid-template-columns: 1fr; gap: 40px; }
+            .stat-item + .stat-item::before { display: none; }
+            .problem-grid, .solution-grid { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr; }
+            .about-inner { grid-template-columns: 1fr; gap: 40px; }
+            .cta-final { padding: 80px 20px; }
+            footer { padding: 32px 20px; }
+            .footer-inner { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
-
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <a href="landing_page_finance.html" class="logo">
-                <div class="logo-icon">T</div>
-                <div class="logo-text">Taleos</div>
+
+<!-- ─── NAV ─── -->
+<nav>
+    <div class="nav-container">
+        <a href="landing_page_finance.html" class="logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 6H15M10 6V15" stroke="#c8a96e" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="logo-text">Tale<span>os</span></div>
+        </a>
+
+        <div class="nav-links">
+            <a href="landing_page_finance.html" class="nav-link nav-link-primary" id="presentationLink">Présentation</a>
+            <a href="offres.html" class="nav-link">Offres</a>
+            <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
+            <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
+            <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
+            <a href="tarifs.html" class="nav-link">Tarifs</a>
+        </div>
+
+        <div class="nav-actions">
+            <a href="auth.html" class="nav-link" id="authLink">Connexion</a>
+            <a href="profile.html" class="nav-link" id="profileLink" style="display:none">Mon profil</a>
+            <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none">Déconnexion</button>
+        </div>
+    </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-content">
+            <div class="hero-label">Votre partenaire pour trouver un job en finance</div>
+            <h1>Postulez plus.<br>Cherchez <em>moins</em>.</h1>
+            <p class="hero-sub">Taleos agrège toutes les offres en finance au même endroit, postule pour vous, et suit vos candidatures — pour que vous puissiez vous concentrer sur ce qui compte vraiment.</p>
+
+            <div class="hero-pillars">
+                <div class="hero-pillar">
+                    <span class="hero-pillar-icon">⏱</span>
+                    <span>Gagnez des dizaines d'heures sur vos candidatures</span>
+                </div>
+                <div class="hero-pillar">
+                    <span class="hero-pillar-icon">🏦</span>
+                    <span>Un seul endroit pour toutes vos candidatures — BNP, Rothschild, Deloitte, et bien d'autres</span>
+                </div>
+                <div class="hero-pillar">
+                    <span class="hero-pillar-icon">📋</span>
+                    <span>Suivez toutes vos candidatures en un seul tableau de bord</span>
+                </div>
+                <div class="hero-pillar">
+                    <span class="hero-pillar-icon">🎲</span>
+                    <span>Postulez à des offres auxquelles vous n'auriez jamais pensé</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-card">
+            <div class="cta-card-badge">Accès gratuit</div>
+            <h3>Rejoignez la plateforme</h3>
+            <p>Créez votre compte et laissez l'IA postuler à votre place. Taleos ne vous garantit pas un job — mais vous fait gagner un temps précieux.</p>
+            <a href="auth.html" class="btn-primary" data-auth-cta="true">Automatiser mes candidatures</a>
+            <a href="auth.html" class="btn-secondary-link">Essayer avec mon CV →</a>
+        </div>
+    </div>
+</section>
+
+<!-- ─── STATS ─── -->
+<div class="stats">
+    <div class="stats-inner">
+        <div class="stat-item">
+            <div class="stat-number">95%</div>
+            <div class="stat-label">de temps économisé<br>sur vos candidatures</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="totalJobsCount">7 000+</div>
+            <div class="stat-label">offres live et en croissance<br>constante</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">notre IA travaille<br>pour vous</div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── PROBLEM ─── -->
+<section class="problem">
+    <div class="container">
+        <div class="problem-header">
+            <div>
+                <div class="section-label">Le problème</div>
+                <h2 class="display">Chercher un job en finance,<br>c'est <em>épuisant</em></h2>
+            </div>
+            <p class="section-intro">Que vous soyez étudiant, en alternance ou jeune actif avec quelques années d'expérience, vous n'avez pas de temps à perdre à remplir des formulaires répétitifs. Nous le savons.</p>
+        </div>
+
+        <div class="problem-grid">
+            <div class="problem-card">
+                <span class="problem-icon">⏰</span>
+                <h3>Des heures perdues</h3>
+                <p>Créer un compte sur chaque site d'entreprise, remplir des formulaires répétitifs, adapter chaque lettre de motivation...</p>
+                <div class="card-detail"><p>Chaque grand groupe demande un identifiant, un mot de passe, une re-saisie de votre parcours. Des soirées entières à copier-coller des informations déjà sur votre CV. Taleos centralise tout une fois pour toutes.</p></div>
+            </div>
+            <div class="problem-card">
+                <span class="problem-icon">🔍</span>
+                <h3>Offres éparpillées</h3>
+                <p>BNP, Société Générale, Rothschild, Lazard... Chaque entreprise a son propre site carrière avec ses propres filtres.</p>
+                <div class="card-detail"><p>Pas de portail unique en finance : il faut surveiller une dizaine de sites, chacun avec ses dates de mise à jour. Notre plateforme agrège les offres des principaux acteurs en un seul flux.</p></div>
+            </div>
+            <div class="problem-card">
+                <span class="problem-icon">😫</span>
+                <h3>Processus frustrant</h3>
+                <p>Captchas à n'en plus finir, bugs de formulaires, et cette sensation de toujours recommencer à zéro.</p>
+                <div class="card-detail"><p>Les sites carrière ne sont pas faits pour les candidats en série. Taleos s'adapte à chaque interface et envoie vos candidatures de façon fiable, sans que vous ayez à subir le parcours du combattant.</p></div>
+            </div>
+            <div class="problem-card">
+                <span class="problem-icon">📊</span>
+                <h3>Impossible à suivre</h3>
+                <p>Où en êtes-vous avec telle candidature ? Avez-vous postulé chez Deloitte ou EY ? Difficile de s'y retrouver.</p>
+                <div class="card-detail"><p>Un tableau de bord Taleos récapitule toutes vos candidatures : statut, date, entreprise. Plus de trou de mémoire ni de doublons. Vous pilotez votre recherche comme un vrai projet.</p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── SOLUTION ─── -->
+<section class="solution">
+    <div class="container">
+        <div class="section-label">Comment ça marche</div>
+        <h2 class="display">Quatre étapes.<br><em>Un seul résultat.</em></h2>
+        <p class="section-intro">De la configuration de votre profil à l'envoi des candidatures — automatiquement.</p>
+
+        <div class="solution-grid">
+            <div class="solution-card">
+                <span class="solution-number">01</span>
+                <h3>Configurez votre profil</h3>
+                <p>Uploadez votre CV, définissez vos critères. L'IA extrait vos compétences et préférences.</p>
+                <div class="card-detail"><p>Une seule configuration : stage, alternance, CDI, zones géographiques, familles de métiers. L'algorithme ne vous proposera que des offres cohérentes avec votre projet.</p></div>
+            </div>
+            <div class="solution-card">
+                <span class="solution-number">02</span>
+                <h3>L'IA trouve pour vous</h3>
+                <p>Nous scannons quotidiennement des milliers d'offres. Notre algorithme sélectionne celles qui vous correspondent vraiment.</p>
+                <div class="card-detail"><p>Banques, cabinets d'audit, conseil, asset managers. Chaque jour, les nouvelles offres sont comparées à votre profil. Vous recevez une sélection personnalisée, sans bruit.</p></div>
+            </div>
+            <div class="solution-card">
+                <span class="solution-number">03</span>
+                <h3>Validation et envoi</h3>
+                <p>Vous validez les opportunités. Notre système postule avec une lettre de motivation personnalisée pour chaque offre.</p>
+                <div class="card-detail"><p>Pour chaque offre, notre IA rédige une lettre sur mesure à partir de votre CV. Une fois validée, la candidature est envoyée directement. Vous gardez la main, nous gérons l'exécution.</p></div>
+            </div>
+            <div class="solution-card">
+                <span class="solution-number">04</span>
+                <h3>Suivez vos candidatures</h3>
+                <p>Tableau de bord intuitif, notifications email, historique complet. Vous gardez le contrôle, sans le stress.</p>
+                <div class="card-detail"><p>Candidatures envoyées, en cours de lecture, entretiens planifiés — tout est centralisé et traçable. Plus besoin de tenir un Excel à jour.</p></div>
+            </div>
+        </div>
+
+        <div class="solution-cta">
+            <a href="auth.html" class="btn-gold" data-auth-cta="true">Essayer Taleos gratuitement</a>
+        </div>
+    </div>
+</section>
+
+<!-- ─── FEATURES ─── -->
+<section class="features">
+    <div class="container">
+        <div class="features-header">
+            <div>
+                <div class="section-label">Pourquoi Taleos</div>
+                <h2 class="display">Conçu pour les<br><em>futurs talents</em> de la finance</h2>
+            </div>
+            <p class="section-intro">Une suite d'outils pensée pour les étudiants et jeunes professionnels qui visent les meilleures institutions financières.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap">🎯</div>
+                <h3>Spécialisé Finance</h3>
+                <p>Conçu pour la banque, l'audit, le conseil et l'asset management. Pas un généraliste.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">🤖</div>
+                <h3>IA Avancée</h3>
+                <p>Lettres de motivation personnalisées, matching intelligent, apprentissage continu de vos préférences.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">🔒</div>
+                <h3>Sécurisé et RGPD</h3>
+                <p>Vos données sont protégées, conformité RGPD, infrastructure sécurisée en France.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">⚡</div>
+                <h3>Automatisation Totale</h3>
+                <p>De la recherche d'offres à l'envoi des candidatures, tout est géré automatiquement.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">📱</div>
+                <h3>Interface Intuitive</h3>
+                <p>Accédez à votre dashboard depuis n'importe quel navigateur, à tout moment.</p>
+                <div class="feature-badge">Version mobile à venir</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">💼</div>
+                <h3>Profils Multiples</h3>
+                <p>Créez différents profils pour stage, alternance ou CDI avec des CV adaptés à chaque cible.</p>
+            </div>
+        </div>
+
+        <div class="features-cta">
+            <a href="auth.html" class="btn-dark" data-auth-cta="true">Rejoindre Taleos</a>
+        </div>
+    </div>
+</section>
+
+<!-- ─── ABOUT ─── -->
+<section class="about">
+    <div class="container">
+        <div class="about-inner">
+            <div class="about-image-wrap">
+                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" alt="Équipe Taleos" loading="lazy" />
+            </div>
+            <div class="about-text">
+                <div class="section-label">Qui sommes-nous</div>
+                <h2 class="display">Une équipe passionnée par <em>votre carrière</em></h2>
+                <p>Taleos accompagne les futurs talents de la finance pour décrocher le poste qui leur correspond. Nous avons vécu la galère des candidatures répétitives — c'est pourquoi nous avons construit l'outil que nous aurions voulu avoir.</p>
+                <a href="contact.html" class="btn-dark">Nous contacter</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── FAQ ─── -->
+<section class="faq">
+    <div class="container">
+        <div class="faq-header">
+            <div class="section-label">FAQ</div>
+            <h2 class="display">Questions <em>fréquentes</em></h2>
+        </div>
+
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Est-ce que c'est légal d'automatiser mes candidatures ?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">Oui, totalement. Vous nous donnez explicitement le mandat de postuler en votre nom. C'est comme déléguer cette tâche à un assistant personnel. Nous respectons les conditions d'utilisation des sites et sommes en contact avec les entreprises pour toute question.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Comment l'IA personnalise mes lettres de motivation ?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">Notre IA analyse votre CV, vos expériences, et les détails de chaque offre pour créer une lettre unique et pertinente. Elle adapte le ton, met en avant les compétences recherchées et crée un lien cohérent entre votre profil et le poste.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Quelles entreprises sont couvertes ?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">Nous couvrons les principales banques (BNP Paribas, Société Générale, Crédit Agricole), les cabinets de conseil (Deloitte, PwC, EY, KPMG), les banques d'investissement (Rothschild, Lazard), les fonds d'investissement et les fintechs majeures. Nous ajoutons régulièrement de nouvelles entreprises.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Puis-je contrôler les candidatures avant l'envoi ?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">Absolument. Vous validez chaque candidature avant envoi. L'IA vous propose les offres correspondantes, vous choisissez celles qui vous intéressent, et vous pouvez même modifier les lettres de motivation si vous le souhaitez.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Que faire si je reçois une réponse d'une entreprise ?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">Vous recevez toutes les notifications directement sur votre email. Notre dashboard vous permet aussi de suivre l'évolution de chaque candidature. Ensuite, c'est à vous de jouer pour les entretiens !</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── CTA FINAL ─── -->
+<section class="cta-final">
+    <div class="cta-final-inner">
+        <h2>Prêt à transformer<br>votre <em>recherche d'emploi</em> ?</h2>
+        <p>Rejoignez les centaines d'étudiants et professionnels qui automatisent leurs candidatures.</p>
+        <a href="auth.html" class="btn-gold" data-auth-cta="true">Commencer maintenant — c'est gratuit</a>
+    </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-logo">Tale<span>os</span></div>
+
+        <nav class="footer-nav">
+            <a href="landing_page_finance.html">Présentation</a>
+            <a href="offres.html">Offres</a>
+            <a href="filtres.html">Recherche avancée</a>
+            <a href="tarifs.html">Tarifs</a>
+            <a href="mailto:contact@taleos.co">Contact</a>
+        </nav>
+
+        <div class="footer-social">
+            <a href="https://instagram.com/taleos" aria-label="Instagram">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
             </a>
-            <div class="nav-links">
-                <a href="landing_page_finance.html" class="nav-link nav-link-primary">Présentation</a>
-                <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
-                <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
-                <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
-                <a href="tarifs.html" class="nav-link">Tarifs</a>
-                <a href="auth.html" class="nav-link" id="authLink">Inscription / Connexion</a>
-                <a href="profile.html" class="nav-link" id="profileLink" style="display: none;">Mon Profil</a>
-                <button class="nav-link logout-btn" id="logoutBtn" onclick="handleLogout()" style="display: none;">Déconnexion</button>
-            </div>
+            <a href="https://twitter.com/taleos" aria-label="X">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a href="https://linkedin.com/company/taleos" aria-label="LinkedIn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </a>
+            <a href="https://youtube.com/@taleos" aria-label="YouTube">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
         </div>
-    </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <h1>Décrochez votre job en finance sans perdre de temps</h1>
-            <p class="subtitle">L'intelligence artificielle qui postule pour vous aux meilleures opportunités du secteur
-                financier</p>
-            <p class="hero-keywords">Finance<span>•</span>Banque<span>•</span>Audit<span>•</span>Conseil<span>•</span>Asset Management<span>•</span>Candidature automatique</p>
+        <div class="footer-copy">© 2026 Taleos. Tous droits réservés. · 🇫🇷 Made in France · Conçu pour les futurs talents de la finance.</div>
+    </div>
+</footer>
 
-            <div class="cta-form">
-                <h3>Rejoignez la plateforme</h3>
-                <p>Créez votre compte gratuitement et laissez l'IA postuler à votre place.</p>
-                <a href="auth.html" class="submit-btn" style="text-decoration: none; display: inline-block; text-align: center;">Automatisez mes candidatures</a>
-                <a href="auth.html" class="cta-secondary-link">Essayer avec mon CV →</a>
-            </div>
-        </div>
-    </section>
+<script>
+    // ─── FAQ Accordion ───
+    function initFAQAccordion() {
+        document.querySelectorAll('.faq-question').forEach(q => {
+            if (q.dataset.init) return;
+            q.dataset.init = 'true';
+            q.addEventListener('click', () => {
+                const item = q.parentElement;
+                const isActive = item.classList.contains('active');
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+                if (!isActive) item.classList.add('active');
+            });
+        });
+    }
 
-    <!-- Problem Section -->
-    <section class="problem">
-        <div class="container">
-            <div class="problem-visual">
-                <img src="https://images.unsplash.com/photo-1698047681432-006d2449c631?auto=format&fit=crop&w=1000&q=80" alt="CV et recrutement : lecture d'un curriculum vitae en entretien" loading="lazy" />
-            </div>
-            <h2>Chercher un job en finance, c'est épuisant</h2>
-            <p class="problem-intro">Entre vos études, vos examens et vos stages, vous n'avez pas le temps de passer des
-                heures à postuler. Nous le savons.</p>
+    // ─── Auth / Nav ───
+    function updateLandingCtas(isAuthenticated) {
+        const target = isAuthenticated ? 'offres.html' : 'auth.html';
+        document.querySelectorAll('[data-auth-cta="true"]').forEach(el => el.setAttribute('href', target));
+    }
 
-            <div class="problem-grid">
-                <div class="problem-card">
-                    <div class="problem-icon">⏰</div>
-                    <h3>Des heures perdues</h3>
-                    <p>Créer un compte sur chaque site d'entreprise, remplir des formulaires répétitifs, adapter chaque lettre de motivation...</p>
-                    <div class="card-detail"><p>Chaque grand groupe demande un identifiant, un mot de passe, une re-saisie de votre parcours. Résultat : des soirées entières à copier-coller des informations que vous avez déjà sur votre CV. Taleos centralise tout une fois pour toutes.</p></div>
-                </div>
-                <div class="problem-card">
-                    <div class="problem-icon">🔍</div>
-                    <h3>Offres éparpillées</h3>
-                    <p>BNP, Société Générale, Rothschild, Lazard... Chaque entreprise a son propre site carrière avec ses propres filtres.</p>
-                    <div class="card-detail"><p>Pas de portail unique en finance : il faut surveiller une dizaine de sites, chacun avec ses dates de mise à jour et ses critères. Notre plateforme agrège les offres des principaux acteurs (banques, cabinets d'audit, conseil, asset management) en un seul flux.</p></div>
-                </div>
-                <div class="problem-card">
-                    <div class="problem-icon">😫</div>
-                    <h3>Processus frustrant</h3>
-                    <p>Captchas à n'en plus finir, bugs de formulaires, et cette sensation de toujours recommencer à zéro.</p>
-                    <div class="card-detail"><p>Les sites carrière ne sont pas faits pour les candidats en série : timeouts, champs obligatoires absurdes, pièces jointes qui ne passent pas. Taleos s'adapte à chaque interface et envoie vos candidatures de façon fiable, sans que vous ayez à subir le parcours du combattant.</p></div>
-                </div>
-                <div class="problem-card">
-                    <div class="problem-icon">📊</div>
-                    <h3>Impossible à suivre</h3>
-                    <p>Où en êtes-vous avec telle candidature ? Avez-vous postulé chez Deloitte ou EY ? Difficile de s'y retrouver.</p>
-                    <div class="card-detail"><p>Un tableau de bord Taleos récapitule toutes vos candidatures : statut (envoyée, relue, entretien), date, entreprise. Plus de trou de mémoire ni de doublons. Vous pilotez votre recherche comme un vrai projet.</p></div>
-                </div>
-            </div>
-        </div>
-    </section>
+    function highlightCurrentPage() {
+        let cur = window.location.pathname.split('/').pop() || 'landing_page_finance.html';
+        document.querySelectorAll('.nav-link:not(#logoutBtn)').forEach(link => {
+            link.classList.remove('nav-link-primary');
+            const page = (link.getAttribute('href') || '').split('/').pop();
+            if (page === cur) link.classList.add('nav-link-primary');
+        });
+    }
 
-    <!-- Solution Section -->
-    <section class="solution">
-        <div class="container">
-            <h2>Comment ça marche ?</h2>
+    function checkAuthAndUpdateNav() {
+        const profileLink    = document.getElementById('profileLink');
+        const authLink       = document.getElementById('authLink');
+        const logoutBtn      = document.getElementById('logoutBtn');
+        const applicationsLink = document.getElementById('applicationsLink');
+        const connexionsLink = document.getElementById('connexionsLink');
+        const rechercheLink  = document.getElementById('rechercheLink');
+        if (!profileLink || !authLink || !logoutBtn) return;
 
-            <div class="solution-grid">
-                <div class="solution-card">
-                    <div class="solution-number">1</div>
-                    <h3>Configurez votre profil</h3>
-                    <p>Importez votre CV, définissez vos préférences (secteur, localisation, type de poste). Notre IA comprend vos ambitions et adapte sa recherche.</p>
-                    <div class="card-detail"><p>Une seule configuration : vous uploadez votre CV, vous indiquez vos critères (stage, alternance, CDI, zones géographiques, familles de métiers). L'IA extrait vos compétences et préférences pour ne vous proposer que des offres cohérentes avec votre projet.</p></div>
-                </div>
-                <div class="solution-card">
-                    <div class="solution-number">2</div>
-                    <h3>L'IA trouve pour vous</h3>
-                    <p>Nous scannons quotidiennement des milliers d'offres chez les acteurs majeurs de la finance. Notre algorithme sélectionne celles qui vous correspondent vraiment.</p>
-                    <div class="card-detail"><p>Nous surveillons les sites carrière des banques, cabinets d'audit, conseil et asset managers. Chaque jour, les nouvelles offres sont comparées à votre profil. Vous recevez une sélection personnalisée, sans bruit ni spam : uniquement les opportunités pertinentes.</p></div>
-                </div>
-                <div class="solution-card">
-                    <div class="solution-number">3</div>
-                    <h3>Validation et envoi</h3>
-                    <p>Vous validez les opportunités qui vous intéressent. Notre système postule automatiquement avec une lettre de motivation personnalisée pour chaque offre.</p>
-                    <div class="card-detail"><p>Vous choisissez les offres auxquelles postuler. Pour chacune, notre IA rédige une lettre de motivation sur mesure à partir de votre CV et du descriptif du poste. Une fois validée par vous, la candidature est envoyée directement sur le site de l'entreprise. Vous gardez la main, nous gérons l'exécution.</p></div>
-                </div>
-                <div class="solution-card">
-                    <div class="solution-number">4</div>
-                    <h3>Suivez vos candidatures</h3>
-                    <p>Tableau de bord intuitif, notifications par email, historique complet. Vous gardez le contrôle, sans le stress.</p>
-                    <div class="card-detail"><p>Votre espace Taleos affiche toutes vos candidatures : envoyées, en cours de lecture, entretiens planifiés. Des alertes email vous tiennent informé des mises à jour. Plus besoin de tenir un Excel à jour : tout est centralisé et traçable.</p></div>
-                </div>
-            </div>
-            <div class="section-cta">
-                <a href="auth.html" class="section-cta-btn">Essayer Taleos gratuitement</a>
-            </div>
-        </div>
-    </section>
+        let isAuthenticated = false;
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            try { if (firebase.auth().currentUser) isAuthenticated = true; } catch(e) {}
+        }
+        if (!isAuthenticated) {
+            const token = localStorage.getItem('authToken');
+            const email = localStorage.getItem('userEmail');
+            if (token || email) isAuthenticated = true;
+        }
 
-    <!-- Stats Section (réassurance) -->
-    <section class="stats">
-        <div class="container">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number">95%</div>
-                    <div class="stat-label">de temps économisé sur vos candidatures</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="totalJobsCount">
-                        <span style="display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite;"></span>
-                    </div>
-                    <div class="stat-label">offres live actualisées quotidiennement</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">notre IA travaille pour vous</div>
-                </div>
-            </div>
-        </div>
-    </section>
+        if (isAuthenticated) {
+            profileLink.style.display = 'block';
+            logoutBtn.style.display = 'block';
+            authLink.style.display = 'none';
+            if (applicationsLink) applicationsLink.style.display = 'block';
+            if (connexionsLink)   connexionsLink.style.display   = 'block';
+            if (rechercheLink)    rechercheLink.style.display    = 'inline-block';
+        } else {
+            profileLink.style.display = 'none';
+            logoutBtn.style.display = 'none';
+            authLink.style.display = 'block';
+            if (applicationsLink) applicationsLink.style.display = 'none';
+            if (connexionsLink)   connexionsLink.style.display   = 'none';
+            if (rechercheLink)    rechercheLink.style.display    = 'none';
+        }
 
-    <!-- Features Section -->
-    <section class="features">
-        <div class="container">
-            <h2>Pourquoi choisir Taleos ?</h2>
+        updateLandingCtas(isAuthenticated);
+        setTimeout(highlightCurrentPage, 50);
+    }
 
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🎯</div>
-                    <h3>Spécialisé Finance</h3>
-                    <p>Conçu spécifiquement pour les métiers de la banque, de l'audit, du conseil et de l'asset
-                        management</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3>IA Avancée</h3>
-                    <p>Lettres de motivation personnalisées, matching intelligent, apprentissage continu de vos
-                        préférences</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Sécurisé & Confidentiel</h3>
-                    <p>Vos données sont protégées, conformité RGPD, infrastructure sécurisée</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Automatisation Totale</h3>
-                    <p>De la recherche d'offres à l'envoi des candidatures, tout est géré automatiquement</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📱</div>
-                    <h3>Interface Web Intuitive</h3>
-                    <p>Accédez à votre dashboard depuis n'importe quel navigateur</p>
-                    <div class="feature-badge">Version mobile à venir</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💼</div>
-                    <h3>Profils Multiples</h3>
-                    <p>Créez différents profils pour stage, alternance ou CDI avec des CV adaptés</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🚀</div>
-                    <h3>Technologie de Pointe</h3>
-                    <p>Grâce à des technologies de pointe, Taleos collecte automatiquement toutes les offres des principales institutions financières et postule directement en votre nom sur leurs plateformes. L'efficacité au service de votre carrière.</p>
-                </div>
-            </div>
-            <div class="section-cta">
-                <a href="auth.html" class="section-cta-btn">Rejoindre Taleos</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Qui sommes-nous / Contact -->
-    <section class="about-contact">
-        <div class="container">
-            <div class="about-contact-inner">
-                <div class="about-contact-image">
-                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" alt="Équipe conseil et collaboration en entreprise" loading="lazy" />
-                </div>
-                <div class="about-contact-text">
-                    <h2>Qui sommes-nous ?</h2>
-                    <p class="about-contact-intro">Taleos accompagne les futurs talents de la finance pour décrocher le poste qui leur correspond. Une équipe passionnée, une technologie au service de votre carrière.</p>
-                    <div class="about-contact-cta">
-                        <a href="contact.html" class="about-contact-link">Nous contacter</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ Section -->
-    <section class="faq">
-        <div class="container">
-            <h2>Questions fréquentes</h2>
-
-            <div class="faq-container">
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>Est-ce que c'est légal d'automatiser mes candidatures ?</span>
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        Oui, totalement. Vous nous donnez explicitement le mandat de postuler en votre nom. C'est comme
-                        déléguer cette tâche à un assistant personnel. Nous respectons les conditions d'utilisation des
-                        sites et sommes en contact avec les entreprises pour toute question.
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>Comment l'IA personnalise mes lettres de motivation ?</span>
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        Notre IA analyse votre CV, vos expériences, et les détails de chaque offre pour créer une lettre
-                        unique et pertinente. Elle adapte le ton, met en avant les compétences recherchées et crée un
-                        lien cohérent entre votre profil et le poste.
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>Quelles entreprises sont couvertes ?</span>
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        Nous couvrons les principales banques (BNP Paribas, Société Générale, Crédit Agricole), les
-                        cabinets de conseil (Deloitte, PwC, EY, KPMG), les banques d'investissement (Rothschild,
-                        Lazard), les fonds d'investissement et les fintechs majeures. Nous ajoutons régulièrement de
-                        nouvelles entreprises.
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>Puis-je contrôler les candidatures avant l'envoi ?</span>
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        Absolument ! Vous validez chaque candidature avant envoi. L'IA vous propose les offres
-                        correspondantes, vous choisissez celles qui vous intéressent, et vous pouvez même modifier les
-                        lettres de motivation si vous le souhaitez.
-                    </div>
-                </div>
-
-
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>Que faire si je reçois une réponse d'une entreprise ?</span>
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        Vous recevez toutes les notifications directement sur votre email. Notre dashboard vous permet
-                        aussi de suivre l'évolution de chaque candidature. Ensuite, c'est à vous de jouer pour les
-                        entretiens !
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Final CTA -->
-    <section class="cta-final">
-        <div class="container">
-            <h2>Prêt à transformer votre recherche d'emploi ?</h2>
-            <p>Rejoignez les centaines d'étudiants et professionnels qui automatisent leurs candidatures</p>
-            <a href="auth.html" class="cta-final-btn">Gagnez du temps maintenant</a>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <nav class="footer-nav" aria-label="Liens utiles">
-                <a href="landing_page_finance.html">Présentation</a>
-                <a href="offres.html">Offres</a>
-                <a href="filtres.html">Recherche avancée</a>
-                <a href="tarifs.html">Tarifs</a>
-                <a href="mailto:contact@taleos.co">Contact</a>
-            </nav>
-            <p>&copy; 2026 Taleos. Tous droits réservés.</p>
-            <div class="footer-love">
-                <span>Conçu avec ❤️ pour les futurs talents de la finance</span>
-            </div>
-            <div class="footer-social">
-                <a href="https://instagram.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
-                <a href="https://twitter.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                </a>
-                <a href="https://youtube.com/@taleos" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                </a>
-                <a href="https://linkedin.com/company/taleos" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                </a>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // Attendre que le DOM soit complètement chargé
-        document.addEventListener('DOMContentLoaded', function() {
-            // Form submission - AJAX to Formspree (seulement si le formulaire existe)
-            const betaForm = document.getElementById('betaForm');
-            if (betaForm) {
-                betaForm.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    const form = this;
-                    const status = document.getElementById('successMessage');
-                    if (!status) return;
-                    
-                    const data = new FormData(form);
-
-                    fetch(form.action, {
-                        method: form.method,
-                        body: data,
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    })
-                        .then(response => {
-                            if (response.ok) {
-                                status.innerHTML = "✓ Parfait ! Vous recevrez un email dès l'ouverture de la plateforme.";
-                                status.style.display = 'block';
-                                status.style.color = '#10b981';
-                                status.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-                                status.style.borderColor = '#10b981';
-                                form.reset();
-                                setTimeout(() => {
-                                    status.style.display = 'none';
-                                }, 5000);
-                            } else {
-                                response.json().then(data => {
-                                    if (data.errors) {
-                                        status.innerHTML = "❌ " + data.errors.map(error => error.message).join(", ");
-                                    } else {
-                                        status.innerHTML = "❌ Une erreur est survenue. Veuillez réessayer.";
-                                    }
-                                    status.style.display = 'block';
-                                    status.style.color = '#ef4444';
-                                    status.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-                                    status.style.borderColor = '#ef4444';
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            if (status) {
-                                status.innerHTML = "❌ Une erreur de connexion est survenue. Vérifiez votre internet.";
-                                status.style.display = 'block';
-                                status.style.color = '#ef4444';
-                                status.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-                                status.style.borderColor = '#ef4444';
-                            }
-                        });
+    function initAuth() {
+        if (typeof firebase === 'undefined') { checkAuthAndUpdateNav(); return; }
+        try {
+            if (!firebase.apps || firebase.apps.length === 0) {
+                firebase.initializeApp({
+                    apiKey: "AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",
+                    authDomain: "project-taleos.firebaseapp.com",
+                    projectId: "project-taleos",
+                    storageBucket: "project-taleos.firebasestorage.app",
+                    messagingSenderId: "974062127016",
+                    appId: "1:974062127016:web:b6cffae44f1bae56f03f9d",
+                    measurementId: "G-4PZJ4QXMJ0"
                 });
             }
+            firebase.auth().onAuthStateChanged(() => checkAuthAndUpdateNav());
+            checkAuthAndUpdateNav();
+        } catch(e) { checkAuthAndUpdateNav(); }
+    }
 
-            // FAQ Accordion - Code corrigé et optimisé
-            initFAQAccordion();
-        });
+    async function handleLogout() {
+        try {
+            if (typeof firebase !== 'undefined' && firebase.auth) await firebase.auth().signOut();
+        } catch(e) {}
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userEmail');
+        window.location.href = 'auth.html';
+    }
 
-        // Fonction pour initialiser l'accordéon FAQ
-        function initFAQAccordion() {
+    // ─── Jobs Count ───
+    async function loadTotalJobsCount() {
+        const el = document.getElementById('totalJobsCount');
+        if (!el) return;
+        const inHtmlDir = /\/HTML\/|\/HTML$/.test(window.location.pathname);
+        const paths = inHtmlDir
+            ? ['./scraped_jobs_live.json', '../scraped_jobs_live.json']
+            : ['HTML/scraped_jobs_live.json', './scraped_jobs_live.json'];
+        paths.push(
+            'https://raw.githubusercontent.com/Dedale95/mon-site/main/HTML/scraped_jobs_live.json',
+            'https://raw.githubusercontent.com/Dedale95/mon-site/main/scraped_jobs_live.json'
+        );
+        for (const path of paths) {
             try {
-                const faqQuestions = document.querySelectorAll('.faq-question');
-                if (faqQuestions.length === 0) {
-                    console.warn('⚠️ Aucune question FAQ trouvée dans le DOM');
-                    return;
-                }
-                
-                faqQuestions.forEach(question => {
-                    // Vérifier si un listener existe déjà pour éviter les doubles listeners
-                    if (question.dataset.faqInitialized === 'true') {
+                const r = await fetch(path);
+                if (r.ok) {
+                    const data = await r.json();
+                    const live = Array.isArray(data) ? data.filter(j => String(j?.status||'').toLowerCase().trim()==='live') : [];
+                    if (live.length > 0) {
+                        el.innerHTML = live.length.toLocaleString('fr-FR');
                         return;
                     }
-                    question.dataset.faqInitialized = 'true';
-                    
-                    question.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        try {
-                            // Trouver l'élément parent .faq-item (qui est directement le parent)
-                            const item = this.parentElement;
-                            if (!item || !item.classList.contains('faq-item')) {
-                                console.error('Impossible de trouver le parent .faq-item pour', this);
-                                return;
-                            }
-                            
-                            const isActive = item.classList.contains('active');
-
-                            // Close all items
-                            document.querySelectorAll('.faq-item').forEach(faqItem => {
-                                faqItem.classList.remove('active');
-                            });
-
-                            // Open clicked item if it wasn't active
-                            if (!isActive) {
-                                item.classList.add('active');
-                            }
-                        } catch (error) {
-                            console.error('Erreur lors du clic sur la question FAQ:', error);
-                        }
-                    });
-                });
-                
-                console.log('✅ FAQ Accordion initialisé avec', faqQuestions.length, 'questions');
-            } catch (error) {
-                console.error('❌ Erreur lors de l\'initialisation du FAQ Accordion:', error);
-            }
-        }
-
-        // Si le DOM est déjà chargé, initialiser immédiatement (fallback)
-        if (document.readyState !== 'loading') {
-            setTimeout(initFAQAccordion, 100);
-        }
-
-        // Smooth scroll for CTA button
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                const href = this.getAttribute('href');
-
-                // Si c'est un lien vers le formulaire sur la même page
-                if (href === '#betaForm') {
-                    e.preventDefault();
-                    const target = document.getElementById('betaForm');
-                    if (target && target.parentElement) {
-                        const headerOffset = 150;
-                        const elementPosition = target.parentElement.getBoundingClientRect().top;
-                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-                        window.scrollTo({
-                            top: offsetPosition,
-                            behavior: "smooth"
-                        });
-                    }
                 }
-            });
-        });
-
-        // Mettre en surbrillance uniquement la page actuelle
-        function highlightCurrentPage() {
-            // Obtenir le nom de la page actuelle
-            let currentPage = window.location.pathname.split('/').pop();
-            if (!currentPage || currentPage === '') {
-                currentPage = window.location.href.split('/').pop();
-            }
-            // Si toujours vide, c'est probablement la page d'accueil
-            if (!currentPage || currentPage === '' || currentPage.includes('index') || currentPage.includes('mon-site')) {
-                currentPage = 'landing_page_finance.html';
-            }
-            
-            const navLinks = document.querySelectorAll('.nav-link:not(#logoutBtn)');
-            
-            navLinks.forEach(link => {
-                link.classList.remove('nav-link-primary');
-                const linkHref = link.getAttribute('href');
-                const linkText = link.textContent.trim();
-
-                // Ignorer les liens spéciaux (avec ou sans emojis)
-                if (linkText.includes('Mon Profil') || linkText.includes('Déconnexion') || linkText.includes('Inscription / Connexion')) {
-                    return;
-                }
-
-                // Comparer les noms de fichiers
-                if (linkHref) {
-                    const linkPage = linkHref.split('/').pop();
-                    if (linkPage === currentPage || (currentPage === 'landing_page_finance.html' && linkPage === 'landing_page_finance.html')) {
-                        link.classList.add('nav-link-primary');
-                    }
-                }
-            });
+            } catch(e) { continue; }
         }
+        el.innerHTML = '7 000+';
+    }
 
-        // Vérifier l'authentification et mettre à jour la navigation
-        function checkAuthAndUpdateNav() {
-            const profileLink = document.getElementById('profileLink');
-            const authLink = document.getElementById('authLink');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const applicationsLink = document.getElementById('applicationsLink');
-            const connexionsLink = document.getElementById('connexionsLink');
-            const rechercheLink = document.getElementById('rechercheLink');
+    document.addEventListener('DOMContentLoaded', () => {
+        initFAQAccordion();
+        initAuth();
+        loadTotalJobsCount();
+        highlightCurrentPage();
+        setTimeout(() => { checkAuthAndUpdateNav(); highlightCurrentPage(); }, 300);
+        setTimeout(() => { checkAuthAndUpdateNav(); highlightCurrentPage(); }, 1000);
+    });
 
-            if (!profileLink || !authLink || !logoutBtn) {
-                console.warn('Éléments de navigation non trouvés');
-                return;
-            }
-            
-            let isAuthenticated = false;
-            
-            // Vérifier Firebase auth d'abord (source de vérité principale)
-            if (typeof firebase !== 'undefined' && firebase.auth) {
-                try {
-                    const auth = firebase.auth();
-                    const currentUser = auth.currentUser;
-                    if (currentUser) {
-                        isAuthenticated = true;
-                        // Synchroniser avec localStorage si nécessaire
-                        if (!localStorage.getItem('authToken')) {
-                            currentUser.getIdToken().then(token => {
-                                localStorage.setItem('authToken', token);
-                            });
-                        }
-                    }
-                } catch (e) {
-                    console.warn('Erreur Firebase auth:', e);
-                }
-            }
-            
-            // Fallback: vérifier localStorage si Firebase n'est pas disponible ou n'a pas encore vérifié
-            if (!isAuthenticated) {
-                const token = localStorage.getItem('authToken');
-                const userEmail = localStorage.getItem('userEmail');
-                if (token || userEmail) {
-                    // Si on a un token mais Firebase n'a pas encore vérifié, considérer comme authentifié
-                    // Firebase vérifiera via onAuthStateChanged
-                    isAuthenticated = true;
-                }
-            }
-            
-            console.log('État authentification:', isAuthenticated ? 'connecté' : 'non connecté');
-            
-            if (isAuthenticated) {
-                // Utilisateur connecté - afficher le profil, mes candidatures, recherche avancée et le bouton déconnexion, masquer l'auth
-                profileLink.style.display = 'block';
-                profileLink.classList.remove('nav-link-primary');
-                logoutBtn.style.display = 'block';
-                logoutBtn.classList.remove('nav-link-primary');
-                authLink.style.display = 'none';
-                if (applicationsLink) applicationsLink.style.display = 'block';
-                if (connexionsLink) connexionsLink.style.display = 'block';
-                if (rechercheLink) rechercheLink.style.display = 'inline-block';
-            } else {
-                // Utilisateur non connecté - masquer le profil, mes candidatures, recherche avancée et le bouton déconnexion, afficher l'auth
-                profileLink.style.display = 'none';
-                profileLink.classList.remove('nav-link-primary');
-                logoutBtn.style.display = 'none';
-                logoutBtn.classList.remove('nav-link-primary');
-                if (applicationsLink) applicationsLink.style.display = 'none';
-                if (connexionsLink) connexionsLink.style.display = 'none';
-                if (rechercheLink) rechercheLink.style.display = 'none';
-                authLink.style.display = 'block';
-                authLink.classList.remove('nav-link-primary');
-            }
-            
-            // Remettre en surbrillance la page actuelle après avoir mis à jour la visibilité
-            setTimeout(() => {
-                highlightCurrentPage();
-            }, 50);
-        }
-        
-        // Initialiser Firebase et vérifier l'authentification
-        function initAuth() {
-            if (typeof firebase === 'undefined') {
-                console.warn('Firebase non disponible');
-                // Vérifier quand même avec localStorage
-                checkAuthAndUpdateNav();
-                return;
-            }
-            
-            try {
-                let auth;
-                
-                // Initialiser Firebase si nécessaire
-                if (!firebase.apps || firebase.apps.length === 0) {
-                    const firebaseConfig = {
-                        apiKey: "AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",
-                        authDomain: "project-taleos.firebaseapp.com",
-                        projectId: "project-taleos",
-                        storageBucket: "project-taleos.firebasestorage.app",
-                        messagingSenderId: "974062127016",
-                        appId: "1:974062127016:web:b6cffae44f1bae56f03f9d",
-                        measurementId: "G-4PZJ4QXMJ0"
-                    };
-                    firebase.initializeApp(firebaseConfig);
-                    console.log('✅ Firebase initialisé');
-                }
-                
-                // Obtenir l'instance auth
-                auth = firebase.auth();
-                
-                // Écouter les changements d'état Firebase (se déclenche immédiatement aussi)
-                auth.onAuthStateChanged((user) => {
-                    console.log('onAuthStateChanged:', user ? 'utilisateur connecté' : 'utilisateur déconnecté');
-                    // Mettre à jour la navigation quand l'état d'authentification change
-                    checkAuthAndUpdateNav();
-                });
-                
-                // Vérifier immédiatement aussi (au cas où onAuthStateChanged ne se déclenche pas immédiatement)
-                checkAuthAndUpdateNav();
-                
-            } catch (e) {
-                console.error('Erreur lors de l\'initialisation Firebase:', e);
-                // Essayer quand même avec localStorage
-                checkAuthAndUpdateNav();
-            }
-        }
-
-        // Fonction de déconnexion avec Firebase
-        async function handleLogout() {
-            try {
-                // Vérifier si Firebase est disponible
-                if (typeof firebase !== 'undefined' && firebase.auth) {
-                    const auth = firebase.auth();
-                    await auth.signOut();
-                }
-                // Nettoyer localStorage
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('userEmail');
-                // Rediriger vers la page de connexion
-                window.location.href = 'auth.html';
-            } catch (error) {
-                console.error('Erreur lors de la déconnexion:', error);
-                // Déconnexion de toute façon même en cas d'erreur
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('userEmail');
-                window.location.href = 'auth.html';
-            }
-        }
-
-        // Charger le nombre total d'offres
-        async function loadTotalJobsCount() {
-            const totalJobsCountEl = document.getElementById('totalJobsCount');
-            if (!totalJobsCountEl) return;
-
-            // Chemins relatifs au document : si la page est dans HTML/, ./scraped_jobs_live.json fonctionne
-            const inHtmlDir = /\/HTML\/|\/HTML$/.test(window.location.pathname);
-            const paths = inHtmlDir
-                ? ['./scraped_jobs_live.json', 'scraped_jobs_live.json', '../scraped_jobs_live.json']
-                : ['HTML/scraped_jobs_live.json', './HTML/scraped_jobs_live.json', 'scraped_jobs_live.json', './scraped_jobs_live.json'];
-            paths.push(
-                'https://raw.githubusercontent.com/Dedale95/mon-site/main/HTML/scraped_jobs_live.json',
-                'https://raw.githubusercontent.com/Dedale95/mon-site/main/scraped_jobs_live.json'
-            );
-
-            for (const path of paths) {
-                try {
-                    const response = await fetch(path);
-                    if (response.ok) {
-                        const data = await response.json();
-                        const statusLive = (s) => String(s || '').toLowerCase().trim() === 'live';
-                        const liveData = Array.isArray(data) ? data.filter(job => job && statusLive(job.status)) : [];
-                        const count = liveData.length;
-                        if (count > 0) {
-                            // Formater le nombre avec des espaces pour les milliers
-                            const formattedCount = count.toLocaleString('fr-FR').replace(/,/g, ' ');
-                            totalJobsCountEl.innerHTML = formattedCount;
-                            return;
-                        }
-                    }
-                } catch (error) {
-                    // Continuer avec le chemin suivant
-                    continue;
-                }
-            }
-
-            // Si aucun fichier n'a pu être chargé, afficher un nombre par défaut
-            totalJobsCountEl.innerHTML = '2 000+';
-        }
-
-        // Initialiser l'authentification quand le DOM est prêt
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialiser Firebase et vérifier l'authentification
-            initAuth();
-            
-            // Charger le nombre d'offres
-            loadTotalJobsCount();
-            
-            // Mettre en surbrillance la page actuelle
-            highlightCurrentPage();
-            
-            // Vérifier à nouveau après un court délai (pour Firebase qui peut être asynchrone)
-            setTimeout(() => {
-                checkAuthAndUpdateNav();
-                highlightCurrentPage();
-            }, 300);
-            
-            // Vérifier une dernière fois après un délai plus long
-            setTimeout(() => {
-                checkAuthAndUpdateNav();
-                highlightCurrentPage();
-            }, 1000);
-        });
-        
-        // Si le DOM est déjà chargé, initialiser immédiatement
-        if (document.readyState !== 'loading') {
-            initAuth();
-            loadTotalJobsCount();
-            highlightCurrentPage();
-            setTimeout(() => {
-                checkAuthAndUpdateNav();
-                highlightCurrentPage();
-            }, 300);
-        }
-    </script>
+    if (document.readyState !== 'loading') {
+        initFAQAccordion();
+        initAuth();
+        loadTotalJobsCount();
+        highlightCurrentPage();
+        setTimeout(() => { checkAuthAndUpdateNav(); highlightCurrentPage(); }, 300);
+    }
+</script>
 </body>
-
 </html>

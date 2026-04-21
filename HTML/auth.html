@@ -3,2010 +3,1103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription / Connexion - Taleos</title>
-    <!-- Firebase SDK -->
+    <title>Connexion — Taleos</title>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <link rel="stylesheet" href="taleos-theme.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --ink:        #0a0a0f;
+            --ink-soft:   #14141c;
+            --ink-mid:    #1e1e2a;
+            --surface:    #f5f3ef;
+            --surface2:   #ede9e3;
+            --surface3:   #e4dfd7;
+            --gold:       #c8a96e;
+            --gold-light: #e2cfa0;
+            --gold-dim:   rgba(200,169,110,0.12);
+            --muted:      #7a7a8a;
+            --text-body:  #3a3a48;
+            --white:      #ffffff;
+            --serif:      'Playfair Display', Georgia, serif;
+            --sans:       'DM Sans', system-ui, sans-serif;
+            --radius:     4px;
+            --radius-md:  8px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        html {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        }
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html { height:100%; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: var(--sans);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 0 20px 20px 20px;
-            margin: 0;
+            background: var(--surface);
+            color: var(--text-body);
+            line-height: 1.6;
         }
 
-        /* Nav en premier dans le flux : aucun bandeau au-dessus possible */
+        /* ─── NAV ─── */
         nav {
-            flex-shrink: 0;
-            width: 100%;
-            padding: max(20px, env(safe-area-inset-top, 0)) max(40px, env(safe-area-inset-right, 0)) 20px max(40px, env(safe-area-inset-left, 0));
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding-top: 24px;
-            padding-bottom: 24px;
-            background: transparent;
+            position: sticky; top:0; z-index:9999;
+            background: var(--ink);
+            border-bottom: 1px solid rgba(200,169,110,0.12);
+            padding: 0 48px; flex-shrink: 0;
         }
 
         .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            max-width: 1400px; margin:0 auto;
+            display: grid; grid-template-columns: 1fr auto 1fr;
+            align-items: center; height: 68px;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
+        .logo { display:flex; align-items:center; gap:11px; text-decoration:none; justify-self:start; }
+
+        .logo-mark {
+            width:36px; height:36px;
+            background:var(--ink-mid);
+            border:1.5px solid rgba(200,169,110,0.5);
+            border-radius:9px;
+            display:flex; align-items:center; justify-content:center; flex-shrink:0;
         }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
+        .logo-mark svg { width:20px; height:20px; }
+        .logo-text { font-family:var(--sans); font-size:1.3rem; font-weight:700; color:var(--white); letter-spacing:-0.01em; }
+        .logo-text span { color:var(--gold); }
 
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1a1a1a;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
+        .nav-links { display:flex; align-items:center; gap:4px; justify-self:center; }
+        .nav-actions { display:flex; align-items:center; gap:4px; justify-self:end; }
 
         .nav-link {
-            color: #666;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
+            color:rgba(255,255,255,0.55); text-decoration:none;
+            font-size:0.85rem; font-weight:500; letter-spacing:0.03em;
+            padding:8px 14px; border-radius:var(--radius);
+            transition:color var(--transition); white-space:nowrap;
+        }
+        .nav-link:hover { color:var(--white); }
+        .nav-link-primary { color:var(--gold) !important; }
+        .nav-link-primary:hover { background:var(--gold-dim); }
+
+        /* ─── MAIN: SPLIT LAYOUT ─── */
+        .auth-wrapper {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: calc(100vh - 68px);
         }
 
-        .nav-link:hover {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        /* Container principal */
-        .auth-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        /* ─── LEFT PANEL (brand) ─── */
+        .auth-brand {
+            background: var(--ink);
+            padding: 64px 56px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
             overflow: hidden;
-            max-width: 900px;
-            width: 100%;
-            margin-top: 0;
         }
 
+        /* Gold orb */
+        .auth-brand::after {
+            content:'';
+            position:absolute; width:400px; height:400px;
+            bottom:-80px; left:-80px;
+            background:radial-gradient(circle,rgba(200,169,110,0.1) 0%,transparent 70%);
+            pointer-events:none;
+        }
+
+        .brand-label {
+            display:inline-flex; align-items:center; gap:8px;
+            font-size:0.65rem; font-weight:600; letter-spacing:0.12em;
+            text-transform:uppercase; color:var(--gold); margin-bottom:24px;
+        }
+        .brand-label::before { content:''; display:block; width:20px; height:1px; background:var(--gold); }
+
+        .brand-title {
+            font-family:var(--serif);
+            font-size:clamp(2rem, 3.5vw, 2.8rem);
+            font-weight:700; color:var(--white);
+            line-height:1.12; margin-bottom:24px;
+        }
+        .brand-title em { font-style:italic; color:var(--gold-light); }
+
+        .brand-desc {
+            font-size:0.9rem; color:rgba(255,255,255,0.45);
+            line-height:1.8; margin-bottom:48px; max-width:340px;
+        }
+
+        .brand-pillars {
+            display:flex; flex-direction:column; gap:16px;
+            position:relative; z-index:1;
+        }
+
+        .brand-pillar {
+            display:flex; align-items:flex-start; gap:14px;
+            font-size:0.85rem; color:rgba(255,255,255,0.6); line-height:1.5;
+        }
+
+        .pillar-icon {
+            width:32px; height:32px; flex-shrink:0;
+            background:var(--gold-dim);
+            border:1px solid rgba(200,169,110,0.2);
+            border-radius:var(--radius);
+            display:flex; align-items:center; justify-content:center;
+            font-size:0.9rem;
+        }
+
+        /* ─── RIGHT PANEL (form) ─── */
+        .auth-form-panel {
+            background: var(--white);
+            padding: 64px 56px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Tabs */
         .auth-tabs {
             display: flex;
-            border-bottom: 2px solid #e5e7eb;
+            border-bottom: 1px solid var(--surface2);
+            margin-bottom: 36px;
+            gap: 0;
         }
 
         .auth-tab {
-            flex: 1;
-            padding: 20px;
-            text-align: center;
-            background: #f9fafb;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #666;
-            transition: all 0.3s;
-            position: relative;
+            flex:1; padding:14px 16px;
+            background:transparent; border:none;
+            font-family:var(--sans); font-size:0.85rem; font-weight:600;
+            letter-spacing:0.04em; text-transform:uppercase;
+            color:var(--muted); cursor:pointer;
+            position:relative; transition:color var(--transition);
         }
 
-        .auth-tab.active {
-            background: white;
-            color: #667eea;
+        .auth-tab::after {
+            content:''; position:absolute;
+            bottom:-1px; left:0; right:0; height:2px;
+            background:transparent; transition:background var(--transition);
         }
 
-        .auth-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
+        .auth-tab.active { color:var(--ink); }
+        .auth-tab.active::after { background:var(--gold); }
 
-        .auth-content {
-            padding: 40px;
-        }
+        .auth-form { display:none; }
+        .auth-form.active { display:block; }
 
-        .auth-form {
-            display: none;
-        }
-
-        .auth-form.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
+        /* Form elements */
+        .form-group { margin-bottom:20px; }
 
         .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #1a1a1a;
-            font-size: 0.95rem;
+            display:block; margin-bottom:7px;
+            font-size:0.75rem; font-weight:600; letter-spacing:0.06em;
+            text-transform:uppercase; color:var(--muted);
         }
 
+        .form-row-label {
+            display:flex; justify-content:space-between; align-items:center; margin-bottom:7px;
+        }
+
+        .form-row-label label { margin-bottom:0; }
+
         .form-group input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s;
+            width:100%; padding:11px 14px;
+            border:1px solid var(--surface3);
+            border-radius:var(--radius);
+            font-family:var(--sans); font-size:0.9rem;
+            color:var(--ink); background:var(--white);
+            transition:border-color var(--transition), box-shadow var(--transition);
         }
 
         .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            outline:none;
+            border-color:var(--gold);
+            box-shadow:0 0 0 3px rgba(200,169,110,0.1);
         }
 
-        /* Container pour les champs de mot de passe avec bouton d'œil */
-        .password-input-wrapper {
-            position: relative;
-            width: 100%;
-        }
+        .form-group input.error { border-color:#ef4444; }
 
-        .password-input-wrapper input {
-            padding-right: 50px;
-        }
+        /* Password toggle */
+        .password-input-wrapper { position:relative; }
+        .password-input-wrapper input { padding-right:48px; }
 
         .password-toggle {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #666;
-            font-size: 1.2rem;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: color 0.3s;
-            z-index: 10;
+            position:absolute; right:12px; top:50%;
+            transform:translateY(-50%);
+            background:none; border:none; cursor:pointer;
+            color:var(--muted); padding:6px;
+            display:flex; align-items:center;
+            transition:color var(--transition); z-index:10;
         }
+        .password-toggle:hover { color:var(--gold); }
+        .password-toggle:focus { outline:none; }
+        .password-toggle svg { width:18px; height:18px; }
+        .password-toggle .pwd-icon-hide { display:none; }
+        .password-toggle.is-visible .pwd-icon-show { display:none; }
+        .password-toggle.is-visible .pwd-icon-hide { display:inline-flex; }
 
-        .password-toggle:hover {
-            color: #667eea;
+        /* Forgot password */
+        .forgot-link {
+            background:none; border:none;
+            color:var(--gold); font-size:0.78rem; font-weight:600;
+            letter-spacing:0.04em;
+            cursor:pointer; font-family:var(--sans);
+            transition:opacity var(--transition); padding:0;
         }
+        .forgot-link:hover { opacity:0.75; }
 
-        .password-toggle:focus {
-            outline: none;
-        }
-
-        .password-toggle .pwd-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .password-toggle .pwd-icon-hide {
-            display: none;
-        }
-
-        .password-toggle.is-visible .pwd-icon-show {
-            display: none;
-        }
-
-        .password-toggle.is-visible .pwd-icon-hide {
-            display: inline-flex;
-        }
-
-        .password-toggle svg {
-            width: 22px;
-            height: 22px;
-        }
-
-        .form-group input.error {
-            border-color: #ef4444;
-        }
-
+        /* Error / Success */
         .error-message {
-            color: #ef4444;
-            font-size: 0.85rem;
-            margin-top: 6px;
-            display: none;
+            color:#ef4444; font-size:0.8rem; margin-top:5px; display:none;
         }
-
-        .error-message.show {
-            display: block;
-        }
+        .error-message.show { display:block; }
 
         .success-message {
-            color: #065f46;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-top: 16px;
-            padding: 16px 20px;
-            background: #d1fae5;
-            border-radius: 12px;
-            border-left: 4px solid #10b981;
-            display: none;
-            animation: slideIn 0.3s ease-out;
+            color:#059669; font-size:0.88rem; line-height:1.6;
+            margin-top:14px; padding:14px 16px;
+            background:rgba(16,185,129,0.07);
+            border-radius:var(--radius); border-left:3px solid #10b981;
+            display:none;
         }
+        .success-message.show { display:block; }
 
-        .success-message.show {
-            display: block;
+        /* Main CTA button */
+        .btn-submit {
+            width:100%; padding:13px 20px; margin-top:8px;
+            background:var(--ink); color:var(--white);
+            border:none; border-radius:var(--radius);
+            font-family:var(--sans); font-size:0.85rem; font-weight:600;
+            letter-spacing:0.06em; text-transform:uppercase;
+            cursor:pointer; transition:all var(--transition);
         }
-
-        .success-message strong {
-            color: #065f46;
-            font-weight: 700;
-        }
-
-        /* Loader élégant pour la connexion */
-        .login-loader-container {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px 20px;
-            margin-top: 20px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-            border-radius: 12px;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .login-loader-container.show {
-            display: flex;
-        }
-
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid rgba(102, 126, 234, 0.2);
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 16px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loader-text {
-            color: #667eea;
-            font-size: 1rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin: 0;
-            text-align: center;
-        }
-
-        .loader-subtext {
-            color: #666;
-            font-size: 0.85rem;
-            margin-top: 8px;
-            text-align: center;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
+        .btn-submit:hover:not(:disabled) { background:var(--ink-mid); transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,0.15); }
+        .btn-submit:disabled { opacity:0.55; cursor:not-allowed; transform:none; }
 
         .career-connection-box {
             margin-top: 24px;
             padding: 20px;
-            border: 1px solid #dbe4ff;
-            border-radius: 14px;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+            border: 1px solid rgba(200,169,110,0.22);
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, rgba(200,169,110,0.08) 0%, rgba(10,10,15,0.02) 100%);
         }
 
         .career-connection-box-header {
             display: flex;
             align-items: center;
             gap: 14px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .career-connection-box-logo {
             width: 48px;
             height: 48px;
             border-radius: 12px;
-            background: white;
+            background: var(--white);
             padding: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--surface2);
             object-fit: contain;
+            flex-shrink: 0;
         }
 
         .career-connection-box h3 {
-            font-size: 1.05rem;
-            color: #1f2937;
+            font-family: var(--sans);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
             margin: 0;
         }
 
         .career-connection-box p {
-            color: #4b5563;
-            font-size: 0.95rem;
-            line-height: 1.55;
-            margin: 0 0 12px 0;
-        }
-
-        .career-connection-box small {
-            display: block;
-            color: #2563eb;
-            font-weight: 600;
-            margin-bottom: 14px;
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.65;
+            margin: 0 0 14px 0;
         }
 
         .career-connection-box .btn-secondary-link {
             width: 100%;
-            padding: 14px 16px;
-            border-radius: 10px;
-            border: 1px solid #bfdbfe;
-            background: white;
-            color: #1d4ed8;
-            font-size: 1rem;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(200,169,110,0.3);
+            background: var(--white);
+            color: var(--ink);
+            font-size: 0.82rem;
             font-weight: 600;
+            letter-spacing: 0.04em;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all var(--transition);
         }
 
         .career-connection-box .btn-secondary-link:hover {
-            background: #eff6ff;
+            background: var(--gold-dim);
+            border-color: var(--gold);
         }
 
+        /* Password requirements */
         .password-requirements {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 6px;
+            margin-top:8px; font-size:0.78rem; color:var(--muted);
         }
-
-        .password-requirements ul {
-            list-style: none;
-            margin-top: 8px;
-            padding-left: 0;
-        }
-
+        .password-requirements ul { list-style:none; margin-top:6px; }
         .password-requirements li {
-            margin: 4px 0;
-            padding-left: 20px;
-            position: relative;
+            margin:3px 0; padding-left:16px; position:relative;
         }
+        .password-requirements li::before { content:'·'; position:absolute; left:0; color:var(--muted); }
+        .password-requirements li.valid { color:#10b981; }
+        .password-requirements li.valid::before { content:'✓'; }
 
-        .password-requirements li::before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: #9ca3af;
+        /* Terms checkbox */
+        .checkbox-label {
+            display:flex; align-items:flex-start; gap:10px;
+            cursor:pointer; user-select:none;
         }
-
-        .password-requirements li.valid::before {
-            content: '✓';
-            color: #10b981;
+        .checkbox-label input[type="checkbox"] {
+            width:16px; height:16px; min-width:16px;
+            margin-top:2px; cursor:pointer;
+            accent-color:var(--gold);
         }
+        .checkbox-text { font-size:0.82rem; color:var(--muted); line-height:1.5; }
+        .terms-link { color:var(--gold); text-decoration:none; font-weight:600; }
+        .terms-link:hover { opacity:0.8; }
 
-        /* Bouton mot de passe oublié */
-        .forgot-password-link {
-            background: none !important;
-            border: none !important;
-            color: #667eea !important;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 6px;
-            transition: all 0.2s;
-            text-decoration: none;
+        /* Login loader */
+        .login-loader-container {
+            display:none; flex-direction:column; align-items:center;
+            justify-content:center; padding:24px 16px; margin-top:16px;
+            background:var(--gold-dim);
+            border:1px solid rgba(200,169,110,0.2);
+            border-radius:var(--radius);
         }
+        .login-loader-container.show { display:flex; }
 
-        .forgot-password-link:hover {
-            color: #764ba2 !important;
-            background: rgba(102, 126, 234, 0.1) !important;
+        .spinner {
+            width:36px; height:36px;
+            border:2px solid rgba(200,169,110,0.2);
+            border-top-color:var(--gold);
+            border-radius:50%;
+            animation:spin 0.8s linear infinite;
+            margin-bottom:12px;
         }
+        @keyframes spin { to { transform:rotate(360deg); } }
 
-        /* Modal Mot de passe oublié */
+        .loader-text { color:var(--gold); font-size:0.88rem; font-weight:600; }
+        .loader-subtext { color:var(--muted); font-size:0.78rem; margin-top:4px; }
+
+        /* ─── MODAL base ─── */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            z-index: 10000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            padding: 20px;
+            position:fixed; inset:0;
+            background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);
+            z-index:10000; display:none;
+            align-items:center; justify-content:center;
+            padding:20px;
         }
-
-        .modal-overlay.show {
-            display: flex;
-            opacity: 1;
-        }
+        .modal-overlay.show { display:flex; }
 
         .modal-content {
-            background: white;
-            border-radius: 16px;
-            padding: 0;
-            max-width: 480px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            transform: scale(0.9) translateY(20px);
-            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            overflow: hidden;
-        }
-
-        .modal-overlay.show .modal-content {
-            transform: scale(1) translateY(0);
+            background:var(--white); border-radius:var(--radius-md);
+            max-width:480px; width:100%;
+            box-shadow:0 24px 64px rgba(0,0,0,0.25);
+            overflow:hidden; border:1px solid var(--surface2);
         }
 
         .modal-header {
-            padding: 24px 28px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding:22px 28px;
+            background:var(--ink);
+            border-bottom:1px solid rgba(200,169,110,0.1);
+            display:flex; justify-content:space-between; align-items:center;
         }
 
         .modal-header h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-family:var(--sans); font-size:0.85rem; font-weight:600;
+            letter-spacing:0.06em; text-transform:uppercase;
+            color:rgba(255,255,255,0.7); margin:0;
         }
 
         .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #9ca3af;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 6px;
-            transition: all 0.2s;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background:none; border:none; color:rgba(255,255,255,0.4);
+            font-size:1.4rem; cursor:pointer; line-height:1; padding:2px;
+            transition:color var(--transition);
         }
+        .modal-close:hover { color:var(--white); }
 
-        .modal-close:hover {
-            background: #f3f4f6;
-            color: #374151;
-        }
+        .modal-body { padding:28px; }
+        .modal-body p { font-size:0.88rem; color:var(--muted); line-height:1.7; margin-bottom:16px; }
+        .modal-body .form-group { margin-bottom:16px; }
 
-        .modal-body {
-            padding: 28px;
-        }
-
-        .modal-body p {
-            color: #666;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 24px;
+        .modal-icon {
+            font-size:2rem; text-align:center;
+            margin-bottom:16px; display:block;
         }
 
         .modal-footer {
-            padding: 20px 28px;
-            border-top: 1px solid #e5e7eb;
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            background: #f9fafb;
+            padding:18px 28px;
+            background:var(--surface);
+            border-top:1px solid var(--surface2);
+            display:flex; gap:10px; justify-content:flex-end;
         }
 
-        .btn-secondary {
-            padding: 12px 24px;
-            background: white;
-            color: #666;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+        .btn-secondary-modal {
+            padding:10px 20px; background:var(--white);
+            color:var(--muted); border:1px solid var(--surface3);
+            border-radius:var(--radius); font-family:var(--sans);
+            font-size:0.8rem; font-weight:600; cursor:pointer;
+            transition:all var(--transition);
         }
+        .btn-secondary-modal:hover { border-color:var(--muted); color:var(--text-body); }
 
-        .btn-secondary:hover {
-            background: #f3f4f6;
-            border-color: #d1d5db;
-            color: #374151;
+        .btn-primary-modal {
+            padding:10px 20px; background:var(--ink);
+            color:var(--white); border:1px solid var(--ink);
+            border-radius:var(--radius); font-family:var(--sans);
+            font-size:0.8rem; font-weight:600; cursor:pointer;
+            transition:all var(--transition);
         }
+        .btn-primary-modal:hover:not(:disabled) { background:var(--ink-mid); }
+        .btn-primary-modal:disabled { opacity:0.5; cursor:not-allowed; }
 
-        .btn-primary {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .modal-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            margin: 0 auto 20px;
-        }
-
-        .email-sent-state {
-            text-align: center;
-            display: none;
-        }
-
-        .email-sent-state.show {
-            display: block;
-        }
-
-        .email-form-state {
-            display: block;
-        }
-
-        .email-form-state.hide {
-            display: none;
-        }
+        .email-sent-state { text-align:center; display:none; }
+        .email-sent-state.show { display:block; }
+        .email-form-state { display:block; }
+        .email-form-state.hide { display:none; }
 
         .success-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            margin: 0 auto 24px;
-            animation: iconBounce 0.6s ease-out;
-            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+            width:64px; height:64px; border-radius:50%;
+            background:rgba(16,185,129,0.1);
+            display:flex; align-items:center; justify-content:center;
+            font-size:28px; margin:0 auto 20px;
+            border:1px solid rgba(16,185,129,0.3);
         }
 
-        @keyframes iconBounce {
-            0% {
-                transform: scale(0);
-            }
-            50% {
-                transform: scale(1.1);
-            }
-            100% {
-                transform: scale(1);
-            }
+        .sent-email-highlight {
+            font-weight:600; color:var(--ink);
+            font-size:0.9rem; margin-bottom:12px;
         }
 
-        /* Terms checkbox */
-        .terms-group {
-            margin-bottom: 24px !important;
-        }
-
-        .checkbox-label {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .checkbox-label input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            min-width: 20px;
-            cursor: pointer;
-            margin-top: 2px;
-            accent-color: #667eea;
-        }
-
-        .checkbox-text {
-            font-size: 0.9rem;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        .terms-link {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .terms-link:hover {
-            color: #764ba2;
-            text-decoration: underline;
-        }
-
-        /* Terms Modal */
+        /* ─── TERMS MODALS ─── */
         .terms-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 10000;
-            overflow-y: auto;
-            padding: 20px;
+            display:none; position:fixed; inset:0;
+            background:rgba(0,0,0,0.7); z-index:10000;
+            overflow-y:auto; padding:20px;
         }
-
-        .terms-modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .terms-modal.show { display:flex; align-items:center; justify-content:center; }
 
         .terms-modal-content {
-            background: white;
-            border-radius: 16px;
-            max-width: 800px;
-            width: 100%;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            background:var(--white); border-radius:var(--radius-md);
+            max-width:760px; width:100%; max-height:90vh;
+            display:flex; flex-direction:column;
+            box-shadow:0 24px 64px rgba(0,0,0,0.3);
         }
 
         .terms-modal-header {
-            padding: 24px 28px;
-            border-bottom: 2px solid #e5e7eb;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 16px 16px 0 0;
+            padding:22px 28px;
+            background:var(--ink);
+            color:var(--white);
+            border-radius:var(--radius-md) var(--radius-md) 0 0;
         }
 
         .terms-modal-header h2 {
-            font-size: 1.5rem;
-            margin: 0;
+            font-family:var(--sans); font-size:0.88rem; font-weight:600;
+            letter-spacing:0.06em; text-transform:uppercase;
+            color:rgba(255,255,255,0.7); margin:0;
         }
 
         .terms-modal-body {
-            padding: 28px;
-            overflow-y: auto;
-            flex: 1;
+            padding:28px; overflow-y:auto; flex:1;
         }
 
         .terms-modal-body h3 {
-            color: #667eea;
-            font-size: 1.2rem;
-            margin: 24px 0 12px 0;
+            font-family:var(--sans); font-size:0.8rem; font-weight:600;
+            letter-spacing:0.08em; text-transform:uppercase;
+            color:var(--gold); margin:24px 0 10px;
         }
-
-        .terms-modal-body h3:first-child {
-            margin-top: 0;
-        }
+        .terms-modal-body h3:first-child { margin-top:0; }
 
         .terms-modal-body p {
-            color: #666;
-            font-size: 0.95rem;
-            line-height: 1.8;
-            margin-bottom: 16px;
+            color:var(--muted); font-size:0.88rem; line-height:1.75; margin-bottom:12px;
         }
 
         .terms-modal-body ul {
-            color: #666;
-            font-size: 0.95rem;
-            line-height: 1.8;
-            margin-bottom: 16px;
-            padding-left: 24px;
+            color:var(--muted); font-size:0.88rem; line-height:1.75;
+            margin-bottom:12px; padding-left:20px;
         }
-
-        .terms-modal-body li {
-            margin-bottom: 8px;
-        }
-
-        .terms-modal-body strong {
-            color: #1a1a1a;
-            font-weight: 600;
-        }
+        .terms-modal-body li { margin-bottom:6px; }
+        .terms-modal-body strong { color:var(--text-body); font-weight:600; }
 
         .terms-highlight {
-            background: rgba(102, 126, 234, 0.1);
-            padding: 16px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            margin: 16px 0;
+            background:var(--gold-dim);
+            padding:14px 18px; border-radius:var(--radius);
+            border-left:3px solid var(--gold); margin:14px 0;
         }
-
-        .terms-highlight p {
-            margin: 0;
-            color: #1a1a1a;
-            font-weight: 600;
-        }
+        .terms-highlight p { margin:0; color:var(--text-body); font-weight:500; }
 
         .terms-modal-footer {
-            padding: 20px 28px;
-            border-top: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: flex-end;
-            background: #f9fafb;
-            border-radius: 0 0 16px 16px;
+            padding:18px 28px;
+            border-top:1px solid var(--surface2);
+            display:flex; justify-content:flex-end;
+            background:var(--surface);
+            border-radius:0 0 var(--radius-md) var(--radius-md);
         }
 
-        /* Footer - fond sombre uniquement, aucun encadré blanc */
+        /* ─── FOOTER ─── */
         footer {
-            background: #1a1a1a;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-            margin-top: auto;
-            width: 100%;
-            box-sizing: border-box;
+            background:#070709; color:rgba(255,255,255,0.3);
+            padding:36px 48px; border-top:1px solid rgba(200,169,110,0.1);
         }
 
-        footer .container,
-        footer .container * {
-            background: transparent !important;
+        .footer-inner {
+            max-width:1400px; margin:0 auto;
+            display:flex; align-items:center;
+            justify-content:space-between; flex-wrap:wrap; gap:20px;
         }
 
-        footer .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+        .footer-logo { font-family:var(--sans); font-size:1.1rem; font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:-0.01em; }
+        .footer-logo span { color:var(--gold); }
 
-        footer p {
-            opacity: 0.7;
-            margin: 0;
-        }
+        .footer-nav { display:flex; gap:20px; flex-wrap:wrap; }
+        .footer-nav a { color:rgba(255,255,255,0.3); text-decoration:none; font-size:0.82rem; transition:color var(--transition); }
+        .footer-nav a:hover { color:var(--gold); }
 
-        .footer-nav {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 8px 24px;
-            margin-bottom: 20px;
-        }
+        .footer-social { display:flex; gap:14px; }
+        .footer-social a { color:rgba(255,255,255,0.25); text-decoration:none; transition:color var(--transition); }
+        .footer-social a:hover { color:var(--gold); }
+        .footer-social svg { width:15px; height:15px; }
 
-        .footer-nav a {
-            color: rgba(255, 255, 255, 0.85);
-            text-decoration: none;
-            font-size: 0.95rem;
-        }
+        .footer-copy { width:100%; font-size:0.72rem; text-align:center; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05); }
 
-        .footer-nav a:hover {
-            color: white;
-            text-decoration: underline;
-        }
-
-        .footer-love {
-            margin-top: 10px;
-            font-size: 0.95rem;
-        }
-
-        .footer-links {
-            margin-top: 12px;
-        }
-
-        .footer-links a {
-            color: inherit;
-            opacity: 0.85;
-            text-decoration: none;
-        }
-
-        .footer-links a:hover {
-            opacity: 1;
-            text-decoration: underline;
-        }
-
-        .footer-social {
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .footer-social a {
-            color: white;
-            opacity: 0.85;
-            display: inline-flex;
-            transition: opacity 0.2s;
-        }
-
-        .footer-social a:hover {
-            opacity: 1;
-        }
-
-        .footer-social svg {
-            width: 24px;
-            height: 24px;
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 900px) {
+            .auth-wrapper { grid-template-columns:1fr; }
+            .auth-brand { display:none; }
+            .auth-form-panel { padding:48px 32px; }
         }
 
         @media (max-width: 768px) {
-            .auth-container {
-                margin-top: 0;
-            }
-
-            .auth-content {
-                padding: 30px 20px;
-            }
-
-            nav {
-                padding: 15px 20px;
-            }
-
-            .nav-container {
-                flex-direction: column;
-                gap: 15px;
-            }
+            nav { padding:0 20px; }
+            .nav-container { display:flex; justify-content:space-between; }
+            .nav-links { display:none; }
+            .auth-form-panel { padding:40px 20px; }
+            footer { padding:28px 20px; }
+            .footer-inner { flex-direction:column; align-items:flex-start; }
         }
     </style>
 </head>
 <body class="auth-page">
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <a href="landing_page_finance.html" class="logo">
-                <div class="logo-icon">T</div>
-                <div class="logo-text">Taleos</div>
-            </a>
-            <div class="nav-links">
-                <a href="landing_page_finance.html" class="nav-link">Présentation</a>
-                <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
-                <a href="tarifs.html" class="nav-link">Tarifs</a>
-                <a href="auth.html" class="nav-link nav-link-primary">Inscription / Connexion</a>
+
+<!-- ─── NAV ─── -->
+<nav>
+    <div class="nav-container">
+        <a href="landing_page_finance.html" class="logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 20 20" fill="none"><path d="M5 6H15M10 6V15" stroke="#c8a96e" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="logo-text">Tale<span>os</span></div>
+        </a>
+
+        <div class="nav-links">
+            <a href="landing_page_finance.html" class="nav-link">Présentation</a>
+            <a href="offres.html" class="nav-link">Offres</a>
+            <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
+            <a href="tarifs.html" class="nav-link">Tarifs</a>
+        </div>
+
+        <div class="nav-actions">
+            <a href="auth.html" class="nav-link nav-link-primary">Connexion</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ─── SPLIT LAYOUT ─── -->
+<div class="auth-wrapper">
+
+    <!-- Left: brand panel -->
+    <div class="auth-brand">
+        <div class="brand-label">Votre partenaire finance</div>
+        <h1 class="brand-title">Postulez plus.<br><em>Cherchez moins.</em></h1>
+        <p class="brand-desc">Taleos automatise vos candidatures en finance — banque, audit, conseil, asset management — pour que vous puissiez vous concentrer sur l'essentiel.</p>
+
+        <div class="brand-pillars">
+            <div class="brand-pillar">
+                <div class="pillar-icon">⏱</div>
+                <span>Gagnez des dizaines d'heures sur vos candidatures</span>
+            </div>
+            <div class="brand-pillar">
+                <div class="pillar-icon">🏦</div>
+                <span>Toutes les offres au même endroit — BNP, Rothschild, Deloitte...</span>
+            </div>
+            <div class="brand-pillar">
+                <div class="pillar-icon">📋</div>
+                <span>Suivez toutes vos candidatures en un tableau de bord unique</span>
+            </div>
+            <div class="brand-pillar">
+                <div class="pillar-icon">🎯</div>
+                <span>Postulez à des offres auxquelles vous n'auriez jamais pensé</span>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="main-content">
-    <!-- Container d'authentification -->
-    <div class="auth-container">
+    <!-- Right: form panel -->
+    <div class="auth-form-panel">
+
         <div class="auth-tabs">
             <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
             <button class="auth-tab" onclick="switchTab('signup')">Inscription</button>
         </div>
 
-        <div class="auth-content">
-            <!-- Formulaire de connexion -->
-            <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)" autocomplete="on">
-                <div class="form-group">
-                    <label for="loginEmail">Adresse email</label>
-                    <input type="email" id="loginEmail" name="email" autocomplete="username" required>
-                    <div class="error-message" id="loginEmailError"></div>
+        <!-- Login form -->
+        <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)" autocomplete="on">
+            <div class="form-group">
+                <label for="loginEmail">Adresse email</label>
+                <input type="email" id="loginEmail" name="email" autocomplete="username" placeholder="votre@email.com" required>
+                <div class="error-message" id="loginEmailError"></div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-row-label">
+                    <label for="loginPassword">Mot de passe</label>
+                    <button type="button" class="forgot-link" onclick="openForgotPasswordModal()">Mot de passe oublié ?</button>
                 </div>
-
-                <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <label for="loginPassword" style="margin-bottom: 0;">Mot de passe</label>
-                        <button type="button" class="forgot-password-link" onclick="openForgotPasswordModal()" style="background: none; border: none; color: #667eea; font-size: 0.9rem; font-weight: 600; cursor: pointer; padding: 4px 0; text-decoration: none; transition: all 0.2s;">
-                            Mot de passe oublié ?
-                        </button>
-                    </div>
-                    <div class="password-input-wrapper">
-                        <input type="password" id="loginPassword" name="password" autocomplete="current-password" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)" aria-label="Afficher le mot de passe">
-                            <span class="pwd-icon pwd-icon-show" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
-                            <span class="pwd-icon pwd-icon-hide" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
-                        </button>
-                    </div>
-                    <div class="error-message" id="loginPasswordError"></div>
+                <div class="password-input-wrapper">
+                    <input type="password" id="loginPassword" name="password" autocomplete="current-password" placeholder="••••••••" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)" aria-label="Afficher le mot de passe">
+                        <span class="pwd-icon pwd-icon-show"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                        <span class="pwd-icon pwd-icon-hide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
+                    </button>
                 </div>
+                <div class="error-message" id="loginPasswordError"></div>
+            </div>
 
-                <div class="success-message" id="loginSuccess"></div>
-                <div class="error-message" id="loginError"></div>
-                
-                <!-- Loader élégant pour la connexion -->
-                <div class="login-loader-container" id="loginLoader">
-                    <div class="spinner"></div>
-                    <p class="loader-text">Connexion réussie</p>
-                    <p class="loader-subtext">Redirection en cours...</p>
+            <div class="success-message" id="loginSuccess"></div>
+            <div class="error-message" id="loginError"></div>
+
+            <div class="login-loader-container" id="loginLoader">
+                <div class="spinner"></div>
+                <p class="loader-text">Connexion réussie</p>
+                <p class="loader-subtext">Redirection en cours...</p>
+            </div>
+
+            <button type="submit" class="btn-submit" id="loginBtn">Se connecter</button>
+
+            <div class="career-connection-box">
+                <div class="career-connection-box-header">
+                    <img src="images/logos/bpce.svg" alt="BPCE" class="career-connection-box-logo" onerror="this.style.display='none'">
+                    <h3>Connecter le Groupe BPCE</h3>
                 </div>
+                <p>Pour les candidatures BPCE, Banque Populaire, Caisse d'Épargne, Natixis et les autres entités du groupe, seul votre email est nécessaire ici.</p>
+                <button type="button" class="btn-secondary-link" onclick="goToBpceConnection()">Configurer mon email BPCE</button>
+            </div>
+        </form>
 
-                <button type="submit" class="btn" id="loginBtn">Se connecter</button>
+        <!-- Signup form -->
+        <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)">
+            <div class="form-group">
+                <label for="signupEmail">Adresse email</label>
+                <input type="email" id="signupEmail" name="email" placeholder="votre@email.com" required>
+                <div class="error-message" id="signupEmailError"></div>
+            </div>
 
-                <div class="career-connection-box">
-                    <div class="career-connection-box-header">
-                        <img src="images/logos/bpce.svg" alt="BPCE" class="career-connection-box-logo" onerror="this.style.display='none'">
-                        <h3>Connecter BPCE</h3>
-                    </div>
-                    <p>Pour BPCE, seul votre email est nécessaire. Le mot de passe n’est pas demandé ici.</p>
-                    <small>Le code de vérification sera envoyé ensuite sur votre adresse email pendant la candidature.</small>
-                    <button type="button" class="btn-secondary-link" onclick="goToBpceConnection()">Configurer mon email BPCE</button>
+            <div class="form-group">
+                <label for="signupPassword">Mot de passe</label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="signupPassword" name="password" placeholder="••••••••" required oninput="validatePassword()">
+                    <button type="button" class="password-toggle" onclick="togglePassword('signupPassword', this)" aria-label="Afficher">
+                        <span class="pwd-icon pwd-icon-show"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                        <span class="pwd-icon pwd-icon-hide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
+                    </button>
                 </div>
-            </form>
-
-            <!-- Formulaire d'inscription -->
-            <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)">
-                <div class="form-group">
-                    <label for="signupEmail">Adresse email</label>
-                    <input type="email" id="signupEmail" name="email" required>
-                    <div class="error-message" id="signupEmailError"></div>
+                <div class="password-requirements" id="passwordRequirements">
+                    <ul>
+                        <li id="reqLength">Au moins 8 caractères</li>
+                        <li id="reqUpper">Une majuscule</li>
+                        <li id="reqLower">Une minuscule</li>
+                        <li id="reqNumber">Un chiffre</li>
+                    </ul>
                 </div>
+                <div class="error-message" id="signupPasswordError"></div>
+            </div>
 
-                <div class="form-group">
-                    <label for="signupPassword">Mot de passe</label>
-                    <div class="password-input-wrapper">
-                        <input type="password" id="signupPassword" name="password" required oninput="validatePassword()">
-                        <button type="button" class="password-toggle" onclick="togglePassword('signupPassword', this)" aria-label="Afficher le mot de passe">
-                            <span class="pwd-icon pwd-icon-show" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
-                            <span class="pwd-icon pwd-icon-hide" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
-                        </button>
-                    </div>
-                    <div class="password-requirements" id="passwordRequirements">
-                        <strong>Le mot de passe doit contenir :</strong>
-                        <ul>
-                            <li id="reqLength">Au moins 8 caractères</li>
-                            <li id="reqUpper">Une majuscule</li>
-                            <li id="reqLower">Une minuscule</li>
-                            <li id="reqNumber">Un chiffre</li>
-                        </ul>
-                    </div>
-                    <div class="error-message" id="signupPasswordError"></div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirmer le mot de passe</label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required oninput="validatePasswordMatch()">
+                    <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)" aria-label="Afficher">
+                        <span class="pwd-icon pwd-icon-show"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                        <span class="pwd-icon pwd-icon-hide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
+                    </button>
                 </div>
+                <div class="error-message" id="confirmPasswordError"></div>
+            </div>
 
-                <div class="form-group">
-                    <label for="confirmPassword">Confirmer le mot de passe</label>
-                    <div class="password-input-wrapper">
-                        <input type="password" id="confirmPassword" name="confirmPassword" required oninput="validatePasswordMatch()">
-                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)" aria-label="Afficher le mot de passe">
-                            <span class="pwd-icon pwd-icon-show" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
-                            <span class="pwd-icon pwd-icon-hide" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
-                        </button>
-                    </div>
-                    <div class="error-message" id="confirmPasswordError"></div>
-                </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="acceptTerms" name="acceptTerms" required>
+                    <span class="checkbox-text">J'accepte les <a href="#" onclick="openTermsModal(event)" class="terms-link">Conditions Générales d'Utilisation</a> et la <a href="#" onclick="openPrivacyModal(event)" class="terms-link">Politique de Confidentialité</a></span>
+                </label>
+                <div class="error-message" id="termsError"></div>
+            </div>
 
-                <div class="form-group terms-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="acceptTerms" name="acceptTerms" required>
-                        <span class="checkbox-text">
-                            J'accepte les <a href="#" onclick="openTermsModal(event)" class="terms-link">Conditions Générales d'Utilisation</a> et la <a href="#" onclick="openPrivacyModal(event)" class="terms-link">Politique de Confidentialité</a>
-                        </span>
-                    </label>
-                    <div class="error-message" id="termsError"></div>
-                </div>
+            <div class="success-message" id="signupSuccess"></div>
+            <div class="error-message" id="signupError"></div>
 
-                <div class="success-message" id="signupSuccess"></div>
-                <div class="error-message" id="signupError"></div>
+            <button type="submit" class="btn-submit" id="signupBtn">Créer mon compte</button>
+        </form>
 
-                <button type="submit" class="btn" id="signupBtn">S'inscrire</button>
-            </form>
+    </div>
+</div>
+
+<!-- ─── FORGOT PASSWORD MODAL ─── -->
+<div id="forgotPasswordModal" class="modal-overlay" onclick="closeForgotPasswordModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Mot de passe oublié</h2>
+            <button class="modal-close" onclick="closeForgotPasswordModal()" aria-label="Fermer">×</button>
         </div>
-    </div>
-    </div>
-
-    <!-- Modal Mot de passe oublié -->
-    <div id="forgotPasswordModal" class="modal-overlay" onclick="closeForgotPasswordModal(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h2>Mot de passe oublié</h2>
-                <button class="modal-close" onclick="closeForgotPasswordModal()" aria-label="Fermer">×</button>
-            </div>
-            <div class="modal-body">
-                <!-- État formulaire email -->
-                <div id="emailFormState" class="email-form-state">
-                    <div class="modal-icon">🔐</div>
-                    <p>Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
-                    
-                    <div class="form-group">
-                        <label for="resetEmail">Adresse email</label>
-                        <input type="email" id="resetEmail" placeholder="votre@email.com" required>
-                        <div class="error-message" id="resetEmailError"></div>
-                    </div>
-                    
-                    <div class="success-message" id="resetSuccess"></div>
-                    <div class="error-message" id="resetError"></div>
+        <div class="modal-body">
+            <div id="emailFormState" class="email-form-state">
+                <span class="modal-icon">🔐</span>
+                <p>Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
+                <div class="form-group">
+                    <label for="resetEmail">Adresse email</label>
+                    <input type="email" id="resetEmail" placeholder="votre@email.com" required>
+                    <div class="error-message" id="resetEmailError"></div>
                 </div>
-                
-                <!-- État email envoyé -->
-                <div id="emailSentState" class="email-sent-state">
-                    <div class="success-icon">✓</div>
-                    <h3 style="font-size: 1.3rem; color: #1a1a1a; margin-bottom: 12px;">Email envoyé !</h3>
-                    <p style="color: #666; margin-bottom: 8px;">Un email de réinitialisation a été envoyé à :</p>
-                    <p class="sent-email-highlight" id="sentEmail"></p>
-                    <p style="color: #666; font-size: 0.9rem;">Vérifiez votre boîte de réception et cliquez sur le lien pour réinitialiser votre mot de passe.</p>
-                    <p style="color: #9ca3af; font-size: 0.85rem; margin-top: 12px;">Vous ne voyez pas l'email ? Vérifiez votre dossier spam.</p>
-                </div>
+                <div class="success-message" id="resetSuccess"></div>
+                <div class="error-message" id="resetError"></div>
             </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeForgotPasswordModal()" id="cancelBtn">Annuler</button>
-                <button class="btn-primary" onclick="handlePasswordReset()" id="resetBtn">Envoyer l'email</button>
+            <div id="emailSentState" class="email-sent-state">
+                <div class="success-icon">✓</div>
+                <p style="font-weight:600;color:var(--ink);margin-bottom:8px;">Email envoyé !</p>
+                <p>Un lien de réinitialisation a été envoyé à :</p>
+                <p class="sent-email-highlight" id="sentEmail"></p>
+                <p style="font-size:0.82rem;color:var(--muted);margin-top:8px;">Vous ne voyez pas l'email ? Vérifiez votre dossier spam.</p>
             </div>
         </div>
-    </div>
-
-    <!-- Modal CGU -->
-    <div id="termsModal" class="terms-modal">
-        <div class="terms-modal-content">
-            <div class="terms-modal-header">
-                <h2>📋 Conditions Générales d'Utilisation</h2>
-            </div>
-            <div class="terms-modal-body">
-                <p><strong>Dernière mise à jour :</strong> Janvier 2025</p>
-
-                <div class="terms-highlight">
-                    <p>⚠️ En vous inscrivant sur Taleos, vous acceptez l'intégralité des présentes Conditions Générales d'Utilisation. Veuillez les lire attentivement.</p>
-                </div>
-
-                <h3>1. 🔐 Compte utilisateur</h3>
-                <p><strong>1.1 Création de compte</strong></p>
-                <ul>
-                    <li>Chaque utilisateur ne peut créer qu'un seul compte personnel</li>
-                    <li>Les informations fournies doivent être exactes et à jour</li>
-                    <li>Vous êtes seul responsable de la confidentialité de vos identifiants</li>
-                </ul>
-                
-                <p><strong>1.2 Interdictions strictes</strong></p>
-                <ul>
-                    <li><strong>❌ Le prêt, la vente ou le partage de compte est formellement interdit</strong></li>
-                    <li><strong>❌ Toute utilisation détournée peut entraîner un bannissement définitif sans préavis ni remboursement</strong></li>
-                    <li>La création de comptes multiples est interdite</li>
-                    <li>L'utilisation de fausses informations est passible de résiliation immédiate</li>
-                </ul>
-
-                <h3>2. 💳 Paiement et remboursement</h3>
-                <p><strong>2.1 Politique de non-remboursement</strong></p>
-                <ul>
-                    <li><strong>❌ Tous les paiements sont définitifs et non remboursables</strong></li>
-                    <li>Aucun remboursement ne sera effectué, quelle qu'en soit la raison</li>
-                    <li>En cas de bannissement pour violation des CGU, aucun remboursement ne sera accordé</li>
-                    <li>Les abonnements sont facturés selon les modalités choisies lors de la souscription</li>
-                </ul>
-
-                <p><strong>2.2 Renouvellement automatique</strong></p>
-                <ul>
-                    <li>Les abonnements se renouvellent automatiquement sauf résiliation préalable</li>
-                    <li>Vous pouvez annuler votre abonnement à tout moment depuis votre profil</li>
-                    <li>L'annulation prend effet à la fin de la période payée en cours</li>
-                </ul>
-
-                <h3>3. 🚫 Responsabilité et disponibilité</h3>
-                <p><strong>3.1 Service fourni "tel quel"</strong></p>
-                <ul>
-                    <li><strong>⚠️ Taleos ne peut être tenu responsable en cas d'indisponibilité du service</strong></li>
-                    <li>Nous nous réservons le droit d'interrompre le service pour maintenance sans préavis</li>
-                    <li>Aucune garantie n'est donnée quant à la disponibilité continue du service</li>
-                    <li>Nous déclinons toute responsabilité en cas de perte de données due à un problème technique</li>
-                </ul>
-
-                <p><strong>3.2 Pas de garantie d'embauche</strong></p>
-                <ul>
-                    <li>Taleos est un outil d'aide à la recherche d'emploi</li>
-                    <li><strong>Nous ne garantissons aucun résultat en termes d'embauche ou d'entretien</strong></li>
-                    <li>Le succès de vos candidatures dépend de nombreux facteurs indépendants de notre volonté</li>
-                    <li>Vous restez seul responsable du contenu de vos candidatures</li>
-                </ul>
-
-                <h3>4. 📊 Utilisation des données</h3>
-                <p><strong>4.1 Collecte et traitement</strong></p>
-                <ul>
-                    <li>Nous collectons uniquement les données nécessaires au fonctionnement du service</li>
-                    <li>Vos données sont stockées de manière sécurisée sur Firebase (Google Cloud)</li>
-                    <li>Nous ne vendons ni ne partageons vos données personnelles avec des tiers</li>
-                    <li>Consultez notre Politique de Confidentialité pour plus de détails</li>
-                </ul>
-
-                <p><strong>4.2 Droit d'accès et suppression</strong></p>
-                <ul>
-                    <li>Vous pouvez demander l'accès, la modification ou la suppression de vos données</li>
-                    <li>Pour toute demande, contactez-nous à : <strong>support@taleos.com</strong></li>
-                    <li>La suppression de votre compte entraîne la suppression définitive de toutes vos données</li>
-                </ul>
-
-                <h3>5. ⚖️ Utilisation acceptable</h3>
-                <p><strong>5.1 Obligations de l'utilisateur</strong></p>
-                <ul>
-                    <li>Vous vous engagez à utiliser le service de manière légale et éthique</li>
-                    <li>Vous ne devez pas tenter de contourner les mesures de sécurité</li>
-                    <li>Vous ne devez pas surcharger les serveurs ou effectuer des requêtes excessives</li>
-                    <li>Vous devez respecter les CGU des plateformes d'emploi tierces</li>
-                </ul>
-
-                <p><strong>5.2 Sanctions en cas de violation</strong></p>
-                <ul>
-                    <li><strong>Premier avertissement :</strong> Suspension temporaire du compte</li>
-                    <li><strong>Violation répétée :</strong> Bannissement définitif sans remboursement</li>
-                    <li><strong>Activité frauduleuse :</strong> Bannissement immédiat et poursuites légales possibles</li>
-                </ul>
-
-                <h3>6. 🔄 Modifications des CGU</h3>
-                <p><strong>6.1 Droit de modification</strong></p>
-                <ul>
-                    <li>Taleos se réserve le droit de modifier les présentes CGU à tout moment</li>
-                    <li>Toute modification sera notifiée par email aux utilisateurs actifs</li>
-                    <li>L'utilisation continue du service après notification vaut acceptation des nouvelles CGU</li>
-                    <li>En cas de désaccord, vous pouvez résilier votre compte</li>
-                </ul>
-
-                <h3>7. 🛡️ Propriété intellectuelle</h3>
-                <p><strong>7.1 Droits réservés</strong></p>
-                <ul>
-                    <li>Tous les contenus du site (textes, images, logos, code) sont protégés par le droit d'auteur</li>
-                    <li>Toute reproduction ou utilisation sans autorisation est interdite</li>
-                    <li>La marque "Taleos" est déposée et protégée</li>
-                </ul>
-
-                <h3>8. 📞 Contact et support</h3>
-                <p><strong>8.1 Service client</strong></p>
-                <ul>
-                    <li><strong>Email :</strong> support@taleos.com</li>
-                    <li><strong>Délai de réponse :</strong> 48-72 heures ouvrées</li>
-                    <li>Pour toute question technique, juridique ou commerciale</li>
-                </ul>
-
-                <h3>9. 🌍 Loi applicable</h3>
-                <p><strong>9.1 Juridiction</strong></p>
-                <ul>
-                    <li>Les présentes CGU sont régies par le droit français</li>
-                    <li>Tout litige sera soumis aux tribunaux compétents de Paris</li>
-                    <li>En cas de traduction, la version française fait foi</li>
-                </ul>
-
-                <div class="terms-highlight">
-                    <p>✅ En cochant la case "J'accepte les CGU", vous reconnaissez avoir lu, compris et accepté l'intégralité des présentes Conditions Générales d'Utilisation.</p>
-                </div>
-            </div>
-            <div class="terms-modal-footer">
-                <button class="btn-primary" onclick="closeTermsModal()">J'ai compris</button>
-            </div>
+        <div class="modal-footer">
+            <button class="btn-secondary-modal" onclick="closeForgotPasswordModal()" id="cancelBtn">Annuler</button>
+            <button class="btn-primary-modal" onclick="handlePasswordReset()" id="resetBtn">Envoyer l'email</button>
         </div>
     </div>
+</div>
 
-    <!-- Modal Politique de Confidentialité -->
-    <div id="privacyModal" class="terms-modal">
-        <div class="terms-modal-content">
-            <div class="terms-modal-header">
-                <h2>🔒 Politique de Confidentialité</h2>
-            </div>
-            <div class="terms-modal-body">
-                <p><strong>Dernière mise à jour :</strong> Janvier 2025</p>
-
-                <div class="terms-highlight">
-                    <p>🔐 Taleos s'engage à protéger votre vie privée et vos données personnelles conformément au RGPD.</p>
-                </div>
-
-                <h3>1. 📋 Données collectées</h3>
-                <p><strong>1.1 Informations personnelles</strong></p>
-                <ul>
-                    <li><strong>Compte :</strong> Adresse email, mot de passe (hashé)</li>
-                    <li><strong>Profil :</strong> Nom, prénom, téléphone, localisation (optionnel)</li>
-                    <li><strong>Candidatures :</strong> Historique des offres auxquelles vous avez postulé</li>
-                    <li><strong>Technique :</strong> Adresse IP, cookies, logs de connexion</li>
-                </ul>
-
-                <p><strong>1.2 Finalités du traitement</strong></p>
-                <ul>
-                    <li>Gestion de votre compte et authentification</li>
-                    <li>Fonctionnement du service de candidature automatisée</li>
-                    <li>Amélioration de l'expérience utilisateur</li>
-                    <li>Communication sur les nouveautés du service</li>
-                    <li>Statistiques anonymisées d'utilisation</li>
-                </ul>
-
-                <h3>2. 🔐 Sécurité des données</h3>
-                <p><strong>2.1 Mesures de protection</strong></p>
-                <ul>
-                    <li>Chiffrement SSL/TLS pour toutes les communications</li>
-                    <li>Mots de passe hashés avec algorithme sécurisé (bcrypt)</li>
-                    <li>Hébergement sécurisé sur Firebase (Google Cloud Platform)</li>
-                    <li>Sauvegardes régulières et redondance des données</li>
-                    <li>Accès restreint aux données par le personnel autorisé</li>
-                </ul>
-
-                <p><strong>2.2 Durée de conservation</strong></p>
-                <ul>
-                    <li><strong>Compte actif :</strong> Données conservées tant que le compte existe</li>
-                    <li><strong>Compte supprimé :</strong> Suppression immédiate des données personnelles</li>
-                    <li><strong>Logs techniques :</strong> Conservation 12 mois maximum</li>
-                    <li><strong>Données anonymisées :</strong> Conservation illimitée à des fins statistiques</li>
-                </ul>
-
-                <h3>3. 🤝 Partage des données</h3>
-                <p><strong>3.1 Aucun partage commercial</strong></p>
-                <ul>
-                    <li><strong>❌ Nous ne vendons jamais vos données à des tiers</strong></li>
-                    <li><strong>❌ Nous ne louons pas vos informations</strong></li>
-                    <li><strong>❌ Pas de publicité ciblée basée sur vos données</strong></li>
-                </ul>
-
-                <p><strong>3.2 Partage nécessaire au service</strong></p>
-                <ul>
-                    <li><strong>Firebase/Google :</strong> Hébergement et authentification</li>
-                    <li><strong>Plateformes d'emploi :</strong> Transmission de vos candidatures (avec votre consentement)</li>
-                    <li><strong>Autorités légales :</strong> Sur demande judiciaire uniquement</li>
-                </ul>
-
-                <h3>4. 🍪 Cookies et traceurs</h3>
-                <p><strong>4.1 Types de cookies utilisés</strong></p>
-                <ul>
-                    <li><strong>Essentiels :</strong> Nécessaires au fonctionnement (authentification)</li>
-                    <li><strong>Fonctionnels :</strong> Préférences utilisateur, état de l'UI</li>
-                    <li><strong>Analytiques :</strong> Statistiques d'utilisation anonymisées</li>
-                </ul>
-
-                <p><strong>4.2 Gestion des cookies</strong></p>
-                <ul>
-                    <li>Vous pouvez désactiver les cookies non essentiels dans votre navigateur</li>
-                    <li>La désactivation peut affecter certaines fonctionnalités</li>
-                </ul>
-
-                <h3>5. ✅ Vos droits (RGPD)</h3>
-                <p><strong>5.1 Droits garantis</strong></p>
-                <ul>
-                    <li><strong>Droit d'accès :</strong> Consulter vos données personnelles</li>
-                    <li><strong>Droit de rectification :</strong> Modifier vos informations</li>
-                    <li><strong>Droit à l'effacement :</strong> Supprimer votre compte et vos données</li>
-                    <li><strong>Droit à la portabilité :</strong> Exporter vos données au format JSON</li>
-                    <li><strong>Droit d'opposition :</strong> Refuser certains traitements</li>
-                    <li><strong>Droit de limitation :</strong> Restreindre l'utilisation de vos données</li>
-                </ul>
-
-                <p><strong>5.2 Exercer vos droits</strong></p>
-                <ul>
-                    <li>Contactez-nous à : <strong>privacy@taleos.com</strong></li>
-                    <li>Réponse sous 30 jours maximum</li>
-                    <li>Possibilité de réclamation auprès de la CNIL</li>
-                </ul>
-
-                <h3>6. 🔄 Modifications de la politique</h3>
-                <p><strong>6.1 Évolution de la politique</strong></p>
-                <ul>
-                    <li>Cette politique peut être modifiée pour refléter les changements légaux ou techniques</li>
-                    <li>Toute modification substantielle vous sera notifiée par email</li>
-                    <li>Date de dernière mise à jour toujours affichée en haut</li>
-                </ul>
-
-                <h3>7. 📞 Contact DPO</h3>
-                <p><strong>7.1 Délégué à la Protection des Données</strong></p>
-                <ul>
-                    <li><strong>Email :</strong> dpo@taleos.com</li>
-                    <li>Pour toute question relative à la protection de vos données</li>
-                    <li>Pour exercer vos droits RGPD</li>
-                </ul>
-
-                <div class="terms-highlight">
-                    <p>🔒 Taleos s'engage à respecter la confidentialité de vos données et à vous garantir un contrôle total sur vos informations personnelles.</p>
-                </div>
-            </div>
-            <div class="terms-modal-footer">
-                <button class="btn-primary" onclick="closePrivacyModal()">J'ai compris</button>
-            </div>
+<!-- ─── TERMS MODAL ─── -->
+<div id="termsModal" class="terms-modal">
+    <div class="terms-modal-content">
+        <div class="terms-modal-header"><h2>📋 Conditions Générales d'Utilisation</h2></div>
+        <div class="terms-modal-body">
+            <p><strong>Dernière mise à jour :</strong> Janvier 2025</p>
+            <div class="terms-highlight"><p>⚠️ En vous inscrivant sur Taleos, vous acceptez l'intégralité des présentes Conditions Générales d'Utilisation.</p></div>
+            <h3>1. Compte utilisateur</h3>
+            <p><strong>1.1 Création de compte</strong></p>
+            <ul><li>Chaque utilisateur ne peut créer qu'un seul compte personnel</li><li>Les informations fournies doivent être exactes et à jour</li><li>Vous êtes seul responsable de la confidentialité de vos identifiants</li></ul>
+            <p><strong>1.2 Interdictions strictes</strong></p>
+            <ul><li><strong>❌ Le prêt, la vente ou le partage de compte est formellement interdit</strong></li><li><strong>❌ Toute utilisation détournée peut entraîner un bannissement définitif sans préavis ni remboursement</strong></li><li>La création de comptes multiples est interdite</li></ul>
+            <h3>2. Paiement et remboursement</h3>
+            <ul><li><strong>❌ Tous les paiements sont définitifs et non remboursables</strong></li><li>Les abonnements se renouvellent automatiquement sauf résiliation préalable</li><li>L'annulation prend effet à la fin de la période payée en cours</li></ul>
+            <h3>3. Responsabilité</h3>
+            <ul><li><strong>⚠️ Taleos ne peut être tenu responsable en cas d'indisponibilité du service</strong></li><li><strong>Nous ne garantissons aucun résultat en termes d'embauche ou d'entretien</strong></li><li>Vous restez seul responsable du contenu de vos candidatures</li></ul>
+            <h3>4. Données personnelles</h3>
+            <ul><li>Vos données sont stockées de manière sécurisée sur Firebase (Google Cloud)</li><li>Nous ne vendons ni ne partageons vos données personnelles avec des tiers</li><li>Pour toute demande : <strong>support@taleos.com</strong></li></ul>
+            <h3>5. Loi applicable</h3>
+            <ul><li>Les présentes CGU sont régies par le droit français</li><li>Tout litige sera soumis aux tribunaux compétents de Paris</li></ul>
+            <div class="terms-highlight"><p>✅ En cochant la case, vous reconnaissez avoir lu et accepté l'intégralité de ces CGU.</p></div>
         </div>
+        <div class="terms-modal-footer"><button class="btn-primary-modal" onclick="closeTermsModal()">J'ai compris</button></div>
     </div>
+</div>
 
-    <script>
-        // ============================================
-        // CONFIGURATION FIREBASE
-        // ============================================
-        // REMPLACEZ ces valeurs par celles de votre projet Firebase
-        // (Vous les trouverez dans Firebase Console → Project Settings → General)
-        const firebaseConfig = {
-            apiKey: "AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",
-            authDomain: "project-taleos.firebaseapp.com",
-            projectId: "project-taleos",
-            storageBucket: "project-taleos.firebasestorage.app",
-            messagingSenderId: "974062127016",
-            appId: "1:974062127016:web:b6cffae44f1bae56f03f9d",
-            measurementId: "G-4PZJ4QXMJ0"
-        };
+<!-- ─── PRIVACY MODAL ─── -->
+<div id="privacyModal" class="terms-modal">
+    <div class="terms-modal-content">
+        <div class="terms-modal-header"><h2>🔒 Politique de Confidentialité</h2></div>
+        <div class="terms-modal-body">
+            <p><strong>Dernière mise à jour :</strong> Janvier 2025</p>
+            <div class="terms-highlight"><p>🔐 Taleos s'engage à protéger votre vie privée conformément au RGPD.</p></div>
+            <h3>1. Données collectées</h3>
+            <ul><li><strong>Compte :</strong> Adresse email, mot de passe (hashé)</li><li><strong>Profil :</strong> Nom, prénom, téléphone, localisation (optionnel)</li><li><strong>Candidatures :</strong> Historique des offres auxquelles vous avez postulé</li><li><strong>Technique :</strong> Adresse IP, cookies, logs de connexion</li></ul>
+            <h3>2. Sécurité des données</h3>
+            <ul><li>Chiffrement SSL/TLS pour toutes les communications</li><li>Mots de passe hashés (bcrypt)</li><li>Hébergement sécurisé sur Firebase (Google Cloud Platform)</li><li>Aucun partage commercial de vos données</li></ul>
+            <h3>3. Vos droits (RGPD)</h3>
+            <ul><li><strong>Droit d'accès, rectification, effacement et portabilité</strong></li><li>Contactez-nous à : <strong>privacy@taleos.com</strong></li><li>Réponse sous 30 jours — Réclamation possible auprès de la CNIL</li></ul>
+            <div class="terms-highlight"><p>🔒 Taleos s'engage à respecter la confidentialité de vos données et à vous garantir un contrôle total sur vos informations personnelles.</p></div>
+        </div>
+        <div class="terms-modal-footer"><button class="btn-primary-modal" onclick="closePrivacyModal()">J'ai compris</button></div>
+    </div>
+</div>
 
-        // Initialiser Firebase (vérifier qu'il n'est pas déjà initialisé)
-        let auth;
-        try {
-            if (typeof firebase !== 'undefined') {
-                // Vérifier si Firebase est déjà initialisé
-                if (!firebase.apps || firebase.apps.length === 0) {
-                    firebase.initializeApp(firebaseConfig);
-                    console.log('✅ Firebase initialisé avec succès');
-                } else {
-                    console.log('ℹ️ Firebase déjà initialisé');
-                }
-                auth = firebase.auth();
-            } else {
-                console.error('❌ Firebase SDK non chargé. Vérifiez que les scripts Firebase sont bien chargés dans <head>');
-            }
-        } catch (error) {
-            console.error('❌ Erreur lors de l\'initialisation Firebase:', error);
-            console.error('Détails de l\'erreur:', error.message, error.code);
+<!-- ─── FOOTER ─── -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-logo">Tale<span>os</span></div>
+        <nav class="footer-nav">
+            <a href="landing_page_finance.html">Présentation</a>
+            <a href="offres.html">Offres</a>
+            <a href="tarifs.html">Tarifs</a>
+            <a href="mailto:contact@taleos.co">Contact</a>
+        </nav>
+        <div class="footer-social">
+            <a href="https://instagram.com/taleos" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+            <a href="https://twitter.com/taleos" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+            <a href="https://linkedin.com/company/taleos" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+            <a href="https://youtube.com/@taleos" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+        </div>
+        <div class="footer-copy">© 2026 Taleos. Tous droits réservés. · 🇫🇷 Made in France</div>
+    </div>
+</footer>
+
+<script>
+    // ─── Firebase ───
+    const firebaseConfig = {
+        apiKey:"AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",authDomain:"project-taleos.firebaseapp.com",
+        projectId:"project-taleos",storageBucket:"project-taleos.firebasestorage.app",
+        messagingSenderId:"974062127016",appId:"1:974062127016:web:b6cffae44f1bae56f03f9d",measurementId:"G-4PZJ4QXMJ0"
+    };
+
+    let auth;
+    try {
+        if (typeof firebase !== 'undefined') {
+            if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
         }
-        
-        // Écouter les changements d'état d'authentification (seulement si auth est défini)
-        if (auth) {
-            auth.onAuthStateChanged((user) => {
-                const rechercheLink = document.getElementById('rechercheLink');
-                if (rechercheLink) rechercheLink.style.display = user ? 'inline-block' : 'none';
-                if (user) {
-                    console.log('Utilisateur connecté:', user.email);
-                    if (user.emailVerified) {
-                        localStorage.setItem('authToken', user.uid);
-                        localStorage.setItem('userEmail', user.email);
-                    }
-                } else {
-                    console.log('Utilisateur déconnecté');
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('userEmail');
-                }
-            });
-        } else {
-            console.error('❌ Impossible d\'initialiser Firebase Auth. Vérifiez votre configuration.');
-        }
+    } catch(e) { console.error('Firebase init error:', e); }
 
-        // Fonction pour afficher/masquer le mot de passe
-        function togglePassword(inputId, button) {
-            const input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                button.classList.add('is-visible');
-                button.setAttribute('aria-label', 'Masquer le mot de passe');
-            } else {
-                input.type = 'password';
-                button.classList.remove('is-visible');
-                button.setAttribute('aria-label', 'Afficher le mot de passe');
-            }
-        }
-
-        function switchTab(tab) {
-            // Mettre à jour les onglets
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-            
-            if (tab === 'login') {
-                document.querySelector('.auth-tab:first-child').classList.add('active');
-                document.getElementById('loginForm').classList.add('active');
-            } else {
-                document.querySelector('.auth-tab:last-child').classList.add('active');
-                document.getElementById('signupForm').classList.add('active');
-            }
-            
-            // Réinitialiser les messages
-            clearMessages();
-        }
-
-        function goToBpceConnection() {
-            const target = 'connexions.html?bank=bpce';
-            const token = localStorage.getItem('authToken');
-            const email = localStorage.getItem('userEmail');
-            if (token && email) {
+    if (auth) {
+        auth.onAuthStateChanged(user => {
+            const rechercheLink = document.getElementById('rechercheLink');
+            if (rechercheLink) rechercheLink.style.display = user ? 'inline-block' : 'none';
+            if (user) {
+                const target = localStorage.getItem('postLoginRedirect') || 'offres.html';
+                localStorage.removeItem('postLoginRedirect');
                 window.location.href = target;
-                return;
-            }
-            localStorage.setItem('postLoginRedirect', target);
-            switchTab('login');
-            const loginEmail = document.getElementById('loginEmail');
-            if (loginEmail) loginEmail.focus();
-        }
-
-        // Fonctions pour le modal Mot de passe oublié
-        function openForgotPasswordModal() {
-            const modal = document.getElementById('forgotPasswordModal');
-            const emailForm = document.getElementById('emailFormState');
-            const emailSent = document.getElementById('emailSentState');
-            
-            // Réinitialiser le formulaire
-            document.getElementById('resetEmail').value = '';
-            clearResetMessages();
-            
-            // Réinitialiser les états
-            emailForm.classList.remove('hide');
-            emailForm.classList.add('email-form-state');
-            emailSent.classList.remove('show');
-            
-            // Pré-remplir avec l'email de connexion si disponible
-            const loginEmail = document.getElementById('loginEmail').value;
-            if (loginEmail) {
-                document.getElementById('resetEmail').value = loginEmail;
-            }
-            
-            // Afficher le modal
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            
-            // Focus sur le champ email
-            setTimeout(() => {
-                document.getElementById('resetEmail').focus();
-            }, 100);
-        }
-
-        function closeForgotPasswordModal(event) {
-            // Fermer seulement si on clique sur l'overlay ou le bouton fermer
-            // Si event est undefined (appelé depuis HTML onclick sans paramètre), on ferme quand même
-            if (!event || !event.target || event.target.id === 'forgotPasswordModal' || 
-                (event.target.classList && event.target.classList.contains('modal-close')) || 
-                event.target.id === 'cancelBtn') {
-                const modal = document.getElementById('forgotPasswordModal');
-                if (modal) {
-                    modal.classList.remove('show');
-                    document.body.style.overflow = '';
-                    
-                    // Réinitialiser le formulaire
-                    setTimeout(() => {
-                        const resetEmail = document.getElementById('resetEmail');
-                        if (resetEmail) resetEmail.value = '';
-                        clearResetMessages();
-                        const emailForm = document.getElementById('emailFormState');
-                        const emailSent = document.getElementById('emailSentState');
-                        const resetBtn = document.getElementById('resetBtn');
-                        const cancelBtn = document.getElementById('cancelBtn');
-                        
-                        if (emailForm) {
-                            emailForm.classList.remove('hide');
-                            emailForm.classList.add('email-form-state');
-                        }
-                        if (emailSent) {
-                            emailSent.classList.remove('show');
-                        }
-                        if (resetBtn) {
-                            resetBtn.style.display = 'block';
-                            resetBtn.textContent = 'Envoyer l\'email';
-                        }
-                        if (cancelBtn) {
-                            cancelBtn.textContent = 'Annuler';
-                            cancelBtn.setAttribute('onclick', 'closeForgotPasswordModal()');
-                            cancelBtn.style.marginLeft = '';
-                        }
-                        const modalFooter = document.querySelector('.modal-footer');
-                        if (modalFooter) {
-                            modalFooter.style.justifyContent = 'flex-end';
-                        }
-                    }, 300);
-                }
-            }
-        }
-
-        function clearResetMessages() {
-            const resetError = document.getElementById('resetError');
-            const resetSuccess = document.getElementById('resetSuccess');
-            const resetEmailError = document.getElementById('resetEmailError');
-            const resetEmail = document.getElementById('resetEmail');
-            
-            if (resetError) {
-                resetError.classList.remove('show');
-                resetError.textContent = '';
-            }
-            if (resetSuccess) {
-                resetSuccess.classList.remove('show');
-                resetSuccess.textContent = '';
-            }
-            if (resetEmailError) {
-                resetEmailError.classList.remove('show');
-                resetEmailError.textContent = '';
-            }
-            if (resetEmail) {
-                resetEmail.classList.remove('error');
-            }
-        }
-
-        async function handlePasswordReset() {
-            clearResetMessages();
-            
-            const email = document.getElementById('resetEmail').value.trim();
-            const resetBtn = document.getElementById('resetBtn');
-            const resetEmailError = document.getElementById('resetEmailError');
-            const resetError = document.getElementById('resetError');
-            const resetEmailInput = document.getElementById('resetEmail');
-            
-            // Validation
-            if (!email) {
-                resetEmailInput.classList.add('error');
-                resetEmailError.textContent = 'Veuillez entrer votre adresse email';
-                resetEmailError.classList.add('show');
-                return;
-            }
-            
-            // Validation email basique
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                resetEmailInput.classList.add('error');
-                resetEmailError.textContent = 'Veuillez entrer une adresse email valide';
-                resetEmailError.classList.add('show');
-                return;
-            }
-            
-            resetBtn.disabled = true;
-            resetBtn.textContent = 'Envoi...';
-            
-            try {
-                // Vérifier que Firebase Auth est disponible
-                if (!auth) {
-                    throw new Error('Firebase Auth n\'est pas initialisé. Veuillez recharger la page.');
-                }
-                
-                // Envoyer l'email de réinitialisation
-                await auth.sendPasswordResetEmail(email, {
-                    url: window.location.origin + '/auth.html',
-                    handleCodeInApp: false
-                });
-                
-                // Afficher l'état de succès
-                const emailForm = document.getElementById('emailFormState');
-                const emailSent = document.getElementById('emailSentState');
-                const sentEmail = document.getElementById('sentEmail');
-                
-                emailForm.classList.remove('email-form-state');
-                emailForm.classList.add('hide');
-                emailSent.classList.add('show');
-                sentEmail.textContent = email;
-                
-                // Masquer le bouton "Envoyer l'email" et modifier le bouton annuler en "Fermer"
-                const cancelBtn = document.getElementById('cancelBtn');
-                const modalFooter = document.querySelector('.modal-footer');
-                if (cancelBtn) {
-                    cancelBtn.textContent = 'Fermer';
-                    cancelBtn.setAttribute('onclick', 'closeForgotPasswordModal()');
-                    cancelBtn.style.marginLeft = 'auto';
-                }
-                if (resetBtn) {
-                    resetBtn.style.display = 'none';
-                }
-                if (modalFooter) {
-                    modalFooter.style.justifyContent = 'flex-end';
-                }
-                
-                console.log('✅ Email de réinitialisation envoyé à:', email);
-                
-            } catch (error) {
-                console.error('Erreur lors de l\'envoi de l\'email de réinitialisation:', error);
-                
-                resetEmailInput.classList.add('error');
-                let errorMessage = 'Une erreur est survenue. ';
-                
-                // Gérer les erreurs Firebase avec messages français professionnels
-                switch (error.code) {
-                    case 'auth/user-not-found':
-                        errorMessage = 'Aucun compte trouvé avec cet email. Vérifiez l\'adresse email.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'L\'adresse email n\'est pas valide.';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage = 'Trop de tentatives. Veuillez réessayer plus tard.';
-                        break;
-                    case 'auth/invalid-credential':
-                        errorMessage = 'L\'email fourni est invalide. Vérifiez votre adresse email.';
-                        break;
-                    case 'auth/network-request-failed':
-                        errorMessage = 'Erreur de connexion réseau. Vérifiez votre connexion internet.';
-                        break;
-                    default:
-                        // Message générique professionnel pour les erreurs inconnues
-                        errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
-                        console.error('Code d\'erreur non géré:', error.code, error.message);
-                }
-                
-                resetError.textContent = errorMessage;
-                resetError.classList.add('show');
-                
-            } finally {
-                resetBtn.disabled = false;
-                resetBtn.textContent = 'Envoyer l\'email';
-            }
-        }
-        
-        // Fermer le modal avec la touche Escape
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                const modal = document.getElementById('forgotPasswordModal');
-                if (modal && modal.classList.contains('show')) {
-                    closeForgotPasswordModal();
-                }
             }
         });
+    }
 
-        function clearMessages() {
-            document.querySelectorAll('.error-message').forEach(el => {
-                el.classList.remove('show');
-                el.textContent = '';
-            });
-            document.querySelectorAll('.success-message').forEach(el => {
-                el.classList.remove('show');
-                el.textContent = '';
-            });
-            document.querySelectorAll('input').forEach(el => el.classList.remove('error'));
-            // Masquer le loader
-            const loader = document.getElementById('loginLoader');
-            if (loader) loader.classList.remove('show');
+    // ─── Tab switching ───
+    function switchTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+        document.querySelector(`.auth-tab:${tab === 'login' ? 'first-child' : 'last-child'}`).classList.add('active');
+        document.getElementById(tab === 'login' ? 'loginForm' : 'signupForm').classList.add('active');
+        clearMessages();
+    }
+
+    function clearMessages() {
+        document.querySelectorAll('.error-message, .success-message').forEach(el => {
+            el.classList.remove('show');
+            el.textContent = '';
+        });
+    }
+
+    function showError(id, msg) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add('show');
+    }
+
+    function showSuccess(id, msg) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = msg;
+        el.classList.add('show');
+    }
+
+    // ─── Password toggle ───
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.classList.add('is-visible');
+            button.setAttribute('aria-label', 'Masquer le mot de passe');
+        } else {
+            input.type = 'password';
+            button.classList.remove('is-visible');
+            button.setAttribute('aria-label', 'Afficher le mot de passe');
         }
+    }
 
-        function showError(elementId, message) {
-            const el = document.getElementById(elementId);
-            el.textContent = message;
-            el.classList.add('show');
-            const input = document.getElementById(elementId.replace('Error', ''));
-            if (input) input.classList.add('error');
+    // ─── Password validation ───
+    function validatePassword() {
+        const pwd = document.getElementById('signupPassword').value;
+        const checks = {
+            reqLength: pwd.length >= 8,
+            reqUpper:  /[A-Z]/.test(pwd),
+            reqLower:  /[a-z]/.test(pwd),
+            reqNumber: /[0-9]/.test(pwd)
+        };
+        Object.entries(checks).forEach(([id, valid]) => {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('valid', valid);
+        });
+        return Object.values(checks).every(Boolean);
+    }
+
+    function validatePasswordMatch() {
+        const pwd = document.getElementById('signupPassword').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        const err = document.getElementById('confirmPasswordError');
+        if (confirm && pwd !== confirm) {
+            err.textContent = 'Les mots de passe ne correspondent pas.';
+            err.classList.add('show');
+            return false;
+        } else {
+            err.classList.remove('show');
+            return true;
         }
+    }
 
-        function showSuccess(elementId, message) {
-            const el = document.getElementById(elementId);
-            el.textContent = message;
-            el.classList.add('show');
+    // ─── Signup ───
+    async function handleSignup(event) {
+        event.preventDefault();
+        clearMessages();
+        if (!validatePassword()) { showError('signupPasswordError', 'Le mot de passe ne respecte pas les critères requis.'); return; }
+        if (!validatePasswordMatch()) return;
+        if (!document.getElementById('acceptTerms').checked) { showError('termsError', 'Vous devez accepter les CGU pour vous inscrire.'); return; }
+
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const btn = document.getElementById('signupBtn');
+        btn.disabled = true; btn.textContent = 'Inscription...';
+
+        try {
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            await userCredential.user.sendEmailVerification();
+            showSuccess('signupSuccess', '✅ <strong>Compte créé !</strong> Un email de vérification a été envoyé à <strong>' + email + '</strong>. Vérifiez votre boîte de réception pour activer votre compte.');
+            document.getElementById('signupForm').reset();
+        } catch(error) {
+            let msg;
+            switch(error.code) {
+                case 'auth/email-already-in-use': msg = 'Un compte existe déjà avec cet email.'; break;
+                case 'auth/invalid-email': msg = 'L\'adresse email n\'est pas valide.'; break;
+                case 'auth/weak-password': msg = 'Le mot de passe est trop faible.'; break;
+                case 'auth/network-request-failed': msg = 'Erreur de connexion réseau.'; break;
+                default: msg = 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.';
+            }
+            showError('signupError', msg);
+        } finally {
+            btn.disabled = false; btn.textContent = 'Créer mon compte';
         }
+    }
 
-        function validatePassword() {
-            const password = document.getElementById('signupPassword').value;
-            // Firebase nécessite au moins 6 caractères, mais on garde nos critères plus stricts
-            const requirements = {
-                length: password.length >= 6, // Minimum Firebase
-                upper: /[A-Z]/.test(password),
-                lower: /[a-z]/.test(password),
-                number: /[0-9]/.test(password)
-            };
+    // ─── Login ───
+    async function handleLogin(event) {
+        event.preventDefault();
+        clearMessages();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const btn = document.getElementById('loginBtn');
+        btn.disabled = true; btn.textContent = 'Connexion...';
+        let loginSuccess = false;
 
-            document.getElementById('reqLength').classList.toggle('valid', requirements.length);
-            document.getElementById('reqUpper').classList.toggle('valid', requirements.upper);
-            document.getElementById('reqLower').classList.toggle('valid', requirements.lower);
-            document.getElementById('reqNumber').classList.toggle('valid', requirements.number);
-
-            return Object.values(requirements).every(r => r);
-        }
-
-        function validatePasswordMatch() {
-            const password = document.getElementById('signupPassword').value;
-            const confirm = document.getElementById('confirmPassword').value;
-            const errorEl = document.getElementById('confirmPasswordError');
-            const confirmInput = document.getElementById('confirmPassword');
-
-            if (confirm && password !== confirm) {
-                showError('confirmPasswordError', 'Les mots de passe ne correspondent pas');
-                return false;
-            } else {
-                errorEl.classList.remove('show');
-                confirmInput.classList.remove('error');
-                return true;
-            }
-        }
-
-        async function handleSignup(event) {
-            event.preventDefault();
-            clearMessages();
-
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const acceptTerms = document.getElementById('acceptTerms').checked;
-
-            // Vérifier que les CGU sont acceptées
-            if (!acceptTerms) {
-                showError('termsError', 'Vous devez accepter les Conditions Générales d\'Utilisation pour vous inscrire.');
-                return;
-            }
-
-            // Validation côté client
-            if (password.length < 6) {
-                showError('signupPasswordError', 'Le mot de passe doit contenir au moins 6 caractères');
-                return;
-            }
-
-            if (!validatePassword()) {
-                showError('signupPasswordError', 'Le mot de passe ne respecte pas tous les critères');
-                return;
-            }
-
-            if (!validatePasswordMatch()) {
-                return;
-            }
-
-            const btn = document.getElementById('signupBtn');
-            btn.disabled = true;
-            btn.textContent = 'Inscription en cours...';
-
-            try {
-                // Vérifier que Firebase Auth est disponible
-                if (!auth) {
-                    throw new Error('Firebase Auth n\'est pas initialisé. Veuillez recharger la page.');
-                }
-                
-                // Créer l'utilisateur avec Firebase
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-
-                // Envoyer l'email de vérification
-                await user.sendEmailVerification();
-
-                showSuccess('signupSuccess', 
-                    '✅ Inscription réussie ! Un email de vérification a été envoyé à ' + email + '. ' +
-                    '📧 Veuillez vérifier votre boîte mail (et le dossier SPAM/Courrier indésirable) et cliquer sur le lien pour activer votre compte. ' +
-                    '⚠️ Si vous ne recevez pas l\'email dans les 5 minutes, vérifiez vos spams !');
-                
-                document.getElementById('signupForm').reset();
-                // Reset checkbox CGU
-                document.getElementById('acceptTerms').checked = false;
-                document.querySelectorAll('.password-requirements li').forEach(li => li.classList.remove('valid'));
-
-                // Déconnecter l'utilisateur jusqu'à ce qu'il vérifie son email
+        try {
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+            if (!user.emailVerified) {
                 await auth.signOut();
-                
-            } catch (error) {
-                console.error('Erreur d\'inscription:', error);
-                let errorMessage = 'Une erreur est survenue lors de l\'inscription. ';
-                
-                // Gérer les erreurs Firebase avec messages français professionnels
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage = 'Cet email est déjà utilisé. Utilisez la connexion ou réinitialisez votre mot de passe.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'L\'adresse email n\'est pas valide.';
-                        break;
-                    case 'auth/weak-password':
-                        errorMessage = 'Le mot de passe est trop faible. Utilisez au moins 6 caractères.';
-                        break;
-                    case 'auth/operation-not-allowed':
-                        errorMessage = 'L\'authentification par email/mot de passe n\'est pas activée. Contactez le support.';
-                        break;
-                    case 'auth/invalid-credential':
-                        errorMessage = 'Les informations fournies sont invalides. Veuillez vérifier vos données.';
-                        break;
-                    case 'auth/network-request-failed':
-                        errorMessage = 'Erreur de connexion réseau. Vérifiez votre connexion internet.';
-                        break;
-                    default:
-                        // Message générique professionnel pour les erreurs inconnues
-                        errorMessage = 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.';
-                        console.error('Code d\'erreur non géré:', error.code, error.message);
-                }
-                
-                showError('signupError', errorMessage);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'S\'inscrire';
+                try { await user.sendEmailVerification(); } catch(e) {}
+                showError('loginError', 'Veuillez vérifier votre email avant de vous connecter. Un nouvel email de vérification vient d\'être envoyé.');
+                return;
+            }
+            loginSuccess = true;
+            localStorage.setItem('authToken', user.uid);
+            localStorage.setItem('userEmail', user.email);
+            btn.style.display = 'none';
+            const loader = document.getElementById('loginLoader');
+            if (loader) loader.classList.add('show');
+            setTimeout(() => {
+                const target = localStorage.getItem('postLoginRedirect') || 'offres.html';
+                localStorage.removeItem('postLoginRedirect');
+                window.location.href = target;
+            }, 1800);
+        } catch(error) {
+            let msg;
+            switch(error.code) {
+                case 'auth/user-not-found': msg = 'Aucun compte trouvé avec cet email.'; break;
+                case 'auth/wrong-password': msg = 'Mot de passe incorrect.'; break;
+                case 'auth/invalid-email': msg = 'L\'adresse email n\'est pas valide.'; break;
+                case 'auth/user-disabled': msg = 'Ce compte a été désactivé.'; break;
+                case 'auth/too-many-requests': msg = 'Trop de tentatives. Veuillez réessayer plus tard.'; break;
+                case 'auth/invalid-credential': msg = 'Email ou mot de passe incorrect.'; break;
+                case 'auth/network-request-failed': msg = 'Erreur de connexion réseau.'; break;
+                default: msg = 'Une erreur est survenue. Veuillez réessayer.';
+            }
+            showError('loginError', msg);
+        } finally {
+            if (!loginSuccess && btn) {
+                btn.disabled = false; btn.textContent = 'Se connecter'; btn.style.display = 'block';
             }
         }
+    }
 
-        async function handleLogin(event) {
-            event.preventDefault();
-            clearMessages();
+    function goToBpceConnection() {
+        const target = 'connexions.html?bank=bpce';
+        const token = localStorage.getItem('authToken');
+        const email = localStorage.getItem('userEmail');
+        if (token && email) {
+            window.location.href = target;
+            return;
+        }
+        localStorage.setItem('postLoginRedirect', target);
+        switchTab('login');
+        const loginEmail = document.getElementById('loginEmail');
+        if (loginEmail) loginEmail.focus();
+    }
 
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
+    // ─── Forgot password ───
+    function openForgotPasswordModal() { document.getElementById('forgotPasswordModal').classList.add('show'); }
 
-            const btn = document.getElementById('loginBtn');
-            if (!btn) return;
-            
-            btn.disabled = true;
-            btn.textContent = 'Connexion...';
-            
-            let loginSuccess = false;
+    function closeForgotPasswordModal(e) {
+        if (e && e.target !== document.getElementById('forgotPasswordModal')) return;
+        document.getElementById('forgotPasswordModal').classList.remove('show');
+        document.getElementById('emailFormState').classList.remove('hide');
+        document.getElementById('emailSentState').classList.remove('show');
+        document.getElementById('resetEmail').value = '';
+        const resetBtn = document.getElementById('resetBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        if (resetBtn) { resetBtn.style.display=''; resetBtn.disabled=false; resetBtn.textContent='Envoyer l\'email'; }
+        if (cancelBtn) cancelBtn.textContent='Annuler';
+    }
 
-            try {
-                // Vérifier que Firebase Auth est disponible
-                if (!auth) {
-                    throw new Error('Firebase Auth n\'est pas initialisé. Veuillez recharger la page.');
-                }
-                
-                // Se connecter avec Firebase
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-
-                // Bloquer la connexion tant que l'email n'est pas vérifié
-                if (!user.emailVerified) {
-                    await auth.signOut();
-                    showError('loginError', 'Veuillez vérifier votre email avant de vous connecter. Un email de vérification a été envoyé lors de l\'inscription.');
-                    try {
-                        await user.sendEmailVerification();
-                        showError('loginError', 'Veuillez vérifier votre email. Un nouvel email de vérification vient d\'être envoyé.');
-                    } catch (verificationError) {
-                        console.error('Erreur envoi email:', verificationError);
-                    }
-                    return;
-                }
-
-                // Connexion réussie
-                loginSuccess = true;
-                
-                // Stocker les informations de session
-                localStorage.setItem('authToken', user.uid);
-                localStorage.setItem('userEmail', user.email);
-                
-                // Masquer le bouton de connexion et afficher le loader élégant
-                const loader = document.getElementById('loginLoader');
-                const loginForm = document.getElementById('loginForm');
-                
-                btn.style.display = 'none';
-                if (loader) {
-                    loader.classList.add('show');
-                }
-                if (loginForm) loginForm.style.pointerEvents = 'none';
-                
-                // Rediriger après un délai
-                setTimeout(() => {
-                    const target = localStorage.getItem('postLoginRedirect') || 'offres.html';
-                    localStorage.removeItem('postLoginRedirect');
-                    window.location.href = target;
-                }, 1800);
-                
-            } catch (error) {
-                console.error('Erreur de connexion:', error);
-                let errorMessage = 'Erreur de connexion. ';
-                
-                // Gérer les erreurs Firebase avec messages français professionnels
-                switch (error.code) {
-                    case 'auth/user-not-found':
-                        errorMessage = 'Aucun compte trouvé avec cet email.';
-                        break;
-                    case 'auth/wrong-password':
-                        errorMessage = 'Mot de passe incorrect.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'L\'adresse email n\'est pas valide.';
-                        break;
-                    case 'auth/user-disabled':
-                        errorMessage = 'Ce compte a été désactivé.';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage = 'Trop de tentatives. Veuillez réessayer plus tard.';
-                        break;
-                    case 'auth/invalid-credential':
-                        errorMessage = 'Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.';
-                        break;
-                    case 'auth/invalid-verification-code':
-                        errorMessage = 'Code de vérification invalide ou expiré.';
-                        break;
-                    case 'auth/session-cookie-expired':
-                        errorMessage = 'Votre session a expiré. Veuillez vous reconnecter.';
-                        break;
-                    case 'auth/network-request-failed':
-                        errorMessage = 'Erreur de connexion réseau. Vérifiez votre connexion internet.';
-                        break;
-                    default:
-                        // Message générique professionnel pour les erreurs inconnues
-                        errorMessage = 'Une erreur est survenue lors de la connexion. Veuillez réessayer.';
-                        console.error('Code d\'erreur non géré:', error.code, error.message);
-                }
-                
-                showError('loginError', errorMessage);
-            } finally {
-                // Ne réactiver le bouton que si la connexion a échoué
-                if (!loginSuccess && btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Se connecter';
-                    btn.style.display = 'block';
-                }
+    async function handlePasswordReset() {
+        const email = document.getElementById('resetEmail').value;
+        const resetBtn = document.getElementById('resetBtn');
+        const resetError = document.getElementById('resetError');
+        if (!email) { resetError.textContent='Veuillez entrer votre email.'; resetError.classList.add('show'); return; }
+        resetBtn.disabled = true; resetBtn.textContent = 'Envoi...';
+        try {
+            await auth.sendPasswordResetEmail(email);
+            document.getElementById('sentEmail').textContent = email;
+            document.getElementById('emailFormState').classList.add('hide');
+            document.getElementById('emailSentState').classList.add('show');
+            if (resetBtn) resetBtn.style.display = 'none';
+            const cancelBtn = document.getElementById('cancelBtn');
+            if (cancelBtn) cancelBtn.textContent = 'Fermer';
+        } catch(error) {
+            let msg;
+            switch(error.code) {
+                case 'auth/user-not-found': msg='Aucun compte trouvé avec cet email.'; break;
+                case 'auth/invalid-email': msg='Adresse email invalide.'; break;
+                case 'auth/too-many-requests': msg='Trop de tentatives. Réessayez plus tard.'; break;
+                default: msg='Une erreur est survenue. Réessayez.';
             }
+            resetError.textContent = msg; resetError.classList.add('show');
+            if (resetBtn) { resetBtn.disabled=false; resetBtn.textContent='Envoyer l\'email'; }
         }
+    }
 
-        // Functions for Terms Modal
-        function openTermsModal(event) {
-            event.preventDefault();
-            document.getElementById('termsModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
+    // ─── Terms / Privacy modals ───
+    function openTermsModal(e) { e.preventDefault(); document.getElementById('termsModal').classList.add('show'); document.body.style.overflow='hidden'; }
+    function closeTermsModal() { document.getElementById('termsModal').classList.remove('show'); document.body.style.overflow='auto'; }
+    function openPrivacyModal(e) { e.preventDefault(); document.getElementById('privacyModal').classList.add('show'); document.body.style.overflow='hidden'; }
+    function closePrivacyModal() { document.getElementById('privacyModal').classList.remove('show'); document.body.style.overflow='auto'; }
 
-        function closeTermsModal() {
-            document.getElementById('termsModal').classList.remove('show');
-            document.body.style.overflow = 'auto';
-        }
-
-        function openPrivacyModal(event) {
-            event.preventDefault();
-            document.getElementById('privacyModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closePrivacyModal() {
-            document.getElementById('privacyModal').classList.remove('show');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Close modal when clicking outside
-        document.addEventListener('click', (e) => {
-            if (e.target.id === 'termsModal') {
-                closeTermsModal();
-            }
-            if (e.target.id === 'privacyModal') {
-                closePrivacyModal();
-            }
-        });
-    </script>
-
-    <footer>
-        <div class="container">
-            <nav class="footer-nav" aria-label="Liens utiles">
-                <a href="landing_page_finance.html">Présentation</a>
-                <a href="offres.html">Offres</a>
-                <a href="filtres.html">Recherche avancée</a>
-                <a href="tarifs.html">Tarifs</a>
-                <a href="mailto:contact@taleos.co">Contact</a>
-            </nav>
-            <p>&copy; 2026 Taleos. Tous droits réservés.</p>
-            <div class="footer-love">
-                <span>Conçu avec ❤️ pour les futurs talents de la finance</span>
-            </div>
-            <div class="footer-social">
-                <a href="https://instagram.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
-                <a href="https://twitter.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                </a>
-                <a href="https://youtube.com/@taleos" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                </a>
-                <a href="https://linkedin.com/company/taleos" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                </a>
-            </div>
-        </div>
-    </footer>
+    document.addEventListener('click', e => {
+        if (e.target.id === 'termsModal') closeTermsModal();
+        if (e.target.id === 'privacyModal') closePrivacyModal();
+    });
+</script>
 </body>
 </html>

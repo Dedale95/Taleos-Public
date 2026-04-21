@@ -210,9 +210,19 @@
             color: var(--gold-light);
         }
 
-        .page-top p {
-            font-size: 0.95rem;
-            color: rgba(255,255,255,0.45);
+        .page-top-title {
+            font-family: var(--serif);
+            font-size: clamp(2.2rem, 4.4vw, 3.6rem);
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1.12;
+            letter-spacing: -0.02em;
+            max-width: 900px;
+        }
+
+        .page-top-title em {
+            font-style: italic;
+            color: var(--gold-light);
         }
 
         /* ─── MAIN ─── */
@@ -819,7 +829,7 @@
 <!-- ─── PAGE HEADER ─── -->
 <div class="page-top">
     <div class="page-top-inner">
-        <p>Suivez et gérez toutes vos candidatures en un coup d'œil</p>
+        <h1 class="page-top-title">Suivez et gérez toutes vos <em>candidatures</em> en un coup d'œil</h1>
     </div>
 </div>
 

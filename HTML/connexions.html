@@ -905,13 +905,25 @@
         return document.documentElement.getAttribute('data-taleos-injector') === 'ready';
     }
 
+    async function probeExtensionBridge() {
+        if (!isExtensionReady()) {
+            return { ok: false, message: 'Extension non détectée.' };
+        }
+        const res = await callExtensionBridge('taleos-request-bridge-health', 'taleos-bridge-health-result');
+        if (!res || res.ok !== true) {
+            return { ok: false, message: res?.message || 'Bridge extension indisponible.' };
+        }
+        return res;
+    }
+
     function checkExtensionStatus() {
         const banner = document.getElementById('extensionStatusBanner');
         if (!banner) return;
         if (isExtensionReady()) {
             banner.className = 'extension-banner ok';
             banner.style.display = 'block';
-            banner.innerHTML = '✅ Extension Taleos détectée et active';
+            const version = document.documentElement.getAttribute('data-taleos-injector-version') || '';
+            banner.innerHTML = `✅ Extension Taleos détectée et active${version ? ` <span style="opacity:.7">(${version})</span>` : ''}`;
         } else {
             banner.className = 'extension-banner warn';
             banner.style.display = 'block';
@@ -1341,6 +1353,13 @@
         }
 
         try {
+            const bridge = await probeExtensionBridge();
+            if (!bridge.ok) {
+                if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML=`❌ ${bridge.message || 'Extension Taleos non prête.'} Rechargez la page puis l’extension.`; }
+                if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
+                return;
+            }
+            if (statusDiv) { statusDiv.className='connection-status show info'; statusDiv.innerHTML=`⏳ Test de connexion en cours...${bridge.version ? ` <span style="opacity:.7">(extension ${bridge.version})</span>` : ''}`; }
             const data = await callExtensionBridge('taleos-request-test-connection','taleos-test-connection-result', JSON.parse(JSON.stringify({
                 bankId,
                 email: emailValue,
@@ -1365,6 +1384,7 @@
             console.error('Erreur testConnection:', error);
             let msg = 'Une erreur est survenue.';
             if (error.message?.includes('fetch')||error.message?.includes('network')) msg='Impossible de contacter le serveur.';
+            if (error.message?.toLowerCase?.().includes('timeout extension')) msg='Le bridge de l’extension n’a pas répondu. Rechargez la page puis rechargez l’extension.';
             if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML=`❌ ${msg}`; }
             if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
         }

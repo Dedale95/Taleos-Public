@@ -941,6 +941,7 @@
 
     const banks = [
         { id: 'credit_agricole', name: 'Crédit Agricole',   url: 'https://www.ca-recrute.fr',          logo: 'images/logos/credit_agricole.png',  description: 'Site carrière du Crédit Agricole' },
+        { id: 'bnp_paribas',     name: 'BNP Paribas',       url: 'https://bwelcome.hr.bnpparibas',     logo: 'images/logos/bnp_paribas.png',      description: 'Site carrière de BNP Paribas' },
         { id: 'bpce',            name: 'BPCE',               url: 'https://recrutement.bpce.fr',         logo: 'images/logos/bpce.svg',             description: 'Site carrière du Groupe BPCE' },
         { id: 'societe_generale',name: 'Société Générale',   url: 'https://careers.societegenerale.com', logo: 'images/logos/societe_generale.png', description: 'Site carrière de la Société Générale' },
         { id: 'deloitte',        name: 'Deloitte',           url: 'https://jobs2.deloitte.com',          logo: 'images/logos/deloitte.png',         description: 'Site carrière de Deloitte' }
@@ -1340,8 +1341,12 @@
         }
 
         try {
-            const data = await callExtensionBridge('taleos-request-validate-credentials','taleos-credentials-validated', JSON.parse(JSON.stringify({
-                action: 'validateCredentials', payload: { bankId, email: emailValue, password: passwordValue, firebaseUserId, bankName: bank.name }
+            const data = await callExtensionBridge('taleos-request-test-connection','taleos-test-connection-result', JSON.parse(JSON.stringify({
+                bankId,
+                email: emailValue,
+                password: passwordValue,
+                firebaseUserId,
+                bankName: bank.name
             })));
             if (data.success === true) {
                 userConnections[bankId] = { email: emailValue, connected: true, connectedAt: new Date().toISOString() };

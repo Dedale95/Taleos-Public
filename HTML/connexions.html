@@ -1359,7 +1359,7 @@
                 if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
                 return;
             }
-            if (statusDiv) { statusDiv.className='connection-status show info'; statusDiv.innerHTML=`⏳ Test de connexion en cours...${bridge.version ? ` <span style="opacity:.7">(extension ${bridge.version})</span>` : ''}`; }
+            if (statusDiv) { statusDiv.className='connection-status show info'; statusDiv.innerHTML='⏳ Test de connexion en cours...'; }
             const data = await callExtensionBridge('taleos-request-test-connection','taleos-test-connection-result', JSON.parse(JSON.stringify({
                 bankId,
                 email: emailValue,

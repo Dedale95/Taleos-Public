@@ -1832,18 +1832,20 @@
             'new york ny': 'New York', 'new york': 'New York',
             'iselin nj': 'New Jersey', 'iselin': 'New Jersey', 'new jersey': 'New Jersey',
             'chicago': 'Chicago', 'illinois': 'Illinois', 'texas': 'Texas',
-            'seoul': 'Séoul', 'séoul': 'Séoul'
+            'seoul': 'Séoul', 'séoul': 'Séoul',
+            'brussel': 'Bruxelles'
         };
 
         const CITY_TO_COUNTRY = {
             'paris': 'France', 'lyon': 'France', 'marseille': 'France', 'lille': 'France',
-            'bruxelles': 'Belgique', 'brussels': 'Belgique', 'zaventem': 'Belgique', 'grimbergen': 'Belgique',
+            'bruxelles': 'Belgique', 'brussels': 'Belgique', 'brussel': 'Belgique', 'zaventem': 'Belgique', 'grimbergen': 'Belgique',
             'montreal': 'Canada', 'montréal': 'Canada', 'toronto': 'Canada', 'quebec': 'Canada', 'québec': 'Canada',
             'londres': 'Royaume-Uni', 'london': 'Royaume-Uni', 'madrid': 'Espagne', 'barcelone': 'Espagne',
             'lisbonne': 'Portugal', 'lisbon': 'Portugal', 'amsterdam': 'Pays-Bas', 'luxembourg': 'Luxembourg',
             'kiev': 'Ukraine', 'kyiv': 'Ukraine', 'kharkiv': 'Ukraine', 'bogota': 'Colombie', 'medellin': 'Colombie',
             'alger': 'Algérie', 'oran': 'Algérie', 'manille': 'Philippines', 'manila': 'Philippines',
-            'seoul': 'Corée du Sud', 'séoul': 'Corée du Sud'
+            'seoul': 'Corée du Sud', 'séoul': 'Corée du Sud',
+            'jakarta': 'Indonésie', 'saint-pierre-port': 'Guernesey', 'djibouti': 'Djibouti'
         };
 
         const COUNTRY_NORMALIZATION = {
@@ -1859,7 +1861,13 @@
             'tunisie': 'Tunisie', 'tunisia': 'Tunisie', 'roumanie': 'Roumanie', 'romania': 'Roumanie',
             'danemark': 'Danemark', 'denmark': 'Danemark',
             'grèce': 'Grèce', 'grece': 'Grèce', 'greece': 'Grèce',
-            'malta': 'Malte', 'malte': 'Malte'
+            'malta': 'Malte', 'malte': 'Malte',
+            'indonesia': 'Indonésie', 'indonesie': 'Indonésie', 'indonésie': 'Indonésie',
+            'guernsey': 'Guernesey', 'guernesey': 'Guernesey',
+            'djibouti': 'Djibouti',
+            'czechia': 'Tchéquie', 'tchéquie': 'Tchéquie', 'tchequie': 'Tchéquie',
+            'république tchèque': 'Tchéquie', 'republique tcheque': 'Tchéquie',
+            'république tchèque (ce lien s\'ouvre dans un nouvel onglet)': 'Tchéquie'
         };
 
         const ITALY_CITY_TO_REGION = {
@@ -1901,6 +1909,22 @@
             const t = c.trim().toLowerCase();
             if (t === 'france') return 'France';
             return COUNTRY_NORMALIZATION[t] || c.trim();
+        }
+
+        function splitLocationForFilters(rawLocation) {
+            if (!rawLocation || typeof rawLocation !== 'string') {
+                return { cityPart: '', country: '' };
+            }
+            const parts = rawLocation
+                .split(' - ')
+                .map(part => String(part || '').trim())
+                .filter(Boolean);
+            if (parts.length === 0) return { cityPart: '', country: '' };
+            if (parts.length === 1) return { cityPart: '', country: parts[0] };
+            return {
+                cityPart: parts.slice(0, -1).join(' - '),
+                country: parts[parts.length - 1]
+            };
         }
 
         function normalizeCityForFilter(city, country) {
@@ -2086,9 +2110,7 @@
                                     }
                                     if (job && job.location && typeof job.location === 'string' && job.location.includes(' - ')) {
                                         try {
-                                            const parts = job.location.split(' - ');
-                                            const cityPart = parts[0] || '';
-                                            const country = parts[1] ? String(parts[1]).trim() : '';
+                                            const { cityPart, country } = splitLocationForFilters(job.location);
                                             
                                             if (country && country.length > 0) {
                                                 let countryNorm = normalizeCountryForFilter(country) || (String(country).toLowerCase().trim() === 'france' ? 'France' : String(country).trim());
@@ -3116,18 +3138,18 @@
             'Europe': [
                 'France', 'Allemagne', 'Luxembourg', 'Roumanie', 'Pologne', 'Italie',
                 'Royaume-Uni', 'Suisse', 'Portugal', 'Espagne', 'Suède', 'Irlande',
-                'Belgique', 'Pays-Bas', 'Autriche', 'Monaco', 'République Tchèque',
-                'Ukraine', 'Hongrie', 'Bulgarie', 'Slovaquie', 'Norvège', 'Jersey', 'Turquie',
+                'Belgique', 'Pays-Bas', 'Autriche', 'Monaco', 'République Tchèque', 'Tchéquie',
+                'Ukraine', 'Hongrie', 'Bulgarie', 'Slovaquie', 'Norvège', 'Jersey', 'Guernesey', 'Turquie',
                 'Danemark', 'Grèce', 'Malte', 'Malta'
             ],
             'Asie': [
                 'Inde', 'Malaisie', 'Hong-Kong', 'Singapour', 'Japon', 'Chine',
                 'Corée du Sud', 'Taïwan', 'Thaïlande', 'Émirats Arabes Unis',
-                'Philippines', 'Vietnam'
+                'Philippines', 'Vietnam', 'Indonésie'
             ],
             'Afrique': [
                 'Maroc', 'Côte D\'Ivoire', 'Tunisie', 'Cameroun', 'Gabon',
-                'RD Congo', 'Bénin', 'Kenya', 'Algérie', 'Afrique du Sud', 'Afrique Du Sud'
+                'RD Congo', 'Bénin', 'Kenya', 'Algérie', 'Afrique du Sud', 'Afrique Du Sud', 'Djibouti'
             ],
             'Amériques': [
                 'États-Unis', 'Canada', 'Mexique', 'Colombie', 'Brésil',

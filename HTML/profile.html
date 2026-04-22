@@ -1049,8 +1049,8 @@
                     const style = document.createElement('style');
                     style.id = 'initialNavState';
                     style.textContent = isAuthenticated 
-                        ? '#authLink { display: none !important; } #profileLink { display: block !important; } #logoutBtn { display: block !important; } #rechercheLink { display: inline-block !important; }'
-                        : '#authLink { display: block !important; } #profileLink { display: none !important; } #logoutBtn { display: none !important; } #rechercheLink { display: none !important; }';
+                        ? '#authLink { display: none !important; } #profileLink { display: block !important; } #logoutBtn { display: block !important; }'
+                        : '#authLink { display: block !important; } #profileLink { display: none !important; } #logoutBtn { display: none !important; }';
                     document.head.appendChild(style);
                 }
             } catch (e) {
@@ -1072,7 +1072,6 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>

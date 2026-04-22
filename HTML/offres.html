@@ -112,6 +112,34 @@
             padding: 32px 48px;
         }
 
+        .advanced-search-cta-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 18px;
+        }
+
+        .advanced-search-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--gold);
+            background: rgba(200,169,110,0.08);
+            border: 1px solid rgba(200,169,110,0.22);
+            transition: all var(--transition);
+        }
+
+        .advanced-search-cta:hover {
+            background: rgba(200,169,110,0.14);
+            color: var(--white);
+            border-color: rgba(200,169,110,0.4);
+        }
+
         /* Stats compactes intégrées dans le header des filtres */
         .filters-stats {
             display: flex;
@@ -1571,7 +1599,6 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link nav-link-primary">Offres</a>
-                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
@@ -1589,6 +1616,9 @@
 
     <div class="main-content">
     <div class="container">
+        <div class="advanced-search-cta-row">
+            <a href="filtres.html" class="advanced-search-cta">Recherche avancée</a>
+        </div>
         <div class="filters-wrapper">
             <!-- Header cliquable pour toggle avec stats intégrées -->
             <div class="filters-header" id="filtersToggle" onclick="toggleFilters()">

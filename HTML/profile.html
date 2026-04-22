@@ -9,7 +9,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-    <link rel="stylesheet" href="taleos-theme.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
     <style>
         * {
             margin: 0;
@@ -19,128 +22,151 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: var(--surface);
             min-height: 100vh;
-            color: #1a1a1a;
+            color: var(--text-body);
             display: flex;
             flex-direction: column;
+            font-family: var(--sans);
         }
 
-        /* Navigation */
+        :root {
+            --ink:        #0a0a0f;
+            --ink-soft:   #14141c;
+            --ink-mid:    #1e1e2a;
+            --surface:    #f5f3ef;
+            --surface2:   #ede9e3;
+            --surface3:   #e4dfd7;
+            --gold:       #c8a96e;
+            --gold-light: #e2cfa0;
+            --gold-dim:   rgba(200,169,110,0.12);
+            --gold-border:rgba(200,169,110,0.22);
+            --muted:      #7a7a8a;
+            --text-body:  #3a3a48;
+            --white:      #ffffff;
+            --serif:      'Playfair Display', Georgia, serif;
+            --sans:       'DM Sans', system-ui, sans-serif;
+            --radius:     4px;
+            --radius-md:  8px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ─── NAV ─── */
         nav {
-            background: white;
-            padding: 20px 40px;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
             position: sticky;
             top: 0;
             z-index: 10000;
+            background: var(--ink);
+            border-bottom: 1px solid rgba(200,169,110,0.12);
+            padding: 0 48px;
         }
 
         .nav-container {
             max-width: 1400px;
             margin: 0 auto;
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: space-between;
+            height: 68px;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 11px;
             text-decoration: none;
+            justify-self: start;
         }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            background: var(--ink-mid);
+            border: 1.5px solid rgba(200,169,110,0.5);
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.2rem;
+            flex-shrink: 0;
         }
 
+        .logo-mark svg { width: 20px; height: 20px; }
+
         .logo-text {
-            font-size: 1.5rem;
+            font-family: var(--sans);
+            font-size: 1.3rem;
             font-weight: 700;
-            color: #1a1a1a;
+            color: var(--white);
+            letter-spacing: -0.01em;
         }
+
+        .logo-text span { color: var(--gold); }
 
         .nav-links {
             display: flex;
-            gap: 20px;
             align-items: center;
+            gap: 4px;
+            justify-self: center;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-self: end;
         }
 
         .nav-link {
-            color: #666;
+            color: rgba(255,255,255,0.55);
             text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            display: inline-block;
-            box-sizing: border-box;
-            min-width: fit-content;
-            position: relative;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            transition: color var(--transition);
+            white-space: nowrap;
         }
 
-        .nav-link:hover {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
+        .nav-link:hover { color: var(--white); }
+        .nav-link-primary { color: var(--gold) !important; }
+        .nav-link-primary:hover { background: var(--gold-dim); }
 
-        .nav-link-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white !important;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            /* Même padding pour éviter décalage */
-            padding: 8px 16px;
+        /* ─── PAGE TOP ─── */
+        .page-top {
+            background: var(--ink);
+            padding: 52px 48px 48px;
+            border-bottom: 1px solid rgba(200,169,110,0.1);
         }
-
-        .nav-link-primary:hover {
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-            /* Pas de transform pour éviter décalage */
+        .page-top-inner { max-width: 1000px; margin: 0 auto; }
+        .page-label {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 0.68rem; font-weight: 600; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--gold); margin-bottom: 16px;
         }
+        .page-label::before { content: ''; display: block; width: 20px; height: 1px; background: var(--gold); }
+        .page-top h1 {
+            font-family: var(--serif);
+            font-size: clamp(1.8rem, 3vw, 2.4rem);
+            font-weight: 700; color: var(--white); line-height: 1.15; margin-bottom: 10px;
+        }
+        .page-top h1 em { font-style: italic; color: var(--gold-light); }
+        .page-top p { font-size: 0.9rem; color: rgba(255,255,255,0.45); max-width: 600px; line-height: 1.7; }
 
         /* Container principal */
         .container {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 0 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 48px;
         }
 
         .profile-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            margin-bottom: 30px;
+            background: transparent;
+            margin-bottom: 0;
         }
 
         .profile-header {
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #e5e7eb;
-        }
-
-        .profile-header h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .profile-header p {
-            color: #666;
-            font-size: 1rem;
+            display: none;
         }
 
         .form-section {
@@ -152,62 +178,61 @@
         }
 
         .accordion-section {
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            border: 1px solid #e5e7eb;
-            background: white;
+            border: 1px solid var(--surface2);
+            background: var(--white);
         }
 
-        /* Espacement garanti entre deux accordéons (padding ne collapse pas) */
         .accordion-section + .accordion-section {
-            margin-top: 16px;
+            margin-top: 12px;
         }
 
         .accordion-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 24px;
-            background: #f9fafb;
+            padding: 18px 22px;
+            background: var(--surface);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background var(--transition);
             user-select: none;
         }
 
         .accordion-header:hover {
-            background: #f3f4f6;
+            background: var(--surface2);
         }
 
         .accordion-section.active .accordion-header {
-            background: #667eea;
-            color: white;
+            background: var(--ink);
+            border-bottom: 1px solid rgba(200,169,110,0.15);
         }
 
         .accordion-header h2 {
-            font-size: 1.3rem;
+            font-family: var(--sans);
+            font-size: 0.85rem;
             font-weight: 600;
-            color: #1a1a1a;
+            letter-spacing: 0.04em;
+            color: var(--ink);
             margin: 0;
-            transition: color 0.3s;
+            transition: color var(--transition);
         }
 
         .accordion-section.active .accordion-header h2 {
-            color: white;
+            color: var(--gold);
         }
 
         .accordion-icon {
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             transition: transform 0.3s, color 0.3s;
-            color: #667eea;
-            font-weight: bold;
+            color: var(--muted);
             flex-shrink: 0;
             margin-left: 16px;
         }
 
         .accordion-section.active .accordion-icon {
             transform: rotate(180deg);
-            color: white;
+            color: var(--gold);
         }
 
         .accordion-content {
@@ -223,9 +248,9 @@
         }
 
         .form-section h2 {
-            font-size: 1.3rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: var(--ink);
             margin-bottom: 24px;
         }
 
@@ -235,23 +260,26 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 7px;
+            font-size: 0.75rem;
             font-weight: 600;
-            color: #1a1a1a;
-            font-size: 0.95rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
         }
 
         .form-group select,
         .form-group input {
             width: 100%;
-            padding: 12px 14px;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s;
-            background: white;
-            font-family: inherit;
-            height: 44px;
+            padding: 10px 13px;
+            border: 1px solid var(--surface3);
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            background: var(--white);
+            color: var(--ink);
+            font-family: var(--sans);
+            height: 42px;
             box-sizing: border-box;
         }
 
@@ -302,70 +330,74 @@
         .form-group small {
             display: block;
             margin-top: 6px;
-            color: #666;
-            font-size: 0.85rem;
+            color: var(--muted);
+            font-size: 0.8rem;
             font-weight: 400;
         }
 
         .form-group select:focus,
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(200,169,110,0.1);
         }
 
         .btn {
-            padding: 16px 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
+            padding: 13px 32px;
+            background: var(--ink);
+            color: var(--white);
+            border: 1px solid var(--ink);
+            border-radius: var(--radius);
+            font-family: var(--sans);
+            font-size: 0.85rem;
             font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all var(--transition);
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            background: var(--ink-mid);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
         }
 
         .btn:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
 
         /* Styles pour les langues */
         .btn-add-item {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95rem;
+            padding: 9px 18px;
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid rgba(200,169,110,0.4);
+            border-radius: var(--radius);
+            font-family: var(--sans);
+            font-size: 0.8rem;
             font-weight: 600;
+            letter-spacing: 0.04em;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+            transition: all var(--transition);
         }
 
         .btn-add-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            background: var(--gold-dim);
+            border-color: var(--gold);
         }
 
         .language-item {
             display: flex;
             gap: 12px;
-            align-items: flex-start;
-            margin-bottom: 12px;
-            padding: 12px;
-            background: #f9fafb;
-            border-radius: 8px;
-            border: 2px solid #e5e7eb;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--surface2);
         }
 
         .language-item select {
@@ -374,21 +406,22 @@
         }
 
         .language-item .remove-language-btn {
-            padding: 8px 12px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
+            padding: 6px 10px;
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: var(--radius);
+            font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all var(--transition);
             flex-shrink: 0;
+            font-family: var(--sans);
         }
 
         .language-item .remove-language-btn:hover {
-            background: #dc2626;
-            transform: translateY(-1px);
+            background: rgba(239,68,68,0.06);
+            border-color: #ef4444;
         }
 
         /* Styles pour la modale de profil incomplet */
@@ -454,14 +487,14 @@
         }
 
         .profile-incomplete-modal-btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            background: var(--ink);
+            color: var(--white);
         }
 
         .profile-incomplete-modal-btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            background: var(--ink-mid);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
         }
 
         .profile-incomplete-modal-btn-secondary {
@@ -556,7 +589,7 @@
         /* Section complète ouverte : fond violet foncé pour contraste avec texte blanc (éviter blanc sur vert clair) */
         .accordion-section.complete.active .accordion-header,
         .accordion-section.complete.active .accordion-header:hover {
-            background: #667eea !important;
+            background: var(--ink) !important;
         }
 
         .accordion-section.complete.active .accordion-header h2,
@@ -741,23 +774,18 @@
 
         .logout-btn {
             background: transparent;
-            margin-left: 10px;
-            color: #666 !important;
-            border: 1px solid #e5e7eb;
-            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.45);
+            font-size: 0.85rem;
             font-weight: 500;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            font-family: inherit;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--sans);
+            transition: all var(--transition);
         }
 
-        .logout-btn:hover {
-            background: #f3f4f6;
-            color: #374151 !important;
-            border-color: #d1d5db;
-        }
+        .logout-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
 
         /* File Upload Styles */
         .file-upload-container {
@@ -767,31 +795,32 @@
         .file-upload-btn {
             width: 100%;
             padding: 14px 18px;
-            border: 2px dashed #d1d5db;
-            border-radius: 10px;
-            background: #f9fafb;
+            border: 1.5px dashed var(--surface3);
+            border-radius: var(--radius);
+            background: var(--surface);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            font-size: 0.95rem;
-            color: #666;
+            font-size: 0.88rem;
+            color: var(--muted);
             font-weight: 500;
+            font-family: var(--sans);
             min-height: 44px;
         }
 
         .file-upload-btn:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
-            color: #667eea;
+            border-color: var(--gold);
+            background: var(--gold-dim);
+            color: var(--text-body);
         }
 
         .file-upload-btn:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(200,169,110,0.1);
         }
 
         .upload-icon {
@@ -816,7 +845,7 @@
         }
 
         .file-upload-btn.uploading .upload-status {
-            color: #667eea;
+            color: var(--gold);
             display: flex;
             align-items: center;
             gap: 6px;
@@ -826,18 +855,18 @@
             content: '';
             width: 14px;
             height: 14px;
-            border: 2px solid #667eea;
+            border: 2px solid var(--gold);
             border-top-color: transparent;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
 
         .file-info {
-            margin-top: 12px;
-            padding: 12px 16px;
-            background: #f0f9ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 8px;
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: rgba(200,169,110,0.06);
+            border: 1px solid rgba(200,169,110,0.2);
+            border-radius: var(--radius);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -846,8 +875,8 @@
 
         .file-name {
             flex: 1;
-            color: #1e40af;
-            font-size: 0.9rem;
+            color: var(--text-body);
+            font-size: 0.88rem;
             font-weight: 500;
             display: flex;
             align-items: center;
@@ -900,20 +929,21 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 14px 16px;
-            border: none;
-            border-radius: 10px;
-            background: #f9fafb;
+            padding: 10px 14px;
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius);
+            background: var(--white);
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.95rem;
-            color: #1a1a1a;
+            transition: all var(--transition);
+            font-size: 0.875rem;
+            color: var(--text-body);
             position: relative;
-            min-height: 44px;
+            min-height: 40px;
         }
 
         .checkbox-label:hover {
-            background: rgba(102, 126, 234, 0.1);
+            border-color: var(--gold-border);
+            background: var(--gold-dim);
         }
 
         .checkbox-label input[type="checkbox"] {
@@ -939,14 +969,14 @@
         }
 
         .checkbox-label:hover input[type="checkbox"] + .checkbox-text::before {
-            border-color: #667eea;
+            border-color: var(--gold);
             background: rgba(102, 126, 234, 0.05);
         }
 
         .checkbox-label input[type="checkbox"]:checked + .checkbox-text::before {
-            background: #667eea;
-            border-color: #667eea;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2 6l3 3 5-5'/%3E%3C/svg%3E");
+            background: var(--ink);
+            border-color: var(--gold);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23c8a96e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2 6l3 3 5-5'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: center;
             background-size: 12px 12px;
@@ -954,8 +984,8 @@
 
         .checkbox-label input[type="checkbox"]:focus + .checkbox-text::before {
             outline: none;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(200,169,110,0.1);
+            border-color: var(--gold);
         }
 
         .checkbox-text {
@@ -972,93 +1002,41 @@
             }
         }
 
-        /* Footer */
+        /* ─── FOOTER ─── */
         footer {
-            background: #1a1a1a;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
+            background: #070709;
+            color: rgba(255,255,255,0.3);
+            padding: 48px;
+            border-top: 1px solid rgba(200,169,110,0.1);
             margin-top: auto;
-            width: 100%;
-            box-sizing: border-box;
         }
 
-        footer .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .footer-inner {
+            max-width: 1400px; margin: 0 auto;
+            display: flex; align-items: center;
+            justify-content: space-between; flex-wrap: wrap; gap: 24px;
         }
 
-        footer p {
-            opacity: 0.7;
-            margin: 0;
-        }
+        .footer-logo { font-family: var(--sans); font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: -0.01em; }
+        .footer-logo span { color: var(--gold); }
 
-        .footer-love {
-            margin-top: 15px;
-            font-size: 0.95rem;
-        }
+        .footer-nav { display: flex; gap: 24px; flex-wrap: wrap; }
+        .footer-nav a { color: rgba(255,255,255,0.3); text-decoration: none; font-size: 0.82rem; transition: color var(--transition); }
+        .footer-nav a:hover { color: var(--gold); }
 
-        .footer-links {
-            margin-top: 12px;
-        }
+        .footer-social { display: flex; gap: 16px; }
+        .footer-social a { color: rgba(255,255,255,0.25); text-decoration: none; transition: color var(--transition); }
+        .footer-social a:hover { color: var(--gold); }
+        .footer-social svg { width: 16px; height: 16px; }
 
-        .footer-links a {
-            color: inherit;
-            opacity: 0.85;
-            text-decoration: none;
-        }
-
-        .footer-links a:hover {
-            opacity: 1;
-            text-decoration: underline;
-        }
-
-        .footer-social {
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .footer-social a {
-            color: white;
-            opacity: 0.85;
-            display: inline-flex;
-            transition: opacity 0.2s;
-        }
-
-        .footer-social a:hover {
-            opacity: 1;
-        }
-
-        .footer-social svg {
-            width: 24px;
-            height: 24px;
-        }
+        .footer-copy { width: 100%; font-size: 0.75rem; text-align: center; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05); }
 
         @media (max-width: 768px) {
-            .container {
-                margin: 20px auto;
-            }
-
-            .profile-card {
-                padding: 30px 20px;
-            }
-
-            nav {
-                padding: 15px 20px;
-            }
-
-            .nav-container {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .nav-links {
-                flex-direction: column;
-                width: 100%;
-                gap: 10px;
-            }
+            nav { padding: 0 20px; }
+            .nav-container { display: flex; justify-content: space-between; }
+            .nav-links { display: none; }
+            .page-top { padding: 40px 20px 36px; }
+            .container { padding: 24px 20px; }
         }
     </style>
 </head>
@@ -1092,22 +1070,37 @@
     <nav>
         <div class="nav-container">
             <a href="landing_page_finance.html" class="logo">
-                <div class="logo-icon">T</div>
-                <div class="logo-text">Taleos</div>
+                <div class="logo-mark">
+                    <svg viewBox="0 0 20 20" fill="none"><path d="M5 6H15M10 6V15" stroke="#c8a96e" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="logo-text">Tale<span>os</span></div>
             </a>
+
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display: none;">Recherche avancée</a>
-                <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
-                <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
+                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
+                <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
+                <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
-                <a href="auth.html" class="nav-link" id="authLink">Inscription / Connexion</a>
-                <a href="profile.html" class="nav-link nav-link-primary" id="profileLink" style="display: none;">Mon Profil</a>
-                <button class="nav-link logout-btn" id="logoutBtn" onclick="handleLogout()" style="display: none;">Déconnexion</button>
+            </div>
+
+            <div class="nav-actions">
+                <a href="auth.html" class="nav-link" id="authLink">Connexion</a>
+                <a href="profile.html" class="nav-link nav-link-primary" id="profileLink" style="display:none">Mon Profil</a>
+                <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none">Déconnexion</button>
             </div>
         </div>
     </nav>
+
+    <!-- Page header dark -->
+    <div class="page-top">
+        <div class="page-top-inner">
+            <div class="page-label">Votre espace</div>
+            <h1>Informations <em>requises</em></h1>
+            <p>Ces informations sont essentielles pour automatiser vos candidatures. Notre IA les utilise pour personnaliser vos lettres de motivation et postuler en votre nom.</p>
+        </div>
+    </div>
 
     <!-- Container principal -->
     <div class="container">
@@ -1811,17 +1804,6 @@
                                 <option value="3_months">3 mois</option>
                                 <option value="more_than_3_months">Plus de 3 mois</option>
                             </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="groupDataSharingScope">Partage des données candidat·e (BNP Paribas)</label>
-                            <select id="groupDataSharingScope" name="groupDataSharingScope">
-                                <option value="">Sélectionnez…</option>
-                                <option value="International au sein du groupe BNP Paribas">International au sein du groupe BNP Paribas</option>
-                                <option value="National">National</option>
-                                <option value="Uniquement pour le poste auquel je postule">Uniquement pour le poste auquel je postule</option>
-                            </select>
-                            <small style="display:block; margin-top:6px; color:#666; font-size:0.85rem;">Utilisé pour certaines candidatures BNP quand la plateforme demande le niveau de partage de vos données.</small>
                         </div>
 
                         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
@@ -2746,12 +2728,8 @@
         function loadSgScreeningInfo(profile) {
             const eu = document.getElementById('sgEuWorkAuthorization');
             const notice = document.getElementById('sgNoticePeriod');
-            const dataSharing = document.getElementById('groupDataSharingScope');
             if (eu && profile.sg_eu_work_authorization) eu.value = profile.sg_eu_work_authorization;
             if (notice && profile.sg_notice_period) notice.value = profile.sg_notice_period;
-            if (dataSharing && (profile.group_data_sharing_scope || profile.bnp_data_sharing_scope)) {
-                dataSharing.value = profile.group_data_sharing_scope || profile.bnp_data_sharing_scope;
-            }
         }
 
         // Fonction pour charger les informations Deloitte
@@ -3376,7 +3354,6 @@
                 bpce_application_source: document.getElementById('bpceApplicationSource')?.value || '',
                 linkedin_url: document.getElementById('linkedinUrl')?.value?.trim() || '',
                 bpce_job_alerts: document.getElementById('bpceJobAlerts')?.checked || false,
-                group_data_sharing_scope: document.getElementById('groupDataSharingScope')?.value || '',
                 sg_eu_work_authorization: document.getElementById('sgEuWorkAuthorization')?.value || '',
                 sg_notice_period: document.getElementById('sgNoticePeriod')?.value || '',
                 email: userEmail || '',
@@ -3831,28 +3808,21 @@
     </script>
 
     <footer>
-        <div class="container">
-            <p>&copy; 2026 Taleos. Tous droits réservés.</p>
-            <div class="footer-love">
-                <span>Conçu avec ❤️ pour les futurs talents de la finance</span>
-            </div>
-            <div class="footer-links">
+        <div class="footer-inner">
+            <div class="footer-logo">Tale<span>os</span></div>
+            <nav class="footer-nav">
+                <a href="landing_page_finance.html">Présentation</a>
+                <a href="offres.html">Offres</a>
+                <a href="tarifs.html">Tarifs</a>
                 <a href="mailto:contact@taleos.co">Contact</a>
-            </div>
+            </nav>
             <div class="footer-social">
-                <a href="https://instagram.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
-                <a href="https://twitter.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                </a>
-                <a href="https://youtube.com/@taleos" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                </a>
-                <a href="https://linkedin.com/company/taleos" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                </a>
+                <a href="https://instagram.com/taleos" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+                <a href="https://twitter.com/taleos" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+                <a href="https://linkedin.com/company/taleos" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+                <a href="https://youtube.com/@taleos" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
             </div>
+            <div class="footer-copy">© 2026 Taleos. Tous droits réservés. · 🇫🇷 Made in France</div>
         </div>
     </footer>
 </body>

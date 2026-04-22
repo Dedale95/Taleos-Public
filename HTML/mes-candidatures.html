@@ -1047,6 +1047,9 @@
         const logoMap = {
             'credit_agricole':'images/logos/credit_agricole.png','idia_capital_investment':'images/logos/credit_agricole.png','idia':'images/logos/credit_agricole.png',
             'societe_generale':'images/logos/societe_generale.png','deloitte':'images/logos/deloitte.png','amundi':'images/logos/amundi.png',
+            'bnp':'images/logos/bnp_paribas.png','bnp_paribas':'images/logos/bnp_paribas.png',
+            'bnp_paribas_personal_finance':'images/logos/bnp_paribas.png','bnp_paribas_securities_services':'images/logos/bnp_paribas.png',
+            'bnp_paribas_corporate_&_institutional_banking':'images/logos/bnp_paribas.png','bnp_paribas_corporate___institutional_banking':'images/logos/bnp_paribas.png',
             'bforbank':'images/logos/bforbank.png','b_for_bank':'images/logos/bforbank.png','caceis':'images/logos/caceis.png',
             'indosuez':'images/logos/indosuez.png','lcl':'images/logos/lcl.png','uptevia':'images/logos/uptevia.png',
             'bpce':'images/logos/bpce.svg','natixis':'images/logos/natixis.png','caisse_depargne':'images/logos/caisse_epargne.svg',
@@ -1068,6 +1071,9 @@
             if (normalized.includes(key) || normalized === key) return path;
         }
         const n = (companyName || '').toLowerCase();
+        if (n.includes('bnp')) {
+            return 'images/logos/bnp_paribas.png';
+        }
         if (n.includes('credit mutuel') || n.includes('crédit mutuel') || n.includes('cic') || n.includes('cofidis') ||
             n.includes('ccm') || n.includes('cmlaco') || n.includes('euro information') || n.includes('lyonnaise de banque')) {
             return 'images/logos/credit_mutuel.svg';

@@ -12,6 +12,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -23,11 +26,32 @@
             height: 100%;
         }
 
+        :root {
+            --ink:        #0a0a0f;
+            --ink-soft:   #14141c;
+            --ink-mid:    #1e1e2a;
+            --surface:    #f5f3ef;
+            --surface2:   #ede9e3;
+            --surface3:   #e4dfd7;
+            --gold:       #c8a96e;
+            --gold-light: #e2cfa0;
+            --gold-dim:   rgba(200,169,110,0.12);
+            --gold-border:rgba(200,169,110,0.22);
+            --muted:      #7a7a8a;
+            --text-body:  #3a3a48;
+            --white:      #ffffff;
+            --serif:      'Playfair Display', Georgia, serif;
+            --sans:       'DM Sans', system-ui, sans-serif;
+            --radius:     4px;
+            --radius-md:  8px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: var(--sans);
+            background: var(--surface);
             min-height: 100vh;
-            color: #1a1a1a;
+            color: var(--text-body);
             display: flex;
             flex-direction: column;
         }
@@ -36,155 +60,131 @@
             flex: 1;
         }
 
-        /* Navigation */
         nav {
-            background: white;
-            padding: 20px 40px;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-            position: sticky;
-            top: 0;
-            z-index: 10000;
+            position: sticky; top: 0; z-index: 10000;
+            background: var(--ink);
+            border-bottom: 1px solid rgba(200,169,110,0.12);
+            padding: 0 48px;
         }
 
         .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr auto 1fr;
+            align-items: center; height: 68px;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-        }
+        .logo { display:flex; align-items:center; gap:11px; text-decoration:none; justify-self:start; }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        .logo-mark {
+            width:36px; height:36px;
+            background:var(--ink-mid); border:1.5px solid rgba(200,169,110,0.5);
+            border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
         }
+        .logo-mark svg { width:20px; height:20px; }
+        .logo-text { font-family:var(--sans); font-size:1.3rem; font-weight:700; color:var(--white); letter-spacing:-0.01em; }
+        .logo-text span { color:var(--gold); }
 
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1a1a1a;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
+        .nav-links { display:flex; align-items:center; gap:4px; justify-self:center; }
+        .nav-actions { display:flex; align-items:center; gap:4px; justify-self:end; }
 
         .nav-link {
-            color: #666;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
+            color:rgba(255,255,255,0.55); text-decoration:none;
+            font-size:0.85rem; font-weight:500; letter-spacing:0.03em;
+            padding:8px 14px; border-radius:var(--radius);
+            transition:color var(--transition); white-space:nowrap;
         }
-
-        .nav-link:hover {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .nav-link-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white !important;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
+        .nav-link:hover { color:var(--white); }
+        .nav-link-primary { color:var(--gold) !important; }
+        .nav-link-primary:hover { background:var(--gold-dim); }
 
         .logout-btn {
-            background: transparent;
-            margin-left: 10px;
-            color: #666 !important;
-            border: 1px solid #e5e7eb;
-            cursor: pointer;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
+            background:transparent; border:1px solid rgba(255,255,255,0.15);
+            color:rgba(255,255,255,0.45); font-size:0.85rem; font-weight:500;
+            padding:8px 14px; border-radius:var(--radius);
+            cursor:pointer; font-family:var(--sans); transition:all var(--transition);
         }
-
-        .logout-btn:hover {
-            background: #f3f4f6;
-            color: #374151 !important;
-            border-color: #d1d5db;
-        }
+        .logout-btn:hover { color:var(--white); border-color:rgba(255,255,255,0.3); }
 
         .container {
             max-width: 1400px;
-            margin: 30px auto;
-            padding: 0 20px;
+            margin: 0 auto;
+            padding: 40px 48px;
         }
+
+        /* ─── Page header ─── */
+        .page-top {
+            background: var(--ink);
+            padding: 52px 48px 48px;
+            border-bottom: 1px solid rgba(200,169,110,0.1);
+        }
+        .page-top-inner {
+            max-width: 1400px; margin: 0 auto;
+            display: flex; align-items: flex-end;
+            justify-content: space-between; gap: 24px; flex-wrap: wrap;
+        }
+        .page-label {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 0.68rem; font-weight: 600; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--gold); margin-bottom: 16px;
+        }
+        .page-label::before { content:''; display:block; width:20px; height:1px; background:var(--gold); }
+        .page-top h1 {
+            font-family: var(--serif);
+            font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+            font-weight: 700; color: var(--white); line-height: 1.15;
+        }
+        .page-top h1 em { font-style: italic; color: var(--gold-light); }
+        .page-top-desc { font-size: 0.9rem; color: rgba(255,255,255,0.45); margin-top: 8px; }
 
         /* Header avec bouton d'ajout */
         .advanced-search-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 28px;
             gap: 20px;
             flex-wrap: wrap;
         }
 
-        .advanced-search-header h1 {
-            font-size: 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+        .advanced-search-header h1 { display: none; }
 
         .btn-add-accordion {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
+            padding: 10px 22px;
+            background: var(--ink);
+            color: var(--white);
+            border: 1px solid rgba(200,169,110,0.35);
+            border-radius: var(--radius);
+            font-family: var(--sans);
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.82rem;
+            letter-spacing: 0.05em;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s;
+            transition: all var(--transition);
         }
 
         .btn-add-accordion:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            background: var(--gold);
+            color: var(--ink);
+            border-color: var(--gold);
         }
 
-        /* Bouton Réinitialiser les filtres (identique à offres.html) */
         .reset-btn {
-            padding: 14px 28px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
+            padding: 10px 22px;
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--surface3);
+            border-radius: var(--radius);
             cursor: pointer;
+            font-family: var(--sans);
             font-weight: 600;
-            font-size: 15px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
+            transition: all var(--transition);
         }
 
         .reset-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            border-color: var(--gold);
+            color: var(--text-body);
         }
 
         .filter-row-reset {
@@ -214,35 +214,35 @@
 
         /* Accordéon individuel */
         .search-accordion {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            background: var(--white);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--surface2);
             overflow: hidden;
-            transition: all 0.3s;
+            transition: border-color var(--transition), box-shadow var(--transition);
         }
 
         .search-accordion:hover {
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+            border-color: var(--gold-border);
         }
 
-        /* Header de l'accordéon */
         .accordion-header {
-            padding: 20px 24px;
+            padding: 18px 22px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
+            background: var(--surface);
+            border-bottom: 1px solid transparent;
+            transition: background var(--transition);
         }
 
         .accordion-header:hover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            background: var(--surface2);
         }
 
         .accordion-header.expanded {
-            border-bottom-color: #e5e7eb;
+            background: var(--ink);
+            border-bottom-color: rgba(200,169,110,0.15);
         }
 
         .accordion-header-left {
@@ -255,27 +255,35 @@
 
         .accordion-drag-handle {
             cursor: move;
-            color: #999;
-            font-size: 1.2rem;
+            color: rgba(255,255,255,0.2);
+            font-size: 1.1rem;
             padding: 5px;
-            transition: color 0.3s;
+            transition: color var(--transition);
         }
 
         .accordion-drag-handle:hover {
-            color: #667eea;
+            color: var(--gold);
         }
 
+        .accordion-header:not(.expanded) .accordion-drag-handle { color: var(--muted); }
+
         .accordion-icon {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 8px;
+            background: var(--gold-dim);
+            border: 1px solid rgba(200,169,110,0.3);
+            color: var(--gold);
+            border-radius: var(--radius);
             font-weight: 700;
+            font-size: 0.8rem;
             flex-shrink: 0;
+        }
+
+        .accordion-header.expanded .accordion-icon {
+            background: rgba(200,169,110,0.2);
         }
 
         .accordion-title-group {
@@ -287,33 +295,45 @@
         }
 
         .accordion-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #1a1a1a;
+            font-family: var(--sans);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
             flex: 1;
             min-width: 0;
         }
 
+        .accordion-header.expanded .accordion-title {
+            color: var(--white);
+        }
+
         .accordion-title-input {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            padding: 6px 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
+            background: var(--white);
+            border: 1px solid var(--gold);
+            border-radius: var(--radius);
+            padding: 5px 10px;
             width: 100%;
             max-width: 400px;
+            font-family: var(--sans);
         }
 
         .accordion-count {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+            background: var(--gold-dim);
+            color: var(--gold);
+            border: 1px solid rgba(200,169,110,0.3);
+            padding: 3px 10px;
+            border-radius: 2px;
+            font-size: 0.72rem;
             font-weight: 600;
+            letter-spacing: 0.04em;
             white-space: nowrap;
+        }
+
+        .accordion-header.expanded .accordion-count {
+            background: rgba(200,169,110,0.2);
         }
 
         .accordion-actions {
@@ -324,39 +344,47 @@
         }
 
         .accordion-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 8px;
+            padding: 5px 10px;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            transition: all 0.3s;
+            letter-spacing: 0.03em;
+            transition: all var(--transition);
             background: transparent;
-            color: #666;
+            color: var(--muted);
+            font-family: var(--sans);
         }
 
         .accordion-btn:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
+            border-color: var(--gold-border);
+            color: var(--text-body);
+            background: var(--gold-dim);
         }
 
-        .accordion-btn-danger {
-            color: #ef4444;
+        .accordion-header.expanded .accordion-btn {
+            color: rgba(255,255,255,0.5);
         }
 
-        .accordion-btn-danger:hover {
-            background: rgba(239, 68, 68, 0.1);
-            color: #dc2626;
+        .accordion-header.expanded .accordion-btn:hover {
+            color: var(--white);
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
         }
+
+        .accordion-btn-danger { color: rgba(239,68,68,0.7); }
+        .accordion-btn-danger:hover { border-color: rgba(239,68,68,0.3); color: #ef4444; background: rgba(239,68,68,0.06); }
 
         .accordion-toggle-icon {
-            transition: transform 0.3s;
-            color: #666;
-            font-size: 1.5rem;
+            transition: transform var(--transition);
+            color: var(--muted);
+            font-size: 1.2rem;
         }
 
         .accordion-header.expanded .accordion-toggle-icon {
             transform: rotate(180deg);
+            color: rgba(255,255,255,0.4);
         }
 
         /* Contenu de l'accordéon */
@@ -413,22 +441,24 @@
         }
 
         .filter-box {
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius);
             overflow: hidden;
-            background: #f9fafb;
+            background: var(--surface);
             display: flex;
             flex-direction: column;
         }
 
         .filter-box-header {
-            padding: 10px 12px;
+            padding: 8px 12px;
             text-align: center;
-            font-weight: 800;
-            font-size: 0.95rem;
-            color: #1a1a1a;
-            background: rgba(255, 255, 255, 0.7);
-            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: var(--white);
+            border-bottom: 1px solid var(--surface2);
             flex-shrink: 0;
         }
 
@@ -472,22 +502,8 @@
         }
 
         /* Couleurs des tuiles de filtres */
-        .filter-box-location {
-            border-color: #3b82f6;
-            background: linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, #f9fafb 30%);
-        }
-        .filter-box-location .filter-box-header {
-            background: rgba(59, 130, 246, 0.15);
-            border-bottom-color: rgba(59, 130, 246, 0.3);
-        }
-        .filter-box-experience {
-            border-color: #eab308;
-            background: linear-gradient(180deg, rgba(234, 179, 8, 0.1) 0%, #f9fafb 30%);
-        }
-        .filter-box-experience .filter-box-header {
-            background: rgba(234, 179, 8, 0.2);
-            border-bottom-color: rgba(234, 179, 8, 0.35);
-        }
+        .filter-box-location { border-color: var(--gold-border); }
+        .filter-box-experience { border-color: var(--gold-border); }
         .filter-box-contract {
             border-color: #ec4899;
             background: linear-gradient(180deg, rgba(236, 72, 153, 0.08) 0%, #f9fafb 30%);
@@ -505,7 +521,7 @@
             border-bottom-color: rgba(34, 197, 94, 0.3);
         }
         .filter-box-education {
-            border-color: #8b5cf6;
+            border-color: var(--gold);
             background: linear-gradient(180deg, rgba(139, 92, 246, 0.08) 0%, #f9fafb 30%);
         }
         .filter-box-education .filter-box-header {
@@ -529,7 +545,7 @@
 
         .search-wrapper input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--gold);
         }
 
         .search-tags {
@@ -539,7 +555,7 @@
         }
 
         .search-tag {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold) 100%);
             color: white;
             padding: 6px 12px;
             border-radius: 20px;
@@ -574,7 +590,7 @@
         }
 
         .filter-checkbox-container::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold) 100%);
             border-radius: 10px;
         }
 
@@ -600,7 +616,7 @@
 
         .filter-checkbox-container input[type="checkbox"] {
             margin-right: 10px;
-            accent-color: #667eea;
+            accent-color: var(--gold);
             cursor: pointer;
         }
 
@@ -694,7 +710,7 @@
         .accordion-results {
             margin-top: 24px;
             padding-top: 24px;
-            border-top: 2px solid #e5e7eb;
+            border-top: 1px solid var(--surface2);
         }
 
         .accordion-results-header {
@@ -705,9 +721,12 @@
         }
 
         .accordion-results-title {
-            font-size: 1.1rem;
+            font-family: var(--sans);
+            font-size: 0.75rem;
             font-weight: 600;
-            color: #333;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
         }
 
         .jobs-grid {
@@ -747,31 +766,30 @@
             font-size: 0.9rem;
         }
         .accordion-pagination-btns button:hover:not(:disabled):not(.active) {
-            border-color: #6b4ce6;
-            color: #6b4ce6;
+            border-color: var(--gold-border);
+            color: var(--text-body);
         }
         .accordion-pagination-btns button.active {
-            background: linear-gradient(135deg, #6b4ce6 0%, #8b5cf6 100%);
-            color: #fff;
+            background: var(--ink);
+            color: var(--gold);
             border-color: transparent;
         }
         .accordion-pagination-btns button:disabled { opacity: 0.5; cursor: not-allowed; }
         .accordion-pagination-btns button.ellipsis { border: none; background: transparent; cursor: default; }
 
         .job-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 22px;
+            border: 1px solid var(--surface2);
+            transition: border-color var(--transition), box-shadow var(--transition);
             cursor: pointer;
-            border: 2px solid transparent;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 100%;
-            min-height: 380px; /* Hauteur minimale pour harmoniser les cartes */
+            min-height: 360px;
         }
 
         /* États de candidature */
@@ -827,27 +845,18 @@
         .job-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: var(--gold);
             transform: scaleY(0);
-            transition: transform 0.3s;
+            transition: transform var(--transition);
         }
 
-        .job-card:hover::before {
-            transform: scaleY(1);
-        }
+        .job-card:hover::before { transform: scaleY(1); }
 
         .job-card:hover {
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
-            border-color: rgba(102, 126, 234, 0.3);
-        }
-        
-        /* Effet de survol seulement si on ne survole pas les boutons d'action */
-        .job-card:hover:not(:has(.job-actions:hover)) {
-            transform: translateY(-4px);
+            border-color: var(--gold-border);
+            box-shadow: 0 4px 20px rgba(200,169,110,0.08);
         }
 
         .job-title {
@@ -858,7 +867,7 @@
         }
 
         .job-id {
-            color: #667eea;
+            color: var(--gold);
             font-weight: 600;
             font-size: 0.9rem;
             margin-bottom: 15px;
@@ -879,28 +888,28 @@
         }
 
         .tag-location {
-            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-            color: #0369a1;
+            background: rgba(59,130,246,0.07);
+            color: #1d4ed8; border-radius: 2px;
         }
 
         .tag-contract {
-            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
-            color: #9f1239;
+            background: rgba(200,169,110,0.1);
+            color: var(--gold); border-radius: 2px;
         }
 
         .tag-experience {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            color: #92400e;
+            background: rgba(245,158,11,0.08);
+            color: #b45309; border-radius: 2px;
         }
 
         .tag-family {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            color: #065f46;
+            background: rgba(16,185,129,0.07);
+            color: #059669; border-radius: 2px;
         }
 
         .tag-education {
-            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-            color: #5b21b6;
+            background: rgba(139,92,246,0.07);
+            color: #6d28d9; border-radius: 2px;
         }
 
         .job-bottom-block {
@@ -979,34 +988,32 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: #667eea;
-            color: white;
+            background: var(--ink);
+            color: var(--white);
             text-decoration: none;
-            transition: all 0.3s;
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.35);
+            transition: all var(--transition);
         }
 
         .job-link:hover {
-            background: #5a6fd6;
-            transform: translateX(4px);
-            box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+            background: var(--ink-mid);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
         }
 
         .job-apply-btn {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+            background: var(--white);
+            color: var(--gold);
+            border: 1px solid rgba(200,169,110,0.4);
             text-decoration: none;
-            transition: all 0.3s;
+            transition: all var(--transition);
             cursor: pointer;
-            font-family: inherit;
+            font-family: var(--sans);
         }
 
         .job-apply-btn:hover:not(:disabled) {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            background: var(--gold-dim);
+            border-color: var(--gold);
+            color: var(--text-body);
         }
 
         .job-apply-btn:disabled {
@@ -1136,7 +1143,7 @@
         }
 
         .profile-incomplete-modal-btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold) 100%);
             color: white;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
@@ -1198,7 +1205,7 @@
             max-width: 400px;
             pointer-events: auto;
             animation: slideInRight 0.3s ease-out;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid var(--gold);
         }
 
         .toast.success {
@@ -1324,75 +1331,37 @@
             margin-bottom: 20px;
         }
 
-        /* Footer */
         footer {
-            background: #1a1a1a;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
+            background: #070709;
+            color: rgba(255,255,255,0.3);
+            padding: 48px;
+            border-top: 1px solid rgba(200,169,110,0.1);
             margin-top: auto;
-            width: 100%;
-            box-sizing: border-box;
         }
 
-        footer .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .footer-inner {
+            max-width: 1400px; margin: 0 auto;
+            display: flex; align-items: center;
+            justify-content: space-between; flex-wrap: wrap; gap: 24px;
         }
 
-        footer p {
-            opacity: 0.7;
-            margin: 0;
-        }
-
-        .footer-love {
-            margin-top: 15px;
-            font-size: 0.95rem;
-        }
-
-        .footer-links {
-            margin-top: 12px;
-        }
-
-        .footer-links a {
-            color: inherit;
-            opacity: 0.85;
-            text-decoration: none;
-        }
-
-        .footer-links a:hover {
-            opacity: 1;
-            text-decoration: underline;
-        }
-
-        .footer-social {
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .footer-social a {
-            color: white;
-            opacity: 0.85;
-            display: inline-flex;
-            transition: opacity 0.2s;
-        }
-
-        .footer-social a:hover {
-            opacity: 1;
-        }
-
-        .footer-social svg {
-            width: 24px;
-            height: 24px;
-        }
+        .footer-logo { font-family:var(--sans); font-size:1.1rem; font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:-0.01em; }
+        .footer-logo span { color:var(--gold); }
+        .footer-nav { display:flex; gap:24px; flex-wrap:wrap; }
+        .footer-nav a { color:rgba(255,255,255,0.3); text-decoration:none; font-size:0.82rem; transition:color var(--transition); }
+        .footer-nav a:hover { color:var(--gold); }
+        .footer-social { display:flex; gap:16px; }
+        .footer-social a { color:rgba(255,255,255,0.25); text-decoration:none; transition:color var(--transition); }
+        .footer-social a:hover { color:var(--gold); }
+        .footer-social svg { width:16px; height:16px; }
+        .footer-copy { width:100%; font-size:0.75rem; text-align:center; padding-top:24px; border-top:1px solid rgba(255,255,255,0.05); }
 
         @media (max-width: 768px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 15px;
-            }
+            nav { padding: 0 20px; }
+            .nav-container { display: flex; justify-content: space-between; }
+            .nav-links { display: none; }
+            .page-top { padding: 40px 20px 36px; }
+            .container { padding: 24px 20px; }
 
             .accordion-header {
                 padding: 16px;
@@ -1430,40 +1399,49 @@
         }
         .modal-overlay.is-open { display: flex; }
         .modal-box {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            background: var(--white);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--surface2);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.25);
             max-width: 420px;
             width: 100%;
             overflow: hidden;
         }
         .modal-header {
-            padding: 20px 24px 0;
+            padding: 20px 24px;
+            background: var(--ink);
+            border-bottom: 1px solid rgba(200,169,110,0.1);
         }
         .modal-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #1a1a1a;
+            font-family: var(--sans);
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.7);
         }
         .modal-body {
             padding: 20px 24px;
         }
         .modal-message {
-            color: #555;
-            font-size: 0.95rem;
-            line-height: 1.5;
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.6;
         }
         .modal-input {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 1rem;
+            padding: 10px 13px;
+            border: 1px solid var(--surface3);
+            border-radius: var(--radius);
+            font-family: var(--sans);
+            font-size: 0.9rem;
             margin-top: 8px;
+            color: var(--ink);
         }
         .modal-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(200,169,110,0.1);
         }
         .modal-actions {
             display: flex;
@@ -1486,10 +1464,10 @@
         }
         .modal-btn-secondary:hover { background: #e5e7eb; }
         .modal-btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: var(--ink);
+            color: var(--white);
         }
-        .modal-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .modal-btn-primary:hover { background: var(--ink-mid); transform: translateY(-1px); }
         .modal-btn-danger {
             background: #ef4444;
             color: white;
@@ -1498,34 +1476,48 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
     <nav>
         <div class="nav-container">
             <a href="landing_page_finance.html" class="logo">
-                <div class="logo-icon">T</div>
-                <div class="logo-text">Taleos</div>
+                <div class="logo-mark">
+                    <svg viewBox="0 0 20 20" fill="none"><path d="M5 6H15M10 6V15" stroke="#c8a96e" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="logo-text">Tale<span>os</span></div>
             </a>
+
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
                 <a href="filtres.html" class="nav-link nav-link-primary" id="rechercheLink">Recherche avancée</a>
-                <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
-                <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
+                <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
+                <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
-                <a href="auth.html" class="nav-link" id="authLink">Inscription / Connexion</a>
-                <a href="profile.html" class="nav-link" id="profileLink" style="display: none;">Mon Profil</a>
-                <button class="nav-link logout-btn" id="logoutBtn" onclick="handleLogout()" style="display: none;">Déconnexion</button>
+            </div>
+
+            <div class="nav-actions">
+                <a href="auth.html" class="nav-link" id="authLink">Connexion</a>
+                <a href="profile.html" class="nav-link" id="profileLink" style="display:none">Mon Profil</a>
+                <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none">Déconnexion</button>
             </div>
         </div>
     </nav>
 
+    <!-- Page header -->
+    <div class="page-top">
+        <div class="page-top-inner">
+            <div>
+                <div class="page-label">Recherche avancée</div>
+                <h1>Plusieurs recherches,<br><em>des filtres sur mesure</em></h1>
+                <p class="page-top-desc">Créez et gérez plusieurs profils de recherche indépendants avec leurs propres critères.</p>
+            </div>
+            <button class="btn-add-accordion" onclick="createNewAccordion()">+ Nouvelle recherche</button>
+        </div>
+    </div>
+
     <div class="main-content">
         <div class="container">
             <div class="advanced-search-header">
-                <h1>Plusieurs recherches, des filtres sur mesure pour chacune</h1>
-                <div class="advanced-search-header-actions">
-                    <button class="btn-add-accordion" onclick="createNewAccordion()">+ Nouvelle recherche</button>
-                </div>
+                <div class="advanced-search-header-actions"></div>
             </div>
 
             <div class="accordions-container" id="accordionsContainer">
@@ -1541,28 +1533,21 @@
     </div>
 
     <footer>
-        <div class="container">
-            <p>&copy; 2026 Taleos. Tous droits réservés.</p>
-            <div class="footer-love">
-                <span>Conçu avec ❤️ pour les futurs talents de la finance</span>
-            </div>
-            <div class="footer-links">
-                <a href="contact.html">Contact</a>
-            </div>
+        <div class="footer-inner">
+            <div class="footer-logo">Tale<span>os</span></div>
+            <nav class="footer-nav">
+                <a href="landing_page_finance.html">Présentation</a>
+                <a href="offres.html">Offres</a>
+                <a href="tarifs.html">Tarifs</a>
+                <a href="mailto:contact@taleos.co">Contact</a>
+            </nav>
             <div class="footer-social">
-                <a href="https://instagram.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
-                <a href="https://twitter.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                </a>
-                <a href="https://youtube.com/@taleos" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                </a>
-                <a href="https://linkedin.com/company/taleos" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                </a>
+                <a href="https://instagram.com/taleos" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+                <a href="https://twitter.com/taleos" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+                <a href="https://linkedin.com/company/taleos" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+                <a href="https://youtube.com/@taleos" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
             </div>
+            <div class="footer-copy">© 2026 Taleos. Tous droits réservés. · 🇫🇷 Made in France</div>
         </div>
     </footer>
 

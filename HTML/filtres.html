@@ -1505,7 +1505,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link nav-link-primary" id="rechercheLink" style="display: none;">Recherche avancée</a>
+                <a href="filtres.html" class="nav-link nav-link-primary" id="rechercheLink">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
@@ -5188,7 +5188,7 @@
                 profileLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'none';
-                if (rechercheLink) rechercheLink.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 logoutBtn.style.display = 'none';
             }
         }
@@ -5219,7 +5219,7 @@
                     if (logoutBtn) logoutBtn.style.display = 'none';
                     if (applicationsLink) applicationsLink.style.display = 'none';
                     if (connexionsLink) connexionsLink.style.display = 'none';
-                    if (rechercheLink) rechercheLink.style.display = 'none';
+                    if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 }
             });
         }

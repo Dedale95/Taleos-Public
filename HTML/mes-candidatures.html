@@ -344,6 +344,80 @@
             max-height: 300px;
         }
 
+        .status-overview {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .status-overview-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-overview-label {
+            min-width: 122px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--text-body);
+        }
+
+        .status-overview-count {
+            font-family: var(--serif);
+            font-size: 1.05rem;
+            color: var(--ink);
+        }
+
+        .status-overview-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: var(--surface2);
+            overflow: hidden;
+        }
+
+        .status-overview-fill {
+            height: 100%;
+            border-radius: inherit;
+        }
+
+        .status-overview-fill.pending { background: var(--status-pending-bar); }
+        .status-overview-fill.screening { background: var(--status-screening-bar); }
+        .status-overview-fill.interview { background: var(--status-interview-bar); }
+        .status-overview-fill.rejected { background: var(--status-rejected-bar); }
+        .status-overview-fill.accepted { background: var(--status-accepted-bar); }
+
+        .status-overview-meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .status-overview-kpi {
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius);
+            background: var(--white);
+            padding: 12px 14px;
+        }
+
+        .status-overview-kpi-value {
+            font-family: var(--serif);
+            font-size: 1.4rem;
+            color: var(--ink);
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .status-overview-kpi-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
         /* ─── APPLICATIONS SECTION ─── */
         .applications-section {
             background: var(--white);
@@ -880,6 +954,18 @@
                         <canvas id="locationChart"></canvas>
                     </div>
                 </div>
+                <div class="chart-card">
+                    <h3>🚦 Par statut</h3>
+                    <div class="chart-shell">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>🧭 Suivi du pipeline</h3>
+                    <div class="chart-shell">
+                        <div class="status-overview" id="statusOverview"></div>
+                    </div>
+                </div>
             </div>
 
             <!-- Applications List -->
@@ -1289,6 +1375,14 @@
 
     // ─── Charts ───
     function initCharts(apps) {
+        const statusCounts = {
+            pending: apps.filter((app) => normalizeStatus(app.status) === 'pending').length,
+            screening: apps.filter((app) => normalizeStatus(app.status) === 'screening').length,
+            interview: apps.filter((app) => normalizeStatus(app.status) === 'interview').length,
+            rejected: apps.filter((app) => normalizeStatus(app.status) === 'rejected').length,
+            accepted: apps.filter((app) => normalizeStatus(app.status) === 'accepted').length
+        };
+
         const byDate = new Map();
         apps.forEach((app) => {
             const d = app.appliedDate instanceof Date ? app.appliedDate : new Date(app.appliedDate || Date.now());
@@ -1475,6 +1569,82 @@
                 }
             }
         });
+
+        if (charts.status) charts.status.destroy();
+        charts.status = new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['En attente', 'Screening', 'Entretiens', 'Refusées', 'Acceptées'],
+                datasets: [{
+                    data: [
+                        statusCounts.pending,
+                        statusCounts.screening,
+                        statusCounts.interview,
+                        statusCounts.rejected,
+                        statusCounts.accepted
+                    ],
+                    backgroundColor: ['#3b82f6', '#f59e0b', '#c8a96e', '#ef4444', '#10b981'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '62%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#3a3a48',
+                            font: { size: 11 },
+                            padding: 10,
+                            boxWidth: 12
+                        }
+                    }
+                }
+            }
+        });
+
+        renderStatusOverview(statusCounts, apps.length);
+    }
+
+    function renderStatusOverview(counts, total) {
+        const root = document.getElementById('statusOverview');
+        if (!root) return;
+
+        const rows = [
+            ['pending', '⏳ En attente', counts.pending],
+            ['screening', '📞 Screening', counts.screening],
+            ['interview', '💼 Entretiens', counts.interview],
+            ['rejected', '❌ Refusées', counts.rejected],
+            ['accepted', '✅ Acceptées', counts.accepted]
+        ];
+
+        const denominator = Math.max(total, 1);
+        const inProgress = counts.pending + counts.screening + counts.interview;
+        const decided = counts.accepted + counts.rejected;
+
+        root.innerHTML = `
+            ${rows.map(([key, label, value]) => `
+                <div class="status-overview-row">
+                    <div class="status-overview-label">${label}</div>
+                    <div class="status-overview-bar">
+                        <div class="status-overview-fill ${key}" style="width:${Math.max((value / denominator) * 100, value > 0 ? 6 : 0)}%"></div>
+                    </div>
+                    <div class="status-overview-count">${value}</div>
+                </div>
+            `).join('')}
+            <div class="status-overview-meta">
+                <div class="status-overview-kpi">
+                    <div class="status-overview-kpi-value">${inProgress}</div>
+                    <div class="status-overview-kpi-label">Toujours en cours</div>
+                </div>
+                <div class="status-overview-kpi">
+                    <div class="status-overview-kpi-value">${decided}</div>
+                    <div class="status-overview-kpi-label">Issues connues</div>
+                </div>
+            </div>
+        `;
     }
 
     // ─── Render applications ───

@@ -11,7 +11,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <link rel="stylesheet" href="taleos-theme.css">
     
     <style>
         * {
@@ -1341,18 +1340,33 @@
             margin: 0 auto;
         }
 
-        .footer-inner { display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap; }
-
-        .footer-inner p {
+        footer p {
             opacity: 0.7;
             margin: 0;
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.45);
+        }
+
+        .footer-love {
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        .footer-links {
+            margin-top: 12px;
+        }
+
+        .footer-links a {
+            color: inherit;
+            opacity: 0.85;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+            text-decoration: underline;
         }
 
         .footer-social {
-            margin-top: 0;
-            margin-left: auto;
+            margin-top: 15px;
             display: flex;
             justify-content: center;
             gap: 20px;
@@ -1483,18 +1497,7 @@
         .modal-btn-danger:hover { background: #dc2626; transform: translateY(-1px); }
     </style>
 </head>
-<body class="filters-page">
-    <script>
-        (function redirectToUnifiedOffresPage() {
-            try {
-                if (!window.location.pathname.endsWith('/offres.html')) {
-                    window.location.replace('offres.html#sectionsWrapper');
-                }
-            } catch (_) {
-                window.location.href = 'offres.html#sectionsWrapper';
-            }
-        })();
-    </script>
+<body>
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
@@ -1505,7 +1508,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="filtres.html" class="nav-link nav-link-primary" id="rechercheLink">Recherche avancée</a>
+                <a href="filtres.html" class="nav-link nav-link-primary" id="rechercheLink" style="display: none;">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
@@ -1538,8 +1541,14 @@
     </div>
 
     <footer>
-        <div class="container footer-inner">
-            <p>© 2026 Taleos. Tous droits réservés. · 🇫🇷 Made in France</p>
+        <div class="container">
+            <p>&copy; 2026 Taleos. Tous droits réservés.</p>
+            <div class="footer-love">
+                <span>Conçu avec ❤️ pour les futurs talents de la finance</span>
+            </div>
+            <div class="footer-links">
+                <a href="contact.html">Contact</a>
+            </div>
             <div class="footer-social">
                 <a href="https://instagram.com/taleos" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
@@ -1682,7 +1691,6 @@
         }
         const FRENCH_REGIONS_LOOKUP = {
             'ile-de-france': 'Île-de-France', 'île-de-france': 'Île-de-France',
-            'ile de france': 'Île-de-France', 'ile-de france': 'Île-de-France',
             'auvergne-rhone-alpes': 'Auvergne-Rhône-Alpes', 'auvergne-rhône-alpes': 'Auvergne-Rhône-Alpes',
             'occitanie': 'Occitanie', 'provence-alpes-cote-dazur': "Provence-Alpes-Côte d'Azur",
             'pays de la loire': 'Pays de la Loire', 'hauts-de-france': 'Hauts-de-France',
@@ -1716,13 +1724,6 @@
             "vincennes": "Île-de-France", "saint-mande": "Île-de-France", "nogent-sur-marne": "Île-de-France",
             "creteil": "Île-de-France", "vitry-sur-seine": "Île-de-France", "ivry-sur-seine": "Île-de-France",
             "alfortville": "Île-de-France", "maisons-alfort": "Île-de-France", "cdg": "Île-de-France",
-            "noisy-le-grand": "Île-de-France", "noisy le grand": "Île-de-France",
-            "clichy": "Île-de-France", "clichy-la-garenne": "Île-de-France",
-            "clichy-levallois": "Île-de-France", "clichy levallois": "Île-de-France",
-            "st quentin en yvelines": "Île-de-France", "saint-germain-en-laye": "Île-de-France",
-            "st-germain-en-laye": "Île-de-France", "sarcelles": "Île-de-France", "poissy": "Île-de-France",
-            "chelles": "Île-de-France", "melun": "Île-de-France", "trappes": "Île-de-France",
-            "evry-courcouronnes": "Île-de-France", "corbeil-essonnes": "Île-de-France",
 
             // Auvergne-Rhone-Alpes
             "lyon": "Auvergne-Rhône-Alpes", "grenoble": "Auvergne-Rhône-Alpes", "valence": "Auvergne-Rhône-Alpes",
@@ -1811,20 +1812,18 @@
             'new york ny': 'New York', 'new york': 'New York',
             'iselin nj': 'New Jersey', 'iselin': 'New Jersey', 'new jersey': 'New Jersey',
             'chicago': 'Chicago', 'illinois': 'Illinois', 'texas': 'Texas',
-            'seoul': 'Séoul', 'séoul': 'Séoul',
-            'brussel': 'Bruxelles'
+            'seoul': 'Séoul', 'séoul': 'Séoul'
         };
 
         const CITY_TO_COUNTRY = {
             'paris': 'France', 'lyon': 'France', 'marseille': 'France', 'lille': 'France',
-            'bruxelles': 'Belgique', 'brussels': 'Belgique', 'brussel': 'Belgique', 'zaventem': 'Belgique', 'grimbergen': 'Belgique',
+            'bruxelles': 'Belgique', 'brussels': 'Belgique', 'zaventem': 'Belgique', 'grimbergen': 'Belgique',
             'montreal': 'Canada', 'montréal': 'Canada', 'toronto': 'Canada', 'quebec': 'Canada', 'québec': 'Canada',
             'londres': 'Royaume-Uni', 'london': 'Royaume-Uni', 'madrid': 'Espagne', 'barcelone': 'Espagne',
             'lisbonne': 'Portugal', 'lisbon': 'Portugal', 'amsterdam': 'Pays-Bas', 'luxembourg': 'Luxembourg',
             'kiev': 'Ukraine', 'kyiv': 'Ukraine', 'kharkiv': 'Ukraine', 'bogota': 'Colombie', 'medellin': 'Colombie',
             'alger': 'Algérie', 'oran': 'Algérie', 'manille': 'Philippines', 'manila': 'Philippines',
-            'seoul': 'Corée du Sud', 'séoul': 'Corée du Sud',
-            'jakarta': 'Indonésie', 'saint-pierre-port': 'Guernesey', 'djibouti': 'Djibouti'
+            'seoul': 'Corée du Sud', 'séoul': 'Corée du Sud'
         };
 
         const COUNTRY_NORMALIZATION = {
@@ -1837,16 +1836,7 @@
             'deutschlandweit': 'Allemagne', 'turquie': 'Turquie', 'turkey': 'Turquie',
             'millénaire 4': 'France', 'millenaire 4': 'France',
             'afrique du sud': 'Afrique du Sud',
-            'tunisie': 'Tunisie', 'tunisia': 'Tunisie', 'roumanie': 'Roumanie', 'romania': 'Roumanie',
-            'danemark': 'Danemark', 'denmark': 'Danemark',
-            'grèce': 'Grèce', 'grece': 'Grèce', 'greece': 'Grèce',
-            'malta': 'Malte', 'malte': 'Malte',
-            'indonesia': 'Indonésie', 'indonesie': 'Indonésie', 'indonésie': 'Indonésie',
-            'guernsey': 'Guernesey', 'guernesey': 'Guernesey',
-            'djibouti': 'Djibouti',
-            'czechia': 'Tchéquie', 'tchéquie': 'Tchéquie', 'tchequie': 'Tchéquie',
-            'république tchèque': 'Tchéquie', 'republique tcheque': 'Tchéquie',
-            'république tchèque (ce lien s\'ouvre dans un nouvel onglet)': 'Tchéquie'
+            'tunisie': 'Tunisie', 'tunisia': 'Tunisie', 'roumanie': 'Roumanie', 'romania': 'Roumanie'
         };
 
         const ITALY_CITY_TO_REGION = {
@@ -1860,7 +1850,7 @@
 
         const CITY_TO_PARENT_REGION = {
             'chicago': 'Illinois', 'illinois': null,
-            'new york': null, 'new jersey': null, 'iselin': 'New Jersey',
+            'new york': 'New York', 'new jersey': null, 'iselin': 'New Jersey',
             'texas': null, 'houston': 'Texas', 'dallas': 'Texas',
             'fidenza': 'Émilie-Romagne', 'parma': 'Émilie-Romagne', 'parme': 'Émilie-Romagne',
             'milan': 'Lombardie', 'milano': 'Lombardie', 'pavia': 'Lombardie', 'pavie': 'Lombardie',
@@ -1890,22 +1880,6 @@
             return COUNTRY_NORMALIZATION[t] || c.trim();
         }
 
-        function splitLocationForFilters(rawLocation) {
-            if (!rawLocation || typeof rawLocation !== 'string') {
-                return { cityPart: '', country: '' };
-            }
-            const parts = rawLocation
-                .split(' - ')
-                .map(part => String(part || '').trim())
-                .filter(Boolean);
-            if (parts.length === 0) return { cityPart: '', country: '' };
-            if (parts.length === 1) return { cityPart: '', country: parts[0] };
-            return {
-                cityPart: parts.slice(0, -1).join(' - '),
-                country: parts[parts.length - 1]
-            };
-        }
-
         function normalizeCityForFilter(city, country) {
             if (!city || !city.trim()) return null;
             const t = city.trim().toLowerCase();
@@ -1918,30 +1892,19 @@
             return city.trim();
         }
 
-        function inferIleDeFranceFromLocationLabel(rawCity) {
-            const raw = String(rawCity || '').trim();
-            if (!raw) return false;
-            const compact = normalizeCityForLookup(raw).replace(/\s+/g, ' ').trim();
-            if (/^ile(\s|-)+de(\s|-)+france$/i.test(compact)) return true;
-            if (/\b(75|77|78|91|92|93|94|95)\d{3}\b/.test(raw)) return true;
-            if (/(yvelines|essonne|seine-et-marne|seine et marne|seine-saint-denis|seine saint denis|hauts-de-seine|hauts de seine|val-de-marne|val de marne|val-d'oise|val d'oise|val-doise|plaine commune|marne-la-vallee|marne-la-vallée)/i.test(raw)) return true;
-            return false;
-        }
-
         function getCityRegion(city, country) {
             if (!country || String(country).toLowerCase().trim() !== "france") return null;
             if (!city || !String(city).trim()) return "Autres régions françaises";
-            const rawTrim = String(city).trim();
-            if (inferIleDeFranceFromLocationLabel(rawTrim)) return "Île-de-France";
             const normalized = normalizeCityForLookup(city);
             if (!normalized) return "Autres régions françaises";
+            // Bruxelles, Luxembourg, etc. : ville connue hors France → ne pas l'ajouter comme région française
             const cityCountry = CITY_TO_COUNTRY[normalized] || CITY_TO_COUNTRY[city.trim().toLowerCase()];
             if (cityCountry && cityCountry !== 'France') return null;
-            const regionByKey = FRENCH_REGIONS_LOOKUP[normalized]
-                || FRENCH_REGIONS_LOOKUP[normalized.replace(/-/g, ' ')]
-                || FRENCH_REGIONS_LOOKUP[normalized.replace(/\s+/g, '-')];
+            // Si la donnée contient déjà le nom de la région (ex: "Ile-De-France")
+            const regionByKey = FRENCH_REGIONS_LOOKUP[normalized] || FRENCH_REGIONS_LOOKUP[normalized.replace(/-/g, ' ')];
             if (regionByKey) return regionByKey;
             if (cityToRegion[normalized]) return cityToRegion[normalized];
+            // Clés avec accents possibles (fallback)
             if (cityToRegion[city.trim().toLowerCase()]) return cityToRegion[city.trim().toLowerCase()];
             return "Autres régions françaises";
         }
@@ -2000,8 +1963,7 @@
                                             cnLower.includes('cmlaco') || cnLower.includes('becm') || cnLower.includes('ccs') || cnLower.includes('synergie') ||
                                             cnLower.includes('groupe la française') || cnLower.includes('groupe la francaise') ||
                                             cnLower.includes('la française') || cnLower.includes('la francaise') ||
-                                            cnLower.includes('caisse regionale') || cnLower.includes('caisse federale') || cnLower.includes('caisse de credit mutuel') ||
-                                            cnLower.includes('paysurf')) {
+                                            cnLower.includes('caisse regionale') || cnLower.includes('caisse federale') || cnLower.includes('caisse de credit mutuel')) {
                                             consolidated = 'Crédit Mutuel';
                                         }
                                         if (consolidated) job.company_name = consolidated;
@@ -2089,7 +2051,9 @@
                                     }
                                     if (job && job.location && typeof job.location === 'string' && job.location.includes(' - ')) {
                                         try {
-                                            const { cityPart, country } = splitLocationForFilters(job.location);
+                                            const parts = job.location.split(' - ');
+                                            const cityPart = parts[0] || '';
+                                            const country = parts[1] ? String(parts[1]).trim() : '';
                                             
                                             if (country && country.length > 0) {
                                                 let countryNorm = normalizeCountryForFilter(country) || (String(country).toLowerCase().trim() === 'france' ? 'France' : String(country).trim());
@@ -2177,16 +2141,6 @@
                                             job.cleanRegions = cNorm === 'France' ? ["Autres régions françaises"] : ["__AUTRES__" + cNorm];
                                         }
                                     }
-                                    if (job.cleanCountries && job.cleanCountries.length > 0 && (!job.cleanRegions || job.cleanRegions.length === 0)) {
-                                        const c = job.cleanCountries[0];
-                                        job.cleanRegions = [c === 'France' ? 'Autres régions françaises' : '__AUTRES__' + c];
-                                    }
-                                    if (job.cleanCountries && job.cleanCountries.includes('France') && (!job.cleanRegions || job.cleanRegions.length === 0)) {
-                                        job.cleanRegions = ['Autres régions françaises'];
-                                    }
-                                    if (job.cleanRegions && job.cleanCountries) {
-                                        job.cleanRegions = deduplicateRegionLevel(job.cleanRegions, job.cleanCountries);
-                                    }
                                     
                                     return job;
                                 });
@@ -2269,8 +2223,6 @@
 
             try {
                 isLoadingAccordions = true;
-                // Évite le flash "Créez votre première recherche" pendant le fetch Firestore
-                renderAccordions();
                 const db = firebase.firestore();
                 console.log('🔄 [loadAccordions] Lecture Firestore: profiles/' + currentUserId + '/advanced_searches');
                 
@@ -2580,12 +2532,6 @@
             const emptyState = document.getElementById('emptyState');
 
             if (accordions.length === 0) {
-                // Tant que le premier chargement Firestore n'est pas fini, ne pas afficher l'état vide.
-                if (isLoadingAccordions || !accordionsLoaded) {
-                    emptyState.style.display = 'none';
-                    container.style.opacity = '1';
-                    return;
-                }
                 container.innerHTML = '';
                 emptyState.style.display = 'block';
                 container.style.opacity = '1';
@@ -2689,14 +2635,6 @@
                 ['lcl', 'caceis', 'amundi', 'bforbank', 'indosuez wealth management',
                  'gruppo bancario crédit agricole italia', 'idia capital investissement', 'uptevia'].some(s => n.includes(s));
         }
-        /** Filtre entreprise : inclut la clé groupe CA si présente dans les filtres sauvegardés. */
-        function jobMatchesCompanyFilter(job, filters) {
-            if (!filters.companies || filters.companies.length === 0) return true;
-            const cn = job.company_name;
-            if (cn && filters.companies.includes(cn)) return true;
-            if (filters.companies.includes(CREDIT_AGRICOLE_GROUP_KEY) && isCreditAgricoleSubsidiary(cn)) return true;
-            return false;
-        }
         function isBPCEBrand(name) {
             if (!name || typeof name !== 'string') return false;
             const n = name.toLowerCase();
@@ -2729,7 +2667,7 @@
                 'assurances du credit mutuel', 'lyonnaise de banque', 'credit mutuel factoring',
                 'credit mutuel leasing', 'credit mutuel gestion', 'credit mutuel asset management',
                 'ccs', 'synergie', 'ccm ', ' ccm', 'cmlaco', 'banque transatlantique', 'banque européenne',
-                'banque europeenne', 'creatis', 'factofrance', 'paysurf', 'groupe la française', 'groupe la francaise',
+                'banque europeenne', 'creatis', 'factofrance', 'groupe la française', 'groupe la francaise',
                 'la française', 'la francaise',
                 'monabanq', 'afedim', 'credit mutuel caution', 'credit mutuel amenagement', 'confederation nationale',
                 'ataraxia promotion'
@@ -2829,12 +2767,20 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    const on = groupCb.checked;
-                    batchSetCompanyFilters(accordionId, bpceBrands.map(c => ({ value: c, checked: on })));
+                    bpceBrands.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                        updateFilter(accordionId, 'companies', c, groupCb.checked);
+                    });
+                    requestAnimationFrame(() => {
+                        const groupCbNew = container.querySelector(`input[value="${BPCE_GROUP_KEY}"]`);
+                        const childrenDiv = container.querySelector('.company-group-children[data-group="bpce"]');
+                        const childCbs = childrenDiv ? Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]')) : [];
+                        if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
+                    });
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -2914,12 +2860,20 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    const on = groupCb.checked;
-                    batchSetCompanyFilters(accordionId, bnpBrands.map(c => ({ value: c, checked: on })));
+                    bnpBrands.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"][data-bnp-brand]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                        updateFilter(accordionId, 'companies', c, groupCb.checked);
+                    });
+                    requestAnimationFrame(() => {
+                        const groupCbNew = container.querySelector(`input[value="${BNP_PARIBAS_GROUP_KEY}"]`);
+                        const childrenDiv = container.querySelector('.company-group-children[data-group="bnp"]');
+                        const childCbs = childrenDiv ? Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]')) : [];
+                        if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
+                    });
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -2929,8 +2883,7 @@
                 container.appendChild(childrenDiv);
             }
 
-            const renderedCaSubsList = caSubs.filter(c => !(hideDisabled && (counts[c] || 0) === 0));
-            const groupChecked = cv.has(CREDIT_AGRICOLE_GROUP_KEY) || (renderedCaSubsList.length > 0 && renderedCaSubsList.every(c => cv.has(c)));
+            const groupChecked = caSubs.every(c => cv.has(c));
             const groupCount = caSubs.reduce((s, c) => s + (counts[c] || 0), 0);
             if (caSubs.length > 0 && (!hideDisabled || groupCount > 0 || groupChecked)) {
                 const groupDiv = document.createElement('div');
@@ -2971,9 +2924,12 @@
                 groupDiv.appendChild(expandSpan);
                 container.appendChild(groupDiv);
 
+                const renderedCaSubs = [];
                 const childCheckboxes = [];
-                renderedCaSubsList.forEach(c => {
+                caSubs.forEach(c => {
                     const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0) return;
+                    renderedCaSubs.push(c);
                     const disabled = disabledValues.has(c);
                     const label = document.createElement('label');
                     const cb = document.createElement('input');
@@ -2994,12 +2950,20 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    const on = groupCb.checked;
-                    batchSetCompanyFilters(accordionId, caSubs.map(c => ({ value: c, checked: on })));
+                    caSubs.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                        updateFilter(accordionId, 'companies', c, groupCb.checked);
+                    });
+                    requestAnimationFrame(() => {
+                        const groupCbNew = container.querySelector(`input[value="${CREDIT_AGRICOLE_GROUP_KEY}"]`);
+                        const childrenDiv = container.querySelector('.company-group-children[data-group="ca"]');
+                        const childCbs = childrenDiv ? Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]')) : [];
+                        if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
+                    });
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -3009,8 +2973,7 @@
                 container.appendChild(childrenDiv);
             }
 
-            const renderedCmSubsList = cmSubs.filter(c => !(hideDisabled && (counts[c] || 0) === 0));
-            const cmGroupChecked = cv.has(CREDIT_MUTUEL_GROUP_KEY) || (renderedCmSubsList.length > 0 && renderedCmSubsList.every(c => cv.has(c)));
+            const cmGroupChecked = cv.has(CREDIT_MUTUEL_GROUP_KEY) || cmSubs.every(c => cv.has(c));
             const cmGroupCount = cmSubs.reduce((s, c) => s + (counts[c] || 0), 0);
             if (cmSubs.length > 0 && (!hideDisabled || cmGroupCount > 0 || cmGroupChecked)) {
                 const groupDiv = document.createElement('div');
@@ -3051,8 +3014,9 @@
                 groupDiv.appendChild(expandSpan);
                 container.appendChild(groupDiv);
                 const childCheckboxes = [];
-                renderedCmSubsList.forEach(c => {
+                cmSubs.forEach(c => {
                     const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0) return;
                     const disabled = disabledValues.has(c);
                     const label = document.createElement('label');
                     const cb = document.createElement('input');
@@ -3074,12 +3038,20 @@
                     childrenDiv.appendChild(label);
                 });
                 groupCb.onchange = () => {
-                    const on = groupCb.checked;
-                    batchSetCompanyFilters(accordionId, cmSubs.map(c => ({ value: c, checked: on })));
+                    cmSubs.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                        updateFilter(accordionId, 'companies', c, groupCb.checked);
+                    });
+                    requestAnimationFrame(() => {
+                        const groupCbNew = container.querySelector(`input[value="${CREDIT_MUTUEL_GROUP_KEY}"]`);
+                        const childrenDiv = container.querySelector('.company-group-children[data-group="cm"]');
+                        const childCbs = childrenDiv ? Array.from(childrenDiv.querySelectorAll('input[type="checkbox"]')) : [];
+                        if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
+                    });
                 };
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (groupLabel.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -3117,18 +3089,17 @@
             'Europe': [
                 'France', 'Allemagne', 'Luxembourg', 'Roumanie', 'Pologne', 'Italie',
                 'Royaume-Uni', 'Suisse', 'Portugal', 'Espagne', 'Suède', 'Irlande',
-                'Belgique', 'Pays-Bas', 'Autriche', 'Monaco', 'République Tchèque', 'Tchéquie',
-                'Ukraine', 'Hongrie', 'Bulgarie', 'Slovaquie', 'Norvège', 'Jersey', 'Guernesey', 'Turquie',
-                'Danemark', 'Grèce', 'Malte', 'Malta'
+                'Belgique', 'Pays-Bas', 'Autriche', 'Monaco', 'République Tchèque',
+                'Ukraine', 'Hongrie', 'Bulgarie', 'Slovaquie', 'Norvège', 'Jersey', 'Turquie'
             ],
             'Asie': [
                 'Inde', 'Malaisie', 'Hong-Kong', 'Singapour', 'Japon', 'Chine',
                 'Corée du Sud', 'Taïwan', 'Thaïlande', 'Émirats Arabes Unis',
-                'Philippines', 'Vietnam', 'Indonésie'
+                'Philippines', 'Vietnam'
             ],
             'Afrique': [
                 'Maroc', 'Côte D\'Ivoire', 'Tunisie', 'Cameroun', 'Gabon',
-                'RD Congo', 'Bénin', 'Kenya', 'Algérie', 'Afrique du Sud', 'Afrique Du Sud', 'Djibouti'
+                'RD Congo', 'Bénin', 'Kenya', 'Algérie', 'Afrique du Sud', 'Afrique Du Sud'
             ],
             'Amériques': [
                 'États-Unis', 'Canada', 'Mexique', 'Colombie', 'Brésil',
@@ -3315,24 +3286,14 @@
                             labelEl.appendChild(sp);
                             countryChildren.appendChild(labelEl);
                         });
-                        const otherKey = `__AUTRES__${country}`;
-                        const otherCount = (regionCounts && regionCounts[otherKey]) || 0;
-                        if (otherCount > 0 || cvRegions.has(otherKey)) {
+                        const gap = countryCnt - sumRegions;
+                        if (gap > 0) {
                             const labelEl = document.createElement('label');
                             labelEl.className = 'location-region-item location-non-specifie';
-                            const cb = document.createElement('input');
-                            cb.type = 'checkbox';
-                            cb.value = otherKey;
-                            cb.setAttribute('data-location-type', 'region');
-                            cb.checked = cvRegions.has(otherKey);
-                            cb.onchange = () => {
-                                countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
-                                contCb.checked = allCheckboxesIn(contChildren).every(cb2 => cb2.checked);
-                                updateFilter(accordionId, 'regions', cb.value, cb.checked);
-                            };
-                            labelEl.appendChild(cb);
+                            labelEl.style.opacity = '0.85';
                             const sp = document.createElement('span');
-                            sp.textContent = `Non spécifié / Siège (${otherCount})`;
+                            sp.textContent = `Non spécifié / Siège (${gap})`;
+                            sp.style.marginLeft = '22px';
                             labelEl.appendChild(sp);
                             countryChildren.appendChild(labelEl);
                         }
@@ -3492,7 +3453,6 @@
                 });
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
-                    if (groupLabelEl.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
@@ -3714,7 +3674,7 @@
 
                     // Entreprises
                     if (excludeFilterType !== 'company' && filters.companies && filters.companies.length > 0) {
-                        if (!jobMatchesCompanyFilter(job, filters)) return false;
+                        if (!filters.companies.includes(job.company_name)) return false;
                     }
 
                     // Éducations
@@ -4031,9 +3991,7 @@
                     availableFrom: 'Disponible à partir de', continents: 'Continents',
                     preferredCountries: 'Pays préférés', experienceLevel: 'Niveau d\'expérience',
                     educationLevel: 'Niveau d\'études', institutionType: 'Type d\'établissement',
-                    diplomaStatus: 'Statut du diplôme', deloitteWorked: 'Avez-vous déjà travaillé pour Deloitte ?',
-                    sg_eu_work_authorization: 'Autorisation de travail dans l’UE',
-                    sg_notice_period: 'Préavis de départ'
+                    diplomaStatus: 'Statut du diplôme', deloitteWorked: 'Avez-vous déjà travaillé pour Deloitte ?'
                 };
                 const requiredFields = {
                     civility: profile.civility,
@@ -4054,11 +4012,7 @@
                     educationLevel: profile.education_level,
                     institutionType: profile.institution_type,
                     diplomaStatus: profile.diploma_status,
-                    deloitteWorked: profile.deloitte_worked === 'yes' || profile.deloitte_worked === 'no',
-                    sg_eu_work_authorization: profile.sg_eu_work_authorization === 'yes' || profile.sg_eu_work_authorization === 'no',
-                    sg_notice_period: ['none', '1_month', '2_months', '3_months', 'more_than_3_months'].includes(
-                        String(profile.sg_notice_period || '').trim()
-                    )
+                    deloitteWorked: profile.deloitte_worked === 'yes' || profile.deloitte_worked === 'no'
                 };
 
                 const missingFields = [];
@@ -4936,7 +4890,7 @@
 
                 // Entreprises
                 if (filters.companies && filters.companies.length > 0) {
-                    if (!jobMatchesCompanyFilter(job, filters)) return false;
+                    if (!filters.companies.includes(job.company_name)) return false;
                 }
 
                 // Éducations
@@ -5083,26 +5037,6 @@
             renderAccordions();
         }
 
-        /** Mise à jour groupée des entreprises : un seul refresh DOM (évite de casser la case groupe CA si updateFilter × N). */
-        function batchSetCompanyFilters(accordionId, entries) {
-            const accordion = accordions.find(a => (a.id || '').toString() === (accordionId || '').toString());
-            if (!accordion) return;
-            if (!accordion.filters) accordion.filters = {};
-            if (!accordion.filters.companies) accordion.filters.companies = [];
-            let list = [...accordion.filters.companies];
-            entries.forEach(({ value, checked }) => {
-                if (checked) {
-                    if (!list.includes(value)) list.push(value);
-                } else {
-                    list = list.filter(v => v !== value);
-                }
-            });
-            accordion.filters.companies = list;
-            saveAccordion(accordion);
-            updateFiltersDisplay(accordionId, accordion.filters);
-            updateAccordionDisplay(accordionId);
-        }
-
         function updateFilter(accordionId, filterType, value, checked) {
             const accordion = accordions.find(a => a.id === accordionId);
             if (!accordion) return;
@@ -5188,7 +5122,7 @@
                 profileLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'none';
-                if (rechercheLink) rechercheLink.style.display = 'inline-block';
+                if (rechercheLink) rechercheLink.style.display = 'none';
                 logoutBtn.style.display = 'none';
             }
         }
@@ -5219,7 +5153,7 @@
                     if (logoutBtn) logoutBtn.style.display = 'none';
                     if (applicationsLink) applicationsLink.style.display = 'none';
                     if (connexionsLink) connexionsLink.style.display = 'none';
-                    if (rechercheLink) rechercheLink.style.display = 'inline-block';
+                    if (rechercheLink) rechercheLink.style.display = 'none';
                 }
             });
         }

@@ -1813,6 +1813,17 @@
                             </select>
                         </div>
 
+                        <div class="form-group">
+                            <label for="groupDataSharingScope">Partage des données candidat·e (BNP Paribas)</label>
+                            <select id="groupDataSharingScope" name="groupDataSharingScope">
+                                <option value="">Sélectionnez…</option>
+                                <option value="International au sein du groupe BNP Paribas">International au sein du groupe BNP Paribas</option>
+                                <option value="National">National</option>
+                                <option value="Uniquement pour le poste auquel je postule">Uniquement pour le poste auquel je postule</option>
+                            </select>
+                            <small style="display:block; margin-top:6px; color:#666; font-size:0.85rem;">Utilisé pour certaines candidatures BNP quand la plateforme demande le niveau de partage de vos données.</small>
+                        </div>
+
                         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
                         <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Deloitte — ancienne collaboration.</p>
@@ -2735,8 +2746,12 @@
         function loadSgScreeningInfo(profile) {
             const eu = document.getElementById('sgEuWorkAuthorization');
             const notice = document.getElementById('sgNoticePeriod');
+            const dataSharing = document.getElementById('groupDataSharingScope');
             if (eu && profile.sg_eu_work_authorization) eu.value = profile.sg_eu_work_authorization;
             if (notice && profile.sg_notice_period) notice.value = profile.sg_notice_period;
+            if (dataSharing && (profile.group_data_sharing_scope || profile.bnp_data_sharing_scope)) {
+                dataSharing.value = profile.group_data_sharing_scope || profile.bnp_data_sharing_scope;
+            }
         }
 
         // Fonction pour charger les informations Deloitte
@@ -3361,6 +3376,7 @@
                 bpce_application_source: document.getElementById('bpceApplicationSource')?.value || '',
                 linkedin_url: document.getElementById('linkedinUrl')?.value?.trim() || '',
                 bpce_job_alerts: document.getElementById('bpceJobAlerts')?.checked || false,
+                group_data_sharing_scope: document.getElementById('groupDataSharingScope')?.value || '',
                 sg_eu_work_authorization: document.getElementById('sgEuWorkAuthorization')?.value || '',
                 sg_notice_period: document.getElementById('sgNoticePeriod')?.value || '',
                 email: userEmail || '',

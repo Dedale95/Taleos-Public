@@ -1,0 +1,8 @@
+{
+  "channel": "test",
+  "version": "1.1.81",
+  "version_name": "1.1.81-test-dashboard",
+  "published_at": "2026-04-23T00:00:00Z",
+  "notes": "Canal de test Taleos. Les builds de l’extension sont packagées automatiquement sur GitHub Actions pour accélérer la diffusion des mises à jour testeurs.",
+  "recommended_distribution": "chrome_web_store_unlisted"
+}

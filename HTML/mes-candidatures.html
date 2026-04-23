@@ -418,6 +418,169 @@
             color: var(--muted);
         }
 
+        .admin-dashboard {
+            margin-bottom: 28px;
+            background: var(--white);
+            border: 1px solid var(--gold-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .admin-dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 24px 28px 18px;
+            border-bottom: 1px solid var(--surface2);
+            background: linear-gradient(180deg, rgba(200,169,110,0.08), rgba(200,169,110,0.02));
+            flex-wrap: wrap;
+        }
+
+        .admin-dashboard-header h2 {
+            font-family: var(--serif);
+            font-size: 1.4rem;
+            color: var(--ink);
+            line-height: 1.1;
+            margin-bottom: 4px;
+        }
+
+        .admin-dashboard-header p {
+            font-size: 0.94rem;
+            color: var(--muted);
+        }
+
+        .admin-dashboard-updated {
+            font-size: 0.8rem;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .admin-dashboard-body {
+            padding: 24px 28px 28px;
+        }
+
+        .admin-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .admin-summary-card {
+            background: var(--surface);
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+        }
+
+        .admin-summary-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .admin-summary-value {
+            font-family: var(--serif);
+            font-size: 1.7rem;
+            line-height: 1;
+            color: var(--ink);
+            margin-bottom: 6px;
+        }
+
+        .admin-summary-meta {
+            font-size: 0.84rem;
+            color: var(--text-body);
+        }
+
+        .admin-runs-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius);
+        }
+
+        .admin-runs-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 980px;
+            background: var(--white);
+        }
+
+        .admin-runs-table th,
+        .admin-runs-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--surface2);
+            text-align: left;
+            vertical-align: top;
+            font-size: 0.88rem;
+        }
+
+        .admin-runs-table th {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: var(--surface);
+        }
+
+        .admin-run-offer {
+            min-width: 250px;
+        }
+
+        .admin-run-offer strong,
+        .admin-run-user strong {
+            display: block;
+            color: var(--ink);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .admin-run-offer span,
+        .admin-run-user span,
+        .admin-run-meta {
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .admin-run-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        .admin-run-status.success {
+            background: rgba(16,185,129,0.10);
+            color: #047857;
+        }
+
+        .admin-run-status.failed,
+        .admin-run-status.timeout {
+            background: rgba(239,68,68,0.10);
+            color: #b91c1c;
+        }
+
+        .admin-run-status.running {
+            background: rgba(59,130,246,0.10);
+            color: #1d4ed8;
+        }
+
+        .admin-dashboard-empty {
+            padding: 18px 0 4px;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
         /* ─── APPLICATIONS SECTION ─── */
         .applications-section {
             background: var(--white);
@@ -823,6 +986,7 @@
         @media (max-width: 1024px) {
             .stats-grid { grid-template-columns: repeat(3,1fr); }
             .charts-grid { grid-template-columns: 1fr; }
+            .admin-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
 
         @media (max-width: 768px) {
@@ -834,6 +998,9 @@
             .stats-grid { grid-template-columns: repeat(2,1fr); }
             .app-details { flex-direction: column; gap: 8px; }
             .applications-header { flex-direction: column; align-items: flex-start; }
+            .admin-dashboard-header,
+            .admin-dashboard-body { padding-left: 18px; padding-right: 18px; }
+            .admin-summary-grid { grid-template-columns: 1fr; }
             footer { padding: 32px 20px; }
             .footer-inner { flex-direction: column; align-items: flex-start; }
         }
@@ -893,6 +1060,62 @@
 
         <!-- Main content -->
         <div id="mainContent" style="display:none">
+
+            <section class="admin-dashboard" id="adminDashboard" style="display:none">
+                <div class="admin-dashboard-header">
+                    <div>
+                        <h2>Suivi des candidatures extension</h2>
+                        <p>Vue testeurs : utilisateur, offre, version d’extension et issue du parcours.</p>
+                    </div>
+                    <div class="admin-dashboard-updated" id="adminDashboardUpdated">Mise à jour en attente</div>
+                </div>
+                <div class="admin-dashboard-body">
+                    <div class="admin-summary-grid">
+                        <div class="admin-summary-card">
+                            <div class="admin-summary-label">Exécutions</div>
+                            <div class="admin-summary-value" id="adminRunTotal">0</div>
+                            <div class="admin-summary-meta">sur la fenêtre affichée</div>
+                        </div>
+                        <div class="admin-summary-card">
+                            <div class="admin-summary-label">Succès</div>
+                            <div class="admin-summary-value" id="adminRunSuccess">0</div>
+                            <div class="admin-summary-meta" id="adminRunSuccessMeta">0%</div>
+                        </div>
+                        <div class="admin-summary-card">
+                            <div class="admin-summary-label">Échecs</div>
+                            <div class="admin-summary-value" id="adminRunFailed">0</div>
+                            <div class="admin-summary-meta" id="adminRunFailedMeta">hors timeouts</div>
+                        </div>
+                        <div class="admin-summary-card">
+                            <div class="admin-summary-label">Timeouts 5 min</div>
+                            <div class="admin-summary-value" id="adminRunTimeout">0</div>
+                            <div class="admin-summary-meta" id="adminRunTimeoutMeta">seuil de fiabilité</div>
+                        </div>
+                        <div class="admin-summary-card">
+                            <div class="admin-summary-label">Testeurs actifs</div>
+                            <div class="admin-summary-value" id="adminRunUsers">0</div>
+                            <div class="admin-summary-meta" id="adminRunVersionMeta">Versions: —</div>
+                        </div>
+                    </div>
+                    <div class="admin-runs-table-wrap">
+                        <table class="admin-runs-table">
+                            <thead>
+                                <tr>
+                                    <th>Quand</th>
+                                    <th>Utilisateur</th>
+                                    <th>Banque</th>
+                                    <th>Offre</th>
+                                    <th>Version</th>
+                                    <th>Résultat</th>
+                                    <th>Détail</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminRunsTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="admin-dashboard-empty" id="adminDashboardEmpty" style="display:none"></div>
+                </div>
+            </section>
 
             <!-- Stats -->
             <div class="stats-grid">
@@ -1047,6 +1270,129 @@
     let charts = {};
     const FILTER_PREFS_STORAGE_KEY = 'mes_candidatures_selected_statuses_v1';
     let jobCatalogById = null;
+    const ADMIN_DASHBOARD_EMAILS = new Set([
+        'thibault.giraudet@outlook.com',
+        'thibault.giraudet94@gmail.com'
+    ]);
+    let extensionRuns = [];
+
+    function canViewAdminDashboard(user) {
+        const email = String(user?.email || '').trim().toLowerCase();
+        return ADMIN_DASHBOARD_EMAILS.has(email);
+    }
+
+    function formatDashboardDate(value) {
+        const date = value ? new Date(value) : null;
+        if (!date || Number.isNaN(date.getTime())) return '—';
+        return date.toLocaleString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function formatRunOutcome(run) {
+        const outcome = String(run.outcome || run.status || 'running').toLowerCase();
+        if (outcome === 'success') return { css: 'success', label: 'Succès', icon: '✅' };
+        if (outcome === 'timeout') return { css: 'timeout', label: 'Timeout', icon: '⏱' };
+        if (outcome === 'failed') return { css: 'failed', label: 'Échec', icon: '❌' };
+        return { css: 'running', label: 'En cours', icon: '⏳' };
+    }
+
+    async function loadExtensionRuns(user) {
+        const block = document.getElementById('adminDashboard');
+        if (!block) return;
+        if (!canViewAdminDashboard(user)) {
+            block.style.display = 'none';
+            return;
+        }
+
+        block.style.display = 'block';
+        const tbody = document.getElementById('adminRunsTableBody');
+        const empty = document.getElementById('adminDashboardEmpty');
+        tbody.innerHTML = '';
+        empty.style.display = 'none';
+        empty.textContent = '';
+
+        try {
+            const db = firebase.firestore();
+            const snap = await db.collection('extension_application_runs')
+                .orderBy('startedAt', 'desc')
+                .limit(120)
+                .get();
+
+            extensionRuns = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+            const total = extensionRuns.length;
+            const success = extensionRuns.filter((run) => String(run.outcome || '') === 'success').length;
+            const failed = extensionRuns.filter((run) => String(run.outcome || '') === 'failed').length;
+            const timeout = extensionRuns.filter((run) => String(run.outcome || '') === 'timeout').length;
+            const uniqueUsers = new Set(extensionRuns.map((run) => String(run.userEmail || run.userId || '').trim()).filter(Boolean));
+            const versions = Array.from(new Set(extensionRuns.map((run) => String(run.extensionVersion || '').trim()).filter(Boolean))).slice(0, 5);
+
+            document.getElementById('adminRunTotal').textContent = String(total);
+            document.getElementById('adminRunSuccess').textContent = String(success);
+            document.getElementById('adminRunFailed').textContent = String(failed);
+            document.getElementById('adminRunTimeout').textContent = String(timeout);
+            document.getElementById('adminRunUsers').textContent = String(uniqueUsers.size);
+            document.getElementById('adminRunSuccessMeta').textContent = total ? `${Math.round((success / total) * 100)}% des runs` : '0%';
+            document.getElementById('adminRunFailedMeta').textContent = failed ? `${failed} erreurs explicites` : 'aucune erreur explicite';
+            document.getElementById('adminRunTimeoutMeta').textContent = timeout ? `${timeout} hors SLA` : 'aucun timeout';
+            document.getElementById('adminRunVersionMeta').textContent = `Versions: ${versions.length ? versions.join(', ') : '—'}`;
+            document.getElementById('adminDashboardUpdated').textContent = `Mis à jour à ${formatDashboardDate(new Date().toISOString())}`;
+
+            if (!extensionRuns.length) {
+                empty.style.display = 'block';
+                empty.textContent = 'Aucune exécution extension enregistrée pour le moment.';
+                return;
+            }
+
+            tbody.innerHTML = extensionRuns.map((run) => {
+                const outcome = formatRunOutcome(run);
+                const detailParts = [];
+                if (Number(run.durationSeconds || 0) > 0) detailParts.push(`Durée: ${escapeHtml(String(run.durationSeconds))}s`);
+                if (run.failureType) detailParts.push(`Type: ${escapeHtml(run.failureType)}`);
+                if (run.failureMessage) detailParts.push(escapeHtml(run.failureMessage));
+                if (run.lateSuccessAt) detailParts.push(`Succès tardif à ${escapeHtml(formatDashboardDate(run.lateSuccessAt))}`);
+                const versionName = String(run.extensionVersionName || '').trim();
+                return `
+                    <tr>
+                        <td class="admin-run-meta">${escapeHtml(formatDashboardDate(run.startedAt))}</td>
+                        <td class="admin-run-user">
+                            <strong>${escapeHtml(run.userEmail || run.userId || 'Utilisateur inconnu')}</strong>
+                            <span>${escapeHtml(run.userId || '')}</span>
+                        </td>
+                        <td class="admin-run-meta">${escapeHtml(run.bankId || '—')}</td>
+                        <td class="admin-run-offer">
+                            <strong>${escapeHtml(run.jobTitle || 'Offre sans titre')}</strong>
+                            <span>${escapeHtml(run.companyName || 'Entreprise non spécifiée')}</span><br>
+                            <span>${escapeHtml(run.jobId || '')}</span>
+                        </td>
+                        <td class="admin-run-meta">
+                            ${escapeHtml(run.extensionVersion || '—')}
+                            ${versionName ? `<br><span>${escapeHtml(versionName)}</span>` : ''}
+                        </td>
+                        <td><span class="admin-run-status ${outcome.css}">${outcome.icon} ${outcome.label}</span></td>
+                        <td class="admin-run-meta">${detailParts.length ? detailParts.join('<br>') : '—'}</td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Erreur chargement dashboard extension:', error);
+            empty.style.display = 'block';
+            empty.textContent = 'Impossible de charger le dashboard extension.';
+        }
+    }
 
     function normalizeStatus(rawStatus) {
         const s = String(rawStatus || '').trim().toLowerCase();
@@ -1815,6 +2161,8 @@
 
     window.addEventListener('taleos-extension-candidature-success', () => {
         loadApplications();
+        const user = firebase.auth().currentUser;
+        if (user) loadExtensionRuns(user);
         showToast('Candidature envoyée', 'La liste a été mise à jour.', 'success', 3000);
     });
 
@@ -1869,6 +2217,7 @@
         updateNavigation(user);
         if (user) {
             loadApplications();
+            loadExtensionRuns(user);
         } else {
             window.location.href = 'auth.html';
         }

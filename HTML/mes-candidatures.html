@@ -1305,6 +1305,7 @@
         const outcome = String(run.outcome || run.status || 'running').toLowerCase();
         if (outcome === 'success') return { css: 'success', label: 'Succès', icon: '✅' };
         if (outcome === 'timeout') return { css: 'timeout', label: 'Timeout', icon: '⏱' };
+        if (outcome === 'aborted') return { css: 'failed', label: 'Avortée', icon: '🛑' };
         if (outcome === 'failed') return { css: 'failed', label: 'Échec', icon: '❌' };
         return { css: 'running', label: 'En cours', icon: '⏳' };
     }
@@ -1336,17 +1337,18 @@
             const total = extensionRuns.length;
             const success = extensionRuns.filter((run) => String(run.outcome || '') === 'success').length;
             const failed = extensionRuns.filter((run) => String(run.outcome || '') === 'failed').length;
+            const aborted = extensionRuns.filter((run) => String(run.outcome || '') === 'aborted').length;
             const timeout = extensionRuns.filter((run) => String(run.outcome || '') === 'timeout').length;
             const uniqueUsers = new Set(extensionRuns.map((run) => String(run.userEmail || run.userId || '').trim()).filter(Boolean));
             const versions = Array.from(new Set(extensionRuns.map((run) => String(run.extensionVersion || '').trim()).filter(Boolean))).slice(0, 5);
 
             document.getElementById('adminRunTotal').textContent = String(total);
             document.getElementById('adminRunSuccess').textContent = String(success);
-            document.getElementById('adminRunFailed').textContent = String(failed);
+            document.getElementById('adminRunFailed').textContent = String(failed + aborted);
             document.getElementById('adminRunTimeout').textContent = String(timeout);
             document.getElementById('adminRunUsers').textContent = String(uniqueUsers.size);
             document.getElementById('adminRunSuccessMeta').textContent = total ? `${Math.round((success / total) * 100)}% des runs` : '0%';
-            document.getElementById('adminRunFailedMeta').textContent = failed ? `${failed} erreurs explicites` : 'aucune erreur explicite';
+            document.getElementById('adminRunFailedMeta').textContent = (failed || aborted) ? `${failed} erreurs · ${aborted} avortées` : 'aucune erreur explicite';
             document.getElementById('adminRunTimeoutMeta').textContent = timeout ? `${timeout} hors SLA` : 'aucun timeout';
             document.getElementById('adminRunVersionMeta').textContent = `Versions: ${versions.length ? versions.join(', ') : '—'}`;
             document.getElementById('adminDashboardUpdated').textContent = `Mis à jour à ${formatDashboardDate(new Date().toISOString())}`;

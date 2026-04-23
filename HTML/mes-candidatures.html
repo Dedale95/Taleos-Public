@@ -1373,6 +1373,10 @@
                 if (run.failureType) detailParts.push(`Type: ${escapeHtml(run.failureType)}`);
                 if (run.failureMessage) detailParts.push(escapeHtml(run.failureMessage));
                 if (run.lateSuccessAt) detailParts.push(`Succès tardif à ${escapeHtml(formatDashboardDate(run.lateSuccessAt))}`);
+                const recentLogs = Array.isArray(run.recentLogs) ? run.recentLogs.slice(-8) : [];
+                const logsHtml = recentLogs.length
+                    ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.5;white-space:pre-wrap;">${recentLogs.map((entry) => `${escapeHtml(formatDashboardDate(entry.ts))} · ${escapeHtml(entry.source || 'extension')} · ${escapeHtml(entry.message || '')}`).join('<br>')}</div>`
+                    : '';
                 const versionName = String(run.extensionVersionName || '').trim();
                 return `
                     <tr>
@@ -1392,7 +1396,7 @@
                             ${versionName ? `<br><span>${escapeHtml(versionName)}</span>` : ''}
                         </td>
                         <td><span class="admin-run-status ${outcome.css}">${outcome.icon} ${outcome.label}</span></td>
-                        <td class="admin-run-meta">${detailParts.length ? detailParts.join('<br>') : '—'}</td>
+                        <td class="admin-run-meta">${detailParts.length ? detailParts.join('<br>') : '—'}${logsHtml}</td>
                     </tr>
                 `;
             }).join('');

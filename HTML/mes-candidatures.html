@@ -502,6 +502,34 @@
             border-radius: var(--radius);
         }
 
+        .admin-dashboard-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 18px 0 14px;
+            flex-wrap: wrap;
+        }
+
+        .admin-archive-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--ink);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .admin-archive-toggle input {
+            accent-color: var(--gold);
+        }
+
+        .admin-dashboard-archive-meta {
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
         .admin-runs-table {
             width: 100%;
             border-collapse: collapse;
@@ -579,6 +607,24 @@
             padding: 18px 0 4px;
             color: var(--muted);
             font-size: 0.92rem;
+        }
+
+        .admin-run-action-btn {
+            border: 1px solid var(--surface2);
+            background: var(--surface);
+            color: var(--ink);
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .admin-run-action-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
         }
 
         /* ─── APPLICATIONS SECTION ─── */
@@ -1097,6 +1143,13 @@
                             <div class="admin-summary-meta" id="adminRunVersionMeta">Versions: —</div>
                         </div>
                     </div>
+                    <div class="admin-dashboard-controls">
+                        <label class="admin-archive-toggle">
+                            <input type="checkbox" id="adminShowArchivedRuns">
+                            <span>Afficher les archivées</span>
+                        </label>
+                        <div class="admin-dashboard-archive-meta" id="adminArchivedRunsMeta">0 archivées masquées</div>
+                    </div>
                     <div class="admin-runs-table-wrap">
                         <table class="admin-runs-table">
                             <thead>
@@ -1108,6 +1161,7 @@
                                     <th>Version</th>
                                     <th>Résultat</th>
                                     <th>Détail</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="adminRunsTableBody"></tbody>
@@ -1275,7 +1329,9 @@
         'thibault.giraudet94@gmail.com'
     ]);
     const LIST_EXTENSION_RUNS_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/listExtensionApplicationRuns';
+    const SAVE_EXTENSION_RUN_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/saveExtensionApplicationRun';
     let extensionRuns = [];
+    let showArchivedExtensionRuns = false;
 
     function canViewAdminDashboard(user) {
         const email = String(user?.email || '').trim().toLowerCase();
@@ -1311,6 +1367,50 @@
         return { css: 'running', label: 'En cours', icon: '⏳' };
     }
 
+    function getVisibleExtensionRuns() {
+        return extensionRuns.filter((run) => showArchivedExtensionRuns || !run.archived);
+    }
+
+    async function saveExtensionRunPatch(user, runId, patch) {
+        const token = await user.getIdToken();
+        const res = await fetch(SAVE_EXTENSION_RUN_CF_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                runId,
+                ...patch
+            })
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok || payload.ok === false) {
+            throw new Error(payload.error || `HTTP ${res.status}`);
+        }
+        return payload;
+    }
+
+    async function toggleArchiveExtensionRun(runId, archived) {
+        const user = firebase.auth().currentUser;
+        if (!user || !runId) return;
+        try {
+            await saveExtensionRunPatch(user, runId, {
+                archived: !!archived,
+                archivedAt: archived ? new Date().toISOString() : null
+            });
+            const target = extensionRuns.find((run) => String(run.id || run.runId || '') === String(runId));
+            if (target) {
+                target.archived = !!archived;
+                target.archivedAt = archived ? new Date().toISOString() : null;
+            }
+            await loadExtensionRuns(user);
+        } catch (error) {
+            console.error('Erreur archivage run extension:', error);
+            alert('Impossible de mettre à jour l’archivage de cette candidature.');
+        }
+    }
+
     async function loadExtensionRuns(user) {
         const block = document.getElementById('adminDashboard');
         if (!block) return;
@@ -1340,14 +1440,16 @@
             }
 
             extensionRuns = Array.isArray(payload.runs) ? payload.runs : [];
+            const visibleRuns = getVisibleExtensionRuns();
+            const archivedCount = extensionRuns.filter((run) => !!run.archived).length;
 
-            const total = extensionRuns.length;
-            const success = extensionRuns.filter((run) => String(run.outcome || '') === 'success').length;
-            const failed = extensionRuns.filter((run) => String(run.outcome || '') === 'failed').length;
-            const aborted = extensionRuns.filter((run) => String(run.outcome || '') === 'aborted').length;
-            const timeout = extensionRuns.filter((run) => String(run.outcome || '') === 'timeout').length;
-            const uniqueUsers = new Set(extensionRuns.map((run) => String(run.userEmail || run.userId || '').trim()).filter(Boolean));
-            const versions = Array.from(new Set(extensionRuns.map((run) => String(run.extensionVersion || '').trim()).filter(Boolean))).slice(0, 5);
+            const total = visibleRuns.length;
+            const success = visibleRuns.filter((run) => String(run.outcome || '') === 'success').length;
+            const failed = visibleRuns.filter((run) => String(run.outcome || '') === 'failed').length;
+            const aborted = visibleRuns.filter((run) => String(run.outcome || '') === 'aborted').length;
+            const timeout = visibleRuns.filter((run) => String(run.outcome || '') === 'timeout').length;
+            const uniqueUsers = new Set(visibleRuns.map((run) => String(run.userEmail || run.userId || '').trim()).filter(Boolean));
+            const versions = Array.from(new Set(visibleRuns.map((run) => String(run.extensionVersion || '').trim()).filter(Boolean))).slice(0, 5);
 
             document.getElementById('adminRunTotal').textContent = String(total);
             document.getElementById('adminRunSuccess').textContent = String(success);
@@ -1359,25 +1461,34 @@
             document.getElementById('adminRunTimeoutMeta').textContent = timeout ? `${timeout} hors SLA` : 'aucun timeout';
             document.getElementById('adminRunVersionMeta').textContent = `Versions: ${versions.length ? versions.join(', ') : '—'}`;
             document.getElementById('adminDashboardUpdated').textContent = `Mis à jour à ${formatDashboardDate(new Date().toISOString())}`;
+            document.getElementById('adminArchivedRunsMeta').textContent = showArchivedExtensionRuns
+                ? `${archivedCount} archivées visibles`
+                : `${archivedCount} archivées masquées`;
+            const archiveToggle = document.getElementById('adminShowArchivedRuns');
+            if (archiveToggle) archiveToggle.checked = showArchivedExtensionRuns;
 
-            if (!extensionRuns.length) {
+            if (!visibleRuns.length) {
                 empty.style.display = 'block';
-                empty.textContent = 'Aucune exécution extension enregistrée pour le moment.';
+                empty.textContent = archivedCount && !showArchivedExtensionRuns
+                    ? 'Toutes les exécutions visibles ont été archivées.'
+                    : 'Aucune exécution extension enregistrée pour le moment.';
                 return;
             }
 
-            tbody.innerHTML = extensionRuns.map((run) => {
+            tbody.innerHTML = visibleRuns.map((run) => {
                 const outcome = formatRunOutcome(run);
                 const detailParts = [];
                 if (Number(run.durationSeconds || 0) > 0) detailParts.push(`Durée: ${escapeHtml(String(run.durationSeconds))}s`);
                 if (run.failureType) detailParts.push(`Type: ${escapeHtml(run.failureType)}`);
                 if (run.failureMessage) detailParts.push(escapeHtml(run.failureMessage));
+                if (run.archivedAt) detailParts.push(`Archivée le ${escapeHtml(formatDashboardDate(run.archivedAt))}`);
                 if (run.lateSuccessAt) detailParts.push(`Succès tardif à ${escapeHtml(formatDashboardDate(run.lateSuccessAt))}`);
                 const recentLogs = Array.isArray(run.recentLogs) ? run.recentLogs.slice(-8) : [];
                 const logsHtml = recentLogs.length
                     ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.5;white-space:pre-wrap;">${recentLogs.map((entry) => `${escapeHtml(formatDashboardDate(entry.ts))} · ${escapeHtml(entry.source || 'extension')} · ${escapeHtml(entry.message || '')}`).join('<br>')}</div>`
                     : '';
                 const versionName = String(run.extensionVersionName || '').trim();
+                const runKey = escapeHtml(String(run.id || run.runId || ''));
                 return `
                     <tr>
                         <td class="admin-run-meta">${escapeHtml(formatDashboardDate(run.startedAt))}</td>
@@ -1397,6 +1508,11 @@
                         </td>
                         <td><span class="admin-run-status ${outcome.css}">${outcome.icon} ${outcome.label}</span></td>
                         <td class="admin-run-meta">${detailParts.length ? detailParts.join('<br>') : '—'}${logsHtml}</td>
+                        <td class="admin-run-meta">
+                            <button class="admin-run-action-btn" data-run-id="${runKey}" data-archive="${run.archived ? '0' : '1'}">
+                                ${run.archived ? 'Désarchiver' : 'Archiver'}
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -2177,6 +2293,22 @@
         const user = firebase.auth().currentUser;
         if (user) loadExtensionRuns(user);
         showToast('Candidature envoyée', 'La liste a été mise à jour.', 'success', 3000);
+    });
+
+    document.addEventListener('change', (event) => {
+        if (event.target && event.target.id === 'adminShowArchivedRuns') {
+            showArchivedExtensionRuns = !!event.target.checked;
+            const user = firebase.auth().currentUser;
+            if (user) loadExtensionRuns(user);
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        const btn = event.target && event.target.closest ? event.target.closest('.admin-run-action-btn') : null;
+        if (!btn) return;
+        const runId = String(btn.dataset.runId || '').trim();
+        const shouldArchive = btn.dataset.archive === '1';
+        toggleArchiveExtensionRun(runId, shouldArchive);
     });
 
     // ─── Status change ───

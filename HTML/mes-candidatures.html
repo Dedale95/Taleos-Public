@@ -1274,6 +1274,7 @@
         'thibault.giraudet@outlook.com',
         'thibault.giraudet94@gmail.com'
     ]);
+    const LIST_EXTENSION_RUNS_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/listExtensionApplicationRuns';
     let extensionRuns = [];
 
     function canViewAdminDashboard(user) {
@@ -1326,13 +1327,19 @@
         empty.textContent = '';
 
         try {
-            const db = firebase.firestore();
-            const snap = await db.collection('extension_application_runs')
-                .orderBy('startedAt', 'desc')
-                .limit(120)
-                .get();
+            const token = await user.getIdToken();
+            const res = await fetch(LIST_EXTENSION_RUNS_CF_URL, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const payload = await res.json().catch(() => ({}));
+            if (!res.ok || payload.ok === false) {
+                throw new Error(payload.error || `HTTP ${res.status}`);
+            }
 
-            extensionRuns = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+            extensionRuns = Array.isArray(payload.runs) ? payload.runs : [];
 
             const total = extensionRuns.length;
             const success = extensionRuns.filter((run) => String(run.outcome || '') === 'success').length;

@@ -1360,7 +1360,11 @@
 
     function formatRunOutcome(run) {
         const outcome = String(run.outcome || run.status || 'running').toLowerCase();
-        if (outcome === 'success') return { css: 'success', label: 'Succès', icon: '✅' };
+        if (outcome === 'success') {
+            const successType = String(run.successType || run.lateSuccessType || '').toLowerCase();
+            if (successType === 'already_applied') return { css: 'success', label: 'Déjà postulé', icon: '↩️' };
+            return { css: 'success', label: 'Succès', icon: '✅' };
+        }
         if (outcome === 'timeout') return { css: 'timeout', label: 'Timeout', icon: '⏱' };
         if (outcome === 'aborted') return { css: 'failed', label: 'Avortée', icon: '🛑' };
         if (outcome === 'failed') return { css: 'failed', label: 'Échec', icon: '❌' };
@@ -1479,6 +1483,8 @@
                 const outcome = formatRunOutcome(run);
                 const detailParts = [];
                 if (Number(run.durationSeconds || 0) > 0) detailParts.push(`Durée: ${escapeHtml(String(run.durationSeconds))}s`);
+                if (run.successType) detailParts.push(`Type succès: ${escapeHtml(run.successType)}`);
+                if (run.successMessage) detailParts.push(escapeHtml(run.successMessage));
                 if (run.failureType) detailParts.push(`Type: ${escapeHtml(run.failureType)}`);
                 if (run.failureMessage) detailParts.push(escapeHtml(run.failureMessage));
                 if (run.archivedAt) detailParts.push(`Archivée le ${escapeHtml(formatDashboardDate(run.archivedAt))}`);
@@ -2288,11 +2294,15 @@
         }
     }
 
-    window.addEventListener('taleos-extension-candidature-success', () => {
+    window.addEventListener('taleos-extension-candidature-success', (event) => {
         loadApplications();
         const user = firebase.auth().currentUser;
         if (user) loadExtensionRuns(user);
-        showToast('Candidature envoyée', 'La liste a été mise à jour.', 'success', 3000);
+        if (String(event?.detail?.successType || '').trim() === 'already_applied') {
+            showToast('Déjà candidaté', 'Cette offre était déjà postulée. La liste a été synchronisée.', 'info', 3500);
+        } else {
+            showToast('Candidature envoyée', 'La liste a été mise à jour.', 'success', 3000);
+        }
     });
 
     document.addEventListener('change', (event) => {

@@ -4954,11 +4954,18 @@
         window.addEventListener('taleos-extension-candidature-success', (e) => {
             const jobId = (e.detail?.jobId || '').trim();
             if (!jobId) return;
+            const successType = (e.detail?.successType || '').trim();
             userApplications.add(jobId);
             applicationStatuses.set(jobId, 'envoyée');
             if (typeof updateJobCardButtons === 'function') updateJobCardButtons(jobId);
             if (typeof updateJobCardStyles === 'function') updateJobCardStyles(jobId);
-            if (typeof showToast === 'function') showToast('Candidature envoyée !', 'Votre candidature a été enregistrée.', 'success', 4000);
+            if (typeof showToast === 'function') {
+                if (successType === 'already_applied') {
+                    showToast('Déjà candidaté', 'Cette offre avait déjà été postulée. Taleos a synchronisé son état.', 'info', 4500);
+                } else {
+                    showToast('Candidature envoyée !', 'Votre candidature a été enregistrée.', 'success', 4000);
+                }
+            }
         });
 
         window.addEventListener('taleos-extension-candidature-failure', (e) => {

@@ -481,6 +481,7 @@
             <a href="landing_page_finance.html" class="nav-link">Présentation</a>
             <a href="offres.html" class="nav-link">Offres</a>
             <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
+            <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
             <a href="tarifs.html" class="nav-link">Tarifs</a>
         </div>
 
@@ -684,6 +685,15 @@
 </footer>
 
 <script>
+    const ADMIN_DASHBOARD_EMAILS = new Set([
+        'thibault.giraudet@outlook.com',
+        'thibault.giraudet94@gmail.com'
+    ]);
+
+    function canViewExtensionRuns(email) {
+        return ADMIN_DASHBOARD_EMAILS.has(String(email || '').trim().toLowerCase());
+    }
+
     // ─── Firebase ───
     const firebaseConfig = {
         apiKey:"AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",authDomain:"project-taleos.firebaseapp.com",
@@ -702,7 +712,9 @@
     if (auth) {
         auth.onAuthStateChanged(user => {
             const rechercheLink = document.getElementById('rechercheLink');
+            const extensionRunsLink = document.getElementById('extensionRunsLink');
             if (rechercheLink) rechercheLink.style.display = user ? 'inline-block' : 'none';
+            if (extensionRunsLink) extensionRunsLink.style.display = user && canViewExtensionRuns(user.email) ? 'inline-block' : 'none';
             if (user) {
                 const target = localStorage.getItem('postLoginRedirect') || 'offres.html';
                 localStorage.removeItem('postLoginRedirect');

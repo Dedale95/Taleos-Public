@@ -412,6 +412,7 @@
             <a href="offres.html" class="nav-link">Offres</a>
             <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
             <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
+            <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
             <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
             <a href="tarifs.html" class="nav-link nav-link-primary">Tarifs</a>
         </div>
@@ -584,6 +585,15 @@
 </footer>
 
 <script>
+    const ADMIN_DASHBOARD_EMAILS = new Set([
+        'thibault.giraudet@outlook.com',
+        'thibault.giraudet94@gmail.com'
+    ]);
+
+    function canViewExtensionRuns(email) {
+        return ADMIN_DASHBOARD_EMAILS.has(String(email || '').trim().toLowerCase());
+    }
+
     const firebaseConfig = {
         apiKey:"AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",authDomain:"project-taleos.firebaseapp.com",
         projectId:"project-taleos",storageBucket:"project-taleos.firebasestorage.app",
@@ -592,13 +602,15 @@
     if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
 
     function updateNav(user) {
-        const ids = ['authLink','profileLink','logoutBtn','applicationsLink','connexionsLink','rechercheLink'];
-        const [authLink,profileLink,logoutBtn,applicationsLink,connexionsLink,rechercheLink] = ids.map(id=>document.getElementById(id));
+        const ids = ['authLink','profileLink','logoutBtn','applicationsLink','extensionRunsLink','connexionsLink','rechercheLink'];
+        const [authLink,profileLink,logoutBtn,applicationsLink,extensionRunsLink,connexionsLink,rechercheLink] = ids.map(id=>document.getElementById(id));
+        const email = user?.email || localStorage.getItem('userEmail') || '';
         if (user) {
             if(authLink) authLink.style.display='none';
             if(profileLink) profileLink.style.display='block';
             if(logoutBtn) logoutBtn.style.display='block';
             if(applicationsLink) applicationsLink.style.display='block';
+            if(extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
             if(connexionsLink) connexionsLink.style.display='block';
             if(rechercheLink) rechercheLink.style.display='inline-block';
         } else {
@@ -606,6 +618,7 @@
             if(profileLink) profileLink.style.display='none';
             if(logoutBtn) logoutBtn.style.display='none';
             if(applicationsLink) applicationsLink.style.display='none';
+            if(extensionRunsLink) extensionRunsLink.style.display='none';
             if(connexionsLink) connexionsLink.style.display='none';
             if(rechercheLink) rechercheLink.style.display='none';
         }

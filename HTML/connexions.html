@@ -733,6 +733,7 @@
             <a href="offres.html" class="nav-link">Offres</a>
             <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
             <a href="mes-candidatures.html" class="nav-link" id="navCandidatures" style="display:none">Mes candidatures</a>
+            <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
             <a href="connexions.html" class="nav-link active" id="navConnexions" style="display:none">Connexions</a>
             <a href="tarifs.html" class="nav-link">Tarifs</a>
         </div>
@@ -855,6 +856,15 @@
 </footer>
 
 <script>
+    const ADMIN_DASHBOARD_EMAILS = new Set([
+        'thibault.giraudet@outlook.com',
+        'thibault.giraudet94@gmail.com'
+    ]);
+
+    function canViewExtensionRuns(email) {
+        return ADMIN_DASHBOARD_EMAILS.has(String(email || '').trim().toLowerCase());
+    }
+
     // ─── Domain warning ───
     (function() {
         const host = window.location.hostname || '';
@@ -1093,6 +1103,7 @@
         const navAuth = document.getElementById('navAuth');
         const navProfile = document.getElementById('navProfile');
         const navCandidatures = document.getElementById('navCandidatures');
+        const extensionRunsLink = document.getElementById('extensionRunsLink');
         const navConnexions = document.getElementById('navConnexions');
         const btnLogout = document.getElementById('btnLogout');
         const rechercheLink = document.getElementById('rechercheLink');
@@ -1100,6 +1111,7 @@
             navAuth.style.display = 'none';
             navProfile.style.display = 'block';
             if (navCandidatures) navCandidatures.style.display = 'block';
+            if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
             if (navConnexions) navConnexions.style.display = 'block';
             if (rechercheLink) rechercheLink.style.display = 'inline-block';
             btnLogout.style.display = 'block';
@@ -1107,6 +1119,7 @@
             navAuth.style.display = 'block';
             navProfile.style.display = 'none';
             if (navCandidatures) navCandidatures.style.display = 'none';
+            if (extensionRunsLink) extensionRunsLink.style.display = 'none';
             if (navConnexions) navConnexions.style.display = 'none';
             if (rechercheLink) rechercheLink.style.display = 'none';
             btnLogout.style.display = 'none';
@@ -1121,9 +1134,11 @@
             document.getElementById('navProfile').style.display = 'block';
             document.getElementById('btnLogout').style.display = 'block';
             const navCandidatures = document.getElementById('navCandidatures');
+            const extensionRunsLink = document.getElementById('extensionRunsLink');
             const navConnexions = document.getElementById('navConnexions');
             const rechercheLink = document.getElementById('rechercheLink');
             if (navCandidatures) navCandidatures.style.display = 'block';
+            if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
             if (navConnexions) navConnexions.style.display = 'block';
             if (rechercheLink) rechercheLink.style.display = 'inline-block';
         }

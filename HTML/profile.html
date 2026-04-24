@@ -1074,6 +1074,7 @@
                 <a href="offres.html" class="nav-link">Offres</a>
                 <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
+                <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
             </div>
@@ -1947,6 +1948,15 @@
     </div>
 
     <script>
+        const ADMIN_DASHBOARD_EMAILS = new Set([
+            'thibault.giraudet@outlook.com',
+            'thibault.giraudet94@gmail.com'
+        ]);
+
+        function canViewExtensionRuns(email) {
+            return ADMIN_DASHBOARD_EMAILS.has(String(email || '').trim().toLowerCase());
+        }
+
         // ============================================
         // CONFIGURATION FIREBASE (MÊME QUE auth.html)
         // ============================================
@@ -2199,6 +2209,7 @@
             const authLink = document.getElementById('authLink');
             const logoutBtn = document.getElementById('logoutBtn');
             const applicationsLink = document.getElementById('applicationsLink');
+            const extensionRunsLink = document.getElementById('extensionRunsLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const rechercheLink = document.getElementById('rechercheLink');
 
@@ -2222,12 +2233,14 @@
                 logoutBtn.classList.remove('nav-link-primary');
                 authLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'block';
+                if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (rechercheLink) rechercheLink.style.display = 'inline-block';
             } else {
                 // Utilisateur non connecté - masquer le profil, mes candidatures, recherche avancée et le bouton déconnexion, afficher l'auth
                 profileLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'none';
+                if (extensionRunsLink) extensionRunsLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (rechercheLink) rechercheLink.style.display = 'none';
                 profileLink.classList.remove('nav-link-primary');
@@ -3458,6 +3471,7 @@
             const profileLink = document.getElementById('profileLink');
             const authLink = document.getElementById('authLink');
             const applicationsLink = document.getElementById('applicationsLink');
+            const extensionRunsLink = document.getElementById('extensionRunsLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const logoutBtn = document.getElementById('logoutBtn');
             const rechercheLink = document.getElementById('rechercheLink');
@@ -3492,6 +3506,7 @@
                 logoutBtn.classList.remove('nav-link-primary');
                 authLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'block';
+                if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(localStorage.getItem('userEmail') || currentUser?.email || auth?.currentUser?.email) ? 'block' : 'none';
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (rechercheLink) rechercheLink.style.display = 'inline-block';
             } else {
@@ -3502,6 +3517,7 @@
                 logoutBtn.classList.remove('nav-link-primary');
                 authLink.style.display = 'block';
                 if (applicationsLink) applicationsLink.style.display = 'none';
+                if (extensionRunsLink) extensionRunsLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (rechercheLink) rechercheLink.style.display = 'none';
                 authLink.classList.remove('nav-link-primary');

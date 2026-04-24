@@ -1574,6 +1574,7 @@
                 <a href="offres.html" class="nav-link nav-link-primary">Offres</a>
                 <a href="filtres.html" class="nav-link" id="rechercheLink">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
+                <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display: none;">Suivi extension</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
             </div>
@@ -1728,6 +1729,15 @@
     </div>
 
     <script>
+        const ADMIN_DASHBOARD_EMAILS = new Set([
+            'thibault.giraudet@outlook.com',
+            'thibault.giraudet94@gmail.com'
+        ]);
+
+        function canViewExtensionRuns(email) {
+            return ADMIN_DASHBOARD_EMAILS.has(String(email || '').trim().toLowerCase());
+        }
+
         let allJobs = [];
         let filteredJobs = [];
         
@@ -5813,6 +5823,7 @@
         function checkAuthAndUpdateNav() {
             const profileLink = document.getElementById('profileLink');
             const applicationsLink = document.getElementById('applicationsLink');
+            const extensionRunsLink = document.getElementById('extensionRunsLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const authLink = document.getElementById('authLink');
             const logoutBtn = document.getElementById('logoutBtn');
@@ -5836,6 +5847,9 @@
                     // Firebase non disponible, utiliser seulement localStorage
                 }
             }
+            const authEmail = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser?.email)
+                || localStorage.getItem('userEmail')
+                || '';
             
             if (isAuthenticated) {
                 if (profileLink) {
@@ -5845,6 +5859,10 @@
                 if (applicationsLink) {
                     applicationsLink.style.display = 'block';
                     applicationsLink.classList.remove('nav-link-primary');
+                }
+                if (extensionRunsLink) {
+                    extensionRunsLink.style.display = canViewExtensionRuns(authEmail) ? 'block' : 'none';
+                    extensionRunsLink.classList.remove('nav-link-primary');
                 }
                 if (connexionsLink) {
                     connexionsLink.style.display = 'block';
@@ -5864,6 +5882,10 @@
                 if (applicationsLink) {
                     applicationsLink.style.display = 'none';
                     applicationsLink.classList.remove('nav-link-primary');
+                }
+                if (extensionRunsLink) {
+                    extensionRunsLink.style.display = 'none';
+                    extensionRunsLink.classList.remove('nav-link-primary');
                 }
                 if (connexionsLink) {
                     connexionsLink.style.display = 'none';

@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi Extension — Taleos</title>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #0a0a0f;
+            --ink-soft: #14141c;
+            --ink-mid: #1e1e2a;
+            --surface: #f5f3ef;
+            --surface2: #ede9e3;
+            --surface3: #e4dfd7;
+            --gold: #c8a96e;
+            --gold-light: #e2cfa0;
+            --gold-dim: rgba(200,169,110,0.12);
+            --gold-border: rgba(200,169,110,0.2);
+            --muted: #7a7a8a;
+            --text-body: #3a3a48;
+            --white: #ffffff;
+            --serif: 'Playfair Display', Georgia, serif;
+            --sans: 'DM Sans', system-ui, sans-serif;
+            --radius: 4px;
+            --radius-md: 8px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--surface);
+            color: var(--text-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            background: var(--ink);
+            border-bottom: 1px solid rgba(200,169,110,0.12);
+            padding: 0 48px;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            height: 68px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            text-decoration: none;
+            justify-self: start;
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            background: var(--ink-mid);
+            border: 1.5px solid rgba(200,169,110,0.5);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-mark svg { width: 20px; height: 20px; }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.01em;
+        }
+
+        .logo-text span { color: var(--gold); }
+
+        .nav-links,
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-links { justify-self: center; }
+        .nav-actions { justify-self: end; }
+
+        .nav-link {
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            transition: color var(--transition);
+            white-space: nowrap;
+        }
+
+        .nav-link:hover { color: var(--white); }
+        .nav-link-primary { color: var(--gold) !important; }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.45);
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--sans);
+            transition: all var(--transition);
+        }
+
+        .logout-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+
+        .page-top {
+            background: var(--ink);
+            padding: 48px 48px 42px;
+            border-bottom: 1px solid rgba(200,169,110,0.1);
+        }
+
+        .page-top-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 14px;
+        }
+
+        .page-label::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--gold);
+        }
+
+        .page-top h1 {
+            font-family: var(--serif);
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            color: var(--white);
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        .page-top p {
+            color: rgba(255,255,255,0.72);
+            max-width: 780px;
+            font-size: 0.98rem;
+        }
+
+        .main-content { flex: 1; }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 48px 40px;
+        }
+
+        .loading,
+        .unauthorized {
+            background: var(--white);
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius-md);
+            padding: 40px 28px;
+            text-align: center;
+        }
+
+        .unauthorized h2,
+        .loading h2 {
+            font-family: var(--serif);
+            color: var(--ink);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .unauthorized p,
+        .loading p {
+            color: var(--muted);
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid rgba(200,169,110,0.2);
+            border-top-color: var(--gold);
+            margin: 0 auto 18px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .dashboard {
+            background: var(--white);
+            border: 1px solid var(--gold-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 22px 24px 18px;
+            border-bottom: 1px solid var(--surface2);
+            background: linear-gradient(180deg, rgba(200,169,110,0.08), rgba(200,169,110,0.02));
+            flex-wrap: wrap;
+        }
+
+        .dashboard-header h2 {
+            font-family: var(--serif);
+            font-size: 1.45rem;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .dashboard-header p,
+        .dashboard-updated {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .dashboard-body { padding: 22px 24px 24px; }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+        }
+
+        .summary-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .summary-value {
+            font-family: var(--serif);
+            font-size: 1.55rem;
+            line-height: 1;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .summary-meta {
+            font-size: 0.82rem;
+            color: var(--text-body);
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.2fr) auto auto auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .toolbar input[type="search"],
+        .toolbar select {
+            width: 100%;
+            border: 1px solid var(--surface3);
+            border-radius: var(--radius);
+            background: var(--white);
+            color: var(--ink);
+            padding: 11px 12px;
+            font: inherit;
+        }
+
+        .toolbar-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: flex-end;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .toolbar-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--ink);
+            font-size: 0.86rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .toolbar-toggle input { accent-color: var(--gold); }
+
+        .result-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .result-pill {
+            border: 1px solid var(--surface3);
+            background: var(--white);
+            color: var(--muted);
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .result-pill:hover,
+        .result-pill.active {
+            color: var(--ink);
+            border-color: rgba(200,169,110,0.55);
+            background: var(--gold-dim);
+        }
+
+        .table-wrap {
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius);
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1120px;
+            background: var(--white);
+        }
+
+        th,
+        td {
+            padding: 9px 10px;
+            border-bottom: 1px solid var(--surface2);
+            text-align: left;
+            vertical-align: top;
+            font-size: 0.8rem;
+            line-height: 1.35;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            color: var(--muted);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            z-index: 1;
+        }
+
+        tbody tr:hover { background: #fafaf8; }
+
+        .col-when { width: 88px; white-space: nowrap; }
+        .col-bank { width: 110px; }
+        .col-version { width: 106px; }
+        .col-result { width: 128px; }
+        .col-action { width: 88px; }
+
+        .run-user strong,
+        .run-offer strong {
+            display: block;
+            color: var(--ink);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .run-user span,
+        .run-offer span,
+        .run-meta {
+            color: var(--muted);
+            font-size: 0.74rem;
+        }
+
+        .run-offer strong {
+            max-width: 340px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .run-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .run-status.success { background: rgba(16,185,129,0.10); color: #047857; }
+        .run-status.failed,
+        .run-status.timeout { background: rgba(239,68,68,0.10); color: #b91c1c; }
+        .run-status.running { background: rgba(59,130,246,0.10); color: #1d4ed8; }
+        .run-status.info { background: rgba(200,169,110,0.12); color: #8a6a2a; }
+
+        .run-detail {
+            color: var(--text-body);
+            font-size: 0.75rem;
+            max-width: 300px;
+        }
+
+        .run-detail-line + .run-detail-line { margin-top: 3px; }
+
+        .run-logs {
+            margin-top: 7px;
+        }
+
+        .run-logs summary {
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .run-logs-body {
+            margin-top: 6px;
+            padding: 8px;
+            border-radius: 6px;
+            background: var(--surface);
+            border: 1px solid var(--surface2);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.67rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            color: var(--ink-soft);
+        }
+
+        .run-action-btn {
+            border: 1px solid var(--surface2);
+            background: var(--surface);
+            color: var(--ink);
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .run-action-btn:hover {
+            border-color: rgba(200,169,110,0.55);
+            background: var(--gold-dim);
+        }
+
+        .empty {
+            padding: 18px 2px 4px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            margin-top: auto;
+            background: var(--ink);
+            border-top: 1px solid rgba(200,169,110,0.12);
+            color: rgba(255,255,255,0.7);
+        }
+
+        .footer-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 18px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .footer-social {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-social a {
+            color: rgba(255,255,255,0.55);
+            transition: color var(--transition);
+        }
+
+        .footer-social a:hover { color: var(--gold); }
+        .footer-social svg { width: 16px; height: 16px; display: block; }
+        .footer-copy { font-size: 0.82rem; }
+
+        @media (max-width: 1100px) {
+            nav,
+            .page-top,
+            .container,
+            .footer-inner { padding-left: 22px; padding-right: 22px; }
+
+            .toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 760px) {
+            .nav-container {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                height: auto;
+                padding: 14px 0;
+            }
+
+            .nav-links,
+            .nav-actions {
+                justify-self: start;
+                flex-wrap: wrap;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-inner {
+                flex-direction: column-reverse;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="landing_page_finance.html" class="logo">
+                <div class="logo-mark">
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 6H15M10 6V15" stroke="#c8a96e" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="logo-text">Tale<span>os</span></div>
+            </a>
+
+            <div class="nav-links">
+                <a href="landing_page_finance.html" class="nav-link">Présentation</a>
+                <a href="offres.html" class="nav-link">Offres</a>
+                <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
+                <a href="mes-candidatures.html" class="nav-link">Mes candidatures</a>
+                <a href="suivi-extension.html" class="nav-link nav-link-primary" id="extensionRunsLink" style="display:none">Suivi extension</a>
+                <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
+                <a href="tarifs.html" class="nav-link">Tarifs</a>
+            </div>
+
+            <div class="nav-actions">
+                <a href="auth.html" class="nav-link" id="authLink" style="display:none">Connexion</a>
+                <a href="profile.html" class="nav-link" id="profileLink" style="display:none">Mon profil</a>
+                <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none">Déconnexion</button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="page-top">
+        <div class="page-top-inner">
+            <div class="page-label">Console Testeurs</div>
+            <h1>Suivi des candidatures extension</h1>
+            <p>Vue compacte des exécutions extension, avec filtres rapides pour isoler les succès, les échecs, les doublons et les cas à investiguer.</p>
+        </div>
+    </section>
+
+    <div class="main-content">
+        <div class="container">
+            <section class="loading" id="loadingState">
+                <div class="spinner"></div>
+                <h2>Chargement</h2>
+                <p>Récupération des exécutions extension en cours.</p>
+            </section>
+
+            <section class="unauthorized" id="unauthorizedState" style="display:none">
+                <h2>Accès restreint</h2>
+                <p>Cette console est réservée aux comptes whitelistés pour le suivi testeurs.</p>
+            </section>
+
+            <section class="dashboard" id="dashboard" style="display:none">
+                <div class="dashboard-header">
+                    <div>
+                        <h2>Suivi des candidatures extension</h2>
+                        <p>Utilisateur, offre, version, issue du parcours et logs récents quand il faut creuser.</p>
+                    </div>
+                    <div class="dashboard-updated" id="dashboardUpdated">Mise à jour en attente</div>
+                </div>
+
+                <div class="dashboard-body">
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="summary-label">Exécutions</div>
+                            <div class="summary-value" id="summaryTotal">0</div>
+                            <div class="summary-meta">sur la vue filtrée</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">Succès</div>
+                            <div class="summary-value" id="summarySuccess">0</div>
+                            <div class="summary-meta" id="summarySuccessMeta">0%</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">Échecs</div>
+                            <div class="summary-value" id="summaryFailed">0</div>
+                            <div class="summary-meta" id="summaryFailedMeta">hors timeouts</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">Timeouts</div>
+                            <div class="summary-value" id="summaryTimeout">0</div>
+                            <div class="summary-meta" id="summaryTimeoutMeta">SLA 5 min</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">Testeurs actifs</div>
+                            <div class="summary-value" id="summaryUsers">0</div>
+                            <div class="summary-meta" id="summaryVersionMeta">Versions: —</div>
+                        </div>
+                    </div>
+
+                    <div class="toolbar">
+                        <input type="search" id="runSearchInput" placeholder="Recherche utilisateur, offre, jobId, version, logs...">
+                        <select id="bankFilterSelect">
+                            <option value="all">Toutes les banques</option>
+                        </select>
+                        <label class="toolbar-toggle">
+                            <input type="checkbox" id="showArchivedRuns">
+                            <span>Afficher les archivées</span>
+                        </label>
+                        <div class="toolbar-meta" id="archiveMeta">0 archivées masquées</div>
+                    </div>
+
+                    <div class="result-pills" id="resultPills"></div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-when">Quand</th>
+                                    <th>Utilisateur</th>
+                                    <th class="col-bank">Banque</th>
+                                    <th>Offre</th>
+                                    <th class="col-version">Version</th>
+                                    <th class="col-result">Résultat</th>
+                                    <th>Détail</th>
+                                    <th class="col-action">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="runsTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="empty" id="emptyState" style="display:none"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-social">
+                <a href="https://instagram.com/taleos" aria-label="Instagram">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                </a>
+                <a href="https://twitter.com/taleos" aria-label="X">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a href="https://linkedin.com/company/taleos" aria-label="LinkedIn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                </a>
+                <a href="https://youtube.com/@taleos" aria-label="YouTube">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                </a>
+            </div>
+            <div class="footer-copy">© 2026 Taleos. Tous droits réservés. · 🇫🇷 Made in France</div>
+        </div>
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",
+            authDomain: "project-taleos.firebaseapp.com",
+            projectId: "project-taleos",
+            storageBucket: "project-taleos.firebasestorage.app",
+            messagingSenderId: "974062127016",
+            appId: "1:974062127016:web:b6cffae44f1bae56f03f9d",
+            measurementId: "G-4PZJ4QXMJ0"
+        };
+
+        if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
+
+        const ADMIN_DASHBOARD_EMAILS = new Set([
+            'thibault.giraudet@outlook.com',
+            'thibault.giraudet94@gmail.com'
+        ]);
+
+        const LIST_EXTENSION_RUNS_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/listExtensionApplicationRuns';
+        const SAVE_EXTENSION_RUN_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/saveExtensionApplicationRun';
+        const RESULT_FILTERS = ['all', 'success', 'already_applied', 'failed', 'aborted', 'timeout', 'running'];
+
+        let extensionRuns = [];
+        let filteredRuns = [];
+        let showArchivedExtensionRuns = false;
+        let activeResultFilter = 'all';
+        let activeBankFilter = 'all';
+        let searchTerm = '';
+
+        function canViewAdminDashboard(user) {
+            const email = String(user?.email || '').trim().toLowerCase();
+            return ADMIN_DASHBOARD_EMAILS.has(email);
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatDashboardDate(value) {
+            const date = value ? new Date(value) : null;
+            if (!date || Number.isNaN(date.getTime())) return '—';
+            return date.toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatCompactDate(value) {
+            const date = value ? new Date(value) : null;
+            if (!date || Number.isNaN(date.getTime())) return '—';
+            return date.toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).replace(',', '');
+        }
+
+        function getRunResultKey(run) {
+            const outcome = String(run.outcome || run.status || 'running').toLowerCase();
+            if (outcome === 'success') {
+                const successType = String(run.successType || run.lateSuccessType || '').toLowerCase();
+                if (successType === 'already_applied') return 'already_applied';
+                return 'success';
+            }
+            if (outcome === 'failed') return 'failed';
+            if (outcome === 'aborted') return 'aborted';
+            if (outcome === 'timeout') return 'timeout';
+            return 'running';
+        }
+
+        function formatRunOutcome(run) {
+            const key = getRunResultKey(run);
+            if (key === 'success') return { css: 'success', label: 'Succès', icon: '✅' };
+            if (key === 'already_applied') return { css: 'info', label: 'Déjà postulé', icon: '↩️' };
+            if (key === 'failed') return { css: 'failed', label: 'Échec', icon: '❌' };
+            if (key === 'aborted') return { css: 'failed', label: 'Avortée', icon: '🛑' };
+            if (key === 'timeout') return { css: 'timeout', label: 'Timeout', icon: '⏱' };
+            return { css: 'running', label: 'En cours', icon: '⏳' };
+        }
+
+        function getVisibleExtensionRuns() {
+            return extensionRuns.filter((run) => showArchivedExtensionRuns || !run.archived);
+        }
+
+        function buildSearchHaystack(run) {
+            const recentLogs = Array.isArray(run.recentLogs) ? run.recentLogs.map((entry) => entry.message || '').join(' ') : '';
+            return [
+                run.userEmail,
+                run.userId,
+                run.bankId,
+                run.jobTitle,
+                run.companyName,
+                run.jobId,
+                run.extensionVersion,
+                run.extensionVersionName,
+                run.successMessage,
+                run.failureMessage,
+                run.failureType,
+                recentLogs
+            ].join(' ').toLowerCase();
+        }
+
+        function applyRunFilters() {
+            const visible = getVisibleExtensionRuns();
+            filteredRuns = visible.filter((run) => {
+                if (activeResultFilter !== 'all' && getRunResultKey(run) !== activeResultFilter) return false;
+                if (activeBankFilter !== 'all' && String(run.bankId || '') !== activeBankFilter) return false;
+                if (searchTerm && !buildSearchHaystack(run).includes(searchTerm)) return false;
+                return true;
+            }).sort((a, b) => new Date(b.startedAt || 0) - new Date(a.startedAt || 0));
+        }
+
+        async function saveExtensionRunPatch(user, runId, patch) {
+            const token = await user.getIdToken();
+            const res = await fetch(SAVE_EXTENSION_RUN_CF_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    runId,
+                    ...patch
+                })
+            });
+            const payload = await res.json().catch(() => ({}));
+            if (!res.ok || payload.ok === false) {
+                throw new Error(payload.error || `HTTP ${res.status}`);
+            }
+            return payload;
+        }
+
+        async function toggleArchiveExtensionRun(runId, archived) {
+            const user = firebase.auth().currentUser;
+            if (!user || !runId) return;
+            try {
+                await saveExtensionRunPatch(user, runId, {
+                    archived: !!archived,
+                    archivedAt: archived ? new Date().toISOString() : null
+                });
+                const target = extensionRuns.find((run) => String(run.id || run.runId || '') === String(runId));
+                if (target) {
+                    target.archived = !!archived;
+                    target.archivedAt = archived ? new Date().toISOString() : null;
+                }
+                renderDashboard();
+            } catch (error) {
+                console.error('Erreur archivage run extension:', error);
+                alert('Impossible de mettre à jour l’archivage de cette candidature.');
+            }
+        }
+
+        function renderResultPills() {
+            const root = document.getElementById('resultPills');
+            const visible = getVisibleExtensionRuns();
+            const counts = RESULT_FILTERS.reduce((acc, key) => {
+                if (key === 'all') {
+                    acc[key] = visible.length;
+                } else {
+                    acc[key] = visible.filter((run) => getRunResultKey(run) === key).length;
+                }
+                return acc;
+            }, {});
+
+            const labels = {
+                all: 'Toutes',
+                success: 'Succès',
+                already_applied: 'Déjà postulé',
+                failed: 'Échecs',
+                aborted: 'Avortées',
+                timeout: 'Timeouts',
+                running: 'En cours'
+            };
+
+            root.innerHTML = RESULT_FILTERS.map((key) => `
+                <button class="result-pill ${activeResultFilter === key ? 'active' : ''}" data-result-filter="${key}">
+                    ${labels[key]} ${counts[key] || 0}
+                </button>
+            `).join('');
+        }
+
+        function renderBankFilterOptions() {
+            const select = document.getElementById('bankFilterSelect');
+            const currentValue = activeBankFilter;
+            const bankIds = Array.from(new Set(extensionRuns.map((run) => String(run.bankId || '').trim()).filter(Boolean))).sort();
+            select.innerHTML = `<option value="all">Toutes les banques</option>${bankIds.map((bankId) => `<option value="${escapeHtml(bankId)}">${escapeHtml(bankId)}</option>`).join('')}`;
+            select.value = bankIds.includes(currentValue) ? currentValue : 'all';
+            activeBankFilter = select.value;
+        }
+
+        function renderSummary() {
+            const total = filteredRuns.length;
+            const success = filteredRuns.filter((run) => getRunResultKey(run) === 'success' || getRunResultKey(run) === 'already_applied').length;
+            const failed = filteredRuns.filter((run) => getRunResultKey(run) === 'failed').length;
+            const aborted = filteredRuns.filter((run) => getRunResultKey(run) === 'aborted').length;
+            const timeout = filteredRuns.filter((run) => getRunResultKey(run) === 'timeout').length;
+            const uniqueUsers = new Set(filteredRuns.map((run) => String(run.userEmail || run.userId || '').trim()).filter(Boolean));
+            const versions = Array.from(new Set(filteredRuns.map((run) => String(run.extensionVersion || '').trim()).filter(Boolean))).slice(0, 6);
+            const archivedCount = extensionRuns.filter((run) => !!run.archived).length;
+
+            document.getElementById('summaryTotal').textContent = String(total);
+            document.getElementById('summarySuccess').textContent = String(success);
+            document.getElementById('summaryFailed').textContent = String(failed + aborted);
+            document.getElementById('summaryTimeout').textContent = String(timeout);
+            document.getElementById('summaryUsers').textContent = String(uniqueUsers.size);
+            document.getElementById('summarySuccessMeta').textContent = total ? `${Math.round((success / total) * 100)}% des runs` : '0%';
+            document.getElementById('summaryFailedMeta').textContent = (failed || aborted) ? `${failed} erreurs · ${aborted} avortées` : 'aucune erreur explicite';
+            document.getElementById('summaryTimeoutMeta').textContent = timeout ? `${timeout} hors SLA` : 'aucun timeout';
+            document.getElementById('summaryVersionMeta').textContent = `Versions: ${versions.length ? versions.join(', ') : '—'}`;
+            document.getElementById('archiveMeta').textContent = showArchivedExtensionRuns
+                ? `${archivedCount} archivées visibles`
+                : `${archivedCount} archivées masquées`;
+            document.getElementById('dashboardUpdated').textContent = `Mis à jour à ${formatDashboardDate(new Date().toISOString())}`;
+            document.getElementById('showArchivedRuns').checked = showArchivedExtensionRuns;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('runsTableBody');
+            const empty = document.getElementById('emptyState');
+
+            if (!filteredRuns.length) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                empty.textContent = extensionRuns.some((run) => !!run.archived) && !showArchivedExtensionRuns
+                    ? 'Aucun run visible pour ces filtres. Tu peux aussi afficher les archivées.'
+                    : 'Aucun run extension ne correspond aux filtres actuels.';
+                return;
+            }
+
+            empty.style.display = 'none';
+            tbody.innerHTML = filteredRuns.map((run) => {
+                const outcome = formatRunOutcome(run);
+                const recentLogs = Array.isArray(run.recentLogs) ? run.recentLogs.slice(-6) : [];
+                const detailParts = [];
+                if (Number(run.durationSeconds || 0) > 0) detailParts.push(`Durée ${escapeHtml(String(run.durationSeconds))}s`);
+                if (run.successType) detailParts.push(`Succès ${escapeHtml(run.successType)}`);
+                if (run.failureType) detailParts.push(`Type ${escapeHtml(run.failureType)}`);
+                if (run.failureMessage) detailParts.push(escapeHtml(run.failureMessage));
+                if (run.successMessage) detailParts.push(escapeHtml(run.successMessage));
+                const versionName = String(run.extensionVersionName || '').trim();
+                const runKey = escapeHtml(String(run.id || run.runId || ''));
+
+                return `
+                    <tr>
+                        <td class="col-when run-meta">${escapeHtml(formatCompactDate(run.startedAt))}</td>
+                        <td class="run-user">
+                            <strong>${escapeHtml(run.userEmail || run.userId || 'Utilisateur inconnu')}</strong>
+                            <span>${escapeHtml(run.userId || '')}</span>
+                        </td>
+                        <td class="col-bank run-meta">${escapeHtml(run.bankId || '—')}</td>
+                        <td class="run-offer">
+                            <strong title="${escapeHtml(run.jobTitle || 'Offre sans titre')}">${escapeHtml(run.jobTitle || 'Offre sans titre')}</strong>
+                            <span>${escapeHtml(run.companyName || 'Entreprise non spécifiée')}</span><br>
+                            <span>${escapeHtml(run.jobId || '')}</span>
+                        </td>
+                        <td class="col-version run-meta">
+                            ${escapeHtml(run.extensionVersion || '—')}
+                            ${versionName ? `<br><span>${escapeHtml(versionName)}</span>` : ''}
+                        </td>
+                        <td class="col-result"><span class="run-status ${outcome.css}">${outcome.icon} ${outcome.label}</span></td>
+                        <td class="run-detail">
+                            ${detailParts.length ? detailParts.map((part) => `<div class="run-detail-line">${part}</div>`).join('') : '<span class="run-meta">—</span>'}
+                            ${recentLogs.length ? `
+                                <details class="run-logs">
+                                    <summary>Logs récents</summary>
+                                    <div class="run-logs-body">${recentLogs.map((entry) => `${escapeHtml(formatCompactDate(entry.ts))} · ${escapeHtml(entry.source || 'extension')} · ${escapeHtml(entry.message || '')}`).join('\n')}</div>
+                                </details>
+                            ` : ''}
+                        </td>
+                        <td class="col-action">
+                            <button class="run-action-btn" data-run-id="${runKey}" data-archive="${run.archived ? '0' : '1'}">
+                                ${run.archived ? 'Désarchiver' : 'Archiver'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderDashboard() {
+            renderBankFilterOptions();
+            renderResultPills();
+            applyRunFilters();
+            renderSummary();
+            renderTable();
+        }
+
+        async function loadExtensionRuns(user) {
+            const token = await user.getIdToken();
+            const res = await fetch(LIST_EXTENSION_RUNS_CF_URL, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const payload = await res.json().catch(() => ({}));
+            if (!res.ok || payload.ok === false) {
+                throw new Error(payload.error || `HTTP ${res.status}`);
+            }
+            extensionRuns = Array.isArray(payload.runs) ? payload.runs : [];
+            renderDashboard();
+        }
+
+        function updateNavigationImmediate() {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('userEmail');
+            const authLink = document.getElementById('authLink');
+            const profileLink = document.getElementById('profileLink');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const rechercheLink = document.getElementById('rechercheLink');
+            const connexionsLink = document.getElementById('connexionsLink');
+            const extensionRunsLink = document.getElementById('extensionRunsLink');
+
+            if (token) {
+                if (authLink) authLink.style.display = 'none';
+                if (profileLink) profileLink.style.display = 'block';
+                if (logoutBtn) logoutBtn.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
+                if (connexionsLink) connexionsLink.style.display = 'block';
+                if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+            } else {
+                if (authLink) authLink.style.display = 'block';
+                if (profileLink) profileLink.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
+                if (connexionsLink) connexionsLink.style.display = 'none';
+                if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+            }
+        }
+
+        function updateNavigation(user) {
+            const authLink = document.getElementById('authLink');
+            const profileLink = document.getElementById('profileLink');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const rechercheLink = document.getElementById('rechercheLink');
+            const connexionsLink = document.getElementById('connexionsLink');
+            const extensionRunsLink = document.getElementById('extensionRunsLink');
+
+            if (user) {
+                if (authLink) authLink.style.display = 'none';
+                if (profileLink) profileLink.style.display = 'block';
+                if (logoutBtn) logoutBtn.style.display = 'block';
+                if (rechercheLink) rechercheLink.style.display = 'inline-block';
+                if (connexionsLink) connexionsLink.style.display = 'block';
+                if (extensionRunsLink) extensionRunsLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none';
+            } else {
+                if (authLink) authLink.style.display = 'block';
+                if (profileLink) profileLink.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (rechercheLink) rechercheLink.style.display = 'none';
+                if (connexionsLink) connexionsLink.style.display = 'none';
+                if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+            }
+        }
+
+        async function handleLogout() {
+            try { await firebase.auth().signOut(); } catch (_) {}
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'auth.html';
+        }
+
+        document.addEventListener('input', (event) => {
+            if (event.target && event.target.id === 'runSearchInput') {
+                searchTerm = String(event.target.value || '').trim().toLowerCase();
+                renderDashboard();
+            }
+        });
+
+        document.addEventListener('change', (event) => {
+            if (event.target && event.target.id === 'bankFilterSelect') {
+                activeBankFilter = String(event.target.value || 'all');
+                renderDashboard();
+            }
+            if (event.target && event.target.id === 'showArchivedRuns') {
+                showArchivedExtensionRuns = !!event.target.checked;
+                renderDashboard();
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const pill = event.target && event.target.closest ? event.target.closest('[data-result-filter]') : null;
+            if (pill) {
+                activeResultFilter = String(pill.dataset.resultFilter || 'all');
+                renderDashboard();
+                return;
+            }
+            const btn = event.target && event.target.closest ? event.target.closest('.run-action-btn') : null;
+            if (btn) {
+                const runId = String(btn.dataset.runId || '').trim();
+                const shouldArchive = btn.dataset.archive === '1';
+                toggleArchiveExtensionRun(runId, shouldArchive);
+            }
+        });
+
+        updateNavigationImmediate();
+
+        firebase.auth().onAuthStateChanged(async (user) => {
+            updateNavigation(user);
+
+            const loading = document.getElementById('loadingState');
+            const unauthorized = document.getElementById('unauthorizedState');
+            const dashboard = document.getElementById('dashboard');
+
+            if (!user) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            if (!canViewAdminDashboard(user)) {
+                loading.style.display = 'none';
+                dashboard.style.display = 'none';
+                unauthorized.style.display = 'block';
+                return;
+            }
+
+            try {
+                await loadExtensionRuns(user);
+                loading.style.display = 'none';
+                unauthorized.style.display = 'none';
+                dashboard.style.display = 'block';
+            } catch (error) {
+                console.error('Erreur chargement dashboard extension:', error);
+                loading.style.display = 'none';
+                dashboard.style.display = 'block';
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('emptyState').textContent = 'Impossible de charger le dashboard extension.';
+            }
+        });
+    </script>
+</body>
+</html>

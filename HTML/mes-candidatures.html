@@ -1071,6 +1071,7 @@
             <a href="offres.html" class="nav-link">Offres</a>
             <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
             <a href="mes-candidatures.html" class="nav-link nav-link-primary">Mes candidatures</a>
+            <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
             <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
             <a href="tarifs.html" class="nav-link">Tarifs</a>
         </div>
@@ -1106,70 +1107,6 @@
 
         <!-- Main content -->
         <div id="mainContent" style="display:none">
-
-            <section class="admin-dashboard" id="adminDashboard" style="display:none">
-                <div class="admin-dashboard-header">
-                    <div>
-                        <h2>Suivi des candidatures extension</h2>
-                        <p>Vue testeurs : utilisateur, offre, version d’extension et issue du parcours.</p>
-                    </div>
-                    <div class="admin-dashboard-updated" id="adminDashboardUpdated">Mise à jour en attente</div>
-                </div>
-                <div class="admin-dashboard-body">
-                    <div class="admin-summary-grid">
-                        <div class="admin-summary-card">
-                            <div class="admin-summary-label">Exécutions</div>
-                            <div class="admin-summary-value" id="adminRunTotal">0</div>
-                            <div class="admin-summary-meta">sur la fenêtre affichée</div>
-                        </div>
-                        <div class="admin-summary-card">
-                            <div class="admin-summary-label">Succès</div>
-                            <div class="admin-summary-value" id="adminRunSuccess">0</div>
-                            <div class="admin-summary-meta" id="adminRunSuccessMeta">0%</div>
-                        </div>
-                        <div class="admin-summary-card">
-                            <div class="admin-summary-label">Échecs</div>
-                            <div class="admin-summary-value" id="adminRunFailed">0</div>
-                            <div class="admin-summary-meta" id="adminRunFailedMeta">hors timeouts</div>
-                        </div>
-                        <div class="admin-summary-card">
-                            <div class="admin-summary-label">Timeouts 5 min</div>
-                            <div class="admin-summary-value" id="adminRunTimeout">0</div>
-                            <div class="admin-summary-meta" id="adminRunTimeoutMeta">seuil de fiabilité</div>
-                        </div>
-                        <div class="admin-summary-card">
-                            <div class="admin-summary-label">Testeurs actifs</div>
-                            <div class="admin-summary-value" id="adminRunUsers">0</div>
-                            <div class="admin-summary-meta" id="adminRunVersionMeta">Versions: —</div>
-                        </div>
-                    </div>
-                    <div class="admin-dashboard-controls">
-                        <label class="admin-archive-toggle">
-                            <input type="checkbox" id="adminShowArchivedRuns">
-                            <span>Afficher les archivées</span>
-                        </label>
-                        <div class="admin-dashboard-archive-meta" id="adminArchivedRunsMeta">0 archivées masquées</div>
-                    </div>
-                    <div class="admin-runs-table-wrap">
-                        <table class="admin-runs-table">
-                            <thead>
-                                <tr>
-                                    <th>Quand</th>
-                                    <th>Utilisateur</th>
-                                    <th>Banque</th>
-                                    <th>Offre</th>
-                                    <th>Version</th>
-                                    <th>Résultat</th>
-                                    <th>Détail</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminRunsTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="admin-dashboard-empty" id="adminDashboardEmpty" style="display:none"></div>
-                </div>
-            </section>
 
             <!-- Stats -->
             <div class="stats-grid">
@@ -1681,6 +1618,7 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const rechercheLink = document.getElementById('rechercheLink');
         const connexionsLink = document.getElementById('connexionsLink');
+        const extensionRunsLink = document.getElementById('extensionRunsLink');
 
         if (token) {
             if (authLink) authLink.style.display = 'none';
@@ -1688,12 +1626,14 @@
             if (logoutBtn) logoutBtn.style.display = 'block';
             if (rechercheLink) rechercheLink.style.display = 'inline-block';
             if (connexionsLink) connexionsLink.style.display = 'block';
+            if (extensionRunsLink) extensionRunsLink.style.display = 'none';
         } else {
             if (authLink) authLink.style.display = 'block';
             if (profileLink) profileLink.style.display = 'none';
             if (logoutBtn) logoutBtn.style.display = 'none';
             if (rechercheLink) rechercheLink.style.display = 'none';
             if (connexionsLink) connexionsLink.style.display = 'none';
+            if (extensionRunsLink) extensionRunsLink.style.display = 'none';
         }
     }
 
@@ -1703,16 +1643,21 @@
         const logoutBtn   = document.getElementById('logoutBtn');
         const rechercheLink = document.getElementById('rechercheLink');
         const connexionsLink = document.getElementById('connexionsLink');
+        const extensionRunsLink = document.getElementById('extensionRunsLink');
         if (user) {
             if (authLink)    authLink.style.display    = 'none';
             if (profileLink) profileLink.style.display = 'block';
             if (logoutBtn)   logoutBtn.style.display   = 'block';
             if (rechercheLink) rechercheLink.style.display = 'inline-block';
             if (connexionsLink) connexionsLink.style.display = 'block';
+            if (extensionRunsLink) extensionRunsLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none';
         } else {
             if (authLink)    authLink.style.display    = 'block';
             if (profileLink) profileLink.style.display = 'none';
             if (logoutBtn)   logoutBtn.style.display   = 'none';
+            if (rechercheLink) rechercheLink.style.display = 'none';
+            if (connexionsLink) connexionsLink.style.display = 'none';
+            if (extensionRunsLink) extensionRunsLink.style.display = 'none';
         }
     }
 

@@ -1798,6 +1798,23 @@
                                 <option value="more_than_3_months">Plus de 3 mois</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="sgHandicap">Bénéficiaire RQTH (loi 11 février 2005) ?</label>
+                            <select id="sgHandicap" name="sgHandicap" onchange="toggleSgHandicapAccommodation(this.value)">
+                                <option value="">Sélectionnez…</option>
+                                <option value="non">Non</option>
+                                <option value="oui">Oui</option>
+                                <option value="prefer_not">Je ne souhaite pas répondre</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="sgHandicapAccommodationSection" style="display:none">
+                            <label for="sgHandicapAccommodation">Aménagement spécifique pour les tests (tiers-temps, accessibilité) ?</label>
+                            <select id="sgHandicapAccommodation" name="sgHandicapAccommodation">
+                                <option value="">Sélectionnez…</option>
+                                <option value="non">Non</option>
+                                <option value="oui">Oui</option>
+                            </select>
+                        </div>
 
                         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
@@ -2083,6 +2100,16 @@
             ["Vanuatu", "Vanuatu"], ["Venezuela", "Venezuela"], ["Vietnam", "Vietnam"], ["Wallis and Futuna", "Wallis-et-Futuna"],
             ["Western Sahara", "Sahara occidental"], ["Yemen", "Yémen"], ["Zambia", "Zambie"], ["Zimbabwe", "Zimbabwe"]
         ];
+
+        function toggleSgHandicapAccommodation(value) {
+            const section = document.getElementById('sgHandicapAccommodationSection');
+            if (!section) return;
+            section.style.display = (value === 'oui') ? 'block' : 'none';
+            if (value !== 'oui') {
+                const sel = document.getElementById('sgHandicapAccommodation');
+                if (sel) sel.value = '';
+            }
+        }
 
         function toggleDeloitteDetails(value) {
             const section = document.getElementById('deloitteDetailsSection');
@@ -2735,6 +2762,10 @@
             const notice = document.getElementById('sgNoticePeriod');
             if (eu && profile.sg_eu_work_authorization) eu.value = profile.sg_eu_work_authorization;
             if (notice && profile.sg_notice_period) notice.value = profile.sg_notice_period;
+            const sgHandicap = document.getElementById('sgHandicap');
+            const sgHandicapAccommodation = document.getElementById('sgHandicapAccommodation');
+            if (sgHandicap && profile.sg_handicap) { sgHandicap.value = profile.sg_handicap; toggleSgHandicapAccommodation(profile.sg_handicap); }
+            if (sgHandicapAccommodation && profile.sg_handicap_accommodation) sgHandicapAccommodation.value = profile.sg_handicap_accommodation;
         }
 
         // Fonction pour charger les informations Deloitte
@@ -3361,6 +3392,8 @@
                 bpce_job_alerts: document.getElementById('bpceJobAlerts')?.checked || false,
                 sg_eu_work_authorization: document.getElementById('sgEuWorkAuthorization')?.value || '',
                 sg_notice_period: document.getElementById('sgNoticePeriod')?.value || '',
+                sg_handicap: document.getElementById('sgHandicap')?.value || '',
+                sg_handicap_accommodation: document.getElementById('sgHandicapAccommodation')?.value || '',
                 email: userEmail || '',
                 updated_at: new Date().toISOString(),
                 created_at: null // Sera défini lors de la première création

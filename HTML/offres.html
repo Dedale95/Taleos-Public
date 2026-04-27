@@ -416,6 +416,15 @@
             letter-spacing: 0.04em;
             border: 1px solid rgba(200,169,110,0.3);
             animation: tagAppear 0.3s ease;
+            max-width: 220px;
+        }
+
+        .search-tag-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+            flex: 1;
         }
 
         @keyframes tagAppear {
@@ -445,6 +454,7 @@
             justify-content: center;
             width: 18px;
             height: 18px;
+            flex-shrink: 0;
             background: rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             transition: all 0.2s;
@@ -3127,25 +3137,43 @@
                 searchKeywords.forEach(keyword => {
                     const tag = document.createElement('div');
                     tag.className = 'search-tag';
-                    tag.innerHTML = `
-                        <span>${keyword}</span>
-                        <span class="search-tag-remove" onclick="removeSearchKeyword('${keyword}')">✕</span>
-                    `;
+
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'search-tag-text';
+                    textSpan.textContent = keyword; // textContent évite l'injection HTML
+
+                    const removeBtn = document.createElement('span');
+                    removeBtn.className = 'search-tag-remove';
+                    removeBtn.textContent = '✕';
+                    removeBtn.dataset.keyword = keyword; // data-attribute, pas onclick
+
+                    tag.appendChild(textSpan);
+                    tag.appendChild(removeBtn);
                     tagsContainer.appendChild(tag);
                 });
             }
-            
+
+            // Listener délégué unique sur le conteneur — évite les onclick inline
+            // et fonctionne même avec des apostrophes ou caractères spéciaux
+            document.getElementById('searchTags').addEventListener('click', function(e) {
+                const btn = e.target.closest('.search-tag-remove');
+                if (btn && btn.dataset.keyword !== undefined) {
+                    removeSearchKeyword(btn.dataset.keyword);
+                }
+            });
+
+            function removeSearchKeyword(keyword) {
+                searchKeywords.delete(keyword);
+                renderSearchTags();
+                updateActiveFiltersBadge();
+                applyFilters();
+            }
+            window.removeSearchKeyword = removeSearchKeyword;
+
             // Restaurer l'affichage des mots-clés si nécessaire
             if (searchKeywords.size > 0) {
                 renderSearchTags();
             }
-
-            window.removeSearchKeyword = function(keyword) {
-                searchKeywords.delete(keyword);
-                renderSearchTags();
-                updateActiveFiltersBadge(); // Mise à jour immédiate
-                applyFilters(); // Cela sauvegarde automatiquement via saveFilters() dans applyFilters()
-            };
             
             // hideDisabled=true pour Pays & Régions (hiérarchie), Famille de métiers
             const restoredLocation = restoredFilters?.countries || restoredFilters?.regions

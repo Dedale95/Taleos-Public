@@ -4672,32 +4672,41 @@
 
         // Fonction pour afficher la modale de profil incomplet
         function showProfileIncompleteModal(missingFields) {
-            const msg = (missingFields && missingFields.length > 0)
-                ? 'Pour activer l\'automatisation des candidatures, veuillez compléter tous les champs obligatoires : ' + missingFields.join(', ')
-                : 'Il manque des informations dans votre profil. Vous devez compléter votre profil avant de pouvoir candidater.';
+            const isBpceConnection = missingFields && missingFields.some(f => f.includes('Connexions') || f.includes('connexion BPCE') || f.includes('BPCE'));
+            let title, msg, btnLabel, btnAction;
+            if (isBpceConnection) {
+                title = '🔗 Connexion manquante';
+                msg = 'Votre email de connexion BPCE n\'est pas configuré. Rendez-vous sur la page Connexions pour l\'ajouter avant de lancer une candidature BPCE.';
+                btnLabel = 'Configurer la connexion';
+                btnAction = 'goToConnexions()';
+            } else {
+                title = '⚠️ Profil incomplet';
+                msg = (missingFields && missingFields.length > 0)
+                    ? 'Pour activer l\'automatisation des candidatures, veuillez compléter tous les champs obligatoires : ' + missingFields.join(', ')
+                    : 'Il manque des informations dans votre profil. Vous devez compléter votre profil avant de pouvoir candidater.';
+                btnLabel = 'Compléter mon profil';
+                btnAction = 'goToProfile()';
+            }
             let modal = document.getElementById('profileIncompleteModal');
             if (!modal) {
                 modal = document.createElement('div');
                 modal.id = 'profileIncompleteModal';
                 modal.className = 'profile-incomplete-modal';
-                modal.innerHTML = `
-                    <div class="profile-incomplete-modal-content">
-                        <h3>⚠️ Profil incomplet</h3>
-                        <p class="profile-incomplete-modal-message">${msg}</p>
-                        <div class="profile-incomplete-modal-actions">
-                            <button class="profile-incomplete-modal-btn profile-incomplete-modal-btn-secondary" onclick="closeProfileIncompleteModal()">Fermer</button>
-                            <button class="profile-incomplete-modal-btn profile-incomplete-modal-btn-primary" onclick="goToProfile()">Compléter mon profil</button>
-                        </div>
-                    </div>
-                `;
                 document.body.appendChild(modal);
                 modal.addEventListener('click', function(e) {
                     if (e.target === modal) closeProfileIncompleteModal();
                 });
-            } else {
-                const p = modal.querySelector('.profile-incomplete-modal-message');
-                if (p) p.textContent = msg;
             }
+            modal.innerHTML = `
+                <div class="profile-incomplete-modal-content">
+                    <h3>${title}</h3>
+                    <p class="profile-incomplete-modal-message">${msg}</p>
+                    <div class="profile-incomplete-modal-actions">
+                        <button class="profile-incomplete-modal-btn profile-incomplete-modal-btn-secondary" onclick="closeProfileIncompleteModal()">Fermer</button>
+                        <button class="profile-incomplete-modal-btn profile-incomplete-modal-btn-primary" onclick="${btnAction}">${btnLabel}</button>
+                    </div>
+                </div>
+            `;
             modal.classList.add('active');
         }
 
@@ -4711,6 +4720,11 @@
         function goToProfile() {
             closeProfileIncompleteModal();
             window.location.href = 'profile.html';
+        }
+
+        function goToConnexions() {
+            closeProfileIncompleteModal();
+            window.location.href = 'connexions.html?bank=bpce';
         }
 
         function showToast(title, message, type = 'success', duration = 4000) {

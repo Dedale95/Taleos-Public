@@ -1810,7 +1810,8 @@
                     const k = String(keyword || '').toLowerCase();
                     const title = (job.job_title || '').toLowerCase();
                     const desc = (job.job_description || '').toLowerCase();
-                    return title.includes(k) || desc.includes(k);
+                    const jobId = (job.job_id || '').toLowerCase();
+                    return title.includes(k) || desc.includes(k) || jobId.includes(k);
                 });
                 const jobCountry = job.cleanCountries && job.cleanCountries.length ? job.cleanCountries : null;
                 const matchCountry = !countries.length ||
@@ -4368,11 +4369,12 @@
             // Filtrer les jobs selon les critères sélectionnés
             const keywords = window.searchKeywords ? Array.from(window.searchKeywords) : [];
             filteredJobs = allJobs.filter(job => {
-                // Vérifier que TOUS les mots-clés sont présents dans le titre OU la description
+                // Vérifier que TOUS les mots-clés sont présents dans le titre, la description ou l'ID offre
                 const matchSearch = keywords.length === 0 || keywords.every(keyword => {
                     const title = (job.job_title || '').toLowerCase();
                     const desc = (job.job_description || '').toLowerCase();
-                    return title.includes(keyword) || desc.includes(keyword);
+                    const jobId = (job.job_id || '').toLowerCase();
+                    return title.includes(keyword) || desc.includes(keyword) || jobId.includes(keyword);
                 });
                 const jobCountry = job.cleanCountries && job.cleanCountries.length ? job.cleanCountries : null;
                 const matchCountry = !selectedCountries.length ||
@@ -4410,7 +4412,8 @@
                     const matchSearch = keywords.length === 0 || keywords.every(kw => {
                         const title = (job.job_title || '').toLowerCase();
                         const desc = (job.job_description || '').toLowerCase();
-                        return title.includes(kw) || desc.includes(kw);
+                        const jobId = (job.job_id || '').toLowerCase();
+                        return title.includes(kw) || desc.includes(kw) || jobId.includes(kw);
                     });
 
                     // Pour les comptages pays : exclure pays ET région (cocher Europe coche pays + régions enfants)

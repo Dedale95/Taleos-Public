@@ -3112,59 +3112,85 @@
             });
             
             // Système de recherche par mots-clés multiples
+            // initializeFilters() peut être appelé deux fois (premier batch + fond de chargement).
+            // On utilise window.searchKeywords comme source de vérité unique et on n'ajoute
+            // les listeners qu'une seule fois (quand window.searchKeywords n'existe pas encore).
+            // renderSearchTags / removeSearchKeyword lisent toujours window.searchKeywords
+            // directement — plus de divergence possible entre closure locale et référence globale.
             const searchInput = document.getElementById('searchInput');
-            let searchKeywords = restoredFilters?.searchKeywords ? new Set(restoredFilters.searchKeywords) : new Set();
+            const firstInit = !window._kwListenersAdded;
 
-            searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const keyword = this.value.trim().toLowerCase();
-                    if (keyword && !searchKeywords.has(keyword)) {
-                        searchKeywords.add(keyword);
-                        renderSearchTags();
-                        this.value = '';
-                        updateActiveFiltersBadge(); // Mise à jour immédiate
+            if (firstInit) {
+                // Premier appel : créer le Set et enregistrer les listeners UNE SEULE FOIS.
+                // On réutilise window.searchKeywords si restoreFilters() l'a déjà peuplé
+                // via le chemin Firestore (ligne ~4347), sinon on crée un nouveau Set.
+                if (!window.searchKeywords) {
+                    window.searchKeywords = restoredFilters?.searchKeywords
+                        ? new Set(restoredFilters.searchKeywords)
+                        : new Set();
+                } else if (restoredFilters?.searchKeywords) {
+                    restoredFilters.searchKeywords.forEach(k => window.searchKeywords.add(k));
+                }
+                window._kwListenersAdded = true;
+
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const keyword = this.value.trim().toLowerCase();
+                        if (keyword && !window.searchKeywords.has(keyword)) {
+                            window.searchKeywords.add(keyword);
+                            window.renderSearchTags();
+                            this.value = '';
+                            updateActiveFiltersBadge();
+                            applyFilters();
+                        }
+                    }
+                });
+
+                document.getElementById('searchTags').addEventListener('click', function(e) {
+                    const btn = e.target.closest('.search-tag-remove');
+                    if (btn && btn.dataset.keyword !== undefined) {
+                        window.searchKeywords.delete(btn.dataset.keyword);
+                        window.renderSearchTags();
+                        updateActiveFiltersBadge();
                         applyFilters();
                     }
+                });
+            } else {
+                // Appels suivants : fusionner les keywords restaurés dans le Set existant
+                // (ne pas remplacer la référence — les listeners actifs pointent vers ce Set)
+                if (restoredFilters?.searchKeywords) {
+                    restoredFilters.searchKeywords.forEach(k => window.searchKeywords.add(k));
                 }
-            });
+            }
 
-            window.searchKeywords = searchKeywords; // Rendre accessible globalement
-            window.renderSearchTags = renderSearchTags;
-
+            // renderSearchTags et removeSearchKeyword sont re-définis à chaque appel
+            // mais lisent toujours window.searchKeywords → pas de closure divergente
             function renderSearchTags() {
                 const tagsContainer = document.getElementById('searchTags');
                 tagsContainer.innerHTML = '';
-                searchKeywords.forEach(keyword => {
+                window.searchKeywords.forEach(keyword => {
                     const tag = document.createElement('div');
                     tag.className = 'search-tag';
 
                     const textSpan = document.createElement('span');
                     textSpan.className = 'search-tag-text';
-                    textSpan.textContent = keyword; // textContent évite l'injection HTML
+                    textSpan.textContent = keyword;
 
                     const removeBtn = document.createElement('span');
                     removeBtn.className = 'search-tag-remove';
                     removeBtn.textContent = '✕';
-                    removeBtn.dataset.keyword = keyword; // data-attribute, pas onclick
+                    removeBtn.dataset.keyword = keyword;
 
                     tag.appendChild(textSpan);
                     tag.appendChild(removeBtn);
                     tagsContainer.appendChild(tag);
                 });
             }
-
-            // Listener délégué unique sur le conteneur — évite les onclick inline
-            // et fonctionne même avec des apostrophes ou caractères spéciaux
-            document.getElementById('searchTags').addEventListener('click', function(e) {
-                const btn = e.target.closest('.search-tag-remove');
-                if (btn && btn.dataset.keyword !== undefined) {
-                    removeSearchKeyword(btn.dataset.keyword);
-                }
-            });
+            window.renderSearchTags = renderSearchTags;
 
             function removeSearchKeyword(keyword) {
-                searchKeywords.delete(keyword);
+                window.searchKeywords.delete(keyword);
                 renderSearchTags();
                 updateActiveFiltersBadge();
                 applyFilters();
@@ -3172,7 +3198,7 @@
             window.removeSearchKeyword = removeSearchKeyword;
 
             // Restaurer l'affichage des mots-clés si nécessaire
-            if (searchKeywords.size > 0) {
+            if (window.searchKeywords.size > 0) {
                 renderSearchTags();
             }
             
@@ -4342,14 +4368,10 @@
             
             if (!filters) return null;
             
-            // Restaurer les mots-clés
-            if (filters.searchKeywords && Array.isArray(filters.searchKeywords)) {
-                window.searchKeywords = new Set(filters.searchKeywords);
-                if (window.renderSearchTags) {
-                    window.renderSearchTags();
-                }
-            }
-            
+            // Les mots-clés sont restaurés par initializeFilters() à partir de filters.searchKeywords.
+            // On ne touche plus window.searchKeywords ici pour éviter de remplacer la référence
+            // et d'orpheliner les listeners déjà enregistrés.
+
             // Retourner les filtres pour restaurer les checkboxes
             return filters;
         }

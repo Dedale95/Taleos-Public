@@ -19,14 +19,17 @@ import re
 import sqlite3
 import json
 import unicodedata
+import os
 from pathlib import Path
 from datetime import datetime
 from country_normalizer import get_country_from_city, normalize_country
 from experience_extractor import extract_experience_level
+from credit_mutuel_company_mapping import normalize_company_name as normalize_cm_company_name
 
 # Configuration des chemins
 PYTHON_DIR = Path(__file__).parent
 HTML_DIR = PYTHON_DIR.parent / "HTML"
+ROOT_DIR = PYTHON_DIR.parent
 OUTPUT_JSON = HTML_DIR / "scraped_jobs.json"
 
 # Chemins des bases de données SQLite
@@ -38,6 +41,60 @@ BPIFRANCE_DB = PYTHON_DIR / "bpifrance_jobs.db"
 BPCE_DB = PYTHON_DIR / "bpce_jobs.db"
 CREDIT_MUTUEL_DB = PYTHON_DIR / "credit_mutuel_jobs.db"
 ODDO_BHF_DB = PYTHON_DIR / "oddo_bhf_jobs.db"
+JP_MORGAN_DB = PYTHON_DIR / "jp_morgan_jobs.db"
+
+
+def write_json(path: Path, data, pretty: bool = False):
+    with open(path, 'w', encoding='utf-8') as f:
+        if pretty:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        else:
+            json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
+
+
+def load_existing_json(path: Path):
+    if not path.exists():
+        return []
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def extract_bnp_jobs_from_json(jobs: list, patterns: list[str]) -> list:
+    return [
+        job for job in jobs
+        if any(p in (job.get('company_name') or '').lower() for p in patterns)
+    ]
+
+
+def db_has_jobs_table(path: Path) -> bool:
+    if not path.exists():
+        return False
+    try:
+        conn = sqlite3.connect(path)
+        try:
+            row = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='jobs'"
+            ).fetchone()
+            return bool(row)
+        finally:
+            conn.close()
+    except Exception:
+        return False
+
+
+def slim_full_job(job: dict) -> dict:
+    """Version légère pour l'archive complète afin de rester sous les limites GitHub."""
+    if not isinstance(job, dict):
+        return job
+    slim = dict(job)
+    # Le site n'utilise pas les longs blocs descriptifs dans la version full d'archive.
+    slim.pop('job_description', None)
+    slim.pop('company_description', None)
+    return slim
 
 
 def _normalize_text(s: str) -> str:
@@ -273,9 +330,11 @@ def fix_location(loc):
             if rest and rest.lower() in ('tunisie', 'roumanie', 'romania'):
                 return normalize_country(rest)
         return loc
-    parts = loc.split(' - ', 1)
-    city = (parts[0] or '').strip()
-    country = (parts[1] or '').strip()
+    parts = [part.strip() for part in loc.split(' - ') if part and part.strip()]
+    if len(parts) < 2:
+        return loc
+    city = ' - '.join(parts[:-1]).strip()
+    country = parts[-1].strip()
     if not country:
         return loc
     # Cas comme \"- - France\" ou \"- France\" → on garde uniquement le pays
@@ -389,6 +448,10 @@ def read_from_db(db_path, company_name, live_only=True):
                 )
                 if extracted:
                     job['experience_level'] = normalize_experience_level(extracted)
+
+            # Crédit Mutuel : consolider les filiales/caisses vers les libellés groupe attendus côté front.
+            if db_path == CREDIT_MUTUEL_DB and job.get('company_name'):
+                job['company_name'] = normalize_cm_company_name(job['company_name'])
             
             jobs.append(job)
         
@@ -420,22 +483,51 @@ def main():
         ("Bpifrance", BPIFRANCE_DB),
         ("Crédit Mutuel", CREDIT_MUTUEL_DB),
         ("ODDO BHF", ODDO_BHF_DB),
+        ("JP Morgan Chase", JP_MORGAN_DB),
     ]
 
-    # Si BNP_DB absent : préserver les offres BNP du JSON existant (évite de les écraser en local)
+    # Mode strict pour éviter d'exporter des données BNP obsolètes en cas d'échec scraper/base manquante.
+    require_bnp_db = (os.environ.get("TALEOS_REQUIRE_BNP_DB", "").strip() == "1")
+    preserve_bnp_env = os.environ.get("TALEOS_PRESERVE_BNP_IF_MISSING", "").strip().lower()
+    if preserve_bnp_env in {"0", "false", "no"}:
+        preserve_bnp_if_missing = False
+    else:
+        # Par défaut, on préserve BNP pour éviter de le faire disparaître du site
+        # lors d'un export local partiel sans base BNP.
+        preserve_bnp_if_missing = True
+
+    bnp_db_usable = db_has_jobs_table(BNP_DB)
+
+    # Si BNP_DB est absent/inutilisable : préserver les offres BNP du JSON existant.
     bnp_jobs_preserved = []
-    if not BNP_DB.exists():
-        live_path = HTML_DIR / "scraped_jobs_live.json"
-        if live_path.exists():
-            try:
-                with open(live_path, 'r', encoding='utf-8') as f:
-                    existing = json.load(f)
-                bnp_jobs_preserved = [j for j in existing
-                                      if any(p in (j.get('company_name') or '').lower() for p in BNP_PATTERNS)]
+    if not bnp_db_usable:
+        if require_bnp_db:
+            raise RuntimeError(
+                f"BNP DB absente ou inutilisable: {BNP_DB}. Abandon export (TALEOS_REQUIRE_BNP_DB=1) pour éviter des offres BNP obsolètes."
+            )
+        if preserve_bnp_if_missing:
+            existing_sources = [
+                HTML_DIR / "scraped_jobs_live.json",
+                ROOT_DIR / "scraped_jobs_live.json",
+                HTML_DIR / "scraped_jobs.json",
+                ROOT_DIR / "scraped_jobs.json",
+            ]
+            for existing_path in existing_sources:
+                existing = load_existing_json(existing_path)
+                if not existing:
+                    continue
+                bnp_jobs_preserved = extract_bnp_jobs_from_json(existing, BNP_PATTERNS)
                 if bnp_jobs_preserved:
-                    print(f"   📌 {len(bnp_jobs_preserved)} offres BNP préservées du JSON existant (base absente)")
-            except Exception:
-                pass
+                    print(
+                        f"   📌 {len(bnp_jobs_preserved)} offres BNP préservées depuis {existing_path.name} "
+                        f"(base absente/inutilisable)"
+                    )
+                    break
+            if not bnp_jobs_preserved:
+                print(
+                    "   ⚠️ Base BNP absente/inutilisable et aucune offre BNP à préserver dans les JSON existants. "
+                    "L'export continuera sans BNP."
+                )
 
     for name, db_path in sources_info:
         print(f"📁 Lecture de {name} depuis {db_path.name}...")
@@ -453,8 +545,8 @@ def main():
     
     if all_jobs:
         # Sauvegarder en JSON (version complète)
-        with open(OUTPUT_JSON, 'w', encoding='utf-8') as f:
-            json.dump(all_jobs, f, ensure_ascii=False, indent=2)
+        write_json(OUTPUT_JSON, all_jobs, pretty=False)
+        write_json(ROOT_DIR / "scraped_jobs.json", all_jobs, pretty=False)
         
         print()
         print(f"✅ Export terminé : {len(all_jobs)} offres Live sauvegardées dans {OUTPUT_JSON.name}")
@@ -463,23 +555,23 @@ def main():
         # Créer une version allégée avec seulement les offres Live (pour GitHub Pages)
         live_jobs = [job for job in all_jobs if job.get('status') == 'Live']
         OUTPUT_JSON_LIVE = HTML_DIR / "scraped_jobs_live.json"
-        with open(OUTPUT_JSON_LIVE, 'w', encoding='utf-8') as f:
-            json.dump(live_jobs, f, ensure_ascii=False, indent=2)
+        write_json(OUTPUT_JSON_LIVE, live_jobs, pretty=False)
+        write_json(ROOT_DIR / "scraped_jobs_live.json", live_jobs, pretty=False)
         
         print(f"✅ Version allégée créée : {len(live_jobs)} offres Live dans {OUTPUT_JSON_LIVE.name}")
         
         # Version complète (Live + Expired) pour mes-candidatures / référence
         all_jobs_full = []
         for name, db_path in sources_info:
-            if db_path.exists():
+            if db_has_jobs_table(db_path):
                 full = read_from_db(db_path, name, live_only=False)
                 all_jobs_full.extend(full)
-        if bnp_jobs_preserved and not BNP_DB.exists():
+        if bnp_jobs_preserved and not bnp_db_usable:
             all_jobs_full.extend(bnp_jobs_preserved)
         OUTPUT_JSON_FULL = HTML_DIR / "scraped_jobs_full.json"
         if all_jobs_full:
-            with open(OUTPUT_JSON_FULL, 'w', encoding='utf-8') as f:
-                json.dump(all_jobs_full, f, ensure_ascii=False, indent=2)
+            slim_jobs_full = [slim_full_job(job) for job in all_jobs_full]
+            write_json(OUTPUT_JSON_FULL, slim_jobs_full, pretty=False)
             live_count = sum(1 for j in all_jobs_full if j.get('status') == 'Live')
             print(f"✅ Version complète créée : {len(all_jobs_full)} offres (dont {live_count} Live) dans {OUTPUT_JSON_FULL.name}")
         

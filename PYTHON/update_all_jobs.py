@@ -20,12 +20,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
 
-try:
-    from country_normalizer import get_country_from_city, normalize_country
-except ImportError:
-    import sys
-    sys.path.append(str(Path(__file__).parent))
-    from country_normalizer import get_country_from_city, normalize_country
+from country_normalizer import get_country_from_city, normalize_country
 
 # Configuration des chemins
 BASE_DIR = Path(__file__).parent.parent
@@ -42,6 +37,7 @@ BPIFRANCE_DB = PYTHON_DIR / "bpifrance_jobs.db"
 BPCE_DB = PYTHON_DIR / "bpce_jobs.db"
 CREDIT_MUTUEL_DB = PYTHON_DIR / "credit_mutuel_jobs.db"
 ODDO_BHF_DB = PYTHON_DIR / "oddo_bhf_jobs.db"
+JP_MORGAN_DB = PYTHON_DIR / "jp_morgan_jobs.db"
 
 EXPIRED_PAGE_PATTERNS = [
     "la page que vous recherchez est introuvable",
@@ -55,14 +51,73 @@ EXPIRED_PAGE_PATTERNS = [
     "the requested page no longer exists",
 ]
 
+INCONCLUSIVE_STATUS_CODES = {401, 403, 429}
 
-def _is_offer_url_expired(url: str, timeout_sec: int = 12) -> bool:
+SHELL_PAGE_PATTERNS = {
+    "BPCE": [
+        "le groupe bpce, 2e groupe bancaire en france",
+        "nos offres d'emploi",
+        "rejoindre le groupe bpce",
+    ],
+}
+
+
+def _normalize_offer_url_for_compare(url: str) -> str:
+    raw = (url or "").strip()
+    if not raw:
+        return ""
+    return raw.rstrip("/")
+
+
+def _get_current_live_urls_for_source(source_name: str) -> Optional[set[str]]:
+    """Charge la liste d'URLs actuellement exposées par la source quand un endpoint fiable existe."""
+    if source_name != "BPCE":
+        return None
+
+    try:
+        from bpce_scraper import fetch_all_jobs_from_api, transform_api_item_to_job
+
+        current_urls = set()
+        for item in fetch_all_jobs_from_api():
+            job = transform_api_item_to_job(item)
+            normalized = _normalize_offer_url_for_compare(job.get("job_url", ""))
+            if normalized:
+                current_urls.add(normalized)
+        print(f"   ↳ {source_name}: {len(current_urls)} URL live chargées depuis l'API source")
+        return current_urls
+    except Exception as exc:
+        print(f"⚠️ {source_name}: impossible de charger les URL live source ({exc})")
+        return None
+
+
+def _db_has_jobs_table(db_path: Path) -> bool:
+    if not db_path.exists():
+        return False
+    conn = sqlite3.connect(db_path)
+    try:
+        row = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'jobs'"
+        ).fetchone()
+        return bool(row)
+    finally:
+        conn.close()
+
+
+def _is_offer_url_expired(
+    url: str,
+    source_name: str = "",
+    current_live_urls: Optional[set[str]] = None,
+    timeout_sec: int = 12,
+) -> bool:
     """Détecte rapidement si une URL d'offre est expirée/introuvable."""
     raw = (url or "").strip()
     if not raw:
         return True
-    low = raw.lower()
+    normalized_raw = _normalize_offer_url_for_compare(raw)
+    low = normalized_raw.lower()
     if "/404/" in low or low.endswith("/404"):
+        return True
+    if current_live_urls is not None and normalized_raw not in current_live_urls:
         return True
     try:
         resp = requests.get(
@@ -72,12 +127,23 @@ def _is_offer_url_expired(url: str, timeout_sec: int = 12) -> bool:
             headers={"User-Agent": "Mozilla/5.0 (Taleos-Revalidator)"},
         )
         final_url = (resp.url or raw).lower()
+        if resp.status_code in INCONCLUSIVE_STATUS_CODES:
+            return False
+        if resp.status_code in {404, 410}:
+            return True
+        if resp.status_code >= 500:
+            return False
         if resp.status_code >= 400:
             return True
         if "/404/" in final_url or final_url.endswith("/404"):
             return True
         txt = (resp.text or "")[:20000].lower()
-        return any(p in txt for p in EXPIRED_PAGE_PATTERNS)
+        if any(p in txt for p in EXPIRED_PAGE_PATTERNS):
+            return True
+        for pattern in SHELL_PAGE_PATTERNS.get(source_name, []):
+            if pattern in txt:
+                return True
+        return False
     except Exception:
         # En cas d'erreur réseau, on ne force pas l'expiration
         return False
@@ -92,6 +158,9 @@ def revalidate_live_offers_in_db(
     """Revalide toutes les offres Live d'une base et expire celles devenues introuvables."""
     if not db_path.exists():
         print(f"⚠️ Revalidation ignorée ({source_name}) : base absente")
+        return 0
+    if not _db_has_jobs_table(db_path):
+        print(f"⚠️ Revalidation ignorée ({source_name}) : table jobs absente")
         return 0
 
     conn = sqlite3.connect(db_path)
@@ -112,9 +181,13 @@ def revalidate_live_offers_in_db(
 
         print(f"🔎 Revalidation {source_name}: vérification de {len(urls)} URL Live...")
         to_expire = set()
+        current_live_urls = _get_current_live_urls_for_source(source_name)
 
         with ThreadPoolExecutor(max_workers=max_workers) as ex:
-            futures = {ex.submit(_is_offer_url_expired, u): u for u in urls}
+            futures = {
+                ex.submit(_is_offer_url_expired, u, source_name, current_live_urls): u
+                for u in urls
+            }
             for fut in as_completed(futures):
                 u = futures[fut]
                 try:
@@ -152,6 +225,7 @@ def revalidate_live_offers_all_sources():
         ("Bpifrance", BPIFRANCE_DB),
         ("Crédit Mutuel", CREDIT_MUTUEL_DB),
         ("ODDO BHF", ODDO_BHF_DB),
+        ("JP Morgan Chase", JP_MORGAN_DB),
     ]:
         total += revalidate_live_offers_in_db(
             db_path, name, max_urls=max_per
@@ -220,6 +294,14 @@ def run_script(script_name, cwd=PYTHON_DIR, timeout=None):
         print(f"❌ Erreur lors de l'exécution de {script_name}: {e}")
         return False
 
+def _ensure_db_exists_or_fail(db_path: Path, label: str):
+    if db_path.exists():
+        return
+    raise RuntimeError(
+        f"Base {label} manquante ({db_path}). "
+        "Arrêt pour éviter un export partiel avec données obsolètes."
+    )
+
 def merge_from_databases():
     """Fusionne les données depuis les bases SQLite (dont job_description = texte complet pour recherche par mots-clés)."""
     print(f"🔄 Fusion des données depuis les bases SQLite vers {OUTPUT_CSV}...")
@@ -237,9 +319,11 @@ def merge_from_databases():
                 return parts[1].strip()
         if ' - ' not in loc:
             return loc
-        parts = loc.split(' - ', 1)
-        city = (parts[0] or '').strip()
-        country = (parts[1] or '').strip()
+        parts = [part.strip() for part in loc.split(' - ') if part and part.strip()]
+        if len(parts) < 2:
+            return loc
+        city = ' - '.join(parts[:-1]).strip()
+        country = parts[-1].strip()
         if not city or country.lower() != 'france':
             return loc
         # Aligné front : "Ile-De France" / "Ile-de France" → libellé canonique (filtre Île-de-France)
@@ -326,7 +410,7 @@ def merge_from_databases():
         """Lit les offres depuis une base SQLite"""
         if not db_path.exists():
             print(f"⚠️ Base de données manquante : {db_path}")
-            return []
+            return [], None
         
         try:
             conn = sqlite3.connect(db_path)
@@ -396,6 +480,7 @@ def merge_from_databases():
         ("Bpifrance", BPIFRANCE_DB),
         ("Crédit Mutuel", CREDIT_MUTUEL_DB),
         ("ODDO BHF", ODDO_BHF_DB),
+        ("JP Morgan Chase", JP_MORGAN_DB),
     ]
     
     for name, db_path in sources_info:
@@ -439,31 +524,55 @@ if __name__ == "__main__":
     print(f"Date : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
 
+    failures = []
+    require_bnp_db = (os.environ.get("TALEOS_REQUIRE_BNP_DB", "").strip() == "1")
+
     # 1. Scraper Crédit Agricole
-    run_script("credit_agricole_scraper.py")
+    if not run_script("credit_agricole_scraper.py"):
+        failures.append("credit_agricole_scraper.py")
     
     # 2. Scraper Société Générale
-    run_script("societe_generale_scraper_improved.py")
+    if not run_script("societe_generale_scraper_improved.py"):
+        failures.append("societe_generale_scraper_improved.py")
 
     # 3. Scraper Deloitte
-    run_script("deloitte_scraper.py")
+    if not run_script("deloitte_scraper.py"):
+        failures.append("deloitte_scraper.py")
 
     # 4. Scraper BNP Paribas
-    run_script("bnp_paribas_scraper.py")
+    if not run_script("bnp_paribas_scraper.py"):
+        failures.append("bnp_paribas_scraper.py")
+    if require_bnp_db:
+        _ensure_db_exists_or_fail(BNP_DB, "BNP Paribas")
 
     # 5. Scraper BPCE
-    run_script("bpce_scraper.py")
+    if not run_script("bpce_scraper.py"):
+        failures.append("bpce_scraper.py")
 
     # 6. Scraper Bpifrance
-    run_script("bpifrance_scraper.py")
+    if not run_script("bpifrance_scraper.py"):
+        failures.append("bpifrance_scraper.py")
 
     # 7. Scraper Crédit Mutuel
-    run_script("credit_mutuel_scraper.py")
+    if not run_script("credit_mutuel_scraper.py"):
+        failures.append("credit_mutuel_scraper.py")
 
     # 7b. Scraper ODDO BHF
-    run_script("oddo_bhf_scraper.py")
+    if not run_script("oddo_bhf_scraper.py"):
+        failures.append("oddo_bhf_scraper.py")
 
-    # 8. Revalidation
+    # 7c. Scraper JP Morgan Chase
+    if not run_script("jp_morgan_scraper.py"):
+        failures.append("jp_morgan_scraper.py")
+
+    if failures:
+        print("\n❌ Scrapers en échec:")
+        for s in failures:
+            print(f"   - {s}")
+        if require_bnp_db:
+            raise RuntimeError("Au moins un scraper a échoué en mode strict (TALEOS_REQUIRE_BNP_DB=1).")
+
+    # 8. Revalidation globale des offres encore marquées Live
     revalidate_live_offers_all_sources()
 
     # 9. Fusion des données depuis les bases SQLite
@@ -493,7 +602,7 @@ if __name__ == "__main__":
         total_expired = 0
         print(f"   {'Entité':<22} │ {'Live':>6} │ {'Expired':>7}")
         print("   " + "-" * 40)
-        for name, db_path in [("Crédit Agricole", CA_DB), ("Société Générale", SG_DB), ("Deloitte", DELOITTE_DB), ("BNP Paribas", BNP_DB), ("BPCE", BPCE_DB), ("Bpifrance", BPIFRANCE_DB), ("Crédit Mutuel", CREDIT_MUTUEL_DB), ("ODDO BHF", ODDO_BHF_DB)]:
+        for name, db_path in [("Crédit Agricole", CA_DB), ("Société Générale", SG_DB), ("Deloitte", DELOITTE_DB), ("BNP Paribas", BNP_DB), ("BPCE", BPCE_DB), ("Bpifrance", BPIFRANCE_DB), ("Crédit Mutuel", CREDIT_MUTUEL_DB), ("ODDO BHF", ODDO_BHF_DB), ("JP Morgan Chase", JP_MORGAN_DB)]:
             if db_path.exists():
                 conn = sqlite3.connect(db_path)
                 row = conn.execute("""

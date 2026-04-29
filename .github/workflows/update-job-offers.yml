@@ -35,6 +35,7 @@ on:
           - bpifrance
           - credit_mutuel
           - oddo_bhf
+          - jp_morgan
 
 jobs:
   scrape:
@@ -86,6 +87,11 @@ jobs:
             script: oddo_bhf_scraper.py
             db_file: oddo_bhf_jobs.db
             timeout_minutes: 90
+          - name: JP Morgan Chase
+            key: jp_morgan
+            script: jp_morgan_scraper.py
+            db_file: jp_morgan_jobs.db
+            timeout_minutes: 60
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       BNP_MAX_CONCURRENT_LISTING: "18"

@@ -263,6 +263,173 @@
             margin-bottom: 18px;
         }
 
+        .scraping-card {
+            background: linear-gradient(180deg, rgba(200,169,110,0.08), rgba(255,255,255,0.98));
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+
+        .scraping-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .scraping-title {
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 0.01em;
+        }
+
+        .scraping-subtitle {
+            color: var(--muted);
+            font-size: 0.78rem;
+            margin-top: 4px;
+            max-width: 760px;
+        }
+
+        .scraping-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .scraping-meta {
+            color: var(--muted);
+            font-size: 0.76rem;
+            text-align: right;
+        }
+
+        .scraping-kpis {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .scraping-kpi {
+            background: rgba(255,255,255,0.88);
+            border: 1px solid rgba(200,169,110,0.18);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+        }
+
+        .scraping-kpi-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .scraping-kpi-value {
+            font-family: var(--serif);
+            font-size: 1.45rem;
+            line-height: 1;
+            color: var(--ink);
+        }
+
+        .scraping-kpi-meta {
+            margin-top: 5px;
+            color: var(--text-body);
+            font-size: 0.78rem;
+        }
+
+        .scraping-table {
+            min-width: 860px;
+        }
+
+        .scraping-table th,
+        .scraping-table td {
+            vertical-align: middle;
+        }
+
+        .scraping-bank {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .scraping-bank strong {
+            color: var(--ink);
+            font-size: 0.82rem;
+        }
+
+        .scraping-bank span,
+        .scraping-source,
+        .scraping-count-meta {
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+
+        .scraping-coverage-cell {
+            min-width: 240px;
+        }
+
+        .coverage-bar {
+            position: relative;
+            height: 10px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(20,20,28,0.08);
+            margin-bottom: 6px;
+        }
+
+        .coverage-bar-fill {
+            position: absolute;
+            inset: 0 auto 0 0;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #d4573b, #c8a96e 58%, #17976d);
+        }
+
+        .coverage-label {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 0.74rem;
+            color: var(--text-body);
+        }
+
+        .coverage-label strong {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .scraping-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .scraping-status-pill.ok {
+            color: #047857;
+            background: rgba(16,185,129,0.10);
+        }
+
+        .scraping-status-pill.warn {
+            color: #b45309;
+            background: rgba(245,158,11,0.12);
+        }
+
+        .scraping-status-pill.error {
+            color: #b91c1c;
+            background: rgba(239,68,68,0.10);
+        }
+
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -562,6 +729,11 @@
             background: var(--gold-dim);
         }
 
+        .run-action-btn:disabled {
+            opacity: 0.55;
+            cursor: wait;
+        }
+
         .empty {
             padding: 18px 2px 4px;
             color: var(--muted);
@@ -614,6 +786,7 @@
                 grid-template-columns: 1fr;
             }
 
+            .scraping-kpis,
             .summary-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -633,8 +806,18 @@
                 flex-wrap: wrap;
             }
 
+            .scraping-kpis,
             .summary-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .scraping-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .scraping-meta {
+                text-align: left;
             }
 
             .footer-inner {
@@ -732,6 +915,56 @@
                             <div class="summary-meta" id="summaryVersionMeta">Versions: —</div>
                         </div>
                     </div>
+
+                    <section class="scraping-card">
+                        <div class="scraping-head">
+                            <div>
+                                <div class="scraping-title">Pilotage du scraping quotidien</div>
+                                <div class="scraping-subtitle">Chaque banque compare le volume affiché sur le site carrière au volume réellement disponible dans Taleos, pour repérer vite les gros trous de scraping.</div>
+                            </div>
+                            <div class="scraping-actions">
+                                <div class="scraping-meta" id="scrapingCoverageMeta">Chiffres en attente</div>
+                                <button class="run-action-btn" id="refreshScrapingCoverageBtn" type="button">Rafraîchir les chiffres</button>
+                            </div>
+                        </div>
+
+                        <div class="scraping-kpis">
+                            <div class="scraping-kpi">
+                                <div class="scraping-kpi-label">Offres sites carrière</div>
+                                <div class="scraping-kpi-value" id="scrapingSiteTotal">—</div>
+                                <div class="scraping-kpi-meta">somme des banques suivies</div>
+                            </div>
+                            <div class="scraping-kpi">
+                                <div class="scraping-kpi-label">Offres disponibles Taleos</div>
+                                <div class="scraping-kpi-value" id="scrapingTaleosTotal">—</div>
+                                <div class="scraping-kpi-meta">catalogue public actuellement scrapé</div>
+                            </div>
+                            <div class="scraping-kpi">
+                                <div class="scraping-kpi-label">Couverture globale</div>
+                                <div class="scraping-kpi-value" id="scrapingCoverageTotal">—</div>
+                                <div class="scraping-kpi-meta" id="scrapingCoverageDelta">écart en attente</div>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="scraping-table">
+                                <thead>
+                                    <tr>
+                                        <th>Banque</th>
+                                        <th>Offres site carrière</th>
+                                        <th>Offres Taleos</th>
+                                        <th>Couverture</th>
+                                        <th>Écart</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scrapingCoverageTableBody">
+                                    <tr>
+                                        <td colspan="5" class="scraping-count-meta">Chargement du tableau de pilotage…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
 
                     <div class="charts-grid">
                         <section class="chart-card">
@@ -844,6 +1077,9 @@
 
         const LIST_EXTENSION_RUNS_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/listExtensionApplicationRuns';
         const SAVE_EXTENSION_RUN_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/saveExtensionApplicationRun';
+        const SCRAPING_COVERAGE_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/getScrapingCoverageSnapshot';
+        const SCRAPING_COVERAGE_CACHE_KEY = 'taleosScrapingCoverageSnapshotV1';
+        const SCRAPING_COVERAGE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
         const RESULT_FILTERS = ['all', 'success', 'already_applied', 'failed', 'aborted', 'timeout', 'running'];
 
         let extensionRuns = [];
@@ -854,6 +1090,7 @@
         let searchTerm = '';
         let dailyVolumeChartInstance = null;
         let dailyOutcomeChartInstance = null;
+        let scrapingCoverageSnapshot = null;
 
         function canViewAdminDashboard(user) {
             const email = String(user?.email || '').trim().toLowerCase();
@@ -889,6 +1126,48 @@
                 hour: '2-digit',
                 minute: '2-digit'
             }).replace(',', '');
+        }
+
+        function formatCount(value) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return '—';
+            return numeric.toLocaleString('fr-FR');
+        }
+
+        function formatPercent(value) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return '—';
+            return `${numeric.toLocaleString('fr-FR', { minimumFractionDigits: numeric % 1 ? 1 : 0, maximumFractionDigits: 1 })}%`;
+        }
+
+        function getCoverageTone(value, status) {
+            if (status === 'error') return 'error';
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return 'warn';
+            if (numeric >= 75) return 'ok';
+            if (numeric >= 45) return 'warn';
+            return 'error';
+        }
+
+        function readScrapingCoverageCache() {
+            try {
+                const raw = localStorage.getItem(SCRAPING_COVERAGE_CACHE_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (!parsed || typeof parsed !== 'object' || !parsed.snapshot) return null;
+                return parsed;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function writeScrapingCoverageCache(snapshot) {
+            try {
+                localStorage.setItem(SCRAPING_COVERAGE_CACHE_KEY, JSON.stringify({
+                    storedAt: Date.now(),
+                    snapshot
+                }));
+            } catch (_) {}
         }
 
         function formatDayLabel(isoDay) {
@@ -1039,6 +1318,118 @@
             select.innerHTML = `<option value="all">Toutes les banques</option>${bankIds.map((bankId) => `<option value="${escapeHtml(bankId)}">${escapeHtml(bankId)}</option>`).join('')}`;
             select.value = bankIds.includes(currentValue) ? currentValue : 'all';
             activeBankFilter = select.value;
+        }
+
+        function renderScrapingCoverage(snapshot) {
+            scrapingCoverageSnapshot = snapshot || null;
+            const tbody = document.getElementById('scrapingCoverageTableBody');
+            const meta = document.getElementById('scrapingCoverageMeta');
+            const siteTotal = document.getElementById('scrapingSiteTotal');
+            const taleosTotal = document.getElementById('scrapingTaleosTotal');
+            const coverageTotal = document.getElementById('scrapingCoverageTotal');
+            const coverageDelta = document.getElementById('scrapingCoverageDelta');
+
+            if (!snapshot || !Array.isArray(snapshot.banks) || !snapshot.banks.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="scraping-count-meta">Impossible de charger les chiffres de scraping pour le moment.</td>
+                    </tr>
+                `;
+                meta.textContent = 'Chiffres indisponibles';
+                siteTotal.textContent = '—';
+                taleosTotal.textContent = '—';
+                coverageTotal.textContent = '—';
+                coverageDelta.textContent = 'écart indisponible';
+                return;
+            }
+
+            meta.textContent = `Dernier refresh ${formatDashboardDate(snapshot.generatedAt)} · comparaison officielle vs Taleos`;
+            siteTotal.textContent = formatCount(snapshot.totals?.siteCount);
+            taleosTotal.textContent = formatCount(snapshot.totals?.taleosCount);
+            coverageTotal.textContent = formatPercent(snapshot.totals?.coveragePct);
+            const totalMissing = Math.max(Number(snapshot.totals?.siteCount || 0) - Number(snapshot.totals?.taleosCount || 0), 0);
+            coverageDelta.textContent = `${formatCount(totalMissing)} offres manquantes à rattraper`;
+
+            tbody.innerHTML = snapshot.banks.map((bank) => {
+                const tone = getCoverageTone(bank.coveragePct, bank.status);
+                const siteCountText = bank.status === 'error' ? 'Indisponible' : formatCount(bank.siteCount);
+                const taleosCountText = formatCount(bank.taleosCount);
+                const coverageText = bank.status === 'error' ? 'Indisponible' : formatPercent(bank.coveragePct);
+                const missingText = bank.status === 'error' ? escapeHtml(bank.error || 'Source indisponible') : `${formatCount(bank.missingCount)} offres manquantes`;
+                const width = Number.isFinite(Number(bank.coveragePct)) ? Math.max(3, Math.min(100, Number(bank.coveragePct))) : 3;
+                return `
+                    <tr>
+                        <td>
+                            <div class="scraping-bank">
+                                <strong>${escapeHtml(bank.name || 'Banque')}</strong>
+                                <span><a href="${escapeHtml(bank.careerUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(bank.sourceLabel || 'Source')}</a></span>
+                            </div>
+                        </td>
+                        <td>
+                            <div>${siteCountText}</div>
+                            <div class="scraping-count-meta">site carrière</div>
+                        </td>
+                        <td>
+                            <div>${taleosCountText}</div>
+                            <div class="scraping-count-meta">dans Taleos</div>
+                        </td>
+                        <td class="scraping-coverage-cell">
+                            <div class="coverage-bar">
+                                <div class="coverage-bar-fill" style="width:${width}%"></div>
+                            </div>
+                            <div class="coverage-label">
+                                <strong>${coverageText}</strong>
+                                <span>${bank.status === 'error' ? 'à vérifier' : `${formatCount(bank.taleosCount)} / ${formatCount(bank.siteCount)}`}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="scraping-status-pill ${tone}">${bank.status === 'error' ? '⚠️' : tone === 'ok' ? '✅' : '🛠️'} ${missingText}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function loadScrapingCoverage(user, { force = false } = {}) {
+            const refreshBtn = document.getElementById('refreshScrapingCoverageBtn');
+            const tbody = document.getElementById('scrapingCoverageTableBody');
+            if (refreshBtn) refreshBtn.disabled = true;
+
+            try {
+                if (!force) {
+                    const cached = readScrapingCoverageCache();
+                    if (cached?.snapshot && cached?.storedAt && (Date.now() - Number(cached.storedAt) < SCRAPING_COVERAGE_CACHE_TTL_MS)) {
+                        renderScrapingCoverage(cached.snapshot);
+                        return cached.snapshot;
+                    }
+                }
+
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="scraping-count-meta">Rafraîchissement des volumes officiels en cours…</td>
+                    </tr>
+                `;
+
+                const token = await user.getIdToken();
+                const res = await fetch(SCRAPING_COVERAGE_CF_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    cache: 'no-store'
+                });
+                const payload = await res.json().catch(() => ({}));
+                if (!res.ok || payload.ok === false || !payload.snapshot) {
+                    renderScrapingCoverage(null);
+                    throw new Error(payload.error || `HTTP ${res.status}`);
+                }
+
+                writeScrapingCoverageCache(payload.snapshot);
+                renderScrapingCoverage(payload.snapshot);
+                return payload.snapshot;
+            } finally {
+                if (refreshBtn) refreshBtn.disabled = false;
+            }
         }
 
         function renderSummary() {
@@ -1455,6 +1846,16 @@
                 renderDashboard();
                 return;
             }
+            const refreshBtn = event.target && event.target.closest ? event.target.closest('#refreshScrapingCoverageBtn') : null;
+            if (refreshBtn) {
+                const user = firebase.auth().currentUser;
+                if (user) {
+                    loadScrapingCoverage(user, { force: true }).catch((error) => {
+                        console.error('Erreur refresh scraping coverage:', error);
+                    });
+                }
+                return;
+            }
             const btn = event.target && event.target.closest ? event.target.closest('.run-action-btn') : null;
             if (btn) {
                 const runId = String(btn.dataset.runId || '').trim();
@@ -1485,7 +1886,13 @@
             }
 
             try {
-                await loadExtensionRuns(user);
+                await Promise.all([
+                    loadExtensionRuns(user),
+                    loadScrapingCoverage(user).catch((error) => {
+                        console.error('Erreur chargement couverture scraping:', error);
+                        renderScrapingCoverage(null);
+                    })
+                ]);
                 loading.style.display = 'none';
                 unauthorized.style.display = 'none';
                 dashboard.style.display = 'block';

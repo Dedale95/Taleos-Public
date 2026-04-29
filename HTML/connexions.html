@@ -1326,7 +1326,23 @@
         const passwordInput = isBPCE ? null : document.getElementById(`password-${bankId}`);
         const emailValue = emailInput?.value?.trim() || email;
         const passwordValue = passwordInput?.value || password;
-        const firebaseUserId = currentUser?.uid || '';
+        const firebaseUserId = currentUser?.uid || auth?.currentUser?.uid || localStorage.getItem('authToken') || '';
+
+        if (!firebaseUserId) {
+            if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML='❌ Session Taleos introuvable. Rechargez la page puis reconnectez-vous si nécessaire.'; }
+            if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
+            return;
+        }
+        if (!emailValue) {
+            if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML='❌ Email manquant. Renseignez votre identifiant avant de lancer le test.'; }
+            if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
+            return;
+        }
+        if (!isBPCE && !passwordValue) {
+            if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML='❌ Mot de passe manquant. Renseignez votre mot de passe avant de lancer le test.'; }
+            if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
+            return;
+        }
 
         if (!isExtensionReady()) {
             if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML='❌ Extension Taleos non détectée. Rechargez la page et assurez-vous que l\'extension est installée.'; }

@@ -1908,6 +1908,26 @@
                     </div>
                 </div>
 
+                <!-- Section Préférences Bpifrance -->
+                <div class="form-section accordion-section">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2>Préférences Bpifrance</h2>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont utilisées pour les candidatures sur le portail Bpifrance.</p>
+
+                        <div class="form-group">
+                            <label for="bpifranceTalentPool">Je souhaite être recontacté.e par Bpifrance pour d'autres offres d'emploi, et ainsi rejoindre le vivier des talents.</label>
+                            <select id="bpifranceTalentPool" name="bpifranceTalentPool">
+                                <option value="">Sélectionnez...</option>
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Section Documents -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -2228,6 +2248,7 @@
             }
             // Re-synchroniser immédiatement l'état visuel de la section BPCE
             applyBpceSectionState();
+            applyBpifranceSectionState();
         }
         
         // Fonction pour mettre à jour la navigation immédiatement
@@ -2417,6 +2438,7 @@
                         loadEducationInfo(profile);
                         loadDeloitteInfo(profile);
                         loadBpceInfo(profile);
+                        loadBpifranceInfo(profile);
                         loadSgScreeningInfo(profile);
 
                         // Charger les fichiers existants (CV et lettre de motivation)
@@ -2478,6 +2500,7 @@
                         loadEducationInfo(profile);
                         loadDeloitteInfo(profile);
                         loadBpceInfo(profile);
+                        loadBpifranceInfo(profile);
                         loadSgScreeningInfo(profile);
 
                         // Charger les fichiers existants (CV et lettre de motivation)
@@ -2755,6 +2778,13 @@
             if (bpceSrc && profile.bpce_application_source) bpceSrc.value = profile.bpce_application_source;
             if (linkedinInput && profile.linkedin_url) linkedinInput.value = profile.linkedin_url;
             if (jobAlertsCheck) jobAlertsCheck.checked = !!profile.bpce_job_alerts;
+        }
+
+        function loadBpifranceInfo(profile) {
+            const talentPoolSelect = document.getElementById('bpifranceTalentPool');
+            if (talentPoolSelect && profile.bpifrance_talent_pool) {
+                talentPoolSelect.value = profile.bpifrance_talent_pool;
+            }
         }
 
         function loadSgScreeningInfo(profile) {
@@ -3115,6 +3145,21 @@
             });
         }
 
+        function applyBpifranceSectionState() {
+            const bpifranceTalentPool = document.getElementById('bpifranceTalentPool')?.value?.trim() || '';
+            const bpifranceHasContent = !!bpifranceTalentPool;
+
+            document.querySelectorAll('.accordion-header h2').forEach(header => {
+                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Préférences Bpifrance') {
+                    const section = header.closest('.accordion-section');
+                    if (section) {
+                        section.classList.remove('incomplete', 'complete');
+                        section.classList.add(bpifranceHasContent ? 'complete' : 'incomplete');
+                    }
+                }
+            });
+        }
+
         function validateProfile(opts) {
             const silent = !!(opts && opts.silent);
             // Réinitialiser toutes les classes "incomplete" et "complete"
@@ -3245,6 +3290,7 @@
 
             // Préférences BPCE : section optionnelle — verte uniquement si au moins un champ rempli
             applyBpceSectionState();
+            applyBpifranceSectionState();
 
             // Si des champs sont incomplets, afficher un toast (sauf validation silencieuse) et retourner false
             if (incompleteFields.length > 0) {
@@ -3390,6 +3436,7 @@
                 bpce_application_source: document.getElementById('bpceApplicationSource')?.value || '',
                 linkedin_url: document.getElementById('linkedinUrl')?.value?.trim() || '',
                 bpce_job_alerts: document.getElementById('bpceJobAlerts')?.checked || false,
+                bpifrance_talent_pool: document.getElementById('bpifranceTalentPool')?.value || '',
                 sg_eu_work_authorization: document.getElementById('sgEuWorkAuthorization')?.value || '',
                 sg_notice_period: document.getElementById('sgNoticePeriod')?.value || '',
                 sg_handicap: document.getElementById('sgHandicap')?.value || '',

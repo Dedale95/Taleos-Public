@@ -36,6 +36,7 @@ on:
           - credit_mutuel
           - oddo_bhf
           - jp_morgan
+          - goldman_sachs
 
 jobs:
   scrape:
@@ -92,6 +93,11 @@ jobs:
             script: jp_morgan_scraper.py
             db_file: jp_morgan_jobs.db
             timeout_minutes: 60
+          - name: Goldman Sachs
+            key: goldman_sachs
+            script: goldman_sachs_scraper.py
+            db_file: goldman_sachs_jobs.db
+            timeout_minutes: 30
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       BNP_MAX_CONCURRENT_LISTING: "18"

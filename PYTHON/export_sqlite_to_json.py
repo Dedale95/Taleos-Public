@@ -42,6 +42,7 @@ BPCE_DB = PYTHON_DIR / "bpce_jobs.db"
 CREDIT_MUTUEL_DB = PYTHON_DIR / "credit_mutuel_jobs.db"
 ODDO_BHF_DB = PYTHON_DIR / "oddo_bhf_jobs.db"
 JP_MORGAN_DB = PYTHON_DIR / "jp_morgan_jobs.db"
+GOLDMAN_SACHS_DB = PYTHON_DIR / "goldman_sachs_jobs.db"
 
 
 def write_json(path: Path, data, pretty: bool = False):
@@ -484,6 +485,7 @@ def main():
         ("Crédit Mutuel", CREDIT_MUTUEL_DB),
         ("ODDO BHF", ODDO_BHF_DB),
         ("JP Morgan Chase", JP_MORGAN_DB),
+        ("Goldman Sachs", GOLDMAN_SACHS_DB),
     ]
 
     # Mode strict pour éviter d'exporter des données BNP obsolètes en cas d'échec scraper/base manquante.

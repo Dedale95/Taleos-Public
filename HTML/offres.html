@@ -2210,7 +2210,14 @@
             'tunisie': 'Tunisie', 'tunisia': 'Tunisie', 'roumanie': 'Roumanie', 'romania': 'Roumanie',
             'danemark': 'Danemark', 'denmark': 'Danemark',
             'grèce': 'Grèce', 'grece': 'Grèce', 'greece': 'Grèce',
-            'malta': 'Malte', 'malte': 'Malte'
+            'malta': 'Malte', 'malte': 'Malte',
+            'new caledonia': 'Nouvelle-Calédonie', 'nouvelle caledonie': 'Nouvelle-Calédonie',
+            'nouvelle-caledonie': 'Nouvelle-Calédonie', 'nouvelle calédonie': 'Nouvelle-Calédonie',
+            'nouvelle-calédonie': 'Nouvelle-Calédonie',
+            'tchéquie': 'Tchéquie', 'tchequie': 'Tchéquie', 'czech republic': 'Tchéquie', 'czechia': 'Tchéquie',
+            'guernesey': 'Guernesey', 'guernsey': 'Guernesey',
+            'indonésie': 'Indonésie', 'indonesie': 'Indonésie', 'indonesia': 'Indonésie',
+            'djibouti': 'Djibouti'
         };
 
         const ITALY_CITY_TO_REGION = {
@@ -2777,7 +2784,7 @@
                             try {
                                 const parts = job.location.split(' - ');
                                 const cityPart = parts[0] || '';
-                                const country = parts[1] ? String(parts[1]).trim() : '';
+                                const country = parts[parts.length - 1] ? String(parts[parts.length - 1]).trim() : '';
                                 
                                 if (country && country.length > 0) {
                                     let countryNorm = normalizeCountryForFilter(country) || (String(country).toLowerCase().trim() === 'france' ? 'France' : String(country).trim());
@@ -3895,25 +3902,25 @@
             'Europe': [
                 'France', 'Allemagne', 'Luxembourg', 'Roumanie', 'Pologne', 'Italie',
                 'Royaume-Uni', 'Suisse', 'Portugal', 'Espagne', 'Suède', 'Irlande',
-                'Belgique', 'Pays-Bas', 'Autriche', 'Monaco', 'République Tchèque',
+                'Belgique', 'Pays-Bas', 'Autriche', 'Monaco', 'République Tchèque', 'Tchéquie',
                 'Ukraine', 'Hongrie', 'Bulgarie', 'Slovaquie', 'Norvège', 'Jersey', 'Turquie',
-                'Danemark', 'Grèce', 'Malte', 'Malta'
+                'Danemark', 'Grèce', 'Malte', 'Malta', 'Guernesey'
             ],
             'Asie': [
                 'Inde', 'Malaisie', 'Hong-Kong', 'Singapour', 'Japon', 'Chine',
                 'Corée du Sud', 'Taïwan', 'Thaïlande', 'Émirats Arabes Unis',
-                'Philippines', 'Vietnam'
+                'Philippines', 'Vietnam', 'Indonésie'
             ],
             'Afrique': [
                 'Maroc', 'Côte D\'Ivoire', 'Tunisie', 'Cameroun', 'Gabon',
-                'RD Congo', 'Bénin', 'Kenya', 'Algérie', 'Afrique du Sud', 'Afrique Du Sud'
+                'RD Congo', 'Bénin', 'Kenya', 'Algérie', 'Afrique du Sud', 'Afrique Du Sud', 'Djibouti'
             ],
             'Amériques': [
                 'États-Unis', 'Canada', 'Mexique', 'Colombie', 'Brésil',
                 'Argentine', 'Chili', 'Pérou'
             ],
             'Océanie / Pacifique': [
-                'Australie', 'Vanuatu', 'Polynésie Française', 'Nouvelle-Zélande'
+                'Australie', 'Vanuatu', 'Polynésie Française', 'Nouvelle-Zélande', 'Nouvelle-Calédonie'
             ]
         };
 

@@ -100,8 +100,6 @@ jobs:
             timeout_minutes: 30
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      BNP_MAX_CONCURRENT_LISTING: "18"
-      BNP_MAX_CONCURRENT_DETAILS: "18"
       PYTHONUNBUFFERED: 1
 
     steps:

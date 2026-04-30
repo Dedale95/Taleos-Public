@@ -122,6 +122,19 @@ jobs:
           playwright install-deps chromium
           playwright install-deps firefox
 
+      # ── Persistance DB inter-runs (delta scraping) ───────────────────────────
+      # Restaure la base SQLite du run précédent afin que le scraper ne scrape
+      # que les NOUVELLES offres (delta) plutôt que la totalité (~3 000 offres/jour).
+      # Sans cache : premier run complet (~90 min pour BNP) ; avec cache : ~5 min/jour.
+      - name: Restaurer la base SQLite (cache inter-runs)
+        id: cache-db-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: PYTHON/${{ matrix.db_file }}
+          key: scraper-db-${{ matrix.key }}-${{ github.run_id }}
+          restore-keys: |
+            scraper-db-${{ matrix.key }}-
+
       - name: Exécuter le scraper
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.source == 'all' || inputs.source == matrix.key }}
         run: python "PYTHON/${{ matrix.script }}"
@@ -138,6 +151,16 @@ jobs:
           name: db-${{ matrix.key }}
           path: PYTHON/${{ matrix.db_file }}
           if-no-files-found: error
+
+      # Sauvegarde la base (même si le scraper a planté à mi-chemin) pour que
+      # le run suivant puisse reprendre là où il s'est arrêté.
+      - name: Sauvegarder la base SQLite en cache
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: PYTHON/${{ matrix.db_file }}
+          key: scraper-db-${{ matrix.key }}-${{ github.run_id }}
 
   consolidate:
     name: Consolidation + export

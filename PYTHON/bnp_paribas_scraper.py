@@ -71,7 +71,7 @@ CONTRACT_FILTERS = [
 class Config:
     MAX_CONCURRENT_LISTING = 8    # Pages de liste (réduit pour stabilité)
     MAX_CONCURRENT_DETAILS = 5    # Pages détail (réduit pour éviter TargetClosedError/Timeout)
-    PAGE_TIMEOUT = 60000
+    PAGE_TIMEOUT = 30000          # 30 s — suffisant pour les pages BNP ; libère vite les slots sur timeout
     WAIT_TIMEOUT = 10000
     HEADLESS = True
     BASE_DIR = Path(__file__).parent
@@ -450,6 +450,12 @@ def _is_browser_crash(exc: Exception) -> bool:
     return any(marker in msg for marker in _BROWSER_CRASH_MARKERS)
 
 
+class BrowserCrashError(Exception):
+    """Levée quand le process Playwright est mort (EPIPE, navigateur tué…).
+    Propagée jusqu'à scrape_details_robust qui redémarre le navigateur."""
+    pass
+
+
 async def _launch_browser(p) -> Browser:
     """Lance Firefox (ou Chromium en fallback) en mode headless."""
     try:
@@ -492,43 +498,52 @@ async def _close_browser_safe(context: Optional[BrowserContext], browser: Option
 # NAVIGATE WITH RETRY
 # =========================================================
 async def navigate_with_retry(
-    page: Page, url: str, context: BrowserContext = None, max_retries: int = 4
+    page: Page,
+    url: str,
+    context: BrowserContext = None,
+    max_retries: int = 2,
+    timeout: int = None,
 ) -> bool:
     """Navigate with retry and bounded backoff for transient CDN errors.
 
-    IMPORTANT : si l'erreur indique un crash Playwright (EPIPE, "browser closed"…),
-    la fonction retourne False IMMÉDIATEMENT sans attendre — réessayer sur un navigateur
-    mort serait inutile et bloquerait le thread des dizaines de secondes.
+    Comportement :
+    • Crash Playwright (EPIPE, "browser closed"…) → lève BrowserCrashError immédiatement.
+      Réessayer sur un navigateur mort serait inutile et bloquerait le slot pour des minutes.
+    • Erreur réseau (timeout, net::ERR_*) → retry avec backoff court (3s, 6s max).
+      Backoff intentionnellement court : avec ~3000 offres/run on ne peut pas attendre.
+    • Autre erreur → retourne False sans retry (ex: NS_ERROR_FAILURE = page inexistante).
     """
+    page_timeout = timeout or config.PAGE_TIMEOUT
     for attempt in range(max_retries):
         try:
             if page.is_closed():
                 if context:
-                    logging.info(f"Re-opening closed page for {url}")
                     page = await context.new_page()
                 else:
                     return False
 
-            await page.goto(url, timeout=config.PAGE_TIMEOUT, wait_until="load")
+            await page.goto(url, timeout=page_timeout, wait_until="load")
             return True
 
         except Exception as e:
-            # Crash navigateur → pas de retry possible, retour immédiat
+            # Crash navigateur → propagé via exception spéciale pour restart du navigateur
             if _is_browser_crash(e):
-                logging.warning(f"Browser crash détecté sur {url}: {e}")
-                return False
+                raise BrowserCrashError(f"Browser crash on {url}: {e}")
 
             error_str = str(e)
             if any(x in error_str.lower() for x in ["err_http2", "net::", "timeout"]):
-                # Backoff progressif : 8s, 16s, 32s, 60s max
-                wait = min(60, 8 * (2 ** attempt))
-                logging.warning(
-                    f"Network error on {url} (attempt {attempt+1}/{max_retries}), "
-                    f"retrying in {wait}s: {error_str}"
-                )
-                await asyncio.sleep(wait)
+                # Backoff court : 3s, 6s — on ne peut pas attendre davantage à l'échelle
+                wait = min(6, 3 * (2 ** attempt))
+                if attempt < max_retries - 1:
+                    logging.warning(
+                        f"Network error on {url} (attempt {attempt+1}/{max_retries}), "
+                        f"retrying in {wait}s"
+                    )
+                    await asyncio.sleep(wait)
+                else:
+                    logging.warning(f"Network error on {url}, giving up after {max_retries} attempts")
             else:
-                logging.error(f"Unrecoverable error on {url}: {error_str}")
+                logging.debug(f"Unrecoverable error on {url}: {error_str[:120]}")
                 return False
 
     return False
@@ -641,29 +656,28 @@ async def fetch_job_details(
     context: BrowserContext, job: Dict, sem: asyncio.Semaphore
 ) -> Dict:
     """Scrape la page de détail d'une offre.
-    Retourne le dict avec _crashed=True si le navigateur est mort pendant l'opération."""
+
+    Lève BrowserCrashError si le navigateur est mort (propagé jusqu'à scrape_details_robust).
+    Retourne simplement le dict (possiblement sans données) pour les erreurs réseau ordinaires.
+    """
     async with sem:
         page = None
         try:
             page = await context.new_page()
         except Exception as e:
+            # new_page() peut échouer sur un navigateur mort → BrowserCrashError
             if _is_browser_crash(e):
-                job['_crashed'] = True
-                return job
+                raise BrowserCrashError(f"new_page failed: {e}")
             logging.warning(f"new_page() failed for {job.get('job_url')}: {e}")
             return job
 
         try:
             success = await navigate_with_retry(page, job["job_url"], context=context)
+            # BrowserCrashError est propagée directement si levée dans navigate_with_retry
             if not success:
-                # navigate_with_retry retourne False sur crash → propager le signal
-                if not page.is_closed():
-                    job['_crashed'] = False   # erreur réseau ordinaire, pas crash
-                else:
-                    job['_crashed'] = True    # page fermée = navigateur mort
-                return job
+                return job  # erreur réseau ordinaire, pas de crash — on passe à l'offre suivante
 
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(0.5)
 
             html = await page.content()
             soup = BeautifulSoup(html, "html.parser")
@@ -776,11 +790,12 @@ async def fetch_job_details(
             job["technical_skills"] = "[]"
             job["behavioral_skills"] = "[]"
 
+        except BrowserCrashError:
+            raise  # remonter jusqu'à _run_detail_batch → scrape_details_robust
         except Exception as e:
             if _is_browser_crash(e):
-                job['_crashed'] = True
-            else:
-                logging.warning(f"Detail failed: {job.get('job_url')} ({e})")
+                raise BrowserCrashError(f"Browser crash mid-detail: {e}")
+            logging.warning(f"Detail failed: {job.get('job_url')} ({e})")
         finally:
             # Toujours tenter de fermer — même si le navigateur est mort
             if page is not None:
@@ -834,15 +849,12 @@ async def _run_detail_batch(
     for coro in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Scraping details"):
         try:
             job_data = await coro
-        except Exception as e:
-            if _is_browser_crash(e):
-                had_crash = True
-            else:
-                logging.warning(f"Unexpected task error: {e}")
-            continue
-
-        if job_data.get('_crashed'):
+        except BrowserCrashError as e:
+            logging.warning(f"BrowserCrashError dans le batch: {e}")
             had_crash = True
+            continue
+        except Exception as e:
+            logging.warning(f"Unexpected task error: {e}")
             continue
 
         _finalize_job(job_data, db)
@@ -915,6 +927,8 @@ async def scrape_details_robust(p, jobs: List[Dict], db: JobDatabase) -> int:
                 f"{len(remaining) - len(completed_urls)} à refaire"
             )
 
+        except BrowserCrashError as e:
+            logging.warning(f"BrowserCrashError globale (tentative {attempt + 1}): {e}")
         except Exception as e:
             logging.error(f"Erreur inattendue (tentative {attempt + 1}): {e}")
 

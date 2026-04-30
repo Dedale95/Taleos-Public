@@ -1080,18 +1080,18 @@
         const SCRAPING_COVERAGE_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/getScrapingCoverageSnapshot';
         const SCRAPING_COVERAGE_CACHE_KEY = 'taleosScrapingCoverageSnapshotV1';
         const SCRAPING_COVERAGE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-        const SCRAPING_COVERAGE_FALLBACK_SITE_COUNTS = {
-            'Groupe BPCE': 2575,
-            'Groupe BNP Paribas': 4843,
-            'Groupe Crédit Agricole': 2037,
-            'Groupe Société Générale': 1710
-        };
-        const SCRAPING_COVERAGE_FALLBACK_SOURCE_URLS = {
-            'Groupe BPCE': 'https://recrutement.bpce.fr/offres-emploi?external=false',
-            'Groupe BNP Paribas': 'https://group.bnpparibas/emploi-carriere/toutes-offres-emploi',
-            'Groupe Crédit Agricole': 'https://groupecreditagricole.jobs/fr/nos-offres/',
-            'Groupe Société Générale': 'https://careers.societegenerale.com/'
-        };
+        const SCRAPING_COVERAGE_FALLBACK_BANKS = [
+            { name: 'Groupe BPCE', siteCount: 2568, careerUrl: 'https://recrutement.bpce.fr/offres-emploi?external=false', sourceLabel: 'API BPCE' },
+            { name: 'Groupe BNP Paribas', siteCount: 4876, careerUrl: 'https://group.bnpparibas/emploi-carriere/toutes-offres-emploi', sourceLabel: 'Page offres BNP Paribas' },
+            { name: 'Groupe Crédit Agricole', siteCount: 2031, careerUrl: 'https://groupecreditagricole.jobs/fr/nos-offres/', sourceLabel: 'Page offres Crédit Agricole' },
+            { name: 'Groupe Société Générale', siteCount: 1713, careerUrl: 'https://careers.societegenerale.com/', sourceLabel: 'Page carrière Société Générale' },
+            { name: 'Groupe Crédit Mutuel', siteCount: 854, careerUrl: 'https://recrutement.creditmutuel.fr/fr/nos_offres.html', sourceLabel: 'Page offres Crédit Mutuel' },
+            { name: 'J.P. Morgan', siteCount: 7402, careerUrl: 'https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs', sourceLabel: 'Page carrière J.P. Morgan' },
+            { name: 'Goldman Sachs', siteCount: 1439, careerUrl: 'https://higher.gs.com/results?&page=1&sort=RELEVANCE', sourceLabel: 'Page carrière Goldman Sachs' },
+            { name: 'Deloitte', siteCount: 417, careerUrl: 'https://www.deloitte.com/fr/fr/careers/content/job/results.html', sourceLabel: 'Page offres Deloitte' },
+            { name: 'Bpifrance', siteCount: 224, careerUrl: 'https://talents.bpifrance.fr/nos-opportunites/?criteres=cdi%7Calternance%7Cstage%7Cvie', sourceLabel: 'Somme des contrats Bpifrance' },
+            { name: 'ODDO BHF', siteCount: null, careerUrl: '#', sourceLabel: 'Source à brancher' }
+        ];
         const RESULT_FILTERS = ['all', 'success', 'already_applied', 'failed', 'aborted', 'timeout', 'running'];
 
         let extensionRuns = [];
@@ -1204,24 +1204,27 @@
 
             if (!summary || !summary.counts_by_group) return null;
 
-            const trackedBanks = Object.keys(SCRAPING_COVERAGE_FALLBACK_SITE_COUNTS).map((name) => {
-                const siteCount = Number(SCRAPING_COVERAGE_FALLBACK_SITE_COUNTS[name] || 0);
+            const trackedBanks = SCRAPING_COVERAGE_FALLBACK_BANKS.map((bank) => {
+                const name = bank.name;
+                const siteCount = Number(bank.siteCount);
                 const taleosCount = Number(summary.counts_by_group[name] || 0);
+                const hasSiteCount = Number.isFinite(siteCount) && siteCount > 0;
                 return {
                     id: name.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
                     name,
-                    siteCount,
+                    siteCount: hasSiteCount ? siteCount : null,
                     taleosCount,
-                    coveragePct: siteCount ? Number(((taleosCount / siteCount) * 100).toFixed(1)) : 0,
-                    missingCount: Math.max(siteCount - taleosCount, 0),
-                    careerUrl: SCRAPING_COVERAGE_FALLBACK_SOURCE_URLS[name],
-                    sourceLabel: 'Snapshot local de secours',
-                    status: 'ok'
+                    coveragePct: hasSiteCount ? Number(((taleosCount / siteCount) * 100).toFixed(1)) : null,
+                    missingCount: hasSiteCount ? Math.max(siteCount - taleosCount, 0) : null,
+                    careerUrl: bank.careerUrl,
+                    sourceLabel: bank.sourceLabel,
+                    status: hasSiteCount ? 'ok' : 'error',
+                    error: hasSiteCount ? null : 'Total site carrière non branché'
                 };
             });
 
             const totals = trackedBanks.reduce((acc, bank) => {
-                acc.siteCount += bank.siteCount;
+                if (Number.isFinite(bank.siteCount)) acc.siteCount += bank.siteCount;
                 acc.taleosCount += bank.taleosCount;
                 return acc;
             }, { siteCount: 0, taleosCount: 0 });
@@ -1465,9 +1468,13 @@
             try {
                 if (!force) {
                     const cached = readScrapingCoverageCache();
-                    if (cached?.snapshot && cached?.storedAt && (Date.now() - Number(cached.storedAt) < SCRAPING_COVERAGE_CACHE_TTL_MS)) {
-                        renderScrapingCoverage(cached.snapshot);
-                        return cached.snapshot;
+                    const cachedSnapshot = cached?.snapshot || null;
+                    const expectedBankCount = SCRAPING_COVERAGE_FALLBACK_BANKS.length;
+                    const cachedLooksFresh = cached?.storedAt && (Date.now() - Number(cached.storedAt) < SCRAPING_COVERAGE_CACHE_TTL_MS);
+                    const cachedLooksComplete = (cachedSnapshot?.banks?.length || 0) >= expectedBankCount;
+                    if (cachedSnapshot && cachedLooksFresh && cachedLooksComplete) {
+                        renderScrapingCoverage(cachedSnapshot);
+                        return cachedSnapshot;
                     }
                 }
 
@@ -1491,9 +1498,16 @@
                     throw new Error(payload.error || `HTTP ${res.status}`);
                 }
 
-                writeScrapingCoverageCache(payload.snapshot);
-                renderScrapingCoverage(payload.snapshot);
-                return payload.snapshot;
+                const fallbackSnapshot = await loadScrapingCoverageFallbackSnapshot();
+                const serverSnapshot = payload.snapshot;
+                const fallbackIsBetter = fallbackSnapshot
+                    && ((fallbackSnapshot.banks?.length || 0) > (serverSnapshot.banks?.length || 0)
+                    || Number(fallbackSnapshot.totals?.taleosCount || 0) > Number(serverSnapshot.totals?.taleosCount || 0));
+                const chosenSnapshot = fallbackIsBetter ? fallbackSnapshot : serverSnapshot;
+
+                writeScrapingCoverageCache(chosenSnapshot);
+                renderScrapingCoverage(chosenSnapshot);
+                return chosenSnapshot;
             } catch (error) {
                 const fallbackSnapshot = await loadScrapingCoverageFallbackSnapshot();
                 if (fallbackSnapshot) {

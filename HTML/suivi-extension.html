@@ -1080,6 +1080,18 @@
         const SCRAPING_COVERAGE_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/getScrapingCoverageSnapshot';
         const SCRAPING_COVERAGE_CACHE_KEY = 'taleosScrapingCoverageSnapshotV1';
         const SCRAPING_COVERAGE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+        const SCRAPING_COVERAGE_FALLBACK_SITE_COUNTS = {
+            'Groupe BPCE': 2575,
+            'Groupe BNP Paribas': 4843,
+            'Groupe Crédit Agricole': 2037,
+            'Groupe Société Générale': 1710
+        };
+        const SCRAPING_COVERAGE_FALLBACK_SOURCE_URLS = {
+            'Groupe BPCE': 'https://recrutement.bpce.fr/offres-emploi?external=false',
+            'Groupe BNP Paribas': 'https://group.bnpparibas/emploi-carriere/toutes-offres-emploi',
+            'Groupe Crédit Agricole': 'https://groupecreditagricole.jobs/fr/nos-offres/',
+            'Groupe Société Générale': 'https://careers.societegenerale.com/'
+        };
         const RESULT_FILTERS = ['all', 'success', 'already_applied', 'failed', 'aborted', 'timeout', 'running'];
 
         let extensionRuns = [];
@@ -1168,6 +1180,61 @@
                     snapshot
                 }));
             } catch (_) {}
+        }
+
+        async function loadScrapingCoverageFallbackSnapshot() {
+            const candidates = [
+                'scraped_jobs_summary.json',
+                '../scraped_jobs_summary.json',
+                'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/scraped_jobs_summary.json'
+            ];
+
+            let summary = null;
+            for (const url of candidates) {
+                try {
+                    const res = await fetch(url, { cache: 'no-store' });
+                    if (!res.ok) continue;
+                    const payload = await res.json();
+                    if (payload && payload.counts_by_group) {
+                        summary = payload;
+                        break;
+                    }
+                } catch (_) {}
+            }
+
+            if (!summary || !summary.counts_by_group) return null;
+
+            const trackedBanks = Object.keys(SCRAPING_COVERAGE_FALLBACK_SITE_COUNTS).map((name) => {
+                const siteCount = Number(SCRAPING_COVERAGE_FALLBACK_SITE_COUNTS[name] || 0);
+                const taleosCount = Number(summary.counts_by_group[name] || 0);
+                return {
+                    id: name.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
+                    name,
+                    siteCount,
+                    taleosCount,
+                    coveragePct: siteCount ? Number(((taleosCount / siteCount) * 100).toFixed(1)) : 0,
+                    missingCount: Math.max(siteCount - taleosCount, 0),
+                    careerUrl: SCRAPING_COVERAGE_FALLBACK_SOURCE_URLS[name],
+                    sourceLabel: 'Snapshot local de secours',
+                    status: 'ok'
+                };
+            });
+
+            const totals = trackedBanks.reduce((acc, bank) => {
+                acc.siteCount += bank.siteCount;
+                acc.taleosCount += bank.taleosCount;
+                return acc;
+            }, { siteCount: 0, taleosCount: 0 });
+
+            return {
+                generatedAt: summary.generated_at || Date.now(),
+                totals: {
+                    siteCount: totals.siteCount,
+                    taleosCount: totals.taleosCount,
+                    coveragePct: totals.siteCount ? Number(((totals.taleosCount / totals.siteCount) * 100).toFixed(1)) : 0
+                },
+                banks: trackedBanks
+            };
         }
 
         function formatDayLabel(isoDay) {
@@ -1427,6 +1494,15 @@
                 writeScrapingCoverageCache(payload.snapshot);
                 renderScrapingCoverage(payload.snapshot);
                 return payload.snapshot;
+            } catch (error) {
+                const fallbackSnapshot = await loadScrapingCoverageFallbackSnapshot();
+                if (fallbackSnapshot) {
+                    writeScrapingCoverageCache(fallbackSnapshot);
+                    renderScrapingCoverage(fallbackSnapshot);
+                    return fallbackSnapshot;
+                }
+                renderScrapingCoverage(null);
+                throw error;
             } finally {
                 if (refreshBtn) refreshBtn.disabled = false;
             }

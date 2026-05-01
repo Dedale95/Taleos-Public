@@ -1865,9 +1865,17 @@
                             </select>
                         </div>
 
-                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
+                    </div>
+                </div>
 
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Deloitte — ancienne collaboration.</p>
+                <!-- Section Questions récurrentes des employeurs -->
+                <div class="form-section accordion-section">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2>Questions récurrentes des employeurs</h2>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Questions souvent demandées d’une candidature à l’autre, notamment sur les anciens employeurs ou certaines situations administratives.</p>
 
                         <div class="form-group">
                             <label for="deloitteWorked">Avez-vous déjà travaillé pour Deloitte ?</label>
@@ -3337,8 +3345,10 @@
                     { name: 'preferredCountries', section: 'Préférences géographiques', isCheckbox: true }
                 ],
                 'Informations complémentaires': [
-                    { id: 'sgNoticePeriod', section: 'Informations complémentaires' },
-                    { id: 'deloitteWorked', section: 'Informations complémentaires' }
+                    { id: 'sgNoticePeriod', section: 'Informations complémentaires' }
+                ],
+                'Questions récurrentes des employeurs': [
+                    { id: 'deloitteWorked', section: 'Questions récurrentes des employeurs' }
                 ],
                 'Formation et expérience': [
                     { id: 'experienceLevel', section: 'Formation et expérience' },
@@ -3440,8 +3450,10 @@
                     { name: 'preferredCountries', label: 'Pays', section: 'Préférences géographiques', isCheckbox: true }
                 ],
                 'Informations complémentaires': [
-                    { id: 'sgNoticePeriod', label: 'Préavis de départ', section: 'Informations complémentaires' },
-                    { id: 'deloitteWorked', label: 'Avez-vous déjà travaillé pour Deloitte ?', section: 'Informations complémentaires' }
+                    { id: 'sgNoticePeriod', label: 'Préavis de départ', section: 'Informations complémentaires' }
+                ],
+                'Questions récurrentes des employeurs': [
+                    { id: 'deloitteWorked', label: 'Avez-vous déjà travaillé pour Deloitte ?', section: 'Questions récurrentes des employeurs' }
                 ],
                 'Formation et expérience': [
                     { id: 'experienceLevel', label: 'Niveau d\'expérience', section: 'Formation et expérience' },

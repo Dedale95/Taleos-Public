@@ -1837,14 +1837,6 @@
                         <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Champs parfois demandés sur les formulaires internationaux ou multilingues.</p>
 
                         <div class="form-group">
-                            <label for="sgEuWorkAuthorization">Êtes-vous autorisé·e à travailler dans l’Union européenne ?</label>
-                            <select id="sgEuWorkAuthorization" name="sgEuWorkAuthorization">
-                                <option value="">Sélectionnez…</option>
-                                <option value="yes">Oui</option>
-                                <option value="no">Non</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
                             <label for="sgNoticePeriod">Préavis de départ</label>
                             <select id="sgNoticePeriod" name="sgNoticePeriod">
                                 <option value="">Sélectionnez…</option>
@@ -2001,13 +1993,13 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Autorisation de travail et sponsorship par pays</label>
+                            <label>Autorisation de travail et sponsorship par pays / zone</label>
                             <p style="color: #666; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
-                                Indiquez les pays dans lesquels vous êtes autorisé·e à travailler, et si un sponsorship / visa employeur y est nécessaire. Taleos réutilisera automatiquement la bonne réponse selon le pays de l’offre.
+                                Indiquez les pays ou zones dans lesquels vous êtes autorisé·e à travailler, et si un sponsorship / visa employeur y est nécessaire. Taleos réutilisera automatiquement la bonne réponse selon le pays de l’offre. Pour l’Europe, utilisez la zone <strong>Union européenne</strong> plutôt que de dupliquer les pays un par un.
                             </p>
                             <div id="jpMorganWorkAuthContainer" class="repeatable-list"></div>
                             <div class="repeatable-actions">
-                                <button type="button" class="btn-secondary" onclick="addJpMorganWorkAuthItem()">+ Ajouter un pays</button>
+                                <button type="button" class="btn-secondary" onclick="addJpMorganWorkAuthItem()">+ Ajouter un pays ou une zone</button>
                             </div>
                         </div>
                     </div>
@@ -2345,9 +2337,21 @@
             return { country, work_authorized: workAuthorized, sponsorship_required: sponsorshipRequired };
         }
 
+        const EU_COUNTRY_LABEL = 'Union européenne';
+        const EUROPEAN_UNION_COUNTRIES = [
+            'Allemagne', 'Autriche', 'Belgique', 'Bulgarie', 'Chypre', 'Croatie', 'Danemark',
+            'Espagne', 'Estonie', 'Finlande', 'France', 'Grèce', 'Hongrie', 'Irlande', 'Italie',
+            'Lettonie', 'Lituanie', 'Luxembourg', 'Malte', 'Pays-Bas', 'Pologne', 'Portugal',
+            'République tchèque', 'Roumanie', 'Slovaquie', 'Slovénie', 'Suède'
+        ];
+
+        function isEuropeanUnionCountry(value) {
+            return EUROPEAN_UNION_COUNTRIES.includes(String(value || '').trim());
+        }
+
         function getDefaultJpMorganAuthorizationRow() {
             return {
-                country: 'France',
+                country: EU_COUNTRY_LABEL,
                 work_authorized: 'Yes',
                 sponsorship_required: 'No'
             };
@@ -2357,13 +2361,36 @@
             const values = Array.from(document.querySelectorAll('input[name="preferredCountries"]'))
                 .map((input) => input.value)
                 .filter(Boolean);
-            const uniqueValues = Array.from(new Set(values)).sort((a, b) => a.localeCompare(b, 'fr'));
+            const uniqueValues = Array.from(new Set([EU_COUNTRY_LABEL, ...values])).sort((a, b) => {
+                if (a === EU_COUNTRY_LABEL) return -1;
+                if (b === EU_COUNTRY_LABEL) return 1;
+                return a.localeCompare(b, 'fr');
+            });
             const opts = [`<option value="">Sélectionnez...</option>`];
             uniqueValues.forEach((value) => {
                 const selected = value === selectedValue ? ' selected' : '';
                 opts.push(`<option value="${value.replace(/"/g, '&quot;')}"${selected}>${value}</option>`);
             });
             return opts.join('');
+        }
+
+        function migrateLegacyJpMorganAuthorizationRows(items) {
+            const rows = Array.isArray(items) ? items.map(normalizeJpMorganAuthorizationRow).filter(Boolean) : [];
+            if (!rows.length) return rows;
+            const hasEuRow = rows.some((row) => row?.country === EU_COUNTRY_LABEL);
+            return rows.map((row) => {
+                if (!row) return row;
+                if (!hasEuRow && isEuropeanUnionCountry(row.country)) {
+                    return {
+                        ...row,
+                        country: EU_COUNTRY_LABEL
+                    };
+                }
+                return row;
+            }).filter((row, index, arr) => {
+                if (row?.country !== EU_COUNTRY_LABEL) return true;
+                return arr.findIndex((candidate) => candidate?.country === EU_COUNTRY_LABEL) === index;
+            });
         }
 
         function createJpMorganWorkAuthItem(data) {
@@ -2433,7 +2460,7 @@
             const container = document.getElementById('jpMorganWorkAuthContainer');
             if (!container) return;
             container.innerHTML = '';
-            const rows = Array.isArray(items) ? items.map(normalizeJpMorganAuthorizationRow).filter(Boolean) : [];
+            const rows = migrateLegacyJpMorganAuthorizationRows(items);
             if (rows.length === 0) {
                 window.addJpMorganWorkAuthItem(getDefaultJpMorganAuthorizationRow());
             } else {
@@ -2991,14 +3018,22 @@
         }
 
         function loadSgScreeningInfo(profile) {
-            const eu = document.getElementById('sgEuWorkAuthorization');
             const notice = document.getElementById('sgNoticePeriod');
-            if (eu && profile.sg_eu_work_authorization) eu.value = profile.sg_eu_work_authorization;
             if (notice && profile.sg_notice_period) notice.value = profile.sg_notice_period;
             const sgHandicap = document.getElementById('sgHandicap');
             const sgHandicapAccommodation = document.getElementById('sgHandicapAccommodation');
             if (sgHandicap && profile.sg_handicap) { sgHandicap.value = profile.sg_handicap; toggleSgHandicapAccommodation(profile.sg_handicap); }
             if (sgHandicapAccommodation && profile.sg_handicap_accommodation) sgHandicapAccommodation.value = profile.sg_handicap_accommodation;
+        }
+
+        function deriveEuropeanUnionWorkAuthorizationValue(rows) {
+            const items = Array.isArray(rows) ? rows : [];
+            const euRow = items.find((row) => String(row?.country || '').trim() === EU_COUNTRY_LABEL);
+            if (!euRow) return '';
+            const value = String(euRow.work_authorized || '').trim();
+            if (value === 'Yes') return 'yes';
+            if (value === 'No') return 'no';
+            return '';
         }
 
         // Fonction pour charger les informations Deloitte
@@ -3296,7 +3331,6 @@
                     { name: 'preferredCountries', section: 'Préférences géographiques', isCheckbox: true }
                 ],
                 'Informations complémentaires': [
-                    { id: 'sgEuWorkAuthorization', section: 'Informations complémentaires' },
                     { id: 'sgNoticePeriod', section: 'Informations complémentaires' },
                     { id: 'deloitteWorked', section: 'Informations complémentaires' }
                 ],
@@ -3400,7 +3434,6 @@
                     { name: 'preferredCountries', label: 'Pays', section: 'Préférences géographiques', isCheckbox: true }
                 ],
                 'Informations complémentaires': [
-                    { id: 'sgEuWorkAuthorization', label: 'Autorisation de travail dans l’UE', section: 'Informations complémentaires' },
                     { id: 'sgNoticePeriod', label: 'Préavis de départ', section: 'Informations complémentaires' },
                     { id: 'deloitteWorked', label: 'Avez-vous déjà travaillé pour Deloitte ?', section: 'Informations complémentaires' }
                 ],
@@ -3640,7 +3673,7 @@
                 bpifrance_talent_pool: document.getElementById('bpifranceTalentPool')?.value || '',
                 jp_morgan_military_service: document.getElementById('jpMorganMilitaryService')?.value || '',
                 jp_morgan_work_authorizations: window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [],
-                sg_eu_work_authorization: document.getElementById('sgEuWorkAuthorization')?.value || '',
+                sg_eu_work_authorization: deriveEuropeanUnionWorkAuthorizationValue(window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : []),
                 sg_notice_period: document.getElementById('sgNoticePeriod')?.value || '',
                 sg_handicap: document.getElementById('sgHandicap')?.value || '',
                 sg_handicap_accommodation: document.getElementById('sgHandicapAccommodation')?.value || '',

@@ -916,14 +916,10 @@
             flex-shrink: 0;
         }
 
-        .company-logo.company-logo-wordmark {
-            width: 96px;
-            height: 36px;
-            border-radius: 0;
-            background: transparent;
+        .company-logo.company-logo-goldman {
             padding: 0;
-            box-shadow: none;
-            object-position: left center;
+            object-fit: cover;
+            object-position: center top;
         }
 
         .company-name-wrapper {
@@ -4989,8 +4985,8 @@
         function getCompanyLogoClass(companyName, logoPath) {
             const normalized = (companyName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
             const path = String(logoPath || '').toLowerCase();
-            if (normalized.includes('goldman sachs') || normalized.includes('j.p. morgan') || normalized.includes('jp morgan') || normalized.includes('jpmorgan') || path.includes('goldman_sachs') || path.includes('jp_morgan')) {
-                return 'company-logo company-logo-wordmark';
+            if (normalized.includes('goldman sachs') || path.includes('goldman_sachs')) {
+                return 'company-logo company-logo-goldman';
             }
             return 'company-logo';
         }

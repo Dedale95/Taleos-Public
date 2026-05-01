@@ -1916,15 +1916,6 @@
                         <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont utilisées pour les candidatures au Groupe BPCE (Banque Populaire, Caisse d'Épargne, Natixis, etc.).</p>
 
                         <div class="form-group">
-                            <label for="bpceVivierNatixis">J'accepte que BPCE conserve mon profil dans le vivier Candidats. En sélectionnant «Oui», vous souhaitez que l'on puisse vous proposer de nouvelles offres d'emploi correspondant à votre profil et vous envoyer des informations sur nos métiers.</label>
-                            <select id="bpceVivierNatixis" name="bpceVivierNatixis">
-                                <option value="">Sélectionnez...</option>
-                                <option value="Oui">Oui</option>
-                                <option value="Non">Non</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
                             <label for="bpceApplicationSource">Origine de votre candidature (libellés Oracle / Natixis)</label>
                             <select id="bpceApplicationSource" name="bpceApplicationSource">
                                 <option value="">Sélectionnez...</option>
@@ -1946,11 +1937,30 @@
                             <input type="url" id="linkedinUrl" name="linkedinUrl" placeholder="https://www.linkedin.com/in/votre-profil">
                         </div>
 
+                    </div>
+                </div>
+
+                <!-- Section Alertes et viviers -->
+                <div class="form-section accordion-section">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2>Alertes et viviers talents</h2>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Choisissez les groupes pour lesquels vous acceptez d’être recontacté·e ou de recevoir des mises à jour sur de nouvelles opportunités.</p>
+
                         <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="bpceJobAlerts" name="bpceJobAlerts">
-                                <span class="checkbox-text">J'accepte de recevoir les mises à jour concernant les nouvelles opportunités d'emploi (pour le groupe BPCE)</span>
-                            </label>
+                            <label style="font-weight: 600; margin-bottom: 12px; display: block;">Je souhaite recevoir des mises à jour ou être recontacté·e par :</label>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="talentPoolBpce" name="talentPools" value="bpce" onchange="applyTalentPoolsSectionState()">
+                                    <span class="checkbox-text">BPCE</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="talentPoolBpifrance" name="talentPools" value="bpifrance" onchange="applyTalentPoolsSectionState()">
+                                    <span class="checkbox-text">Bpifrance</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1963,19 +1973,6 @@
                     </div>
                     <div class="accordion-content">
                         <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces réponses sont réutilisées quand certains portails demandent des questions spécifiques qui ne s’appliquent pas à toutes les candidatures.</p>
-
-                        <p style="color: #666; font-size: 0.9rem; margin: 8px 0 16px; line-height: 1.6;">Bpifrance</p>
-
-                        <div class="form-group">
-                            <label for="bpifranceTalentPool">Je souhaite être recontacté.e par Bpifrance pour d'autres offres d'emploi, et ainsi rejoindre le vivier des talents.</label>
-                            <select id="bpifranceTalentPool" name="bpifranceTalentPool">
-                                <option value="">Sélectionnez...</option>
-                                <option value="Oui">Oui</option>
-                                <option value="Non">Non</option>
-                            </select>
-                        </div>
-
-                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
                         <div class="form-group">
                             <label for="jpMorganMilitaryService">Avez-vous déjà servi comme membre des forces armées ou comme réserviste ?</label>
@@ -2324,6 +2321,7 @@
             }
             // Re-synchroniser immédiatement l'état visuel de la section BPCE
             applyBpceSectionState();
+            applyTalentPoolsSectionState();
             applyPortalQuestionsSectionState();
         }
 
@@ -2655,7 +2653,7 @@
                         loadEducationInfo(profile);
                         loadDeloitteInfo(profile);
                         loadBpceInfo(profile);
-                        loadBpifranceInfo(profile);
+                        loadTalentPoolInfo(profile);
                         loadJpMorganInfo(profile);
                         loadSgScreeningInfo(profile);
 
@@ -2718,7 +2716,7 @@
                         loadEducationInfo(profile);
                         loadDeloitteInfo(profile);
                         loadBpceInfo(profile);
-                        loadBpifranceInfo(profile);
+                        loadTalentPoolInfo(profile);
                         loadJpMorganInfo(profile);
                         loadSgScreeningInfo(profile);
 
@@ -2987,21 +2985,19 @@
 
         // Fonction pour charger les informations BPCE
         function loadBpceInfo(profile) {
-            const vivierSelect = document.getElementById('bpceVivierNatixis');
             const linkedinInput = document.getElementById('linkedinUrl');
-            const jobAlertsCheck = document.getElementById('bpceJobAlerts');
-            if (vivierSelect && profile.bpce_vivier_natixis) vivierSelect.value = profile.bpce_vivier_natixis;
             const bpceSrc = document.getElementById('bpceApplicationSource');
             if (bpceSrc && profile.bpce_application_source) bpceSrc.value = profile.bpce_application_source;
             if (linkedinInput && profile.linkedin_url) linkedinInput.value = profile.linkedin_url;
-            if (jobAlertsCheck) jobAlertsCheck.checked = !!profile.bpce_job_alerts;
         }
 
-        function loadBpifranceInfo(profile) {
-            const talentPoolSelect = document.getElementById('bpifranceTalentPool');
-            if (talentPoolSelect && profile.bpifrance_talent_pool) {
-                talentPoolSelect.value = profile.bpifrance_talent_pool;
-            }
+        function loadTalentPoolInfo(profile) {
+            const bpceCheckbox = document.getElementById('talentPoolBpce');
+            const bpifranceCheckbox = document.getElementById('talentPoolBpifrance');
+            const bpceChecked = !!profile.bpce_job_alerts || String(profile.bpce_vivier_natixis || '').trim().toLowerCase() === 'oui';
+            const bpifranceChecked = String(profile.bpifrance_talent_pool || '').trim().toLowerCase() === 'oui';
+            if (bpceCheckbox) bpceCheckbox.checked = bpceChecked;
+            if (bpifranceCheckbox) bpifranceCheckbox.checked = bpifranceChecked;
         }
 
         function loadJpMorganInfo(profile) {
@@ -3379,11 +3375,9 @@
 
         function applyBpceSectionState() {
             const bpceHandicap = deriveBpceHandicapFromSharedField(document.getElementById('sgHandicap')?.value || '');
-            const bpceVivier = document.getElementById('bpceVivierNatixis')?.value?.trim() || '';
             const bpceApplicationSource = document.getElementById('bpceApplicationSource')?.value?.trim() || '';
             const linkedinUrl = document.getElementById('linkedinUrl')?.value?.trim() || '';
-            const bpceJobAlerts = document.getElementById('bpceJobAlerts')?.checked || false;
-            const bpceHasContent = !!(bpceHandicap || bpceVivier || bpceApplicationSource || linkedinUrl || bpceJobAlerts);
+            const bpceHasContent = !!(bpceHandicap || bpceApplicationSource || linkedinUrl);
 
             document.querySelectorAll('.accordion-header h2').forEach(header => {
                 if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Préférences BPCE') {
@@ -3396,11 +3390,26 @@
             });
         }
 
+        function applyTalentPoolsSectionState() {
+            const bpceChecked = document.getElementById('talentPoolBpce')?.checked || false;
+            const bpifranceChecked = document.getElementById('talentPoolBpifrance')?.checked || false;
+            const hasContent = bpceChecked || bpifranceChecked;
+
+            document.querySelectorAll('.accordion-header h2').forEach(header => {
+                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Alertes et viviers talents') {
+                    const section = header.closest('.accordion-section');
+                    if (section) {
+                        section.classList.remove('incomplete', 'complete');
+                        section.classList.add(hasContent ? 'complete' : 'incomplete');
+                    }
+                }
+            });
+        }
+
         function applyPortalQuestionsSectionState() {
-            const bpifranceTalentPool = document.getElementById('bpifranceTalentPool')?.value?.trim() || '';
             const jpMorganMilitaryService = document.getElementById('jpMorganMilitaryService')?.value?.trim() || '';
             const jpMorganWorkAuths = window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [];
-            const portalHasContent = !!bpifranceTalentPool || !!jpMorganMilitaryService || jpMorganWorkAuths.length > 0;
+            const portalHasContent = !!jpMorganMilitaryService || jpMorganWorkAuths.length > 0;
 
             document.querySelectorAll('.accordion-header h2').forEach(header => {
                 if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Questions par portail') {
@@ -3542,6 +3551,7 @@
 
             // Préférences BPCE : section optionnelle — verte uniquement si au moins un champ rempli
             applyBpceSectionState();
+            applyTalentPoolsSectionState();
             applyPortalQuestionsSectionState();
 
             // Si des champs sont incomplets, afficher un toast (sauf validation silencieuse) et retourner false
@@ -3684,11 +3694,11 @@
                 deloitte_old_email: document.getElementById('deloitteOldEmail')?.value?.trim() || '',
                 deloitte_country: document.getElementById('deloitteCountry')?.value || '',
                 bpce_handicap: deriveBpceHandicapFromSharedField(document.getElementById('sgHandicap')?.value || ''),
-                bpce_vivier_natixis: document.getElementById('bpceVivierNatixis')?.value || '',
+                bpce_vivier_natixis: document.getElementById('talentPoolBpce')?.checked ? 'Oui' : 'Non',
                 bpce_application_source: document.getElementById('bpceApplicationSource')?.value || '',
                 linkedin_url: document.getElementById('linkedinUrl')?.value?.trim() || '',
-                bpce_job_alerts: document.getElementById('bpceJobAlerts')?.checked || false,
-                bpifrance_talent_pool: document.getElementById('bpifranceTalentPool')?.value || '',
+                bpce_job_alerts: document.getElementById('talentPoolBpce')?.checked || false,
+                bpifrance_talent_pool: document.getElementById('talentPoolBpifrance')?.checked ? 'Oui' : 'Non',
                 jp_morgan_military_service: document.getElementById('jpMorganMilitaryService')?.value || '',
                 jp_morgan_work_authorizations: window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [],
                 sg_eu_work_authorization: deriveEuropeanUnionWorkAuthorizationValue(window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : []),

@@ -1431,6 +1431,18 @@
                             </label>
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <label for="sgNoticePeriod">Préavis de départ</label>
+                        <select id="sgNoticePeriod" name="sgNoticePeriod">
+                            <option value="">Sélectionnez…</option>
+                            <option value="none">Aucun / non applicable</option>
+                            <option value="1_month">1 mois</option>
+                            <option value="2_months">2 mois</option>
+                            <option value="3_months">3 mois</option>
+                            <option value="more_than_3_months">Plus de 3 mois</option>
+                        </select>
+                    </div>
                 </div>
                 </div>
 
@@ -1827,47 +1839,6 @@
                     </div>
                 </div>
 
-                <!-- Informations complémentaires (préavis / UE, Deloitte, etc.) -->
-                <div class="form-section accordion-section">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Informations complémentaires</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Champs parfois demandés sur les formulaires internationaux ou multilingues.</p>
-
-                        <div class="form-group">
-                            <label for="sgNoticePeriod">Préavis de départ</label>
-                            <select id="sgNoticePeriod" name="sgNoticePeriod">
-                                <option value="">Sélectionnez…</option>
-                                <option value="none">Aucun / non applicable</option>
-                                <option value="1_month">1 mois</option>
-                                <option value="2_months">2 mois</option>
-                                <option value="3_months">3 mois</option>
-                                <option value="more_than_3_months">Plus de 3 mois</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="sgHandicap">Avez-vous une reconnaissance administrative de situation de handicap (RQTH) ?</label>
-                            <select id="sgHandicap" name="sgHandicap" onchange="toggleSgHandicapAccommodation(this.value)">
-                                <option value="">Sélectionnez…</option>
-                                <option value="non">Non</option>
-                                <option value="oui">Oui</option>
-                                <option value="prefer_not">Je ne souhaite pas répondre</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="sgHandicapAccommodationSection" style="display:none">
-                            <label for="sgHandicapAccommodation">Aménagement spécifique pour les tests (tiers-temps, accessibilité) ?</label>
-                            <select id="sgHandicapAccommodation" name="sgHandicapAccommodation">
-                                <option value="">Sélectionnez…</option>
-                                <option value="non">Non</option>
-                                <option value="oui">Oui</option>
-                            </select>
-                        </div>
-
-                    </div>
-                </div>
-
                 <!-- Section Questions récurrentes des employeurs -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -1965,14 +1936,35 @@
                     </div>
                 </div>
 
-                <!-- Section Questions par portail -->
+                <!-- Section Questions administratives et réglementaires -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Questions par portail</h2>
+                        <h2>Questions administratives et réglementaires</h2>
                         <span class="accordion-icon">▼</span>
                     </div>
                     <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces réponses sont réutilisées quand certains portails demandent des questions spécifiques qui ne s’appliquent pas à toutes les candidatures.</p>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces réponses sont réutilisées quand certains formulaires demandent des informations réglementaires, sensibles ou très spécifiques à certaines candidatures.</p>
+
+                        <div class="form-group">
+                            <label for="sgHandicap">Avez-vous une reconnaissance administrative de situation de handicap (RQTH) ?</label>
+                            <select id="sgHandicap" name="sgHandicap" onchange="toggleSgHandicapAccommodation(this.value)">
+                                <option value="">Sélectionnez…</option>
+                                <option value="non">Non</option>
+                                <option value="oui">Oui</option>
+                                <option value="prefer_not">Je ne souhaite pas répondre</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="sgHandicapAccommodationSection" style="display:none">
+                            <label for="sgHandicapAccommodation">Aménagement spécifique pour les tests (tiers-temps, accessibilité) ?</label>
+                            <select id="sgHandicapAccommodation" name="sgHandicapAccommodation">
+                                <option value="">Sélectionnez…</option>
+                                <option value="non">Non</option>
+                                <option value="oui">Oui</option>
+                            </select>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
                         <div class="form-group">
                             <label for="jpMorganMilitaryService">Avez-vous déjà servi comme membre des forces armées ou comme réserviste ?</label>
@@ -3334,14 +3326,12 @@
                 ],
                 'Contrat et disponibilité': [
                     { id: 'contractType', section: 'Contrat et disponibilité' },
-                    { id: 'availableFrom', section: 'Contrat et disponibilité' }
+                    { id: 'availableFrom', section: 'Contrat et disponibilité' },
+                    { id: 'sgNoticePeriod', section: 'Contrat et disponibilité' }
                 ],
                 'Préférences géographiques': [
                     { name: 'continents', section: 'Préférences géographiques', isCheckbox: true },
                     { name: 'preferredCountries', section: 'Préférences géographiques', isCheckbox: true }
-                ],
-                'Informations complémentaires': [
-                    { id: 'sgNoticePeriod', section: 'Informations complémentaires' }
                 ],
                 'Questions récurrentes des employeurs': [
                     { id: 'deloitteWorked', section: 'Questions récurrentes des employeurs' }
@@ -3407,12 +3397,14 @@
         }
 
         function applyPortalQuestionsSectionState() {
+            const sgHandicap = document.getElementById('sgHandicap')?.value?.trim() || '';
+            const sgHandicapAccommodation = document.getElementById('sgHandicapAccommodation')?.value?.trim() || '';
             const jpMorganMilitaryService = document.getElementById('jpMorganMilitaryService')?.value?.trim() || '';
             const jpMorganWorkAuths = window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [];
-            const portalHasContent = !!jpMorganMilitaryService || jpMorganWorkAuths.length > 0;
+            const portalHasContent = !!sgHandicap || !!sgHandicapAccommodation || !!jpMorganMilitaryService || jpMorganWorkAuths.length > 0;
 
             document.querySelectorAll('.accordion-header h2').forEach(header => {
-                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Questions par portail') {
+                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Questions administratives et réglementaires') {
                     const section = header.closest('.accordion-section');
                     if (section) {
                         section.classList.remove('incomplete', 'complete');
@@ -3452,14 +3444,12 @@
                 ],
                 'Contrat et disponibilité': [
                     { id: 'contractType', label: 'Type de contrat', section: 'Contrat et disponibilité' },
-                    { id: 'availableFrom', label: 'Disponibilité', section: 'Contrat et disponibilité' }
+                    { id: 'availableFrom', label: 'Disponibilité', section: 'Contrat et disponibilité' },
+                    { id: 'sgNoticePeriod', label: 'Préavis de départ', section: 'Contrat et disponibilité' }
                 ],
                 'Préférences géographiques': [
                     { name: 'continents', label: 'Continents', section: 'Préférences géographiques', isCheckbox: true },
                     { name: 'preferredCountries', label: 'Pays', section: 'Préférences géographiques', isCheckbox: true }
-                ],
-                'Informations complémentaires': [
-                    { id: 'sgNoticePeriod', label: 'Préavis de départ', section: 'Informations complémentaires' }
                 ],
                 'Questions récurrentes des employeurs': [
                     { id: 'deloitteWorked', label: 'Avez-vous déjà travaillé pour Deloitte ?', section: 'Questions récurrentes des employeurs' }

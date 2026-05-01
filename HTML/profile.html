@@ -1996,10 +1996,8 @@
 
                         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
-                        <p style="color: #666; font-size: 0.9rem; margin: 8px 0 16px; line-height: 1.6;">J.P. Morgan</p>
-
                         <div class="form-group">
-                            <label for="jpMorganMilitaryService">Avez-vous déjà servi comme membre des forces armées d’un pays ?</label>
+                            <label for="jpMorganMilitaryService">Avez-vous déjà servi comme membre des forces armées ou comme réserviste ?</label>
                             <select id="jpMorganMilitaryService" name="jpMorganMilitaryService">
                                 <option value="">Sélectionnez...</option>
                                 <option value="No">Non</option>
@@ -2014,7 +2012,7 @@
                         <div class="form-group">
                             <label>Autorisation de travail et sponsorship par pays</label>
                             <p style="color: #666; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
-                                Indiquez les pays dans lesquels vous êtes autorisé·e à travailler, et si un sponsorship / visa employeur y est nécessaire. Taleos utilisera automatiquement la bonne réponse selon le pays de l’offre.
+                                Indiquez les pays dans lesquels vous êtes autorisé·e à travailler, et si un sponsorship / visa employeur y est nécessaire. Taleos réutilisera automatiquement la bonne réponse selon le pays de l’offre.
                             </p>
                             <div id="jpMorganWorkAuthContainer" class="repeatable-list"></div>
                             <div class="repeatable-actions">
@@ -2356,6 +2354,14 @@
             return { country, work_authorized: workAuthorized, sponsorship_required: sponsorshipRequired };
         }
 
+        function getDefaultJpMorganAuthorizationRow() {
+            return {
+                country: 'France',
+                work_authorized: 'Yes',
+                sponsorship_required: 'No'
+            };
+        }
+
         function getJpMorganCountryOptionsHtml(selectedValue) {
             const values = Array.from(document.querySelectorAll('input[name="preferredCountries"]'))
                 .map((input) => input.value)
@@ -2438,7 +2444,7 @@
             container.innerHTML = '';
             const rows = Array.isArray(items) ? items.map(normalizeJpMorganAuthorizationRow).filter(Boolean) : [];
             if (rows.length === 0) {
-                window.addJpMorganWorkAuthItem();
+                window.addJpMorganWorkAuthItem(getDefaultJpMorganAuthorizationRow());
             } else {
                 rows.forEach((row) => window.addJpMorganWorkAuthItem(row));
             }

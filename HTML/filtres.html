@@ -937,6 +937,16 @@
             flex-shrink: 0;
         }
 
+        .company-logo.company-logo-wordmark {
+            width: 96px;
+            height: 36px;
+            border-radius: 0;
+            background: transparent;
+            padding: 0;
+            box-shadow: none;
+            object-position: left center;
+        }
+
         .company-name-wrapper {
             display: flex;
             align-items: center;
@@ -3966,6 +3976,15 @@
             return null;
         }
 
+        function getCompanyLogoClass(companyName, logoPath) {
+            const normalized = (companyName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+            const path = String(logoPath || '').toLowerCase();
+            if (normalized.includes('goldman sachs') || normalized.includes('j.p. morgan') || normalized.includes('jp morgan') || normalized.includes('jpmorgan') || path.includes('goldman_sachs') || path.includes('jp_morgan')) {
+                return 'company-logo company-logo-wordmark';
+            }
+            return 'company-logo';
+        }
+
         // Fonction pour afficher un toast notification
         // Fonction pour vérifier si le profil utilisateur est complet
         async function checkProfileCompleteness() {
@@ -4743,9 +4762,10 @@
                 ${job.company_name ? (() => {
                     const logoPath = getCompanyLogo(job.company_name);
                     const logoUrl = logoPath ? (() => { try { return new URL(logoPath, window.location.href).href; } catch(e) { return logoPath; } })() : null;
+                    const logoClass = getCompanyLogoClass(job.company_name, logoPath);
                     return `
                 <div class="job-company">
-                    ${logoUrl ? `<img src="${logoUrl}" alt="${(job.company_name || '').replace(/"/g, '&quot;')}" class="company-logo" loading="lazy" onerror="this.style.display='none'">` : ''}
+                    ${logoUrl ? `<img src="${logoUrl}" alt="${(job.company_name || '').replace(/"/g, '&quot;')}" class="${logoClass}" loading="lazy" onerror="this.style.display='none'">` : ''}
                     <div class="company-name-wrapper">
                         <span>${job.company_name}</span>
                     </div>

@@ -749,6 +749,15 @@
             flex-shrink: 0;
         }
 
+        .company-logo.company-logo-wordmark {
+            width: 92px;
+            height: 34px;
+            border-radius: 0;
+            background: transparent;
+            padding: 0;
+            border: none;
+        }
+
         .app-title {
             font-family: var(--sans);
             font-size: 1rem;
@@ -1554,6 +1563,15 @@
         return null;
     }
 
+    function getCompanyLogoClass(companyName, logoPath) {
+        const normalized = (companyName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const path = String(logoPath || '').toLowerCase();
+        if (normalized.includes('goldman sachs') || normalized.includes('j.p. morgan') || normalized.includes('jp morgan') || normalized.includes('jpmorgan') || path.includes('goldman_sachs') || path.includes('jp_morgan')) {
+            return 'company-logo company-logo-wordmark';
+        }
+        return 'company-logo';
+    }
+
     const STATUS_CONFIG = {
         'pending':   { label: 'En attente',    icon: '⏳', color: '#3b82f6' },
         'screening': { label: 'Screening',      icon: '📞', color: '#f59e0b' },
@@ -2157,12 +2175,13 @@
             const dateStr = d.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
             const logoPath = getCompanyLogo(app.companyName);
             const logoUrl  = logoPath ? (() => { try { return new URL(logoPath, window.location.href).href; } catch(e) { return logoPath; } })() : null;
+            const logoClass = getCompanyLogoClass(app.companyName, logoPath);
 
             return `
             <div class="application-card status-${status}">
                 <div class="app-header">
                     <div class="app-header-left">
-                        ${logoUrl ? `<img src="${logoUrl}" alt="${(app.companyName||'').replace(/"/g,'&quot;')}" class="company-logo" loading="lazy" onerror="this.style.display='none'">` : ''}
+                        ${logoUrl ? `<img src="${logoUrl}" alt="${(app.companyName||'').replace(/"/g,'&quot;')}" class="${logoClass}" loading="lazy" onerror="this.style.display='none'">` : ''}
                         <div>
                             <div class="app-title">${app.jobTitle || 'Sans titre'}</div>
                             <div class="app-company-name">${app.companyName || 'Entreprise non spécifiée'}</div>

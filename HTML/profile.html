@@ -1753,33 +1753,24 @@
                     </div>
                 </div>
 
-                <!-- Section Niveau d'expérience -->
+                <!-- Section Formation et expérience -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Niveau d'expérience</h2>
+                        <h2>Formation et expérience</h2>
                         <span class="accordion-icon">▼</span>
                     </div>
                     <div class="accordion-content">
-                        <div class="form-group">
-                            <label for="experienceLevel">Mon niveau d'expérience</label>
-                            <select id="experienceLevel" name="experienceLevel">
-                                <option value="">Sélectionnez...</option>
-                                <option value="0 - 2 ans">0 - 2 ans</option>
-                                <option value="3 - 5 ans">3 - 5 ans</option>
-                                <option value="6 - 10 ans">6 - 10 ans</option>
-                                <option value="11 ans et plus">11 ans et plus</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Section Formation -->
-                <div class="form-section accordion-section">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Formation</h2>
-                        <span class="accordion-icon">▼</span>
+                    <div class="form-group">
+                        <label for="experienceLevel">Mon niveau d'expérience</label>
+                        <select id="experienceLevel" name="experienceLevel">
+                            <option value="">Sélectionnez...</option>
+                            <option value="0 - 2 ans">0 - 2 ans</option>
+                            <option value="3 - 5 ans">3 - 5 ans</option>
+                            <option value="6 - 10 ans">6 - 10 ans</option>
+                            <option value="11 ans et plus">11 ans et plus</option>
+                        </select>
                     </div>
-                    <div class="accordion-content">
                     
                     <div class="form-group">
                         <label for="educationLevel">Niveau d'étude</label>
@@ -3304,19 +3295,17 @@
                     { name: 'continents', section: 'Préférences géographiques', isCheckbox: true },
                     { name: 'preferredCountries', section: 'Préférences géographiques', isCheckbox: true }
                 ],
-                'Niveau d\'expérience': [
-                    { id: 'experienceLevel', section: 'Niveau d\'expérience' }
-                ],
                 'Informations complémentaires': [
                     { id: 'sgEuWorkAuthorization', section: 'Informations complémentaires' },
                     { id: 'sgNoticePeriod', section: 'Informations complémentaires' },
                     { id: 'deloitteWorked', section: 'Informations complémentaires' }
                 ],
-                'Formation': [
-                    { id: 'educationLevel', section: 'Formation' },
-                    { id: 'establishment', section: 'Formation' },
-                    { id: 'institutionType', section: 'Formation' },
-                    { id: 'diplomaStatus', section: 'Formation' }
+                'Formation et expérience': [
+                    { id: 'experienceLevel', section: 'Formation et expérience' },
+                    { id: 'educationLevel', section: 'Formation et expérience' },
+                    { id: 'establishment', section: 'Formation et expérience' },
+                    { id: 'institutionType', section: 'Formation et expérience' },
+                    { id: 'diplomaStatus', section: 'Formation et expérience' }
                 ]
             };
 
@@ -3410,19 +3399,17 @@
                     { name: 'continents', label: 'Continents', section: 'Préférences géographiques', isCheckbox: true },
                     { name: 'preferredCountries', label: 'Pays', section: 'Préférences géographiques', isCheckbox: true }
                 ],
-                'Niveau d\'expérience': [
-                    { id: 'experienceLevel', label: 'Niveau d\'expérience', section: 'Niveau d\'expérience' }
-                ],
                 'Informations complémentaires': [
                     { id: 'sgEuWorkAuthorization', label: 'Autorisation de travail dans l’UE', section: 'Informations complémentaires' },
                     { id: 'sgNoticePeriod', label: 'Préavis de départ', section: 'Informations complémentaires' },
                     { id: 'deloitteWorked', label: 'Avez-vous déjà travaillé pour Deloitte ?', section: 'Informations complémentaires' }
                 ],
-                'Formation': [
-                    { id: 'educationLevel', label: 'Niveau d\'études', section: 'Formation' },
-                    { id: 'establishment', label: 'Établissement ou université', section: 'Formation' },
-                    { id: 'institutionType', label: 'Type d\'établissement', section: 'Formation' },
-                    { id: 'diplomaStatus', label: 'Statut du diplôme', section: 'Formation' }
+                'Formation et expérience': [
+                    { id: 'experienceLevel', label: 'Niveau d\'expérience', section: 'Formation et expérience' },
+                    { id: 'educationLevel', label: 'Niveau d\'études', section: 'Formation et expérience' },
+                    { id: 'establishment', label: 'Établissement ou université', section: 'Formation et expérience' },
+                    { id: 'institutionType', label: 'Type d\'établissement', section: 'Formation et expérience' },
+                    { id: 'diplomaStatus', label: 'Statut du diplôme', section: 'Formation et expérience' }
                 ]
             };
 

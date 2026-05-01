@@ -928,12 +928,13 @@
     const API_KEY = 'Thibault_Secure_987654321_Validator';
 
     const banks = [
-        { id: 'credit_agricole', name: 'Crédit Agricole',   url: 'https://www.ca-recrute.fr',          logo: 'images/logos/credit_agricole.png',  description: 'Site carrière du Crédit Agricole' },
-        { id: 'bnp_paribas',     name: 'BNP Paribas',       url: 'https://bwelcome.hr.bnpparibas',     logo: 'images/logos/bnp_paribas.png',      description: 'Site carrière de BNP Paribas' },
-        { id: 'bpce',            name: 'BPCE',               url: 'https://recrutement.bpce.fr',         logo: 'images/logos/bpce.svg',             description: 'Site carrière de BPCE' },
-        { id: 'bpifrance',       name: 'Bpifrance',         url: 'https://bpi.tzportal.io//fr/login',   logo: 'images/logos/bpifrance.svg',        description: 'Site carrière de Bpifrance' },
-        { id: 'societe_generale',name: 'Société Générale',   url: 'https://careers.societegenerale.com', logo: 'images/logos/societe_generale.png', description: 'Site carrière de la Société Générale' },
-        { id: 'deloitte',        name: 'Deloitte',           url: 'https://jobs2.deloitte.com',          logo: 'images/logos/deloitte.png',         description: 'Site carrière de Deloitte' }
+        { id: 'credit_agricole', name: 'Crédit Agricole',    url: 'https://www.ca-recrute.fr',            logo: 'images/logos/credit_agricole.png',  description: 'Site carrière du Crédit Agricole' },
+        { id: 'bnp_paribas',     name: 'BNP Paribas',        url: 'https://bwelcome.hr.bnpparibas',       logo: 'images/logos/bnp_paribas.png',      description: 'Site carrière de BNP Paribas' },
+        { id: 'bpce',            name: 'BPCE',               url: 'https://recrutement.bpce.fr',           logo: 'images/logos/bpce.svg',             description: 'Site carrière de BPCE' },
+        { id: 'bpifrance',       name: 'Bpifrance',          url: 'https://bpi.tzportal.io//fr/login',     logo: 'images/logos/bpifrance.svg',        description: 'Site carrière de Bpifrance' },
+        { id: 'jp_morgan',       name: 'J.P. Morgan',        url: 'https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/my-profile', logo: 'images/logos/jp_morgan.png', description: 'Site carrière de J.P. Morgan' },
+        { id: 'societe_generale',name: 'Société Générale',   url: 'https://careers.societegenerale.com',   logo: 'images/logos/societe_generale.png', description: 'Site carrière de la Société Générale' },
+        { id: 'deloitte',        name: 'Deloitte',           url: 'https://jobs2.deloitte.com',            logo: 'images/logos/deloitte.png',         description: 'Site carrière de Deloitte' }
     ];
 
     let userConnections = {};
@@ -1227,6 +1228,7 @@
         const connectedEmail = userConnections[bank.id]?.email || '';
         const isSG = bank.id === 'societe_generale';
         const isBPCE = bank.id === 'bpce';
+        const isJPM = bank.id === 'jp_morgan';
 
         return `
         <div class="bank-module" id="bank-${bank.id}">
@@ -1260,13 +1262,14 @@
                         <p class="connect-desc">
                             Connectez votre compte <strong>${isBPCE ? 'du Groupe BPCE' : bank.name}</strong> pour postuler automatiquement aux offres.
                             ${isSG ? '<br><span class="form-note">ℹ️ Société Générale utilise un identifiant (sans @) plutôt qu\'un email.</span>' : ''}
+                            ${isJPM ? '<br><span class="form-note">ℹ️ J.P. Morgan fonctionne avec un code envoyé par email au moment de la candidature, aucun mot de passe n’est demandé ici.</span>' : ''}
                         </p>
-                        <form onsubmit="testConnection('${bank.id}', document.getElementById('${isSG ? 'identifier' : 'email'}-${bank.id}').value, ${isBPCE ? "''" : `document.getElementById('password-${bank.id}').value`}, event); return false;">
+                        <form onsubmit="testConnection('${bank.id}', document.getElementById('${isSG ? 'identifier' : 'email'}-${bank.id}').value, ${(isBPCE || isJPM) ? "''" : `document.getElementById('password-${bank.id}').value`}, event); return false;">
                             <div class="form-group">
                                 <label for="${isSG ? 'identifier' : 'email'}-${bank.id}">${isSG ? 'Identifiant' : 'Email'}</label>
                                 <input type="${isSG ? 'text' : 'email'}" id="${isSG ? 'identifier' : 'email'}-${bank.id}" placeholder="${isSG ? 'Votre identifiant (sans @)' : 'votre.email@exemple.com'}" required>
                             </div>
-                            ${isBPCE ? '' : `
+                            ${(isBPCE || isJPM) ? '' : `
                             <div class="form-group">
                                 <label for="password-${bank.id}">Mot de passe</label>
                                 <div class="password-input-wrapper">
@@ -1322,8 +1325,9 @@
         if (statusDiv) { statusDiv.className='connection-status show info'; statusDiv.innerHTML='⏳ Test de connexion en cours...'; }
         const isSG = bankId === 'societe_generale';
         const isBPCE = bankId === 'bpce';
+        const isJPM = bankId === 'jp_morgan';
         const emailInput = document.getElementById(`${isSG?'identifier':'email'}-${bankId}`);
-        const passwordInput = isBPCE ? null : document.getElementById(`password-${bankId}`);
+        const passwordInput = (isBPCE || isJPM) ? null : document.getElementById(`password-${bankId}`);
         const emailValue = emailInput?.value?.trim() || email;
         const passwordValue = passwordInput?.value || password;
         const firebaseUserId = currentUser?.uid || auth?.currentUser?.uid || localStorage.getItem('authToken') || '';
@@ -1338,7 +1342,7 @@
             if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
             return;
         }
-        if (!isBPCE && !passwordValue) {
+        if (!(isBPCE || isJPM) && !passwordValue) {
             if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML='❌ Mot de passe manquant. Renseignez votre mot de passe avant de lancer le test.'; }
             if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
             return;

@@ -1908,16 +1908,6 @@
                         <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont utilisées pour les candidatures au Groupe BPCE (Banque Populaire, Caisse d'Épargne, Natixis, etc.).</p>
 
                         <div class="form-group">
-                            <label for="bpceHandicap">Travailleur en situation de handicap (information à caractère non obligatoire) : Disposez-vous d'un titre de reconnaissance administrative de votre situation de handicap ?</label>
-                            <select id="bpceHandicap" name="bpceHandicap">
-                                <option value="">Sélectionnez...</option>
-                                <option value="Oui">Oui</option>
-                                <option value="Non">Non</option>
-                                <option value="Je ne souhaite pas répondre">Je ne souhaite pas répondre</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
                             <label for="bpceVivierNatixis">J'accepte que BPCE conserve mon profil dans le vivier Candidats. En sélectionnant «Oui», vous souhaitez que l'on puisse vous proposer de nouvelles offres d'emploi correspondant à votre profil et vous envoyer des informations sur nos métiers.</label>
                             <select id="bpceVivierNatixis" name="bpceVivierNatixis">
                                 <option value="">Sélectionnez...</option>
@@ -2206,6 +2196,7 @@
                 const sel = document.getElementById('sgHandicapAccommodation');
                 if (sel) sel.value = '';
             }
+            applyBpceSectionState();
         }
 
         function toggleDeloitteDetails(value) {
@@ -2988,11 +2979,9 @@
 
         // Fonction pour charger les informations BPCE
         function loadBpceInfo(profile) {
-            const handicapSelect = document.getElementById('bpceHandicap');
             const vivierSelect = document.getElementById('bpceVivierNatixis');
             const linkedinInput = document.getElementById('linkedinUrl');
             const jobAlertsCheck = document.getElementById('bpceJobAlerts');
-            if (handicapSelect && profile.bpce_handicap) handicapSelect.value = profile.bpce_handicap;
             if (vivierSelect && profile.bpce_vivier_natixis) vivierSelect.value = profile.bpce_vivier_natixis;
             const bpceSrc = document.getElementById('bpceApplicationSource');
             if (bpceSrc && profile.bpce_application_source) bpceSrc.value = profile.bpce_application_source;
@@ -3022,7 +3011,8 @@
             if (notice && profile.sg_notice_period) notice.value = profile.sg_notice_period;
             const sgHandicap = document.getElementById('sgHandicap');
             const sgHandicapAccommodation = document.getElementById('sgHandicapAccommodation');
-            if (sgHandicap && profile.sg_handicap) { sgHandicap.value = profile.sg_handicap; toggleSgHandicapAccommodation(profile.sg_handicap); }
+            const sharedHandicapValue = profile.sg_handicap || normalizeBpceHandicapForSharedField(profile.bpce_handicap);
+            if (sgHandicap && sharedHandicapValue) { sgHandicap.value = sharedHandicapValue; toggleSgHandicapAccommodation(sharedHandicapValue); }
             if (sgHandicapAccommodation && profile.sg_handicap_accommodation) sgHandicapAccommodation.value = profile.sg_handicap_accommodation;
         }
 
@@ -3033,6 +3023,22 @@
             const value = String(euRow.work_authorized || '').trim();
             if (value === 'Yes') return 'yes';
             if (value === 'No') return 'no';
+            return '';
+        }
+
+        function normalizeBpceHandicapForSharedField(value) {
+            const raw = String(value || '').trim().toLowerCase();
+            if (raw === 'oui' || raw === 'yes') return 'oui';
+            if (raw === 'non' || raw === 'no') return 'non';
+            if (raw.includes('souhaite pas répondre') || raw.includes('prefer')) return 'prefer_not';
+            return '';
+        }
+
+        function deriveBpceHandicapFromSharedField(value) {
+            const raw = String(value || '').trim().toLowerCase();
+            if (raw === 'oui' || raw === 'yes') return 'Oui';
+            if (raw === 'non' || raw === 'no') return 'Non';
+            if (raw === 'prefer_not' || raw.includes('prefer')) return 'Je ne souhaite pas répondre';
             return '';
         }
 
@@ -3362,7 +3368,7 @@
         }
 
         function applyBpceSectionState() {
-            const bpceHandicap = document.getElementById('bpceHandicap')?.value?.trim() || '';
+            const bpceHandicap = deriveBpceHandicapFromSharedField(document.getElementById('sgHandicap')?.value || '');
             const bpceVivier = document.getElementById('bpceVivierNatixis')?.value?.trim() || '';
             const bpceApplicationSource = document.getElementById('bpceApplicationSource')?.value?.trim() || '';
             const linkedinUrl = document.getElementById('linkedinUrl')?.value?.trim() || '';
@@ -3665,7 +3671,7 @@
                 deloitte_old_office: document.getElementById('deloitteOldOffice')?.value?.trim() || '',
                 deloitte_old_email: document.getElementById('deloitteOldEmail')?.value?.trim() || '',
                 deloitte_country: document.getElementById('deloitteCountry')?.value || '',
-                bpce_handicap: document.getElementById('bpceHandicap')?.value || '',
+                bpce_handicap: deriveBpceHandicapFromSharedField(document.getElementById('sgHandicap')?.value || ''),
                 bpce_vivier_natixis: document.getElementById('bpceVivierNatixis')?.value || '',
                 bpce_application_source: document.getElementById('bpceApplicationSource')?.value || '',
                 linkedin_url: document.getElementById('linkedinUrl')?.value?.trim() || '',

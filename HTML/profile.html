@@ -1974,14 +1974,16 @@
                     </div>
                 </div>
 
-                <!-- Section Préférences Bpifrance -->
+                <!-- Section Questions par portail -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Préférences Bpifrance</h2>
+                        <h2>Questions par portail</h2>
                         <span class="accordion-icon">▼</span>
                     </div>
                     <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont utilisées pour les candidatures sur le portail Bpifrance.</p>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces réponses sont réutilisées quand certains portails demandent des questions spécifiques qui ne s’appliquent pas à toutes les candidatures.</p>
+
+                        <p style="color: #666; font-size: 0.9rem; margin: 8px 0 16px; line-height: 1.6;">Bpifrance</p>
 
                         <div class="form-group">
                             <label for="bpifranceTalentPool">Je souhaite être recontacté.e par Bpifrance pour d'autres offres d'emploi, et ainsi rejoindre le vivier des talents.</label>
@@ -1991,17 +1993,10 @@
                                 <option value="Non">Non</option>
                             </select>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Section Préférences JP Morgan -->
-                <div class="form-section accordion-section">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Préférences JP Morgan</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont utilisées pour les candidatures sur le portail JP Morgan.</p>
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
+
+                        <p style="color: #666; font-size: 0.9rem; margin: 8px 0 16px; line-height: 1.6;">J.P. Morgan</p>
 
                         <div class="form-group">
                             <label for="jpMorganMilitaryService">Avez-vous déjà servi comme membre des forces armées d’un pays ?</label>
@@ -2349,8 +2344,7 @@
             }
             // Re-synchroniser immédiatement l'état visuel de la section BPCE
             applyBpceSectionState();
-            applyBpifranceSectionState();
-            applyJpMorganSectionState();
+            applyPortalQuestionsSectionState();
         }
 
         function normalizeJpMorganAuthorizationRow(row) {
@@ -2408,7 +2402,7 @@
                 </div>
             `;
             item.querySelectorAll('select').forEach((select) => {
-                select.addEventListener('change', () => applyJpMorganSectionState());
+                select.addEventListener('change', () => applyPortalQuestionsSectionState());
             });
             return item;
         }
@@ -2417,13 +2411,13 @@
             const container = document.getElementById('jpMorganWorkAuthContainer');
             if (!container) return;
             container.appendChild(createJpMorganWorkAuthItem(data));
-            applyJpMorganSectionState();
+            applyPortalQuestionsSectionState();
         };
 
         window.removeJpMorganWorkAuthItem = function(button) {
             const item = button?.closest('.repeatable-item');
             if (item) item.remove();
-            applyJpMorganSectionState();
+            applyPortalQuestionsSectionState();
         };
 
         window.getJpMorganWorkAuthorizationData = function() {
@@ -2448,7 +2442,7 @@
             } else {
                 rows.forEach((row) => window.addJpMorganWorkAuthItem(row));
             }
-            applyJpMorganSectionState();
+            applyPortalQuestionsSectionState();
         };
         
         // Fonction pour mettre à jour la navigation immédiatement
@@ -3357,32 +3351,18 @@
             });
         }
 
-        function applyBpifranceSectionState() {
+        function applyPortalQuestionsSectionState() {
             const bpifranceTalentPool = document.getElementById('bpifranceTalentPool')?.value?.trim() || '';
-            const bpifranceHasContent = !!bpifranceTalentPool;
-
-            document.querySelectorAll('.accordion-header h2').forEach(header => {
-                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Préférences Bpifrance') {
-                    const section = header.closest('.accordion-section');
-                    if (section) {
-                        section.classList.remove('incomplete', 'complete');
-                        section.classList.add(bpifranceHasContent ? 'complete' : 'incomplete');
-                    }
-                }
-            });
-        }
-
-        function applyJpMorganSectionState() {
             const jpMorganMilitaryService = document.getElementById('jpMorganMilitaryService')?.value?.trim() || '';
             const jpMorganWorkAuths = window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [];
-            const jpMorganHasContent = !!jpMorganMilitaryService || jpMorganWorkAuths.length > 0;
+            const portalHasContent = !!bpifranceTalentPool || !!jpMorganMilitaryService || jpMorganWorkAuths.length > 0;
 
             document.querySelectorAll('.accordion-header h2').forEach(header => {
-                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Préférences JP Morgan') {
+                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Questions par portail') {
                     const section = header.closest('.accordion-section');
                     if (section) {
                         section.classList.remove('incomplete', 'complete');
-                        section.classList.add(jpMorganHasContent ? 'complete' : 'incomplete');
+                        section.classList.add(portalHasContent ? 'complete' : 'incomplete');
                     }
                 }
             });
@@ -3518,8 +3498,7 @@
 
             // Préférences BPCE : section optionnelle — verte uniquement si au moins un champ rempli
             applyBpceSectionState();
-            applyBpifranceSectionState();
-            applyJpMorganSectionState();
+            applyPortalQuestionsSectionState();
 
             // Si des champs sont incomplets, afficher un toast (sauf validation silencieuse) et retourner false
             if (incompleteFields.length > 0) {

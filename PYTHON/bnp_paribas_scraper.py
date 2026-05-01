@@ -69,16 +69,24 @@ CONTRACT_FILTERS = [
 
 # ================= Config =================
 class Config:
-    MAX_CONCURRENT_LISTING = 8    # Pages de liste (réduit pour stabilité)
-    MAX_CONCURRENT_DETAILS = 5    # Pages détail (réduit pour éviter TargetClosedError/Timeout)
-    PAGE_TIMEOUT = 30000          # 30 s — suffisant pour les pages BNP ; libère vite les slots sur timeout
-    WAIT_TIMEOUT = 10000
+    MAX_CONCURRENT_LISTING = 6    # Pages de liste
+    MAX_CONCURRENT_DETAILS = 4    # Pages détail (réduit pour stabilité)
+    PAGE_TIMEOUT = 20000          # 20 s — réduit (était 60 s) pour éviter de bloquer trop longtemps
+    WAIT_TIMEOUT = 8000
     HEADLESS = True
     BASE_DIR = Path(__file__).parent
     DB_PATH = BASE_DIR / "bnp_paribas_jobs.db"
     CSV_PATH = BASE_DIR / "bnp_paribas_jobs.csv"
     # Nombre maximum de redémarrages du navigateur sur crash Playwright
-    MAX_BROWSER_RESTARTS = 5
+    MAX_BROWSER_RESTARTS = 3
+    # ── Delta scraping ──────────────────────────────────────────────────────
+    # Nombre maximum d'offres dont on scrappe les DÉTAILS par run.
+    # But : même sur une DB vide, le job ne dépasse jamais ~80 min.
+    # Les offres en attente de détails sont visibles dans l'export
+    # (données listing : titre, localisation, contrat) et complétées
+    # au fil des runs suivants jusqu'à épuisement du backlog.
+    # Avec ~3 000 offres BNP et 400/run → backlog liquidé en ~8 runs.
+    MAX_DETAILS_PER_RUN = 400
 
     BLOCK_RESOURCES = {
         "image", "font", "media", "texttrack",
@@ -206,6 +214,76 @@ class JobDatabase:
             if first_seen:
                 return str(first_seen).strip()[:10]
             return None
+
+    def insert_listing_only(self, job: Dict):
+        """Insère ou réactive une offre avec les données minimales du listing (titre, lieu, contrat).
+        Les champs déjà renseignés (job_description, job_id…) ne sont JAMAIS écrasés.
+        But : rendre visible une nouvelle offre immédiatement, sans attendre le scraping détail."""
+        location = None
+        if job.get('location_raw'):
+            location = normalize_location(job['location_raw'])
+        elif job.get('location'):
+            location = job['location']
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                INSERT INTO jobs (
+                    job_url, job_title, contract_type, location,
+                    status, company_name, is_valid
+                ) VALUES (?, ?, ?, ?, 'Live', 'BNP Paribas', 1)
+                ON CONFLICT(job_url) DO UPDATE SET
+                    job_title    = COALESCE(
+                                     NULLIF(TRIM(COALESCE(excluded.job_title, '')), ''),
+                                     jobs.job_title),
+                    contract_type= COALESCE(
+                                     NULLIF(TRIM(COALESCE(excluded.contract_type, '')), ''),
+                                     jobs.contract_type),
+                    location     = COALESCE(
+                                     NULLIF(TRIM(COALESCE(excluded.location, '')), ''),
+                                     jobs.location),
+                    status       = 'Live',
+                    last_updated = CURRENT_TIMESTAMP
+            """, (
+                job.get('job_url'),
+                job.get('job_title'),
+                job.get('contract_type'),
+                location,
+            ))
+            conn.commit()
+
+    def get_offers_without_details(self, limit: int) -> List[Dict]:
+        """Retourne jusqu'à `limit` offres Live sans job_description (backlog de détails).
+        Priorité : offres vues pour la première fois en dernier (nouvelles en premier)."""
+        with sqlite3.connect(self.db_path) as conn:
+            rows = conn.execute("""
+                SELECT job_url, job_title, contract_type, location
+                FROM jobs
+                WHERE status = 'Live'
+                  AND is_valid = 1
+                  AND (job_description IS NULL OR TRIM(job_description) = '')
+                ORDER BY first_seen DESC
+                LIMIT ?
+            """, (limit,)).fetchall()
+        return [
+            {
+                'job_url': r[0],
+                'job_title': r[1],
+                'contract_type': r[2],
+                'location': r[3],
+            }
+            for r in rows
+        ]
+
+    def count_offers_without_details(self) -> int:
+        """Compte le total d'offres Live sans job_description (backlog)."""
+        with sqlite3.connect(self.db_path) as conn:
+            row = conn.execute("""
+                SELECT COUNT(*) FROM jobs
+                WHERE status = 'Live'
+                  AND is_valid = 1
+                  AND (job_description IS NULL OR TRIM(job_description) = '')
+            """).fetchone()
+        return row[0] if row else 0
 
     def mark_as_expired(self, urls: Set[str]):
         if not urls:
@@ -450,12 +528,6 @@ def _is_browser_crash(exc: Exception) -> bool:
     return any(marker in msg for marker in _BROWSER_CRASH_MARKERS)
 
 
-class BrowserCrashError(Exception):
-    """Levée quand le process Playwright est mort (EPIPE, navigateur tué…).
-    Propagée jusqu'à scrape_details_robust qui redémarre le navigateur."""
-    pass
-
-
 async def _launch_browser(p) -> Browser:
     """Lance Firefox (ou Chromium en fallback) en mode headless."""
     try:
@@ -498,52 +570,43 @@ async def _close_browser_safe(context: Optional[BrowserContext], browser: Option
 # NAVIGATE WITH RETRY
 # =========================================================
 async def navigate_with_retry(
-    page: Page,
-    url: str,
-    context: BrowserContext = None,
-    max_retries: int = 2,
-    timeout: int = None,
+    page: Page, url: str, context: BrowserContext = None, max_retries: int = 2
 ) -> bool:
     """Navigate with retry and bounded backoff for transient CDN errors.
 
-    Comportement :
-    • Crash Playwright (EPIPE, "browser closed"…) → lève BrowserCrashError immédiatement.
-      Réessayer sur un navigateur mort serait inutile et bloquerait le slot pour des minutes.
-    • Erreur réseau (timeout, net::ERR_*) → retry avec backoff court (3s, 6s max).
-      Backoff intentionnellement court : avec ~3000 offres/run on ne peut pas attendre.
-    • Autre erreur → retourne False sans retry (ex: NS_ERROR_FAILURE = page inexistante).
+    IMPORTANT : si l'erreur indique un crash Playwright (EPIPE, "browser closed"…),
+    la fonction retourne False IMMÉDIATEMENT sans attendre — réessayer sur un navigateur
+    mort serait inutile et bloquerait le thread des dizaines de secondes.
     """
-    page_timeout = timeout or config.PAGE_TIMEOUT
     for attempt in range(max_retries):
         try:
             if page.is_closed():
                 if context:
+                    logging.info(f"Re-opening closed page for {url}")
                     page = await context.new_page()
                 else:
                     return False
 
-            await page.goto(url, timeout=page_timeout, wait_until="load")
+            await page.goto(url, timeout=config.PAGE_TIMEOUT, wait_until="load")
             return True
 
         except Exception as e:
-            # Crash navigateur → propagé via exception spéciale pour restart du navigateur
+            # Crash navigateur → pas de retry possible, retour immédiat
             if _is_browser_crash(e):
-                raise BrowserCrashError(f"Browser crash on {url}: {e}")
+                logging.warning(f"Browser crash détecté sur {url}: {e}")
+                return False
 
             error_str = str(e)
             if any(x in error_str.lower() for x in ["err_http2", "net::", "timeout"]):
-                # Backoff court : 3s, 6s — on ne peut pas attendre davantage à l'échelle
+                # Backoff court : 3 s, 6 s max (était 8-60 s → bloquait le pipeline)
                 wait = min(6, 3 * (2 ** attempt))
-                if attempt < max_retries - 1:
-                    logging.warning(
-                        f"Network error on {url} (attempt {attempt+1}/{max_retries}), "
-                        f"retrying in {wait}s"
-                    )
-                    await asyncio.sleep(wait)
-                else:
-                    logging.warning(f"Network error on {url}, giving up after {max_retries} attempts")
+                logging.warning(
+                    f"Network error on {url} (attempt {attempt+1}/{max_retries}), "
+                    f"retrying in {wait}s: {error_str}"
+                )
+                await asyncio.sleep(wait)
             else:
-                logging.debug(f"Unrecoverable error on {url}: {error_str[:120]}")
+                logging.error(f"Unrecoverable error on {url}: {error_str}")
                 return False
 
     return False
@@ -656,28 +719,29 @@ async def fetch_job_details(
     context: BrowserContext, job: Dict, sem: asyncio.Semaphore
 ) -> Dict:
     """Scrape la page de détail d'une offre.
-
-    Lève BrowserCrashError si le navigateur est mort (propagé jusqu'à scrape_details_robust).
-    Retourne simplement le dict (possiblement sans données) pour les erreurs réseau ordinaires.
-    """
+    Retourne le dict avec _crashed=True si le navigateur est mort pendant l'opération."""
     async with sem:
         page = None
         try:
             page = await context.new_page()
         except Exception as e:
-            # new_page() peut échouer sur un navigateur mort → BrowserCrashError
             if _is_browser_crash(e):
-                raise BrowserCrashError(f"new_page failed: {e}")
+                job['_crashed'] = True
+                return job
             logging.warning(f"new_page() failed for {job.get('job_url')}: {e}")
             return job
 
         try:
             success = await navigate_with_retry(page, job["job_url"], context=context)
-            # BrowserCrashError est propagée directement si levée dans navigate_with_retry
             if not success:
-                return job  # erreur réseau ordinaire, pas de crash — on passe à l'offre suivante
+                # navigate_with_retry retourne False sur crash → propager le signal
+                if not page.is_closed():
+                    job['_crashed'] = False   # erreur réseau ordinaire, pas crash
+                else:
+                    job['_crashed'] = True    # page fermée = navigateur mort
+                return job
 
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.8)
 
             html = await page.content()
             soup = BeautifulSoup(html, "html.parser")
@@ -790,12 +854,11 @@ async def fetch_job_details(
             job["technical_skills"] = "[]"
             job["behavioral_skills"] = "[]"
 
-        except BrowserCrashError:
-            raise  # remonter jusqu'à _run_detail_batch → scrape_details_robust
         except Exception as e:
             if _is_browser_crash(e):
-                raise BrowserCrashError(f"Browser crash mid-detail: {e}")
-            logging.warning(f"Detail failed: {job.get('job_url')} ({e})")
+                job['_crashed'] = True
+            else:
+                logging.warning(f"Detail failed: {job.get('job_url')} ({e})")
         finally:
             # Toujours tenter de fermer — même si le navigateur est mort
             if page is not None:
@@ -849,12 +912,15 @@ async def _run_detail_batch(
     for coro in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Scraping details"):
         try:
             job_data = await coro
-        except BrowserCrashError as e:
-            logging.warning(f"BrowserCrashError dans le batch: {e}")
-            had_crash = True
-            continue
         except Exception as e:
-            logging.warning(f"Unexpected task error: {e}")
+            if _is_browser_crash(e):
+                had_crash = True
+            else:
+                logging.warning(f"Unexpected task error: {e}")
+            continue
+
+        if job_data.get('_crashed'):
+            had_crash = True
             continue
 
         _finalize_job(job_data, db)
@@ -927,8 +993,6 @@ async def scrape_details_robust(p, jobs: List[Dict], db: JobDatabase) -> int:
                 f"{len(remaining) - len(completed_urls)} à refaire"
             )
 
-        except BrowserCrashError as e:
-            logging.warning(f"BrowserCrashError globale (tentative {attempt + 1}): {e}")
         except Exception as e:
             logging.error(f"Erreur inattendue (tentative {attempt + 1}): {e}")
 
@@ -1015,11 +1079,12 @@ async def main():
         logging.info("\n🔍 ÉTAPE 2: Analyse des changements")
         existing_live_urls = db.get_live_urls()
 
-        new_urls = all_current_urls - existing_live_urls
-        expired_urls = existing_live_urls - all_current_urls
+        new_urls      = all_current_urls - existing_live_urls
+        expired_urls  = existing_live_urls - all_current_urls
 
-        logging.info(f"✅ Nouvelles offres: {len(new_urls)}")
+        logging.info(f"✅ Nouvelles offres (listing): {len(new_urls)}")
         logging.info(f"❌ Offres expirées: {len(expired_urls)}")
+        logging.info(f"🔄 Offres inchangées: {len(all_current_urls & existing_live_urls)}")
 
         # ── Étape 3 : Marquer les expirées ────────────────────────────────────
         if expired_urls:
@@ -1027,18 +1092,50 @@ async def main():
             db.mark_as_expired(expired_urls)
             logging.info(f"✓ {len(expired_urls)} offres marquées comme expirées")
 
-        # ── Étape 4 : Scraper les détails des nouvelles offres ─────────────────
+        # ── Étape 4 : Insérer IMMÉDIATEMENT toutes les nouvelles offres ────────
+        # On persiste les données listing (titre, lieu, contrat) en base pour que
+        # l'export les affiche dès ce run, même sans job_description.
+        # Les détails (description, compétences…) sont complétés dans l'étape suivante.
         if new_urls:
-            new_jobs = [j for j in unique_jobs if j["job_url"] in new_urls]
-            logging.info(f"\n🚀 ÉTAPE 4: Scraping de {len(new_jobs)} nouvelles offres")
+            new_jobs_listing = [j for j in unique_jobs if j["job_url"] in new_urls]
+            logging.info(f"\n💾 ÉTAPE 4: Insertion listing-only de {len(new_jobs_listing)} nouvelles offres")
+            for job in new_jobs_listing:
+                db.insert_listing_only(job)
+            logging.info(f"✓ {len(new_jobs_listing)} offres insérées (données listing)")
 
-            total_scraped = await scrape_details_robust(p, new_jobs, db)
-            logging.info(f"✓ {total_scraped} nouvelles offres scrapées au total")
+        # ── Étape 5 : Scraper les détails (backlog limité à MAX_DETAILS_PER_RUN) ─
+        # Cherche toutes les offres Live sans job_description (nouvelles + non complétées).
+        # Limite à MAX_DETAILS_PER_RUN pour garantir que le job CI ne dépasse pas le timeout.
+        # Les offres non traitées ce run seront complétées lors des runs suivants.
+        backlog_total    = db.count_offers_without_details()
+        offers_to_detail = db.get_offers_without_details(limit=config.MAX_DETAILS_PER_RUN)
+
+        if offers_to_detail:
+            logging.info(
+                f"\n🚀 ÉTAPE 5: Scraping détails — "
+                f"{len(offers_to_detail)}/{backlog_total} offres (cap={config.MAX_DETAILS_PER_RUN}/run)"
+            )
+            if backlog_total > config.MAX_DETAILS_PER_RUN:
+                logging.warning(
+                    f"⚠️  Backlog de {backlog_total} offres sans détails. "
+                    f"Ce run traite {len(offers_to_detail)} — "
+                    "les restantes seront complétées aux prochains runs."
+                )
+
+            total_scraped = await scrape_details_robust(p, offers_to_detail, db)
+            logging.info(f"✓ {total_scraped} offres complétées avec détails")
+
+            remaining_backlog = db.count_offers_without_details()
+            if remaining_backlog:
+                logging.info(
+                    f"📋 Backlog restant: {remaining_backlog} offres sans détails "
+                    "(traitées aux prochains runs)"
+                )
         else:
-            logging.info("\n✓ Aucune nouvelle offre à scraper")
+            logging.info("\n✓ Aucune offre en attente de détails")
 
-    # ── Étape 5 : Export CSV ──────────────────────────────────────────────────
-    logging.info("\n💾 ÉTAPE 5: Export vers CSV")
+    # ── Étape 6 : Export CSV ──────────────────────────────────────────────────
+    logging.info("\n💾 ÉTAPE 6: Export vers CSV")
     db.export_to_csv(config.CSV_PATH)
     logging.info(f"✓ CSV exporté: {config.CSV_PATH}")
 

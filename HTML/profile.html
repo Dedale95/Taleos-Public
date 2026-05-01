@@ -3958,6 +3958,7 @@
             ];
 
             const languageLevels = ['Débutant', 'Intermédiaire', 'Opérationnel', 'Bilingue', 'Langue maternelle'];
+            const MAX_LANGUAGES = 3;
 
             let languageCounter = 0;
             const languagesContainer = document.getElementById('languagesContainer');
@@ -3977,6 +3978,15 @@
                     }
                 });
                 return selected;
+            }
+
+            function updateLanguageButtonState() {
+                const count = languagesContainer.querySelectorAll('.language-item').length;
+                const reachedLimit = count >= MAX_LANGUAGES;
+                addLanguageBtn.disabled = reachedLimit;
+                addLanguageBtn.textContent = reachedLimit ? `Maximum ${MAX_LANGUAGES} langues` : '+ Ajouter une langue';
+                addLanguageBtn.style.opacity = reachedLimit ? '0.6' : '1';
+                addLanguageBtn.style.cursor = reachedLimit ? 'not-allowed' : 'pointer';
             }
 
             // Fonction pour mettre à jour les options disponibles dans chaque select (globale)
@@ -4004,10 +4014,16 @@
                         }
                     });
                 });
+                updateLanguageButtonState();
             }
 
             // Fonction pour créer un élément de langue (globale pour être accessible depuis loadEducationInfo)
             window.addLanguageItem = function(language = '', level = '') {
+                const currentCount = languagesContainer.querySelectorAll('.language-item').length;
+                if (currentCount >= MAX_LANGUAGES) {
+                    updateLanguageButtonState();
+                    return;
+                }
                 const itemId = `language-${languageCounter++}`;
                 const languageItem = document.createElement('div');
                 languageItem.className = 'language-item';
@@ -4062,6 +4078,8 @@
             addLanguageBtn.addEventListener('click', function() {
                 window.addLanguageItem();
             });
+
+            updateLanguageButtonState();
 
             // Fonction pour obtenir les données des langues (pour la sauvegarde)
             window.getLanguagesData = function() {

@@ -3083,7 +3083,33 @@
                 if (uploadText) uploadText.textContent = fileName;
                 
                 console.log(`✅ ${fileType} chargé:`, fileName);
+                applyDocumentsSectionState();
             }
+        }
+
+        function hasUploadedProfileFile(fileType) {
+            const fileInput = document.getElementById(`${fileType}Upload`);
+            const dataUrl = fileInput?.getAttribute('data-url') || '';
+            const dataStoragePath = fileInput?.getAttribute('data-storage-path') || '';
+            const fileInfo = document.getElementById(`${fileType}FileInfo`);
+            const isVisible = fileInfo && getComputedStyle(fileInfo).display !== 'none';
+            return !!(dataUrl || dataStoragePath || isVisible);
+        }
+
+        function applyDocumentsSectionState() {
+            const hasCv = hasUploadedProfileFile('cv');
+            const hasLetter = hasUploadedProfileFile('letter');
+            const isComplete = hasCv && hasLetter;
+
+            document.querySelectorAll('.accordion-header h2').forEach(header => {
+                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Documents') {
+                    const section = header.closest('.accordion-section');
+                    if (section) {
+                        section.classList.remove('incomplete', 'complete');
+                        section.classList.add(isComplete ? 'complete' : 'incomplete');
+                    }
+                }
+            });
         }
 
         // Fonction pour gérer la sélection de fichier
@@ -3215,6 +3241,8 @@
                             fileInput.setAttribute('data-url', downloadURL);
                             fileInput.setAttribute('data-storage-path', `users/${userId}/${fileName_storage}`);
                         }
+
+                        applyDocumentsSectionState();
                         
                         showToast('success', 'Fichier téléchargé', `${fileType === 'cv' ? 'CV' : 'Lettre de motivation'} téléchargé avec succès.`);
                     }
@@ -3293,6 +3321,7 @@
                 if (uploadText) {
                     uploadText.textContent = fileType === 'cv' ? 'Télécharger votre CV' : 'Télécharger votre lettre de motivation';
                 }
+                applyDocumentsSectionState();
                 
                 showToast('success', 'Fichier supprimé', `${fileType === 'cv' ? 'CV' : 'Lettre de motivation'} supprimé avec succès.`);
                 
@@ -3336,6 +3365,10 @@
                 'Questions récurrentes des employeurs': [
                     { id: 'deloitteWorked', section: 'Questions récurrentes des employeurs' }
                 ],
+                'Documents': [
+                    { id: 'cvUpload', section: 'Documents', hasFile: true, fileType: 'cv' },
+                    { id: 'letterUpload', section: 'Documents', hasFile: true, fileType: 'letter' }
+                ],
                 'Formation et expérience': [
                     { id: 'experienceLevel', section: 'Formation et expérience' },
                     { id: 'educationLevel', section: 'Formation et expérience' },
@@ -3350,6 +3383,10 @@
                 if (field.isCheckbox) {
                     const checkboxes = document.querySelectorAll(`input[name="${field.name}"]:checked`);
                     if (checkboxes.length === 0) {
+                        return false;
+                    }
+                } else if (field.hasFile) {
+                    if (!hasUploadedProfileFile(field.fileType)) {
                         return false;
                     }
                 } else {
@@ -3454,6 +3491,10 @@
                 'Questions récurrentes des employeurs': [
                     { id: 'deloitteWorked', label: 'Avez-vous déjà travaillé pour Deloitte ?', section: 'Questions récurrentes des employeurs' }
                 ],
+                'Documents': [
+                    { id: 'cvUpload', label: 'Curriculum Vitae (PDF)', section: 'Documents', hasFile: true, fileType: 'cv' },
+                    { id: 'letterUpload', label: 'Lettre de motivation (PDF)', section: 'Documents', hasFile: true, fileType: 'letter' }
+                ],
                 'Formation et expérience': [
                     { id: 'experienceLevel', label: 'Niveau d\'expérience', section: 'Formation et expérience' },
                     { id: 'educationLevel', label: 'Niveau d\'études', section: 'Formation et expérience' },
@@ -3476,6 +3517,15 @@
                         if (checkboxContainer) {
                             checkboxContainer.classList.add('incomplete');
                             checkboxContainer.classList.add('checkbox-group');
+                        }
+                    }
+                } else if (field.hasFile) {
+                    if (!hasUploadedProfileFile(field.fileType)) {
+                        incompleteFields.push(field.label);
+                        incompleteSections.add(field.section);
+                        const formGroup = document.getElementById(field.id)?.closest('.form-group');
+                        if (formGroup) {
+                            formGroup.classList.add('incomplete');
                         }
                     }
                 } else {
@@ -3505,6 +3555,12 @@
                     if (field.isCheckbox) {
                         const checkboxes = document.querySelectorAll(`input[name="${field.name}"]:checked`);
                         if (checkboxes.length === 0) {
+                            isComplete = false;
+                            incompleteSections.add(sectionName);
+                            break;
+                        }
+                    } else if (field.hasFile) {
+                        if (!hasUploadedProfileFile(field.fileType)) {
                             isComplete = false;
                             incompleteSections.add(sectionName);
                             break;
@@ -3543,6 +3599,7 @@
             applyBpceSectionState();
             applyTalentPoolsSectionState();
             applyPortalQuestionsSectionState();
+            applyDocumentsSectionState();
 
             // Si des champs sont incomplets, afficher un toast (sauf validation silencieuse) et retourner false
             if (incompleteFields.length > 0) {

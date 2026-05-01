@@ -1299,6 +1299,19 @@
         el.outerHTML = getBankCardHTML(bank);
     }
 
+    async function saveDirectCareerConnection(bankId, bankName, email) {
+        if (!currentUser) throw new Error('Session Taleos introuvable.');
+        const docRef = db.collection('profiles').doc(currentUser.uid).collection('career_connections').doc(bankId);
+        await docRef.set({
+            bankId,
+            bankName: bankName || '',
+            email: email || '',
+            password: '',
+            status: 'connected',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    }
+
     function renderBanks() {
         const container = document.getElementById('banksContainer');
         if (!container) return;
@@ -1346,6 +1359,27 @@
             if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML='❌ Mot de passe manquant. Renseignez votre mot de passe avant de lancer le test.'; }
             if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
             return;
+        }
+
+        if (isJPM) {
+            try {
+                if (statusDiv) { statusDiv.className='connection-status show info'; statusDiv.innerHTML='⏳ Enregistrement de l’email J.P. Morgan...'; }
+                await saveDirectCareerConnection(bankId, bank.name, emailValue);
+                userConnections[bankId] = { email: emailValue, connected: true, connectedAt: new Date().toISOString() };
+                if (statusDiv) { statusDiv.className='connection-status show success'; statusDiv.innerHTML='✅ <strong>Email enregistré.</strong> Le code OTP sera demandé pendant la candidature J.P. Morgan.'; }
+                if (btn) btn.style.display = 'none';
+                setTimeout(() => {
+                    updateBankCard(bankId);
+                    const mod = document.getElementById(`bank-${bankId}`);
+                    if (mod) mod.classList.add('expanded');
+                }, 600);
+                return;
+            } catch (error) {
+                console.error('Erreur enregistrement JP Morgan:', error);
+                if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML='❌ Impossible d’enregistrer l’email J.P. Morgan dans Firebase.'; }
+                if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
+                return;
+            }
         }
 
         if (!isExtensionReady()) {

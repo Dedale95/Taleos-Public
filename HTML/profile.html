@@ -2350,7 +2350,8 @@
             const values = Array.from(document.querySelectorAll('input[name="preferredCountries"]'))
                 .map((input) => input.value)
                 .filter(Boolean);
-            const uniqueValues = Array.from(new Set([EU_COUNTRY_LABEL, ...values])).sort((a, b) => {
+            const nonEuValues = values.filter((value) => !isEuropeanUnionCountry(value));
+            const uniqueValues = Array.from(new Set([EU_COUNTRY_LABEL, ...nonEuValues])).sort((a, b) => {
                 if (a === EU_COUNTRY_LABEL) return -1;
                 if (b === EU_COUNTRY_LABEL) return 1;
                 return a.localeCompare(b, 'fr');

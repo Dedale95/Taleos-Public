@@ -996,8 +996,74 @@
             line-height: 1.5;
         }
 
+        .repeatable-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        .repeatable-item {
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius-md);
+            background: var(--white);
+            padding: 16px;
+        }
+
+        .repeatable-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .repeatable-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            border: 1px solid var(--surface3);
+            color: var(--text-body);
+            padding: 10px 14px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--sans);
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all var(--transition);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--gold);
+            background: var(--gold-dim);
+        }
+
+        .btn-ghost-danger {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #dc2626;
+            padding: 10px 12px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--sans);
+            font-size: 0.85rem;
+            transition: all var(--transition);
+        }
+
+        .btn-ghost-danger:hover {
+            background: #fee2e2;
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+
         @media (max-width: 768px) {
             .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+
+            .repeatable-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -1949,6 +2015,17 @@
                                 <option value="I do not wish to answer">Je ne souhaite pas répondre</option>
                             </select>
                         </div>
+
+                        <div class="form-group">
+                            <label>Autorisation de travail et sponsorship par pays</label>
+                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
+                                Indiquez les pays dans lesquels vous êtes autorisé·e à travailler, et si un sponsorship / visa employeur y est nécessaire. Taleos utilisera automatiquement la bonne réponse selon le pays de l’offre.
+                            </p>
+                            <div id="jpMorganWorkAuthContainer" class="repeatable-list"></div>
+                            <div class="repeatable-actions">
+                                <button type="button" class="btn-secondary" onclick="addJpMorganWorkAuthItem()">+ Ajouter un pays</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -2273,7 +2350,106 @@
             // Re-synchroniser immédiatement l'état visuel de la section BPCE
             applyBpceSectionState();
             applyBpifranceSectionState();
+            applyJpMorganSectionState();
         }
+
+        function normalizeJpMorganAuthorizationRow(row) {
+            if (!row || typeof row !== 'object') return null;
+            const country = String(row.country || '').trim();
+            const workAuthorized = String(row.work_authorized || '').trim();
+            const sponsorshipRequired = String(row.sponsorship_required || '').trim();
+            if (!country && !workAuthorized && !sponsorshipRequired) return null;
+            return { country, work_authorized: workAuthorized, sponsorship_required: sponsorshipRequired };
+        }
+
+        function getJpMorganCountryOptionsHtml(selectedValue) {
+            const values = Array.from(document.querySelectorAll('input[name="preferredCountries"]'))
+                .map((input) => input.value)
+                .filter(Boolean);
+            const uniqueValues = Array.from(new Set(values)).sort((a, b) => a.localeCompare(b, 'fr'));
+            const opts = [`<option value="">Sélectionnez...</option>`];
+            uniqueValues.forEach((value) => {
+                const selected = value === selectedValue ? ' selected' : '';
+                opts.push(`<option value="${value.replace(/"/g, '&quot;')}"${selected}>${value}</option>`);
+            });
+            return opts.join('');
+        }
+
+        function createJpMorganWorkAuthItem(data) {
+            const item = document.createElement('div');
+            item.className = 'repeatable-item';
+            item.innerHTML = `
+                <div class="repeatable-grid">
+                    <div class="form-group">
+                        <label>Pays</label>
+                        <select class="jp-morgan-country">
+                            ${getJpMorganCountryOptionsHtml((data && data.country) || '')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Autorisé·e à travailler ?</label>
+                        <select class="jp-morgan-work-authorized">
+                            <option value="">Sélectionnez...</option>
+                            <option value="Yes"${data?.work_authorized === 'Yes' ? ' selected' : ''}>Oui</option>
+                            <option value="No"${data?.work_authorized === 'No' ? ' selected' : ''}>Non</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sponsorship requis ?</label>
+                        <select class="jp-morgan-sponsorship">
+                            <option value="">Sélectionnez...</option>
+                            <option value="Yes"${data?.sponsorship_required === 'Yes' ? ' selected' : ''}>Oui</option>
+                            <option value="No"${data?.sponsorship_required === 'No' ? ' selected' : ''}>Non</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn-ghost-danger" onclick="removeJpMorganWorkAuthItem(this)">Supprimer</button>
+                    </div>
+                </div>
+            `;
+            item.querySelectorAll('select').forEach((select) => {
+                select.addEventListener('change', () => applyJpMorganSectionState());
+            });
+            return item;
+        }
+
+        window.addJpMorganWorkAuthItem = function(data = null) {
+            const container = document.getElementById('jpMorganWorkAuthContainer');
+            if (!container) return;
+            container.appendChild(createJpMorganWorkAuthItem(data));
+            applyJpMorganSectionState();
+        };
+
+        window.removeJpMorganWorkAuthItem = function(button) {
+            const item = button?.closest('.repeatable-item');
+            if (item) item.remove();
+            applyJpMorganSectionState();
+        };
+
+        window.getJpMorganWorkAuthorizationData = function() {
+            const container = document.getElementById('jpMorganWorkAuthContainer');
+            if (!container) return [];
+            return Array.from(container.querySelectorAll('.repeatable-item'))
+                .map((item) => normalizeJpMorganAuthorizationRow({
+                    country: item.querySelector('.jp-morgan-country')?.value || '',
+                    work_authorized: item.querySelector('.jp-morgan-work-authorized')?.value || '',
+                    sponsorship_required: item.querySelector('.jp-morgan-sponsorship')?.value || ''
+                }))
+                .filter(Boolean);
+        };
+
+        window.loadJpMorganWorkAuthorizationItems = function(items) {
+            const container = document.getElementById('jpMorganWorkAuthContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            const rows = Array.isArray(items) ? items.map(normalizeJpMorganAuthorizationRow).filter(Boolean) : [];
+            if (rows.length === 0) {
+                window.addJpMorganWorkAuthItem();
+            } else {
+                rows.forEach((row) => window.addJpMorganWorkAuthItem(row));
+            }
+            applyJpMorganSectionState();
+        };
         
         // Fonction pour mettre à jour la navigation immédiatement
         function checkAuthAndUpdateNavImmediate() {
@@ -2818,6 +2994,9 @@
             if (militarySelect && profile.jp_morgan_military_service) {
                 militarySelect.value = profile.jp_morgan_military_service;
             }
+            if (typeof window.loadJpMorganWorkAuthorizationItems === 'function') {
+                window.loadJpMorganWorkAuthorizationItems(profile.jp_morgan_work_authorizations || []);
+            }
         }
 
         function loadSgScreeningInfo(profile) {
@@ -3195,7 +3374,8 @@
 
         function applyJpMorganSectionState() {
             const jpMorganMilitaryService = document.getElementById('jpMorganMilitaryService')?.value?.trim() || '';
-            const jpMorganHasContent = !!jpMorganMilitaryService;
+            const jpMorganWorkAuths = window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [];
+            const jpMorganHasContent = !!jpMorganMilitaryService || jpMorganWorkAuths.length > 0;
 
             document.querySelectorAll('.accordion-header h2').forEach(header => {
                 if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Préférences JP Morgan') {
@@ -3487,6 +3667,7 @@
                 bpce_job_alerts: document.getElementById('bpceJobAlerts')?.checked || false,
                 bpifrance_talent_pool: document.getElementById('bpifranceTalentPool')?.value || '',
                 jp_morgan_military_service: document.getElementById('jpMorganMilitaryService')?.value || '',
+                jp_morgan_work_authorizations: window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [],
                 sg_eu_work_authorization: document.getElementById('sgEuWorkAuthorization')?.value || '',
                 sg_notice_period: document.getElementById('sgNoticePeriod')?.value || '',
                 sg_handicap: document.getElementById('sgHandicap')?.value || '',

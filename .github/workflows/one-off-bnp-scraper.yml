@@ -1,0 +1,78 @@
+# One-off BNP Paribas scraper - relance BNP uniquement sans toucher aux autres sources
+# 1. Restaure la DB du run précédent (delta scraping — backlog de détails)
+# 2. Scrape BNP uniquement
+# 3. Sauvegarde la DB en cache pour le prochain run
+# 4. Fusionne dans scraped_jobs_live.json (remplace les offres BNP existantes)
+# 5. Commit et push → BNP dispo sur Taleos immédiatement
+
+name: One-off BNP Paribas scraper
+
+permissions:
+  contents: write  # Pour push les JSON mis à jour
+  actions: write   # Pour écrire dans le cache Actions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bnp-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      PYTHONUNBUFFERED: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configuration Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installation des dépendances
+        run: |
+          pip install -r PYTHON/requirements_scrapers.txt
+          playwright install chromium firefox
+          playwright install-deps chromium
+          playwright install-deps firefox
+
+      # Restaurer la DB du run précédent (delta scraping — backlog de détails)
+      - name: Restaurer la base SQLite (cache inter-runs)
+        id: cache-db-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: PYTHON/bnp_paribas_jobs.db
+          key: scraper-db-bnp_paribas-${{ github.run_id }}
+          restore-keys: |
+            scraper-db-bnp_paribas-
+
+      - name: Scraper BNP Paribas uniquement
+        run: cd PYTHON && python bnp_paribas_scraper.py
+
+      # Sauvegarder la DB mise à jour pour le prochain run
+      - name: Sauvegarder la base SQLite en cache
+        uses: actions/cache/save@v4
+        with:
+          path: PYTHON/bnp_paribas_jobs.db
+          key: scraper-db-bnp_paribas-${{ github.run_id }}
+
+      - name: Fusion BNP dans le JSON existant
+        run: cd PYTHON && python merge_bnp_into_json.py
+
+      - name: Stats BNP Paribas
+        run: cd PYTHON && python show_job_stats.py
+
+      - name: Commit et push des mises à jour
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add HTML/scraped_jobs_live.json HTML/scraped_jobs.json scraped_jobs_live.json scraped_jobs.json
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: mise à jour offres BNP Paribas (one-off)"
+            git pull --rebase origin main
+            git push origin main
+          else
+            echo "Aucun changement à committer"
+          fi

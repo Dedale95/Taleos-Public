@@ -81,12 +81,13 @@ class Config:
     MAX_BROWSER_RESTARTS = 3
     # ── Delta scraping ──────────────────────────────────────────────────────
     # Nombre maximum d'offres dont on scrappe les DÉTAILS par run.
-    # But : même sur une DB vide, le job ne dépasse jamais ~80 min.
+    # But : garantir que le job ne dépasse jamais le timeout CI (180 min BNP).
     # Les offres en attente de détails sont visibles dans l'export
     # (données listing : titre, localisation, contrat) et complétées
     # au fil des runs suivants jusqu'à épuisement du backlog.
-    # Avec ~3 000 offres BNP et 400/run → backlog liquidé en ~8 runs.
-    MAX_DETAILS_PER_RUN = 400
+    # DB persistée entre runs via le cache GitHub Actions → delta scraping effectif.
+    # Avec ~4 000 offres BNP et 600/run → backlog liquidé en ~7 runs.
+    MAX_DETAILS_PER_RUN = 600
 
     BLOCK_RESOURCES = {
         "image", "font", "media", "texttrack",
@@ -253,7 +254,8 @@ class JobDatabase:
 
     def get_offers_without_details(self, limit: int) -> List[Dict]:
         """Retourne jusqu'à `limit` offres Live sans job_description (backlog de détails).
-        Priorité : offres vues pour la première fois en dernier (nouvelles en premier)."""
+        Ordre : moins de tentatives d'abord, puis aléatoire pour que chaque run couvre
+        des offres différentes (évite de toujours boucler sur les mêmes en cas de DB froide)."""
         with sqlite3.connect(self.db_path) as conn:
             rows = conn.execute("""
                 SELECT job_url, job_title, contract_type, location
@@ -261,7 +263,7 @@ class JobDatabase:
                 WHERE status = 'Live'
                   AND is_valid = 1
                   AND (job_description IS NULL OR TRIM(job_description) = '')
-                ORDER BY first_seen DESC
+                ORDER BY scrape_attempts ASC, RANDOM()
                 LIMIT ?
             """, (limit,)).fetchall()
         return [

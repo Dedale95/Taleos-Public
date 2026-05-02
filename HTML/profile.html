@@ -1967,6 +1967,32 @@
                         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
                         <div class="form-group">
+                            <label for="profileGender">Genre</label>
+                            <select id="profileGender" name="gender">
+                                <option value="">Sélectionnez…</option>
+                                <option value="Male">Homme (Male)</option>
+                                <option value="Female">Femme (Female)</option>
+                                <option value="Non-binary">Non-binaire (Non-binary)</option>
+                                <option value="Other">Autre (Other)</option>
+                                <option value="Prefer not to say">Je préfère ne pas répondre</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profilePronouns">Pronoms</label>
+                            <select id="profilePronouns" name="pronouns">
+                                <option value="">Sélectionnez…</option>
+                                <option value="He / Him">Il / Lui (He / Him)</option>
+                                <option value="She / Her">Elle / La (She / Her)</option>
+                                <option value="They / Them">Iel / Eux (They / Them)</option>
+                                <option value="Other">Autre (Other)</option>
+                                <option value="Prefer Not To Say">Je préfère ne pas répondre</option>
+                            </select>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
+
+                        <div class="form-group">
                             <label for="jpMorganMilitaryService">Avez-vous déjà servi comme membre des forces armées ou comme réserviste ?</label>
                             <select id="jpMorganMilitaryService" name="jpMorganMilitaryService">
                                 <option value="">Sélectionnez...</option>
@@ -1988,6 +2014,134 @@
                             <div class="repeatable-actions">
                                 <button type="button" class="btn-secondary" onclick="addJpMorganWorkAuthItem()">+ Ajouter un pays ou une zone</button>
                             </div>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
+
+                        <div class="form-group">
+                            <label>Statut d'autorisation de travail — Goldman Sachs</label>
+                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
+                                Cochez tout ce qui s'applique. Goldman Sachs pose cette question à l'étape 2 du formulaire de candidature.
+                            </p>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <label style="display: flex; align-items: center; gap: 10px; font-weight: normal; cursor: pointer;">
+                                    <input type="checkbox" id="gsWorkAuthNational" value="National" style="width: 16px; height: 16px;">
+                                    <span>Ressortissant national <em style="color:#888">(National)</em></span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px; font-weight: normal; cursor: pointer;">
+                                    <input type="checkbox" id="gsWorkAuthPermanentResident" value="Lawful Permanent Resident" style="width: 16px; height: 16px;">
+                                    <span>Résident permanent légal <em style="color:#888">(Lawful Permanent Resident)</em></span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px; font-weight: normal; cursor: pointer;">
+                                    <input type="checkbox" id="gsWorkAuthEEA" value="EEA/Swiss National applying to work in an EEA location/Switzerland" style="width: 16px; height: 16px;">
+                                    <span>Ressortissant EEA/Suisse travaillant dans un pays EEA ou en Suisse</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px; font-weight: normal; cursor: pointer;">
+                                    <input type="checkbox" id="gsWorkAuthVisa" value="Another Visa or Work / Residence Permit" style="width: 16px; height: 16px;">
+                                    <span>Autre visa ou permis de travail / résidence</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Diversité & Identité (Goldman Sachs) -->
+                <div class="form-section accordion-section">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2>Diversité &amp; Identité</h2>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont utilisées par Goldman Sachs (et d'autres banques) pour leurs programmes de diversité et d'inclusion. Elles sont strictement confidentielles et ne conditionnent pas l'issue de la candidature.</p>
+
+                        <div class="form-group">
+                            <label for="gsDiversityConsent">Consentement données orientation / identité de genre (Goldman Sachs)</label>
+                            <p style="color: #888; font-size: 0.85rem; margin-bottom: 8px;">Goldman Sachs demande l'autorisation d'utiliser ces données en interne pour ses programmes RH et diversité.</p>
+                            <select id="gsDiversityConsent" name="gs_diversity_consent">
+                                <option value="">Sélectionnez…</option>
+                                <option value="I consent">Je consens (I consent)</option>
+                                <option value="I do not consent">Je ne consens pas (I do not consent)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gsTransgender">Identifiez-vous comme transgenre ? (Goldman Sachs)</label>
+                            <select id="gsTransgender" name="gs_transgender">
+                                <option value="">Sélectionnez…</option>
+                                <option value="No">Non (No)</option>
+                                <option value="Yes">Oui (Yes)</option>
+                                <option value="I prefer not to say">Je préfère ne pas répondre</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gsSexualOrientation">Orientation sexuelle (Goldman Sachs)</label>
+                            <select id="gsSexualOrientation" name="gs_sexual_orientation">
+                                <option value="">Sélectionnez…</option>
+                                <option value="Heterosexual/Straight">Hétérosexuel·le (Heterosexual/Straight)</option>
+                                <option value="Bisexual">Bisexuel·le (Bisexual)</option>
+                                <option value="Gay">Gay</option>
+                                <option value="Lesbian">Lesbienne (Lesbian)</option>
+                                <option value="Other">Autre (Other)</option>
+                                <option value="Prefer not to say">Je préfère ne pas répondre</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gsRaceEthnicity">Ethnicité / Race (Goldman Sachs)</label>
+                            <select id="gsRaceEthnicity" name="gs_race_ethnicity" onchange="toggleGsAdditionalOrigins(this.value)">
+                                <option value="">Sélectionnez…</option>
+                                <option value="White">Blanc·he (White)</option>
+                                <option value="Arab">Arabe (Arab)</option>
+                                <option value="Asian - Bangladeshi">Asiatique — Bangladais·e</option>
+                                <option value="Asian - Chinese">Asiatique — Chinois·e</option>
+                                <option value="Asian - Indian">Asiatique — Indien·ne</option>
+                                <option value="Asian - Japanese">Asiatique — Japonais·e</option>
+                                <option value="Asian - Korean">Asiatique — Coréen·ne</option>
+                                <option value="Asian - Other">Asiatique — Autre</option>
+                                <option value="Asian - Pakistani">Asiatique — Pakistanais·e</option>
+                                <option value="Asian - Vietnamese">Asiatique — Vietnamien·ne</option>
+                                <option value="Black - African">Noir·e — Africain·e</option>
+                                <option value="Black - Caribbean">Noir·e — Caribéen·ne</option>
+                                <option value="Black - Other">Noir·e — Autre</option>
+                                <option value="Hispanic or Latino">Hispanique ou Latino·a</option>
+                                <option value="Two or more races">Deux races ou plus (Two or more races)</option>
+                                <option value="Other">Autre (Other)</option>
+                                <option value="Prefer not to say">Je préfère ne pas répondre</option>
+                            </select>
+                        </div>
+
+                        <!-- Origines additionnelles (visible seulement si "Two or more races") -->
+                        <div id="gsAdditionalOriginsSection" style="display:none;">
+                            <div class="form-group">
+                                <label for="gsAdditionalOrigin1">Origine additionnelle 1</label>
+                                <select id="gsAdditionalOrigin1" name="gs_additional_origin_1">
+                                    <option value="">Sélectionnez…</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="gsAdditionalOrigin2">Origine additionnelle 2</label>
+                                <select id="gsAdditionalOrigin2" name="gs_additional_origin_2">
+                                    <option value="">Sélectionnez…</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="gsAdditionalOrigin3">Origine additionnelle 3 <em style="color:#aaa; font-weight:normal">(optionnel)</em></label>
+                                <select id="gsAdditionalOrigin3" name="gs_additional_origin_3">
+                                    <option value="">Aucune</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gsDisability">Considérez-vous avoir un handicap ? (Goldman Sachs)</label>
+                            <p style="color: #888; font-size: 0.85rem; margin-bottom: 8px;">Distinct de la RQTH française — Goldman Sachs pose cette question dans son propre formulaire.</p>
+                            <select id="gsDisability" name="gs_disability">
+                                <option value="">Sélectionnez…</option>
+                                <option value="No">Non (No)</option>
+                                <option value="Yes">Oui (Yes)</option>
+                                <option value="Prefer not to say">Je préfère ne pas répondre</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -2649,22 +2803,23 @@
                         loadTalentPoolInfo(profile);
                         loadJpMorganInfo(profile);
                         loadSgScreeningInfo(profile);
+                        loadGoldmanSachsInfo(profile);
 
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
                         loadFileInfo('letter', profile);
-                        
+
                         // Synchroniser avec localStorage comme cache
                         if (userEmail) {
                             const profileKey = `profile_${userEmail}`;
                             localStorage.setItem(profileKey, JSON.stringify(profile));
                         }
-                        
+
                         // Valider le profil après chargement pour afficher les indicateurs visuels
                         setTimeout(() => {
                             validateProfile({ silent: true });
                         }, 500);
-                        
+
                         return;
                     } else {
                         console.log('ℹ️ Aucun profil trouvé dans Firestore, vérification localStorage...');
@@ -2674,12 +2829,12 @@
                     console.log('Tentative de chargement depuis localStorage...');
                 }
             }
-            
+
             // Fallback: Charger depuis localStorage
             if (userEmail) {
                 const profileKey = `profile_${userEmail}`;
                 const savedProfile = localStorage.getItem(profileKey);
-                
+
                 if (savedProfile) {
                     try {
                         const profile = JSON.parse(savedProfile);
@@ -2696,10 +2851,10 @@
                         if (profile.city) document.getElementById('city').value = profile.city;
                         if (profile.country) document.getElementById('country').value = profile.country;
                         console.log('✅ Profil chargé depuis localStorage');
-                        
+
                         // Charger les métiers sélectionnés
                         loadJobs(profile);
-                        
+
                         // Charger les autres champs
                         loadContractAndAvailability(profile);
                         loadContinents(profile);
@@ -2712,6 +2867,7 @@
                         loadTalentPoolInfo(profile);
                         loadJpMorganInfo(profile);
                         loadSgScreeningInfo(profile);
+                        loadGoldmanSachsInfo(profile);
 
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
@@ -3011,6 +3167,94 @@
             const sharedHandicapValue = profile.sg_handicap || normalizeBpceHandicapForSharedField(profile.bpce_handicap);
             if (sgHandicap && sharedHandicapValue) { sgHandicap.value = sharedHandicapValue; toggleSgHandicapAccommodation(sharedHandicapValue); }
             if (sgHandicapAccommodation && profile.sg_handicap_accommodation) sgHandicapAccommodation.value = profile.sg_handicap_accommodation;
+        }
+
+        // Options races additionnelles (même liste que gsRaceEthnicity, sans "Two or more races")
+        const GS_ADDITIONAL_RACE_OPTIONS = [
+            { value: 'White', label: 'Blanc·he (White)' },
+            { value: 'Arab', label: 'Arabe (Arab)' },
+            { value: 'Asian - Bangladeshi', label: 'Asiatique — Bangladais·e' },
+            { value: 'Asian - Chinese', label: 'Asiatique — Chinois·e' },
+            { value: 'Asian - Indian', label: 'Asiatique — Indien·ne' },
+            { value: 'Asian - Japanese', label: 'Asiatique — Japonais·e' },
+            { value: 'Asian - Korean', label: 'Asiatique — Coréen·ne' },
+            { value: 'Asian - Other', label: 'Asiatique — Autre' },
+            { value: 'Asian - Pakistani', label: 'Asiatique — Pakistanais·e' },
+            { value: 'Asian - Vietnamese', label: 'Asiatique — Vietnamien·ne' },
+            { value: 'Black - African', label: 'Noir·e — Africain·e' },
+            { value: 'Black - Caribbean', label: 'Noir·e — Caribéen·ne' },
+            { value: 'Black - Other', label: 'Noir·e — Autre' },
+            { value: 'Hispanic or Latino', label: 'Hispanique ou Latino·a' },
+            { value: 'Other', label: 'Autre (Other)' },
+            { value: 'Prefer not to say', label: 'Je préfère ne pas répondre' }
+        ];
+
+        function populateAdditionalOriginSelect(selectEl, emptyLabel, currentValue) {
+            selectEl.innerHTML = '';
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = emptyLabel;
+            selectEl.appendChild(placeholder);
+            GS_ADDITIONAL_RACE_OPTIONS.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt.value;
+                o.textContent = opt.label;
+                if (opt.value === currentValue) o.selected = true;
+                selectEl.appendChild(o);
+            });
+        }
+
+        function toggleGsAdditionalOrigins(value) {
+            const section = document.getElementById('gsAdditionalOriginsSection');
+            if (!section) return;
+            if (value === 'Two or more races') {
+                section.style.display = '';
+                populateAdditionalOriginSelect(document.getElementById('gsAdditionalOrigin1'), 'Sélectionnez…', '');
+                populateAdditionalOriginSelect(document.getElementById('gsAdditionalOrigin2'), 'Sélectionnez…', '');
+                populateAdditionalOriginSelect(document.getElementById('gsAdditionalOrigin3'), 'Aucune', '');
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        function loadGoldmanSachsInfo(profile) {
+            // Genre et pronoms
+            const genderSel = document.getElementById('profileGender');
+            if (genderSel && profile.gender) genderSel.value = profile.gender;
+            const pronounsSel = document.getElementById('profilePronouns');
+            if (pronounsSel && profile.pronouns) pronounsSel.value = profile.pronouns;
+
+            // Autorisations de travail GS (checkboxes)
+            const workAuthTypes = Array.isArray(profile.work_authorization_type) ? profile.work_authorization_type : [];
+            ['gsWorkAuthNational', 'gsWorkAuthPermanentResident', 'gsWorkAuthEEA', 'gsWorkAuthVisa'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = workAuthTypes.includes(el.value);
+            });
+
+            // Diversité & Identité
+            const diversityConsent = document.getElementById('gsDiversityConsent');
+            if (diversityConsent && profile.gs_diversity_consent) diversityConsent.value = profile.gs_diversity_consent;
+            const transgender = document.getElementById('gsTransgender');
+            if (transgender && profile.gs_transgender) transgender.value = profile.gs_transgender;
+            const sexualOrientation = document.getElementById('gsSexualOrientation');
+            if (sexualOrientation && profile.gs_sexual_orientation) sexualOrientation.value = profile.gs_sexual_orientation;
+            const raceEthnicity = document.getElementById('gsRaceEthnicity');
+            if (raceEthnicity && profile.gs_race_ethnicity) {
+                raceEthnicity.value = profile.gs_race_ethnicity;
+                toggleGsAdditionalOrigins(profile.gs_race_ethnicity);
+                // Repeupler et sélectionner les origines additionnelles
+                if (profile.gs_race_ethnicity === 'Two or more races') {
+                    const additionalOrigins = Array.isArray(profile.gs_race_additional_origins) ? profile.gs_race_additional_origins : [];
+                    const sel1 = document.getElementById('gsAdditionalOrigin1');
+                    const sel2 = document.getElementById('gsAdditionalOrigin2');
+                    const sel3 = document.getElementById('gsAdditionalOrigin3');
+                    if (sel1) populateAdditionalOriginSelect(sel1, 'Sélectionnez…', additionalOrigins[0] || '');
+                    if (sel2) populateAdditionalOriginSelect(sel2, 'Sélectionnez…', additionalOrigins[1] || '');
+                    if (sel3) populateAdditionalOriginSelect(sel3, 'Aucune', additionalOrigins[2] || '');
+                }
+            }
+            const disability = document.getElementById('gsDisability');
+            if (disability && profile.gs_disability) disability.value = profile.gs_disability;
         }
 
         function deriveEuropeanUnionWorkAuthorizationValue(rows) {
@@ -3439,7 +3683,12 @@
             const sgHandicapAccommodation = document.getElementById('sgHandicapAccommodation')?.value?.trim() || '';
             const jpMorganMilitaryService = document.getElementById('jpMorganMilitaryService')?.value?.trim() || '';
             const jpMorganWorkAuths = window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [];
-            const portalHasContent = !!sgHandicap || !!sgHandicapAccommodation || !!jpMorganMilitaryService || jpMorganWorkAuths.length > 0;
+            const gender = document.getElementById('profileGender')?.value?.trim() || '';
+            const pronouns = document.getElementById('profilePronouns')?.value?.trim() || '';
+            const gsWorkAuthChecked = ['gsWorkAuthNational', 'gsWorkAuthPermanentResident', 'gsWorkAuthEEA', 'gsWorkAuthVisa']
+                .some(id => document.getElementById(id)?.checked);
+            const portalHasContent = !!sgHandicap || !!sgHandicapAccommodation || !!jpMorganMilitaryService
+                || jpMorganWorkAuths.length > 0 || !!gender || !!pronouns || gsWorkAuthChecked;
 
             document.querySelectorAll('.accordion-header h2').forEach(header => {
                 if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Questions administratives et réglementaires') {
@@ -3447,6 +3696,25 @@
                     if (section) {
                         section.classList.remove('incomplete', 'complete');
                         section.classList.add(portalHasContent ? 'complete' : 'incomplete');
+                    }
+                }
+            });
+        }
+
+        function applyGsDiversitySectionState() {
+            const consent = document.getElementById('gsDiversityConsent')?.value?.trim() || '';
+            const transgender = document.getElementById('gsTransgender')?.value?.trim() || '';
+            const sexual = document.getElementById('gsSexualOrientation')?.value?.trim() || '';
+            const race = document.getElementById('gsRaceEthnicity')?.value?.trim() || '';
+            const disability = document.getElementById('gsDisability')?.value?.trim() || '';
+            const hasContent = !!(consent || transgender || sexual || race || disability);
+
+            document.querySelectorAll('.accordion-header h2').forEach(header => {
+                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Diversité & Identité') {
+                    const section = header.closest('.accordion-section');
+                    if (section) {
+                        section.classList.remove('incomplete', 'complete');
+                        section.classList.add(hasContent ? 'complete' : 'incomplete');
                     }
                 }
             });
@@ -3596,10 +3864,11 @@
                 });
             });
 
-            // Préférences BPCE : section optionnelle — verte uniquement si au moins un champ rempli
+            // Sections optionnelles — vertes uniquement si au moins un champ rempli
             applyBpceSectionState();
             applyTalentPoolsSectionState();
             applyPortalQuestionsSectionState();
+            applyGsDiversitySectionState();
             applyDocumentsSectionState();
 
             // Si des champs sont incomplets, afficher un toast (sauf validation silencieuse) et retourner false
@@ -3753,6 +4022,30 @@
                 sg_notice_period: document.getElementById('sgNoticePeriod')?.value || '',
                 sg_handicap: document.getElementById('sgHandicap')?.value || '',
                 sg_handicap_accommodation: document.getElementById('sgHandicapAccommodation')?.value || '',
+                // Genre / Pronoms
+                gender: document.getElementById('profileGender')?.value || '',
+                pronouns: document.getElementById('profilePronouns')?.value || '',
+                // Goldman Sachs — autorisations de travail
+                work_authorization_type: (() => {
+                    const ids = ['gsWorkAuthNational', 'gsWorkAuthPermanentResident', 'gsWorkAuthEEA', 'gsWorkAuthVisa'];
+                    return ids.reduce((acc, id) => {
+                        const el = document.getElementById(id);
+                        if (el && el.checked) acc.push(el.value);
+                        return acc;
+                    }, []);
+                })(),
+                // Goldman Sachs — Diversité & Identité
+                gs_diversity_consent: document.getElementById('gsDiversityConsent')?.value || '',
+                gs_transgender: document.getElementById('gsTransgender')?.value || '',
+                gs_sexual_orientation: document.getElementById('gsSexualOrientation')?.value || '',
+                gs_race_ethnicity: document.getElementById('gsRaceEthnicity')?.value || '',
+                gs_race_additional_origins: (() => {
+                    if ((document.getElementById('gsRaceEthnicity')?.value || '') !== 'Two or more races') return [];
+                    return ['gsAdditionalOrigin1', 'gsAdditionalOrigin2', 'gsAdditionalOrigin3']
+                        .map(id => document.getElementById(id)?.value || '')
+                        .filter(v => v !== '');
+                })(),
+                gs_disability: document.getElementById('gsDisability')?.value || '',
                 email: userEmail || '',
                 updated_at: new Date().toISOString(),
                 created_at: null // Sera défini lors de la première création

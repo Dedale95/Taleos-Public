@@ -2490,18 +2490,25 @@
             const isInHTMLFolder = currentPath.includes('/HTML/') || currentPath.includes('HTML/') || 
                                    currentHref.includes('/HTML/') || currentHref.includes('HTML/');
             
-            // Construire les chemins selon l'emplacement du fichier HTML
-            // Si file://, prioriser GitHub Raw qui fonctionne même avec file://
-            // Sinon, prioriser les chemins locaux pour performance
+            // Construire les chemins selon l'emplacement du fichier HTML.
+            // On privilégie toujours les fichiers publiés sur GitHub Pages et les chemins relatifs,
+            // car raw.githubusercontent.com peut rester bloqué sur un ancien snapshot pendant plusieurs minutes.
+            const cacheBust = `v=${Date.now()}`;
+            const withCacheBust = (path) => {
+                if (!path || path.startsWith('file:')) return path;
+                return path.includes('?') ? `${path}&${cacheBust}` : `${path}?${cacheBust}`;
+            };
             let possiblePaths;
             if (isFileProtocol) {
                 possiblePaths = [
-                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json',
-                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/scraped_jobs_live.json',
                     'scraped_jobs_live.json',
                     './scraped_jobs_live.json',
                     'HTML/scraped_jobs_live.json',
-                    './HTML/scraped_jobs_live.json'
+                    './HTML/scraped_jobs_live.json',
+                    'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json',
+                    'https://dedale95.github.io/Taleos-Public/scraped_jobs_live.json',
+                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json',
+                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/scraped_jobs_live.json'
                 ];
             } else {
                 possiblePaths = [
@@ -2509,6 +2516,8 @@
                     './scraped_jobs_live.json',
                     'HTML/scraped_jobs_live.json',
                     './HTML/scraped_jobs_live.json',
+                    'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json',
+                    'https://dedale95.github.io/Taleos-Public/scraped_jobs_live.json',
                     'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json',
                     'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/scraped_jobs_live.json'
                 ];
@@ -2518,8 +2527,9 @@
             let loadedPath = null;
             let lastError = null;
             
-            for (const path of possiblePaths) {
+            for (const rawPath of possiblePaths) {
                 try {
+                    const path = withCacheBust(rawPath);
                     console.log(`🔄 Tentative de chargement depuis : ${path}`);
                     
                     // Créer un AbortController pour timeout (30 secondes)

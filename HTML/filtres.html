@@ -1925,16 +1925,22 @@
 
         async function loadJobs() {
             try {
+                const cacheBust = `v=${Date.now()}`;
+                const withCacheBust = (path) => path.includes('?') ? `${path}&${cacheBust}` : `${path}?${cacheBust}`;
                 const paths = [
-                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json',
                     './scraped_jobs_live.json',
                     'scraped_jobs_live.json',
                     'HTML/scraped_jobs_live.json',
-                    './HTML/scraped_jobs_live.json'
+                    './HTML/scraped_jobs_live.json',
+                    'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json',
+                    'https://dedale95.github.io/Taleos-Public/scraped_jobs_live.json',
+                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json',
+                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/scraped_jobs_live.json'
                 ];
 
-                for (const path of paths) {
+                for (const rawPath of paths) {
                     try {
+                        const path = withCacheBust(rawPath);
                         const response = await fetch(path);
                         if (response.ok) {
                             const data = await response.json();

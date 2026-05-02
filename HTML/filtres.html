@@ -1813,7 +1813,77 @@
             'new york ny': 'New York', 'new york': 'New York',
             'iselin nj': 'New Jersey', 'iselin': 'New Jersey', 'new jersey': 'New Jersey',
             'chicago': 'Chicago', 'illinois': 'Illinois', 'texas': 'Texas',
-            'seoul': 'Séoul', 'séoul': 'Séoul'
+            'seoul': 'Séoul', 'séoul': 'Séoul',
+            'bournemouth': 'Bournemouth',
+            'geneve': 'Genève', 'geneva': 'Genève',
+            'lisbon': 'Lisbonne',
+            'stockholm': 'Stockholm',
+            'vienna': 'Vienne',
+            'saint-helier': 'Saint Helier', 'saint helier': 'Saint Helier',
+            'bengaluru': 'Bangalore',
+            'wilayah persekutuan kuala lumpur': 'Kuala Lumpur',
+            'guangzhou-guangzhou': 'Guangzhou'
+        };
+
+        const PLACEHOLDER_CITY_VALUES = new Set([
+            'autres', 'other', 'others', 'non specifie', 'non specifie / siege', 'non specifie / siège',
+            'non spécifié', 'non spécifié / siège', 'siege', 'siège'
+        ]);
+
+        const COMPACT_COUNTRY_DEFAULT_REGION = {
+            'Hong-Kong': 'Hong-Kong',
+            'Singapour': 'Singapour'
+        };
+
+        const COUNTRY_REGION_ALIASES = {
+            'Royaume-Uni': {
+                'bournemouth': 'Bournemouth'
+            },
+            'Suisse': {
+                'geneve': 'Genève',
+                'geneva': 'Genève'
+            },
+            'Portugal': {
+                'lisbon': 'Lisbonne'
+            },
+            'Suède': {
+                'stockholm': 'Stockholm'
+            },
+            'Autriche': {
+                'vienna': 'Vienne'
+            },
+            'Jersey': {
+                'saint-helier': 'Saint Helier',
+                'saint helier': 'Saint Helier'
+            },
+            'Inde': {
+                'bangalore': 'Bangalore',
+                'bengaluru': 'Bangalore',
+                'india': null
+            },
+            'Malaisie': {
+                'malaysia': null,
+                'wilayah persekutuan kuala lumpur': 'Kuala Lumpur'
+            },
+            'Hong-Kong': {
+                'hong kong island': 'Hong-Kong',
+                'central and western': 'Hong-Kong',
+                'kwun tong': 'Hong-Kong'
+            },
+            'Singapour': {
+                'singapore': 'Singapour',
+                'singapour': 'Singapour'
+            },
+            'Japon': {
+                'tokyo-to': 'Tokyo',
+                'minato-ku': 'Tokyo',
+                'minato ku': 'Tokyo',
+                'shibuya': 'Tokyo',
+                'japan': 'Tokyo'
+            },
+            'Chine': {
+                'guangzhou-guangzhou': 'Guangzhou'
+            }
         };
 
         const CITY_TO_COUNTRY = {
@@ -1883,14 +1953,27 @@
 
         function normalizeCityForFilter(city, country) {
             if (!city || !city.trim()) return null;
-            const t = city.trim().toLowerCase();
+            const raw = city.trim();
+            const t = normalizeCityForLookup(raw);
+            const countryNorm = normalizeCountryForFilter(country) || String(country || '').trim();
+            if (!t || PLACEHOLDER_CITY_VALUES.has(t)) return null;
+            if (countryNorm && (t === normalizeCityForLookup(countryNorm) || t === normalizeCityForLookup(String(country || '').trim()))) {
+                return COMPACT_COUNTRY_DEFAULT_REGION[countryNorm] || null;
+            }
+            const countryAliases = COUNTRY_REGION_ALIASES[countryNorm];
+            if (countryAliases && Object.prototype.hasOwnProperty.call(countryAliases, t)) {
+                return countryAliases[t];
+            }
+            if (COMPACT_COUNTRY_DEFAULT_REGION[countryNorm]) {
+                return COMPACT_COUNTRY_DEFAULT_REGION[countryNorm];
+            }
             const norm = CITY_NORMALIZATION[t] || CITY_NORMALIZATION[t.replace(/\s+/g, '-')];
             if (norm) return norm;
             if (t.includes(' or ')) {
                 const parts = t.split(/\s+or\s+/i);
-                return normalizeCityForFilter(parts[0].trim(), country) || city.trim();
+                return normalizeCityForFilter(parts[0].trim(), country) || raw;
             }
-            return city.trim();
+            return raw;
         }
 
         function getCityRegion(city, country) {
@@ -2111,8 +2194,12 @@
                                                 }
 
                                                 if (cities.length === 0) {
-                                                    const region = getCityRegion('', country);
-                                                    if (region) job.cleanRegions.push(region);
+                                                    if (COMPACT_COUNTRY_DEFAULT_REGION[countryNorm]) {
+                                                        job.cleanRegions.push(COMPACT_COUNTRY_DEFAULT_REGION[countryNorm]);
+                                                    } else {
+                                                        const region = getCityRegion('', country);
+                                                        if (region) job.cleanRegions.push(region);
+                                                    }
                                                 } else {
                                                     cities.forEach(city => {
                                                         try {

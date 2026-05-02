@@ -290,11 +290,18 @@ def parse_location(primary_location: str, iso_country: str) -> str:
     if not parts:
         return normalize_country(iso_country) or ""
 
-    # Dernier élément = nom du pays anglais
+    # Dernier élément = nom du pays anglais, mais Oracle renvoie parfois
+    # des variantes mal découpées comme "Seoul, Republic Of" ou
+    # "Ho Chi Minh City, Viet Nam". On s'appuie sur l'ISO en priorité
+    # dès que le libellé texte est ambigu.
     country_raw = parts[-1].strip()
-    country_fr  = normalize_country(country_raw)
-    if not country_fr and iso_country:
-        country_fr = ISO_TO_FRENCH.get(iso_country, "")
+    country_fr = normalize_country(country_raw)
+    suspicious_country_labels = {
+        "republic of", "turkiye", "türkiye", "viet nam", "israel",
+        "peru", "kuwait", "qatar", "saudi arabia", "bahamas", "panama", "laos"
+    }
+    if (not country_fr or country_raw.strip().lower() in suspicious_country_labels) and iso_country:
+        country_fr = ISO_TO_FRENCH.get(iso_country, "") or country_fr
 
     # Premier élément = ville (on ignore l'état/région intermédiaire)
     city_raw = parts[0].strip()
@@ -314,6 +321,17 @@ def parse_location(primary_location: str, iso_country: str) -> str:
         "munich": "Munich",
         "glasgow": "Glasgow",
         "edinburgh": "Édimbourg",
+        "seoul": "Seoul",
+        "riyadh": "Riyadh",
+        "tel aviv": "Tel Aviv",
+        "ho chi minh city": "Ho Chi Minh City",
+        "lima": "Lima",
+        "kuwait": "Kuwait",
+        "panama": "Panama",
+        "nassau": "Nassau",
+        "lagos": "Lagos",
+        "istanbul": "Istanbul",
+        "doha": "Doha",
     }
     city_fr = CITY_CORRECTIONS.get(city_raw.lower(), city_raw)
 

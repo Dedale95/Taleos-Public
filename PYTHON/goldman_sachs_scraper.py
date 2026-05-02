@@ -180,8 +180,16 @@ def build_location(locations: List[Dict]) -> str:
         return ""
     primary = next((l for l in locations if l.get("primary")), locations[0])
     city    = (primary.get("city") or "").strip()
+    state   = (primary.get("state") or "").strip()
     country_raw = (primary.get("country") or "").strip()
     country_fr  = normalize_country(country_raw) if country_raw else ""
+
+    # Certaines offres GS n'ont pas `city` mais stockent la ville dans `state`
+    # (ex: Lima / Peru). On s'appuie donc sur `state` en fallback.
+    if not city and state:
+        city = state
+    elif city and state and city.lower() == country_raw.lower() and state.lower() != country_raw.lower():
+        city = state
 
     # Corrections de noms de villes
     CITY_CORRECTIONS = {
@@ -196,6 +204,12 @@ def build_location(locations: List[Dict]) -> str:
         "zürich": "Zurich",
         "warsaw": "Varsovie",
         "dubai": "Dubaï",
+        "ho chi minh city": "Ho Chi Minh City",
+        "seoul": "Seoul",
+        "riyadh": "Riyadh",
+        "nassau": "Nassau",
+        "panama city": "Panama City",
+        "kuwait city": "Kuwait City",
     }
     city_fr = CITY_CORRECTIONS.get(city.lower(), city)
 

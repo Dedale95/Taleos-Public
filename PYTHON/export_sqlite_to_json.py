@@ -341,19 +341,41 @@ def fix_location(loc):
     # Cas comme \"- - France\" ou \"- France\" → on garde uniquement le pays
     if not city or city == '-':
         return normalize_country(country)
+    normalized_country = normalize_country(country)
+    city_country = get_country_from_city(city)
+    suspicious_country_tokens = {
+        'republic of', 'viet nam', 'turkiye', 'türkiye', 'israel', 'bahamas',
+        'panama', 'laos', 'kuwait', 'peru', 'qatar', 'nigeria', 'saudi arabia'
+    }
+    normalized_country_lower = str(normalized_country or '').strip().lower()
+    country_lower = country.lower().strip()
+    city_lower = city.lower().strip()
     # Ville junk (N, S, etc.) quand le pays est valide → garder uniquement le pays
     if len(city.strip()) <= 2 and city.strip().upper() not in ('NY', 'LA', 'UK', 'US'):
-        return normalize_country(country)
+        return normalized_country
+    normalized_city = normalize_country(city)
+    if normalized_city == normalized_country and city_lower in suspicious_country_tokens:
+        return normalized_country
+    # Cas redondants où la "ville" est en réalité le pays en anglais
+    if city_country and city_country == normalized_country:
+        if city_lower in suspicious_country_tokens or city_lower == country_lower:
+            return normalized_country
+    # Si le pays est une variante générique / mal parsée mais que la ville est connue, on répare
+    if city_country and (
+        country_lower in suspicious_country_tokens
+        or normalized_country_lower in suspicious_country_tokens
+        or normalized_country == country.title()
+    ):
+        return f"{city} - {normalize_country(city_country)}"
     # Corriger pays erroné pour villes connues hors France (ex: Tunis - France → Tunisie, Bruxelles - France → Belgique)
     if country.lower() == 'france' and city:
-        correct_country = get_country_from_city(city)
-        if correct_country:
-            return f"{city} - {normalize_country(correct_country)}"
+        if city_country:
+            return f"{city} - {normalize_country(city_country)}"
     # Deutschlandweit = "partout en Allemagne" → garder uniquement le pays
     if city.lower().strip() == 'deutschlandweit' and country.lower() in ('allemagne', 'germany'):
-        return normalize_country(country)
+        return normalized_country
     # Toujours normaliser le nom du pays pour cohérence (France, Royaume-Uni, Taïwan, etc.)
-    return f"{city} - {normalize_country(country)}"
+    return f"{city} - {normalized_country}"
 
 
 def read_from_db(db_path, company_name, live_only=True):

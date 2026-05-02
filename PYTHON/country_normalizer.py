@@ -75,7 +75,9 @@ CITY_TO_COUNTRY = {
     'amsterdam': 'Pays-Bas',
     'bruxelles': 'Belgique',
     'brussels': 'Belgique',
+    'brussel': 'Belgique',
     'luxembourg': 'Luxembourg',
+    'saint-pierre-port': 'Guernesey',
     'genève': 'Suisse',
     'geneve': 'Suisse',
     'zurich': 'Suisse',
@@ -120,6 +122,8 @@ CITY_TO_COUNTRY = {
     'hong kong': 'Hong-Kong',
     'hong-kong': 'Hong-Kong',
     'tokyo': 'Japon',
+    'jakarta': 'Indonésie',
+    'djibouti': 'Djibouti',
     'sydney': 'Australie',
     'melbourne': 'Australie',
     'dubaï': 'Émirats Arabes Unis',
@@ -136,6 +140,15 @@ CITY_TO_COUNTRY = {
     'beijing': 'Chine',
     'séoul': 'Corée du Sud',
     'seoul': 'Corée du Sud',
+    'tel aviv': 'Israël',
+    'riyadh': 'Arabie Saoudite',
+    'doha': 'Qatar',
+    'nassau': 'Bahamas',
+    'panama city': 'Panama',
+    'panama': 'Panama',
+    'kuwait city': 'Koweït',
+    'kuwait': 'Koweït',
+    'lima': 'Pérou',
     'kuala lumpur': 'Malaisie',
     'bangkok': 'Thaïlande',
     'hanoï': 'Vietnam',
@@ -171,7 +184,8 @@ COUNTRY_MAPPING = {
     'switzerland': 'Suisse',
     'austria': 'Autriche',
     'poland': 'Pologne',
-    'czech republic': 'République Tchèque',
+    'czech republic': 'Tchéquie',
+    'czechia': 'Tchéquie',
     'romania': 'Roumanie',
     'hungary': 'Hongrie',
     'portugal': 'Portugal',
@@ -203,6 +217,8 @@ COUNTRY_MAPPING = {
     'morocco': 'Maroc',
     'tunisia': 'Tunisie',
     'algeria': 'Algérie',
+    'djibouti': 'Djibouti',
+    'indonesia': 'Indonésie',
     'egypt': 'Égypte',
     'south africa': 'Afrique du Sud',
     'united arab emirates': 'Émirats Arabes Unis',
@@ -228,6 +244,14 @@ COUNTRY_MAPPING = {
     'italie': 'Italie',
     'espagne': 'Espagne',
     'allemagne': 'Allemagne',
+    'guernsey': 'Guernesey',
+    'guernesey': 'Guernesey',
+    'tchéquie': 'Tchéquie',
+    'tchequie': 'Tchéquie',
+    'république tchèque': 'Tchéquie',
+    'republique tcheque': 'Tchéquie',
+    'indonésie': 'Indonésie',
+    'indonesie': 'Indonésie',
     'hong-kong': 'Hong-Kong',
     'hong kong': 'Hong-Kong',
     'corée du sud': 'Corée du Sud',
@@ -263,6 +287,8 @@ def normalize_country(country_raw):
     # Ex: \"Korea, Republic Of\" → Corée du Sud
     if 'korea' in country_clean:
         return 'Corée du Sud'
+    if country_clean == 'republic of':
+        return 'Corée du Sud'
     # Villes qui ne sont pas des pays (ex: Grandcamp Maisy) → France
     if country_clean == 'grandcamp maisy':
         return 'France'
@@ -281,6 +307,17 @@ def normalize_country(country_raw):
         'u.s.a': 'États-Unis',
         'corée': 'Corée du Sud',
         'corée du sud': 'Corée du Sud',
+        'viet nam': 'Vietnam',
+        'vietnam': 'Vietnam',
+        'turkiye': 'Turquie',
+        'türkiye': 'Turquie',
+        'israel': 'Israël',
+        'bahamas': 'Bahamas',
+        'panama': 'Panama',
+        'laos': 'Laos',
+        'kuwait': 'Koweït',
+        'peru': 'Pérou',
+        'qatar': 'Qatar',
     }
     
     # Vérifier les variantes d'abord

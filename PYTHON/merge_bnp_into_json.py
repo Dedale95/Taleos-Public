@@ -38,13 +38,14 @@ def main():
 
     json_path = OUTPUT_JSON_LIVE
     if not json_path.exists():
-        print(f"❌ Fichier JSON manquant : {json_path}")
-        print("   Lancez d'abord le workflow complet (Mise à jour offres quotidienne).")
-        sys.exit(1)
-
-    # Charger le JSON existant
-    with open(json_path, "r", encoding="utf-8") as f:
-        existing_jobs = json.load(f)
+        # Pas de JSON existant → on repart d'une liste vide (premier run ou JSON absent).
+        # On ne bloque PAS : le delta scraping doit pouvoir avancer même sans JSON préalable.
+        print(f"ℹ️  Fichier JSON absent ({json_path.name}) — création depuis zéro (OK pour un premier run).")
+        existing_jobs = []
+    else:
+        # Charger le JSON existant
+        with open(json_path, "r", encoding="utf-8") as f:
+            existing_jobs = json.load(f)
 
     # Ensemble des marques BNP (Arval, BNP Paribas Cardif, etc.) pour retirer les anciennes
     bnp_names = get_bnp_company_names(BNP_DB)

@@ -1,8 +1,8 @@
 # One-off BNP Paribas scraper - relance BNP uniquement sans toucher aux autres sources
 # 1. Restaure la DB du run précédent (delta scraping — backlog de détails)
 # 2. Scrape BNP uniquement
-# 3. Sauvegarde la DB en cache pour le prochain run
-# 4. Fusionne dans scraped_jobs_live.json (remplace les offres BNP existantes)
+# 3. Sauvegarde la DB en cache (if: always → même si le scraper plante)
+# 4. Fusionne dans scraped_jobs_live.json
 # 5. Commit et push → BNP dispo sur Taleos immédiatement
 
 name: One-off BNP Paribas scraper
@@ -48,11 +48,34 @@ jobs:
           restore-keys: |
             scraper-db-bnp_paribas-
 
+      - name: Diagnostiquer l'état de la DB restaurée
+        run: |
+          if [ -f PYTHON/bnp_paribas_jobs.db ]; then
+            SIZE=$(stat -c%s PYTHON/bnp_paribas_jobs.db)
+            echo "✅ DB restaurée — taille: ${SIZE} octets"
+            python3 - << 'EOF'
+import sqlite3
+conn = sqlite3.connect("PYTHON/bnp_paribas_jobs.db")
+has_table = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='jobs'").fetchone()
+if has_table:
+    total = conn.execute("SELECT COUNT(*) FROM jobs WHERE status='Live' AND is_valid=1").fetchone()[0]
+    with_desc = conn.execute("SELECT COUNT(*) FROM jobs WHERE status='Live' AND is_valid=1 AND job_description IS NOT NULL AND TRIM(job_description)!=''").fetchone()[0]
+    print(f"   Live: {total}  Avec description: {with_desc}  Backlog: {total - with_desc}")
+else:
+    print("   Table jobs absente — DB vierge")
+conn.close()
+EOF
+          else
+            echo "ℹ️  Pas de DB en cache — démarrage à zéro"
+          fi
+
       - name: Scraper BNP Paribas uniquement
         run: cd PYTHON && python bnp_paribas_scraper.py
 
-      # Sauvegarder la DB mise à jour pour le prochain run
+      # IMPORTANT : if: always() → cache sauvegardé même si le scraper a planté.
+      # Sans ça, un crash scraper = cache non sauvegardé = le run suivant repart à zéro.
       - name: Sauvegarder la base SQLite en cache
+        if: always()
         uses: actions/cache/save@v4
         with:
           path: PYTHON/bnp_paribas_jobs.db
@@ -68,11 +91,18 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add HTML/scraped_jobs_live.json HTML/scraped_jobs.json scraped_jobs_live.json scraped_jobs.json
-          if ! git diff --staged --quiet; then
-            git commit -m "chore: mise à jour offres BNP Paribas (one-off)"
-            git pull --rebase origin main
-            git push origin main
-          else
+          git add HTML/scraped_jobs_live.json HTML/scraped_jobs.json
+          if git diff --staged --quiet; then
             echo "Aucun changement à committer"
+            exit 0
           fi
+          git commit -m "chore: mise à jour offres BNP Paribas (one-off)"
+          # Retry pull+push jusqu'à 3 fois pour gérer les conflits de push concurrent
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && exit 0
+            echo "⚠️ Push échoué (tentative $i/3), nouvelle tentative dans 10s…"
+            git rebase --abort 2>/dev/null || true
+            sleep 10
+          done
+          echo "❌ Impossible de pousser après 3 tentatives"
+          exit 1

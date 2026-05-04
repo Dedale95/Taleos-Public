@@ -47,6 +47,21 @@ const BORDER= '#e5e0d8';
 const FH    = "'Lora', serif";
 const FB    = "'Space Grotesk', sans-serif";
 
+const LANDING_LOGO_BASE = window.location.pathname.includes('/HTML/')
+  ? 'images/logos/'
+  : 'HTML/images/logos/';
+
+const LANDING_COMPANY_LOGOS = {
+  'BNP Paribas': `${LANDING_LOGO_BASE}bnp_paribas.png`,
+  'Société Générale': `${LANDING_LOGO_BASE}societe_generale.png`,
+  'Deloitte': `${LANDING_LOGO_BASE}deloitte.png`,
+  'Amundi': `${LANDING_LOGO_BASE}amundi.png`,
+  'Natixis': `${LANDING_LOGO_BASE}natixis.png`,
+  'Crédit Agricole': `${LANDING_LOGO_BASE}credit_agricole.png`,
+  'Goldman Sachs': `${LANDING_LOGO_BASE}goldman_sachs.png`,
+  'JPMorgan': `${LANDING_LOGO_BASE}jp_morgan.png`,
+};
+
 /* ── TAG COLORS (production palette) ── */
 const TAGS = {
   location:   { bg:'rgba(59,130,246,0.07)',  color:'#1d4ed8' },
@@ -115,7 +130,7 @@ function Nav({ onSignup }) {
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, height:64, padding:'0 48px', display:'flex', alignItems:'center', justifyContent:'space-between', background: sc ? 'rgba(247,245,240,0.94)' : 'transparent', backdropFilter: sc ? 'blur(16px)' : 'none', borderBottom: sc ? `1px solid ${BORDER}` : '1px solid transparent', transition:'all 0.3s ease' }}>
       <TaleosLogo />
       <div style={{ display:'flex', gap:36 }}>
-        {[['Offres','#offres'],['Comment ça marche','#process'],['Tarifs','#tarifs'],['FAQ','#faq']].map(([l,h]) => (
+        {[['Offres','offres.html'],['Offres draft','offres-draft.html'],['Comment ça marche','#process'],['Tarifs','#tarifs'],['FAQ','#faq']].map(([l,h]) => (
           <a key={l} href={h} style={lk} onMouseEnter={e=>e.target.style.color=NAVY} onMouseLeave={e=>e.target.style.color=MUTED}>{l}</a>
         ))}
       </div>
@@ -189,14 +204,17 @@ const LOGO_LIST = [
   { name:'BlackRock',        domain:'blackrock.com' },
 ];
 
-function LogoItem({ name, domain }) {
+function LogoItem({ name }) {
   const [err, setErr] = useState(false);
+  const logoPath = LANDING_COMPANY_LOGOS[name] || null;
   return (
-    <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0, padding:'0 32px' }}>
-      {err
-        ? <span style={{ fontSize:13, fontWeight:600, color:'#b0a89a', whiteSpace:'nowrap' }}>{name}</span>
-        : <img src={`https://logo.clearbit.com/${domain}`} alt={name} style={{ height:22, width:'auto', maxWidth:100, objectFit:'contain', filter:'grayscale(100%) contrast(0.4)', opacity:0.7 }} onError={() => setErr(true)} />
-      }
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, padding:'0 14px' }}>
+      <div style={{ minWidth:116, height:44, padding:'8px 14px', border:`1px solid ${BORDER}`, borderRadius:10, background:WHITE, display:'flex', alignItems:'center', justifyContent:'center' }}>
+        {!logoPath || err
+          ? <span style={{ fontSize:12, fontWeight:600, color:'#8c8578', whiteSpace:'nowrap' }}>{name}</span>
+          : <img src={logoPath} alt={name} style={{ maxHeight:24, width:'auto', maxWidth:88, objectFit:'contain', opacity:0.9 }} onError={() => setErr(true)} />
+        }
+      </div>
     </div>
   );
 }
@@ -206,7 +224,7 @@ function TrustBand() {
   return (
     <div style={{ background:WHITE, borderTop:`1px solid ${BORDER}`, borderBottom:`1px solid ${BORDER}`, padding:'22px 0', overflow:'hidden' }}>
       <div style={{ display:'flex', width:'max-content', animation:'marquee 36s linear infinite' }}>
-        {doubled.map((l, i) => <LogoItem key={i} name={l.name} domain={l.domain} />)}
+        {doubled.map((l, i) => <LogoItem key={i} name={l.name} />)}
       </div>
     </div>
   );

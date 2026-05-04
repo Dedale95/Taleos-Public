@@ -192,10 +192,8 @@ function LogoItem({ name, path }) {
   const [err, setErr] = useState(false);
   if (!path || err) return null;
   return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, padding:'0 14px' }}>
-      <div style={{ minWidth:116, height:44, padding:'8px 14px', border:`1px solid ${BORDER}`, borderRadius:10, background:WHITE, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <img src={path} alt={name} style={{ maxHeight:24, width:'auto', maxWidth:88, objectFit:'contain', opacity:0.9 }} onError={() => setErr(true)} />
-      </div>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, minWidth:146, height:56, padding:'0 22px' }}>
+      <img src={path} alt={name} style={{ maxHeight:34, width:'auto', maxWidth:132, objectFit:'contain', opacity:0.96 }} onError={() => setErr(true)} />
     </div>
   );
 }

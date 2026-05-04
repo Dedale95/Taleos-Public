@@ -241,17 +241,18 @@
             gap: 1px;
             background: var(--surface3);
             border: 1px solid var(--surface3);
-            border-radius: var(--radius-md);
+            border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
 
         .stat-card {
             background: var(--white);
-            padding: 24px 20px;
+            padding: 22px 16px;
             text-align: center;
             transition: background var(--transition);
             position: relative;
+            cursor: default;
         }
 
         .stat-card::after {
@@ -259,34 +260,37 @@
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 100%;
+            right: 0;
             height: 2px;
             background: transparent;
             transition: background var(--transition);
         }
 
         .stat-card:hover { background: #fafaf8; }
-        .stat-card:hover::after { background: var(--gold); }
 
-        .stat-icon {
-            font-size: 1.4rem;
-            margin-bottom: 10px;
-            display: block;
-            line-height: 1;
-        }
+        .stat-card.s-accepted .stat-value  { color: var(--status-accepted-text); }
+        .stat-card.s-accepted::after       { background: var(--status-accepted-text); }
+        .stat-card.s-interview .stat-value { color: var(--status-interview-text); }
+        .stat-card.s-interview::after      { background: var(--status-interview-text); }
+        .stat-card.s-screening .stat-value { color: var(--status-screening-text); }
+        .stat-card.s-screening::after      { background: var(--status-screening-text); }
+        .stat-card.s-pending .stat-value   { color: var(--status-pending-text); }
+        .stat-card.s-pending::after        { background: var(--status-pending-text); }
+        .stat-card.s-rejected .stat-value  { color: var(--status-rejected-text); }
+        .stat-card.s-rejected::after       { background: var(--status-rejected-text); }
 
         .stat-value {
             font-family: var(--serif);
             font-size: 2rem;
-            font-weight: 700;
+            font-weight: 600;
             color: var(--ink);
             margin-bottom: 4px;
             line-height: 1;
         }
 
         .stat-label {
-            font-size: 0.7rem;
-            font-weight: 600;
+            font-size: 0.65rem;
+            font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--muted);
@@ -295,16 +299,16 @@
         /* ─── CHARTS ─── */
         .charts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
         }
 
         .chart-card {
             background: var(--white);
             border: 1px solid var(--surface2);
-            border-radius: var(--radius-md);
-            padding: 28px;
+            border-radius: 10px;
+            padding: 24px;
             position: relative;
             overflow: hidden;
         }
@@ -316,32 +320,28 @@
             left: 0;
             right: 0;
             height: 2px;
-            background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
-            opacity: 0.4;
+            background: linear-gradient(90deg, #355c99 0%, transparent 100%);
+            opacity: 0.3;
         }
 
         .chart-card h3 {
-            font-family: var(--sans);
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.68rem;
+            font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--muted);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            margin-bottom: 18px;
         }
 
         .chart-shell {
+            background: #f7f5f0;
             border-radius: var(--radius);
-            background: var(--surface);
-            padding: 12px;
+            padding: 10px;
         }
 
         .chart-card canvas {
-            height: 300px !important;
-            max-height: 300px;
+            height: 200px !important;
+            max-height: 200px;
         }
 
         .status-overview {
@@ -352,22 +352,23 @@
 
         .status-overview-row {
             display: grid;
-            grid-template-columns: auto 1fr auto;
+            grid-template-columns: 120px 1fr 32px;
             align-items: center;
             gap: 10px;
         }
 
         .status-overview-label {
-            min-width: 122px;
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             font-weight: 600;
-            color: var(--text-body);
+            color: var(--ink);
         }
 
         .status-overview-count {
             font-family: var(--serif);
-            font-size: 1.05rem;
+            font-size: 0.9rem;
+            font-weight: 600;
             color: var(--ink);
+            text-align: right;
         }
 
         .status-overview-bar {
@@ -411,8 +412,8 @@
         }
 
         .status-overview-kpi-label {
-            font-size: 0.72rem;
-            font-weight: 600;
+            font-size: 0.68rem;
+            font-weight: 700;
             letter-spacing: 0.06em;
             text-transform: uppercase;
             color: var(--muted);
@@ -639,17 +640,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 24px 28px;
+            padding: 20px 24px;
             border-bottom: 1px solid var(--surface2);
             flex-wrap: wrap;
-            gap: 16px;
-            background: var(--surface);
+            gap: 12px;
+            background: var(--surface2);
         }
 
         .applications-header h2 {
             font-family: var(--sans);
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.68rem;
+            font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--muted);
@@ -697,7 +698,7 @@
 
         /* ─── APPLICATION CARD ─── */
         .application-card {
-            padding: 24px 28px;
+            padding: 22px 24px;
             border-bottom: 1px solid var(--surface2);
             transition: background var(--transition);
             position: relative;
@@ -757,14 +758,14 @@
 
         .app-title {
             font-family: var(--sans);
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 0.95rem;
+            font-weight: 700;
             color: var(--ink);
             line-height: 1.3;
         }
 
         .app-company-name {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: var(--muted);
             margin-top: 2px;
         }
@@ -805,7 +806,7 @@
         .app-actions {
             display: flex;
             gap: 8px;
-            padding-top: 14px;
+            padding-top: 12px;
             border-top: 1px solid var(--surface2);
             flex-wrap: wrap;
         }
@@ -1118,32 +1119,26 @@
             <!-- Stats -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <span class="stat-icon">📊</span>
                     <div class="stat-value" id="totalCount">0</div>
                     <div class="stat-label">Total</div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon">✅</span>
+                <div class="stat-card s-accepted">
                     <div class="stat-value" id="acceptedCount">0</div>
                     <div class="stat-label">Acceptées</div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon">💼</span>
+                <div class="stat-card s-interview">
                     <div class="stat-value" id="interviewCount">0</div>
                     <div class="stat-label">Entretiens</div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon">📞</span>
+                <div class="stat-card s-screening">
                     <div class="stat-value" id="screeningCount">0</div>
                     <div class="stat-label">Screening</div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon">⏳</span>
+                <div class="stat-card s-pending">
                     <div class="stat-value" id="pendingCount">0</div>
                     <div class="stat-label">En attente</div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon">❌</span>
+                <div class="stat-card s-rejected">
                     <div class="stat-value" id="rejectedCount">0</div>
                     <div class="stat-label">Refusées</div>
                 </div>
@@ -1152,37 +1147,19 @@
             <!-- Charts -->
             <div class="charts-grid">
                 <div class="chart-card">
-                    <h3>📈 Évolution des candidatures</h3>
+                    <h3>Évolution des candidatures</h3>
                     <div class="chart-shell">
                         <canvas id="timelineChart"></canvas>
                     </div>
                 </div>
                 <div class="chart-card">
-                    <h3>🏢 Par entreprise</h3>
+                    <h3>Par entreprise</h3>
                     <div class="chart-shell">
                         <canvas id="companyChart"></canvas>
                     </div>
                 </div>
                 <div class="chart-card">
-                    <h3>📄 Par type de contrat</h3>
-                    <div class="chart-shell">
-                        <canvas id="contractChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h3>📍 Par localisation</h3>
-                    <div class="chart-shell">
-                        <canvas id="locationChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h3>🚦 Par statut</h3>
-                    <div class="chart-shell">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h3>🧭 Suivi du pipeline</h3>
+                    <h3>Pipeline de statuts</h3>
                     <div class="chart-shell">
                         <div class="status-overview" id="statusOverview"></div>
                     </div>
@@ -1946,106 +1923,6 @@
                 scales: {
                     x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#7a7a8a', precision: 0, font: { size: 11 } } },
                     y: { grid: { display: false }, ticks: { color: '#3a3a48', font: { size: 11 } } }
-                }
-            }
-        });
-
-        const byContract = new Map();
-        apps.forEach((app) => {
-            const contract = app.contractType || 'Non spécifié';
-            byContract.set(contract, (byContract.get(contract) || 0) + 1);
-        });
-        if (charts.contract) charts.contract.destroy();
-        charts.contract = new Chart(document.getElementById('contractChart'), {
-            type: 'doughnut',
-            data: {
-                labels: Array.from(byContract.keys()),
-                datasets: [{
-                    data: Array.from(byContract.values()),
-                    backgroundColor: ['#c8a96e', '#e2cfa0', '#3a3a48', '#7a7a8a', '#ede9e3'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '60%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#3a3a48',
-                            font: { size: 11 },
-                            padding: 12,
-                            boxWidth: 12
-                        }
-                    }
-                }
-            }
-        });
-
-        const byLocation = new Map();
-        apps.forEach((app) => {
-            const location = normalizeLocationGroup(app.location);
-            byLocation.set(location, (byLocation.get(location) || 0) + 1);
-        });
-        const topLocations = Array.from(byLocation.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
-        if (charts.location) charts.location.destroy();
-        charts.location = new Chart(document.getElementById('locationChart'), {
-            type: 'bar',
-            data: {
-                labels: topLocations.map(([location]) => truncateLabel(location, 30)),
-                datasets: [{
-                    data: topLocations.map(([, count]) => count),
-                    backgroundColor: 'rgba(10,10,15,0.78)',
-                    borderColor: '#0a0a0f',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#7a7a8a', precision: 0, font: { size: 11 } } },
-                    y: { grid: { display: false }, ticks: { color: '#3a3a48', font: { size: 11 } } }
-                }
-            }
-        });
-
-        if (charts.status) charts.status.destroy();
-        charts.status = new Chart(document.getElementById('statusChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['En attente', 'Screening', 'Entretiens', 'Refusées', 'Acceptées'],
-                datasets: [{
-                    data: [
-                        statusCounts.pending,
-                        statusCounts.screening,
-                        statusCounts.interview,
-                        statusCounts.rejected,
-                        statusCounts.accepted
-                    ],
-                    backgroundColor: ['#3b82f6', '#f59e0b', '#c8a96e', '#ef4444', '#10b981'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '62%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#3a3a48',
-                            font: { size: 11 },
-                            padding: 10,
-                            boxWidth: 12
-                        }
-                    }
                 }
             }
         });

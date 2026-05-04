@@ -50,6 +50,9 @@ const FB    = "'Space Grotesk', sans-serif";
 const LANDING_LOGO_BASE = window.location.pathname.includes('/HTML/')
   ? 'images/logos/'
   : 'HTML/images/logos/';
+const AUTH_PAGE_PATH = window.location.pathname.includes('/HTML/')
+  ? 'auth.html'
+  : 'HTML/auth.html';
 
 const LANDING_COMPANY_LOGOS = {
   'BNP Paribas': `${LANDING_LOGO_BASE}bnp_paribas.png`,
@@ -105,6 +108,17 @@ function TaleosLogo({ size = 32, onDark = false, scrolled = false }) {
   );
 }
 
+function buildAuthHref(mode = 'signup', email = '') {
+  const params = new URLSearchParams();
+  if (mode) params.set('mode', mode);
+  if (email && email.trim()) params.set('email', email.trim());
+  return `${AUTH_PAGE_PATH}?${params.toString()}`;
+}
+
+function openAuth(mode = 'signup', email = '') {
+  window.location.href = buildAuthHref(mode, email);
+}
+
 function Tag({ type, children }) {
   const { bg, color } = TAGS[type] || TAGS.family;
   return <span style={{ display:'inline-block', padding:'4px 10px', borderRadius:2, fontSize:12, fontWeight:500, background:bg, color, whiteSpace:'nowrap' }}>{children}</span>;
@@ -140,7 +154,7 @@ function Nav({ onSignup }) {
         ))}
       </div>
       <div style={{ display:'flex', gap:14, alignItems:'center' }}>
-        <span style={lk}>Connexion</span>
+        <span style={lk} onClick={() => openAuth('login')}>Connexion</span>
         <button onClick={onSignup} style={{ background:NAVY, color:WHITE, border:'none', padding:'9px 22px', borderRadius:4, fontSize:13, fontWeight:600, cursor:'pointer' }}>Commencer</button>
       </div>
     </nav>
@@ -149,6 +163,7 @@ function Nav({ onSignup }) {
 
 /* ── HERO ── */
 function Hero({ onSignup }) {
+  const [email, setEmail] = useState('');
   return (
     <section style={{ minHeight:'100vh', background:BG, display:'flex', alignItems:'center', padding:'100px 48px 60px', position:'relative', overflow:'hidden' }}>
       <div style={{ position:'absolute', inset:0, backgroundImage:`repeating-linear-gradient(0deg,transparent,transparent 79px,${BORDER} 79px,${BORDER} 80px)`, opacity:0.38, pointerEvents:'none' }}/>
@@ -177,13 +192,16 @@ function Hero({ onSignup }) {
         {/* Signup card */}
         <div style={{ background:WHITE, border:`1px solid ${BORDER}`, borderRadius:10, padding:'36px 32px', boxShadow:'0 12px 56px rgba(12,26,46,0.09)', animation:'fadeIn 0.8s 0.15s ease both' }}>
           <div style={{ fontFamily:FH, fontSize:26, fontWeight:600, color:NAVY, lineHeight:1.25, marginBottom:8 }}>Rejoindre la plateforme</div>
-          <div style={{ fontSize:14, color:MUTED, lineHeight:1.72, marginBottom:26 }}>Importez votre CV. Définissez vos critères. L'IA postule à votre place.</div>
-          {['Prénom et nom','Adresse email'].map(ph => (
-            <div key={ph} style={{ border:`1px solid ${BORDER}`, borderRadius:4, padding:'12px 16px', marginBottom:10, fontSize:13.5, color:'#ccc', background:'#fafaf8' }}>{ph}</div>
-          ))}
-          <div style={{ border:`1px dashed ${BLUE_B}`, borderRadius:4, padding:'13px 16px', marginBottom:20, textAlign:'center', cursor:'pointer', fontSize:13, color:BLUE }}>Déposer votre CV (PDF) ou parcourir</div>
-          <button onClick={onSignup} style={{ width:'100%', background:NAVY, color:WHITE, border:'none', padding:'14px', borderRadius:4, fontSize:14, fontWeight:600, cursor:'pointer' }}>Commencer maintenant →</button>
-          <div style={{ fontSize:12.5, color:MUTED, textAlign:'center', marginTop:16 }}>Déjà inscrit ? <span style={{ color:NAVY, fontWeight:600, cursor:'pointer' }}>Connexion</span></div>
+          <div style={{ fontSize:14, color:MUTED, lineHeight:1.72, marginBottom:26 }}>Commencez avec votre email. Vous définirez ensuite votre mot de passe, sa confirmation et validerez les CGU sur l'écran d'inscription Taleos.</div>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="Adresse email"
+            style={{ width:'100%', border:`1px solid ${BORDER}`, borderRadius:4, padding:'13px 16px', marginBottom:14, fontSize:13.5, color:NAVY, background:'#fafaf8', outline:'none' }}
+          />
+          <button onClick={() => openAuth('signup', email)} style={{ width:'100%', background:NAVY, color:WHITE, border:'none', padding:'14px', borderRadius:4, fontSize:14, fontWeight:600, cursor:'pointer' }}>Continuer l'inscription →</button>
+          <div style={{ fontSize:12.5, color:MUTED, textAlign:'center', marginTop:16 }}>Déjà inscrit ? <span style={{ color:NAVY, fontWeight:600, cursor:'pointer' }} onClick={() => openAuth('login', email)}>Connexion</span></div>
         </div>
       </div>
     </section>
@@ -598,19 +616,23 @@ function Footer() {
 
 /* ── MODAL ── */
 function SignupModal({ onClose }) {
+  const [email, setEmail] = useState('');
   return (
     <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(12,26,46,0.55)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(6px)', animation:'fadeIn 0.2s ease' }}>
       <div onClick={e=>e.stopPropagation()} style={{ background:WHITE, border:`1px solid ${BORDER}`, borderRadius:12, padding:'44px 40px', width:'100%', maxWidth:440, position:'relative', animation:'slideDown 0.25s ease', boxShadow:'0 24px 80px rgba(12,26,46,0.18)' }}>
         <button onClick={onClose} style={{ position:'absolute', top:16, right:18, background:'none', border:'none', color:MUTED, fontSize:24, cursor:'pointer', lineHeight:1 }}>×</button>
         <TaleosLogo />
         <div style={{ fontFamily:FH, fontSize:26, fontWeight:600, color:NAVY, margin:'22px 0 8px', lineHeight:1.25 }}>Créez votre compte</div>
-        <div style={{ fontSize:14, color:MUTED, marginBottom:28 }}>Gratuit · Sans carte bancaire · 2 minutes</div>
-        {['Prénom et nom','Adresse email'].map(ph => (
-          <div key={ph} style={{ border:`1px solid ${BORDER}`, borderRadius:4, padding:'13px 16px', marginBottom:12, fontSize:14, color:'#ccc', background:'#fafaf8' }}>{ph}</div>
-        ))}
-        <div style={{ border:`1px dashed ${BLUE_B}`, borderRadius:4, padding:'14px 16px', marginBottom:20, fontSize:13.5, color:BLUE, textAlign:'center', cursor:'pointer' }}>Déposer votre CV (PDF) ou parcourir</div>
-        <button style={{ width:'100%', background:NAVY, color:WHITE, border:'none', padding:'14px', borderRadius:4, fontSize:14, fontWeight:600, cursor:'pointer' }}>Commencer gratuitement →</button>
-        <div style={{ fontSize:12.5, color:MUTED, textAlign:'center', marginTop:16 }}>Déjà inscrit ? <span style={{ color:NAVY, fontWeight:600, cursor:'pointer' }}>Connexion</span></div>
+        <div style={{ fontSize:14, color:MUTED, marginBottom:28 }}>Gratuit · Sans carte bancaire · 2 minutes. Le mot de passe et l'acceptation des CGU se font à l'étape suivante.</div>
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="Adresse email"
+          style={{ width:'100%', border:`1px solid ${BORDER}`, borderRadius:4, padding:'13px 16px', marginBottom:16, fontSize:14, color:NAVY, background:'#fafaf8', outline:'none' }}
+        />
+        <button onClick={() => openAuth('signup', email)} style={{ width:'100%', background:NAVY, color:WHITE, border:'none', padding:'14px', borderRadius:4, fontSize:14, fontWeight:600, cursor:'pointer' }}>Continuer l'inscription →</button>
+        <div style={{ fontSize:12.5, color:MUTED, textAlign:'center', marginTop:16 }}>Déjà inscrit ? <span style={{ color:NAVY, fontWeight:600, cursor:'pointer' }} onClick={() => openAuth('login', email)}>Connexion</span></div>
       </div>
     </div>
   );
@@ -621,14 +643,14 @@ function App() {
   const [modal, setModal] = useState(false);
   return (
     <div>
-      <Nav onSignup={() => setModal(true)} />
-      <Hero onSignup={() => setModal(true)} />
+      <Nav onSignup={() => openAuth('signup')} />
+      <Hero onSignup={() => openAuth('signup')} />
       <TrustBand />
       <DemoSection />
       <Process />
       <Pricing />
       <FAQ />
-      <CTAFinal onSignup={() => setModal(true)} />
+      <CTAFinal onSignup={() => openAuth('signup')} />
       <Footer />
       {modal && <SignupModal onClose={() => setModal(false)} />}
     </div>

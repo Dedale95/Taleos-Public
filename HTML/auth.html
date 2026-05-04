@@ -734,6 +734,23 @@
         clearMessages();
     }
 
+    function hydrateAuthContextFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode');
+        const email = params.get('email');
+        if (mode === 'signup' || mode === 'login') {
+            switchTab(mode);
+        }
+        if (email) {
+            const trimmedEmail = email.trim();
+            const signupEmail = document.getElementById('signupEmail');
+            const loginEmail = document.getElementById('loginEmail');
+            if (signupEmail) signupEmail.value = trimmedEmail;
+            if (loginEmail) loginEmail.value = trimmedEmail;
+        }
+    }
+    hydrateAuthContextFromUrl();
+
     function clearMessages() {
         document.querySelectorAll('.error-message, .success-message').forEach(el => {
             el.classList.remove('show');

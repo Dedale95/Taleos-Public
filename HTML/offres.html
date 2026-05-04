@@ -1492,556 +1492,6 @@
             font-size: 0.8rem;
         }
 
-        body.offers-page .container {
-            max-width: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .offers-shell {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            min-height: calc(100vh - 68px);
-        }
-
-        .offers-main-column {
-            min-width: 0;
-            padding: 24px 28px 40px;
-        }
-
-        .offers-toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 18px;
-        }
-
-        .offers-toolbar-left,
-        .offers-toolbar-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .offers-results-count {
-            font-size: 0.92rem;
-            color: var(--muted);
-        }
-
-        .offers-results-count strong {
-            color: var(--ink);
-            font-weight: 700;
-        }
-
-        .favorites-toggle {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            border-radius: var(--radius);
-            border: 1px solid var(--surface3);
-            background: var(--white);
-            color: var(--muted);
-            font-family: var(--sans);
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition);
-        }
-
-        .favorites-toggle:hover {
-            color: #d14343;
-            border-color: rgba(209, 67, 67, 0.28);
-            background: rgba(209, 67, 67, 0.04);
-        }
-
-        .favorites-toggle.active {
-            color: #d14343;
-            border-color: rgba(209, 67, 67, 0.28);
-            background: rgba(209, 67, 67, 0.06);
-        }
-
-        .favorites-toggle svg {
-            width: 15px;
-            height: 15px;
-        }
-
-        .favorites-count-pill {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #d14343;
-            background: rgba(209, 67, 67, 0.12);
-            border-radius: 999px;
-            padding: 2px 8px;
-        }
-
-        .offers-sort-select {
-            padding: 8px 12px;
-            border: 1px solid var(--surface3);
-            border-radius: var(--radius);
-            font-family: var(--sans);
-            font-size: 0.85rem;
-            color: var(--ink);
-            background: var(--white);
-            cursor: pointer;
-        }
-
-        .offers-sort-select:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(200,169,110,0.1);
-        }
-
-        .offers-view-tabs {
-            display: inline-flex;
-            border: 1px solid var(--surface3);
-            border-radius: var(--radius);
-            overflow: hidden;
-            background: var(--white);
-        }
-
-        .offers-view-tab {
-            width: 40px;
-            height: 38px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            background: transparent;
-            color: var(--muted);
-            cursor: pointer;
-            transition: all var(--transition);
-        }
-
-        .offers-view-tab.active {
-            background: var(--ink);
-            color: var(--white);
-        }
-
-        .offers-view-tab svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        body.offers-page .filters-wrapper {
-            position: sticky;
-            top: 68px;
-            align-self: start;
-            height: calc(100vh - 68px);
-            overflow-y: auto;
-            border: none;
-            border-right: 1px solid var(--surface2);
-            border-radius: 0;
-            margin-bottom: 0;
-            padding: 22px 18px 28px;
-            background: var(--white);
-            box-shadow: none;
-        }
-
-        body.offers-page .filters-header {
-            background: transparent;
-            border-bottom: none;
-            padding: 0 0 16px;
-            gap: 8px;
-            align-items: flex-start;
-            justify-content: space-between;
-            cursor: default;
-        }
-
-        body.offers-page .filters-header:hover {
-            background: transparent;
-        }
-
-        body.offers-page .filters-header:active {
-            transform: none;
-        }
-
-        body.offers-page .filters-header-left {
-            gap: 0;
-        }
-
-        body.offers-page .toggle-icon,
-        body.offers-page .filters-stats,
-        body.offers-page .toggle-badge {
-            display: none;
-        }
-
-        body.offers-page .filters-title {
-            color: var(--muted);
-            font-size: 0.76rem;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-        }
-
-        body.offers-page .filters-content {
-            padding: 0;
-        }
-
-        body.offers-page .filters-grid-wrapper {
-            display: block;
-            margin-bottom: 0;
-        }
-
-        body.offers-page .filter-group {
-            margin-bottom: 18px;
-            padding-bottom: 18px;
-            border-bottom: 1px solid var(--surface2);
-        }
-
-        body.offers-page .filter-group:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        body.offers-page .filter-box {
-            border: none;
-            background: transparent;
-            border-radius: 0;
-            overflow: visible;
-        }
-
-        body.offers-page .filter-box-header {
-            background: transparent;
-            border: none;
-            text-align: left;
-            padding: 0 0 10px;
-            color: var(--muted);
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-        }
-
-        body.offers-page .filter-box-body-search {
-            min-height: auto;
-            padding: 0;
-        }
-
-        body.offers-page .filter-box-body-checkboxes,
-        body.offers-page .filter-checkbox-container,
-        body.offers-page .filters-grid-wrapper .filter-group:nth-child(2) .filter-box-body-checkboxes,
-        body.offers-page .filters-grid-wrapper .filter-group:nth-child(3) .filter-box-body-checkboxes,
-        body.offers-page .filters-grid-wrapper .filter-group:nth-child(4) .filter-box-body-checkboxes {
-            min-height: auto;
-            max-height: 210px;
-            padding: 0;
-            border: none;
-            background: transparent;
-        }
-
-        body.offers-page #searchInput {
-            padding: 10px 14px;
-            font-size: 0.85rem;
-            background: var(--surface);
-        }
-
-        body.offers-page .search-tags {
-            margin-top: 10px;
-        }
-
-        body.offers-page .search-tag {
-            background: rgba(27, 78, 158, 0.08);
-            color: #1b4e9e;
-            border: 1px solid rgba(27, 78, 158, 0.14);
-            border-radius: 999px;
-        }
-
-        body.offers-page .search-tag-remove {
-            background: rgba(27, 78, 158, 0.1);
-        }
-
-        body.offers-page .filter-checkbox-container label {
-            padding: 6px 2px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-        }
-
-        body.offers-page .filter-row-reset {
-            justify-content: flex-start;
-            margin-top: 18px;
-            padding-top: 0;
-        }
-
-        body.offers-page .reset-btn {
-            border: none;
-            padding: 0;
-            color: #1b4e9e;
-            font-size: 0.78rem;
-            letter-spacing: 0;
-            background: transparent;
-        }
-
-        body.offers-page .jobs-container {
-            padding: 0;
-            gap: 16px;
-        }
-
-        body.offers-page .jobs-container.list-view {
-            grid-template-columns: 1fr;
-        }
-
-        .job-card-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .job-company-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .job-company-logo-box {
-            width: 44px;
-            height: 44px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            background: var(--surface);
-            border: 1px solid var(--surface2);
-            overflow: hidden;
-        }
-
-        .job-company-logo-box .company-logo {
-            width: 100%;
-            height: 100%;
-            padding: 6px;
-            background: transparent;
-            box-shadow: none;
-            border-radius: 0;
-        }
-
-        .job-company-logo-box .company-logo.company-logo-goldman {
-            padding: 3px;
-        }
-
-        .job-company-initials {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--muted);
-        }
-
-        .job-title-wrap {
-            min-width: 0;
-            flex: 1;
-        }
-
-        body.offers-page .job-title {
-            font-size: 1.18rem;
-            line-height: 1.32;
-            margin-bottom: 4px;
-        }
-
-        body.offers-page .job-id {
-            display: none;
-        }
-
-        .job-company-name {
-            color: var(--muted);
-            font-size: 0.92rem;
-            font-weight: 600;
-        }
-
-        .job-favorite-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 999px;
-            border: 1px solid var(--surface3);
-            background: var(--white);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all var(--transition);
-            flex-shrink: 0;
-        }
-
-        .job-favorite-btn:hover {
-            border-color: rgba(209, 67, 67, 0.28);
-            background: rgba(209, 67, 67, 0.05);
-        }
-
-        .job-favorite-btn.active {
-            border-color: rgba(209, 67, 67, 0.3);
-            background: rgba(209, 67, 67, 0.08);
-        }
-
-        .job-favorite-btn svg {
-            width: 17px;
-            height: 17px;
-            transition: all var(--transition);
-        }
-
-        .job-favorite-btn.active svg {
-            fill: #d14343;
-            stroke: #d14343;
-        }
-
-        .job-card.favorite {
-            border-color: rgba(209, 67, 67, 0.18);
-        }
-
-        .job-snippet {
-            color: var(--muted);
-            font-size: 0.94rem;
-            line-height: 1.72;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            margin-bottom: 14px;
-        }
-
-        .job-match-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .job-match-percent {
-            color: #6f7c19;
-            font-weight: 700;
-            font-size: 0.82rem;
-            min-width: 34px;
-        }
-
-        .job-match-bar {
-            flex: 1;
-            height: 5px;
-            border-radius: 999px;
-            background: var(--surface2);
-            overflow: hidden;
-        }
-
-        .job-match-fill {
-            height: 100%;
-            border-radius: 999px;
-            background: #7a871f;
-        }
-
-        .job-match-label {
-            color: var(--muted);
-            font-size: 0.76rem;
-        }
-
-        body.offers-page .job-company {
-            display: none;
-        }
-
-        body.offers-page .job-date {
-            margin: 0;
-            font-size: 0.78rem;
-            color: #a1a1aa;
-        }
-
-        body.offers-page .job-footer {
-            padding-top: 14px;
-            margin-top: auto;
-        }
-
-        body.offers-page .job-actions {
-            min-width: 0;
-            gap: 8px;
-        }
-
-        body.offers-page .job-link,
-        body.offers-page .job-apply-btn,
-        body.offers-page .job-cancel-btn {
-            width: auto;
-            min-width: 0;
-            max-width: none;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 0.84rem;
-        }
-
-        body.offers-page .job-link {
-            background: var(--white);
-            color: var(--muted);
-            border: 1px solid var(--surface3);
-        }
-
-        body.offers-page .job-link:hover {
-            background: var(--white);
-            color: var(--ink);
-            border-color: var(--ink);
-            box-shadow: none;
-        }
-
-        body.offers-page .job-apply-btn {
-            background: var(--ink);
-            color: var(--white);
-            border: none;
-        }
-
-        body.offers-page .job-apply-btn:hover:not(:disabled) {
-            background: var(--ink-soft);
-            color: var(--white);
-            border: none;
-        }
-
-        body.offers-page .pagination-container {
-            background: transparent;
-            border: none;
-            padding: 0;
-            margin-bottom: 16px;
-        }
-
-        body.offers-page #paginationBottom {
-            margin-top: 18px;
-        }
-
-        @media (max-width: 980px) {
-            .offers-shell {
-                grid-template-columns: 1fr;
-            }
-
-            body.offers-page .filters-wrapper {
-                position: static;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid var(--surface2);
-            }
-
-            .offers-main-column {
-                padding: 18px 18px 32px;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .offers-toolbar {
-                align-items: stretch;
-            }
-
-            .offers-toolbar-left,
-            .offers-toolbar-right {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            body.offers-page .job-footer {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-
-            body.offers-page .job-actions {
-                width: 100%;
-                justify-content: flex-start;
-                flex-wrap: wrap;
-            }
-        }
 
         footer {
             background: #070709;
@@ -2159,14 +1609,30 @@
 
     <div class="main-content">
     <div class="container">
-        <div class="offers-shell">
-        <aside class="filters-wrapper">
+        <div class="filters-wrapper">
             <!-- Header cliquable pour toggle avec stats intégrées -->
-            <div class="filters-header" id="filtersToggle">
+            <div class="filters-header" id="filtersToggle" onclick="toggleFilters()">
                 <div class="filters-header-left">
-                    <span class="filters-title">Filtres</span>
+                    <svg class="toggle-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 7.5L10 12.5L15 7.5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="filters-title">Filtres de recherche</span>
                 </div>
-                <button class="reset-btn" type="button" onclick="resetFilters()">Tout réinitialiser</button>
+                <div class="filters-stats">
+                    <div class="stat-item-compact">
+                        <span class="stat-number-compact" id="totalJobs">⏳</span>
+                        <span class="stat-label-compact">Offres live</span>
+                    </div>
+                    <div class="stat-item-compact">
+                        <span class="stat-number-compact" id="filteredJobs">⏳</span>
+                        <span class="stat-label-compact">Affichées</span>
+                    </div>
+                    <div class="stat-item-compact">
+                        <span class="stat-number-compact" id="countries">⏳</span>
+                        <span class="stat-label-compact">Pays</span>
+                    </div>
+                </div>
+                <span class="toggle-badge" id="activeFiltersBadge">Aucun filtre</span>
             </div>
 
             <!-- Contenu des filtres -->
@@ -2174,10 +1640,10 @@
             <div class="filters-grid-wrapper">
                 <div class="filter-group">
                     <div class="filter-box">
-                        <div class="filter-box-header">Recherche</div>
+                        <div class="filter-box-header">🔍 Recherche par mots-clés</div>
                         <div class="filter-box-body filter-box-body-search">
                             <div class="search-wrapper">
-                                <input type="text" id="searchInput" placeholder="Poste, entreprise, compétence">
+                                <input type="text" id="searchInput" placeholder="Tapez un mot-clé et appuyez sur Entrée...">
                                 <div class="search-tags" id="searchTags"></div>
                             </div>
                         </div>
@@ -2185,71 +1651,44 @@
                 </div>
                 <div class="filter-group">
                     <div class="filter-box filter-box-contract">
-                        <div class="filter-box-header">Type de contrat</div>
+                        <div class="filter-box-header">📄 Type de contrat</div>
                         <div id="contractFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
                     </div>
                 </div>
                 <div class="filter-group">
                     <div class="filter-box filter-box-education">
-                        <div class="filter-box-header">Niveau d'étude</div>
+                        <div class="filter-box-header">🎓 Niveau d'étude</div>
                         <div id="educationFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
                     </div>
                 </div>
                 <div class="filter-group filter-group-location">
                     <div class="filter-box filter-box-location">
-                        <div class="filter-box-header">Pays & Régions</div>
+                        <div class="filter-box-header">🌍 Pays & Régions</div>
                         <div id="countryFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
                     </div>
                 </div>
                 <div class="filter-group">
                     <div class="filter-box filter-box-experience">
-                        <div class="filter-box-header">Expérience</div>
+                        <div class="filter-box-header">💼 Expérience</div>
                         <div id="experienceFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
                     </div>
                 </div>
                 <div class="filter-group">
                     <div class="filter-box filter-box-family">
-                        <div class="filter-box-header">Famille de métier</div>
+                        <div class="filter-box-header">🎯 Famille de métier</div>
                         <div id="familyFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
                     </div>
                 </div>
                 <div class="filter-group">
                     <div class="filter-box">
-                        <div class="filter-box-header">Entreprise</div>
+                        <div class="filter-box-header">🏢 Entreprise</div>
                         <div id="companyFilter" class="filter-checkbox-container filter-box-body-checkboxes"></div>
                     </div>
                 </div>
             </div>
+            <div class="filter-row-reset">
+                <button class="reset-btn" onclick="resetFilters()">🔄 Réinitialiser tous les filtres</button>
             </div>
-        </aside>
-
-        <section class="offers-main-column">
-        <div class="offers-toolbar">
-            <div class="offers-toolbar-left">
-                <div class="offers-results-count"><strong id="filteredJobs">⏳</strong> offres</div>
-                <button class="favorites-toggle" id="favoritesToggle" type="button" onclick="toggleFavoritesOnly()">
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M10 16.5S2 11.3 2 6.5a4 4 0 0 1 8-1.1A4 4 0 0 1 18 6.5c0 4.8-8 10-8 10z"/>
-                    </svg>
-                    Favoris
-                    <span class="favorites-count-pill" id="favoritesCount">0</span>
-                </button>
-            </div>
-            <div class="offers-toolbar-right">
-                <select class="offers-sort-select" id="sortSelect" onchange="applyFilters()">
-                    <option value="pertinence">Pertinence</option>
-                    <option value="recent">Date — plus récent</option>
-                    <option value="ancien">Date — plus ancien</option>
-                    <option value="entreprise">Entreprise A→Z</option>
-                </select>
-                <div class="offers-view-tabs">
-                    <button class="offers-view-tab active" id="gridViewBtn" type="button" onclick="setOffersView('grid')">
-                        <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
-                    </button>
-                    <button class="offers-view-tab" id="listViewBtn" type="button" onclick="setOffersView('list')">
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -2302,8 +1741,6 @@
             <div class="sections-warning" id="sectionsWarning"></div>
             <div class="sections-list" id="sectionsList"></div>
         </div>
-        </section>
-        </div>
     </div>
 
 
@@ -2325,9 +1762,6 @@
         // Pagination variables
         let currentPage = 1;
         let itemsPerPage = 25;
-        let favoriteJobs = new Set(JSON.parse(localStorage.getItem('taleosFavoriteJobs') || '[]'));
-        let showFavoritesOnly = false;
-        let offersViewMode = localStorage.getItem('taleosOffersView') || 'grid';
         const SECTIONS_MAX = 12;
         let customSections = [];
         let sectionsLoaded = false;
@@ -3330,8 +2764,7 @@
                 const totalCount = data.length;
 
                 // Afficher le total tout de suite
-                const totalJobsEl = document.getElementById('totalJobs');
-                if (totalJobsEl) totalJobsEl.textContent = totalCount;
+                document.getElementById('totalJobs').textContent = totalCount;
 
                 // Traitement d'un job (normalisation, régions, etc.)
                 const processJob = (job) => {
@@ -3614,8 +3047,12 @@
                 }
 
                 filteredJobs = [...allJobs];
-                const filteredJobsEl = document.getElementById('filteredJobs');
-                if (filteredJobsEl) filteredJobsEl.textContent = allJobs.length.toLocaleString('fr-FR');
+                document.getElementById('filteredJobs').textContent = allJobs.length;
+                const quickCountries = new Set();
+                allJobs.forEach(job => {
+                    if (job.cleanCountries) job.cleanCountries.forEach(c => quickCountries.add(c));
+                });
+                document.getElementById('countries').textContent = quickCountries.size;
 
                 await initializeFilters();
                 await renderJobs();
@@ -5093,13 +4530,10 @@
                 const jobEdu = job.education_level && String(job.education_level).trim();
                 const matchEducation = !selectedEducations.length || selectedEducations.includes(jobEdu) ||
                     (selectedEducations.includes('Non spécifié') && !jobEdu);
-                const matchFavorites = !showFavoritesOnly || favoriteJobs.has(job.job_id);
 
                 return matchSearch && matchCountry && matchRegion && matchContract &&
-                    matchExperience && matchFamily && matchCompany && matchEducation && matchFavorites;
+                    matchExperience && matchFamily && matchCompany && matchEducation;
             });
-
-            filteredJobs = sortJobs(filteredJobs);
 
             // Mettre à jour les statistiques immédiatement après le filtrage (avant le rendu)
             updateStats();
@@ -5307,7 +4741,6 @@
 
             await renderJobs();
             updateActiveFiltersBadge();
-            updateFavoritesToggle();
             renderCustomSections();
         }
 
@@ -6330,7 +5763,7 @@
             const container = document.getElementById('jobsContainer');
             
             if (filteredJobs.length === 0) {
-                container.innerHTML = `<div class="no-results"><h3>${showFavoritesOnly ? '♡ Aucun favori' : '😕 Aucune offre'}</h3><p>${showFavoritesOnly ? 'Ajoutez des offres à vos favoris pour les retrouver ici.' : 'Modifiez vos filtres'}</p></div>`;
+                container.innerHTML = '<div class="no-results"><h3>😕 Aucune offre</h3><p>Modifiez vos filtres</p></div>';
                 document.getElementById('paginationTop').style.display = 'none';
                 document.getElementById('paginationBottom').style.display = 'none';
                 return;
@@ -6350,7 +5783,6 @@
             // Afficher les offres
             container.innerHTML = '';
             await renderJobsCards(jobsToDisplay);
-            setOffersView(offersViewMode);
             
             // Mettre à jour la pagination
             const paginationButtons = generatePaginationButtons();
@@ -6373,8 +5805,6 @@
                 const isPending = pendingApplications[job.job_id];
                 const status = applicationStatuses.get(job.job_id);
                 const isSubmitted = status === 'envoyée';
-                const isFavorite = favoriteJobs.has(job.job_id);
-                const matchScore = computeJobMatch(job);
                 
                 // Classes CSS selon l'état
                 let cardClass = 'job-card';
@@ -6384,30 +5814,14 @@
                     cardClass += ' application-submitted';
                     badgeHTML = '<div class="job-card-badge">✓ Candidature envoyée</div>';
                 }
-                if (isFavorite) cardClass += ' favorite';
                 // Plus de "Candidature en cours" avec timer : la vignette passe à "envoyée" uniquement via l'onglet de candidature
-
-                const logoPath = getCompanyLogo(job.company_name);
-                const logoUrl = logoPath ? (() => { try { return new URL(logoPath, window.location.href).href; } catch(e) { return logoPath; } })() : null;
-                const logoClass = getCompanyLogoClass(job.company_name, logoPath);
                 
                 return `
         <div class="${cardClass}" data-job-url="${job.job_url}">
             ${badgeHTML}
-            <div class="job-card-head">
-                <div class="job-company-header">
-                    <div class="job-company-logo-box">
-                        ${logoUrl ? `<img src="${logoUrl}" alt="${(job.company_name || '').replace(/"/g, '&quot;')}" class="${logoClass}" loading="lazy" onerror="this.closest('.job-company-logo-box').innerHTML='<span class=&quot;job-company-initials&quot;>${getCompanyInitials(job.company_name)}</span>'">` : `<span class="job-company-initials">${getCompanyInitials(job.company_name)}</span>`}
-                    </div>
-                    <div class="job-title-wrap">
-                        <div class="job-title">${cleanJobTitle(job.job_title)}</div>
-                        <div class="job-company-name">${job.company_name || ''}</div>
-                    </div>
-                </div>
-                <button class="job-favorite-btn ${isFavorite ? 'active' : ''}" onclick="toggleFavoriteJob(event, '${job.job_id}', this)" title="${isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
-                    ${getFavoriteIconMarkup(isFavorite)}
-                </button>
-            </div>
+            <div class="job-title">${cleanJobTitle(job.job_title)}</div>
+            <div class="job-id">${job.job_id}</div>
+            <div class="job-date">Publiée le ${formatDateToFrench(job.publication_date)}</div>
             <div class="job-tags">
                 ${job.location ? `<span class="tag tag-location">🌍 ${job.location}</span>` : ''}
                 ${job.contract_type ? `<span class="tag tag-contract">📄 ${job.contract_type}</span>` : ''}
@@ -6415,14 +5829,19 @@
                 ${job.education_level ? `<span class="tag tag-education">🎓 ${job.education_level}</span>` : ''}
                 ${job.job_family ? `<span class="tag tag-family">🎯 ${job.job_family}</span>` : ''}
             </div>
-            <div class="job-snippet">${job.job_description ? stripHtml(job.job_description).slice(0, 200) + (stripHtml(job.job_description).length > 200 ? '...' : '') : 'Description non disponible.'}</div>
-            <div class="job-match-row">
-                <span class="job-match-percent">${matchScore}%</span>
-                <div class="job-match-bar"><div class="job-match-fill" style="width:${matchScore}%"></div></div>
-                <span class="job-match-label">match</span>
-            </div>
             <div class="job-bottom-block">
-                <div class="job-date">Publiée le ${formatDateToFrench(job.publication_date)}</div>
+                ${job.company_name ? (() => {
+                    const logoPath = getCompanyLogo(job.company_name);
+                    const logoUrl = logoPath ? (() => { try { return new URL(logoPath, window.location.href).href; } catch(e) { return logoPath; } })() : null;
+                    const logoClass = getCompanyLogoClass(job.company_name, logoPath);
+                    return `
+                <div class="job-company">
+                    ${logoUrl ? `<img src="${logoUrl}" alt="${(job.company_name || '').replace(/"/g, '&quot;')}" class="${logoClass}" loading="lazy" onerror="this.style.display='none'">` : ''}
+                    <div class="company-name-wrapper">
+                        <span>${job.company_name}</span>
+                    </div>
+                </div>`;
+                })() : ''}
                 <div class="job-footer">
                     <div class="job-actions">
                     ${isAuthenticated ? (() => {
@@ -6430,13 +5849,13 @@
                         const isSubmitted = status === 'envoyée';
 
                         if (isSubmitted || hasApplied) {
-                            return `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>`;
+                            return `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
                         } else {
                             // Pas encore candidaté : Candidater + Voir l'offre
-                            return `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>
-                                    <button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">Postuler</button>`;
+                            return `<button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">📝 Candidater</button>
+                                    <a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
                         }
-                    })() : `<a href="${job.job_url}" target="_blank" class="job-link">Voir l'offre</a>`}
+                    })() : `<a href="${job.job_url}" target="_blank" class="job-link">Voir l'offre →</a>`}
                     </div>
                 </div>
             </div>
@@ -6480,106 +5899,14 @@
             });
         }
 
-        function sortJobs(jobs) {
-            const sortValue = document.getElementById('sortSelect')?.value || 'pertinence';
-            const sorted = [...jobs];
-
-            const parseDate = (job) => {
-                const value = job.publication_date || '';
-                const parsed = parseFlexibleDate(value);
-                return parsed ? parsed.getTime() : 0;
-            };
-
-            if (sortValue === 'recent') {
-                sorted.sort((a, b) => parseDate(b) - parseDate(a));
-            } else if (sortValue === 'ancien') {
-                sorted.sort((a, b) => parseDate(a) - parseDate(b));
-            } else if (sortValue === 'entreprise') {
-                sorted.sort((a, b) => String(a.company_name || '').localeCompare(String(b.company_name || ''), 'fr'));
-            }
-
-            return sorted;
-        }
-
-        function getFavoriteIconMarkup(isFavorite) {
-            return `
-                <svg viewBox="0 0 20 20" fill="${isFavorite ? '#d14343' : 'none'}" stroke="${isFavorite ? '#d14343' : 'currentColor'}" stroke-width="1.8">
-                    <path d="M10 16.5S2 11.3 2 6.5a4 4 0 0 1 8-1.1A4 4 0 0 1 18 6.5c0 4.8-8 10-8 10z"/>
-                </svg>
-            `;
-        }
-
-        function getCompanyInitials(name) {
-            return String(name || '')
-                .split(/\s+/)
-                .filter(Boolean)
-                .slice(0, 2)
-                .map(part => part[0]?.toUpperCase() || '')
-                .join('');
-        }
-
-        function stripHtml(value) {
-            return String(value || '')
-                .replace(/<[^>]*>/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
-        }
-
-        function computeJobMatch(job) {
-            let score = 74;
-            if (job.location) score += 4;
-            if (job.contract_type) score += 3;
-            if (job.job_family) score += 5;
-            if (job.experience_level) score += 4;
-            if (job.education_level) score += 3;
-            if (job.job_description) score += Math.min(9, Math.floor(job.job_description.length / 240));
-            return Math.min(98, Math.max(68, score));
-        }
-
-        function toggleFavoriteJob(event, jobId, btn) {
-            event.stopPropagation();
-            if (favoriteJobs.has(jobId)) favoriteJobs.delete(jobId);
-            else favoriteJobs.add(jobId);
-            localStorage.setItem('taleosFavoriteJobs', JSON.stringify(Array.from(favoriteJobs)));
-            updateFavoritesToggle();
-            if (btn && btn.isConnected) {
-                const isFavorite = favoriteJobs.has(jobId);
-                btn.classList.toggle('active', isFavorite);
-                btn.innerHTML = getFavoriteIconMarkup(isFavorite);
-                btn.title = isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris';
-                btn.closest('.job-card')?.classList.toggle('favorite', isFavorite);
-            }
-            if (showFavoritesOnly) {
-                applyFilters();
-            }
-        }
-
-        function toggleFavoritesOnly() {
-            showFavoritesOnly = !showFavoritesOnly;
-            currentPage = 1;
-            updateFavoritesToggle();
-            applyFilters();
-        }
-
-        function updateFavoritesToggle() {
-            const countEl = document.getElementById('favoritesCount');
-            if (countEl) countEl.textContent = favoriteJobs.size;
-            const toggle = document.getElementById('favoritesToggle');
-            if (toggle) toggle.classList.toggle('active', showFavoritesOnly);
-        }
-
-        function setOffersView(mode) {
-            offersViewMode = mode === 'list' ? 'list' : 'grid';
-            localStorage.setItem('taleosOffersView', offersViewMode);
-            const container = document.getElementById('jobsContainer');
-            if (container) container.classList.toggle('list-view', offersViewMode === 'list');
-            document.getElementById('gridViewBtn')?.classList.toggle('active', offersViewMode === 'grid');
-            document.getElementById('listViewBtn')?.classList.toggle('active', offersViewMode === 'list');
-        }
-
         function updateStats() {
-            const filteredEl = document.getElementById('filteredJobs');
-            if (filteredEl) filteredEl.textContent = filteredJobs.length.toLocaleString('fr-FR');
+            document.getElementById('totalJobs').textContent = allJobs.length;
+            document.getElementById('filteredJobs').textContent = filteredJobs.length;
+            const uniqueCountries = new Set();
+            filteredJobs.forEach(job => {
+                if (job.cleanCountries) job.cleanCountries.forEach(c => uniqueCountries.add(c));
+            });
+            document.getElementById('countries').textContent = uniqueCountries.size;
         }
 
         async function resetFilters() {
@@ -6614,7 +5941,6 @@
 
         // Fonction pour toggle l'accordéon des filtres
         function toggleFilters() {
-            if (document.body.classList.contains('offers-page')) return;
             const filtersContent = document.getElementById('filtersContainer');
             const filtersHeader = document.getElementById('filtersToggle');
             const filtersWrapper = document.querySelector('.filters-wrapper');
@@ -6649,19 +5975,15 @@
 
         // Restaurer l'état de l'accordéon au chargement
         window.addEventListener('DOMContentLoaded', () => {
-            if (!document.body.classList.contains('offers-page')) {
-                const wasCollapsed = localStorage.getItem('filtersCollapsed') === 'true';
-                if (wasCollapsed) {
-                    const filtersContent = document.getElementById('filtersContainer');
-                    const filtersHeader = document.getElementById('filtersToggle');
-                    const filtersWrapper = document.querySelector('.filters-wrapper');
-                    if (filtersContent) filtersContent.classList.add('collapsed');
-                    if (filtersHeader) filtersHeader.classList.add('collapsed');
-                    if (filtersWrapper) filtersWrapper.classList.add('collapsed');
-                }
+            const wasCollapsed = localStorage.getItem('filtersCollapsed') === 'true';
+            if (wasCollapsed) {
+                const filtersContent = document.getElementById('filtersContainer');
+                const filtersHeader = document.getElementById('filtersToggle');
+                const filtersWrapper = document.querySelector('.filters-wrapper');
+                if (filtersContent) filtersContent.classList.add('collapsed');
+                if (filtersHeader) filtersHeader.classList.add('collapsed');
+                if (filtersWrapper) filtersWrapper.classList.add('collapsed');
             }
-            updateFavoritesToggle();
-            setOffersView(offersViewMode);
         });
 
 

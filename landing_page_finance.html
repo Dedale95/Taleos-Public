@@ -1,1443 +1,639 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taleos — Automatisez vos candidatures en finance</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --ink:       #0a0a0f;
-            --ink-soft:  #14141c;
-            --ink-mid:   #1e1e2a;
-            --surface:   #f5f3ef;
-            --surface2:  #ede9e3;
-            --gold:      #c8a96e;
-            --gold-light:#e2cfa0;
-            --gold-dim:  rgba(200,169,110,0.15);
-            --muted:     #7a7a8a;
-            --text-body: #3a3a48;
-            --white:     #ffffff;
-            --serif: 'Playfair Display', Georgia, serif;
-            --sans: 'DM Sans', system-ui, sans-serif;
-            --radius: 4px;
-            --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
-        html { scroll-behavior: smooth; }
-
-        body {
-            font-family: var(--sans);
-            color: var(--text-body);
-            background: var(--surface);
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
-
-        /* ─── NAV ─── */
-        nav {
-            position: sticky;
-            top: 0;
-            z-index: 9999;
-            background: var(--ink);
-            border-bottom: 1px solid rgba(200,169,110,0.12);
-            padding: 0 48px;
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            height: 68px;
-        }
-
-        /* Fix white band: hero starts right after nav — ensure no margin/padding leak */
-        nav + * { margin-top: 0; }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            text-decoration: none;
-            justify-self: start;
-        }
-
-        /* Logo: dark square with gold T — matches dark/gold direction */
-        .logo-mark {
-            width: 36px;
-            height: 36px;
-            background: var(--ink-mid);
-            border: 1.5px solid rgba(200,169,110,0.5);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .logo-mark svg { width: 20px; height: 20px; }
-
-        .logo-text {
-            font-family: var(--sans);
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--white);
-            letter-spacing: -0.01em;
-        }
-
-        .logo-text span { color: var(--gold); }
-
-        /* made-in-france moved to footer */
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            justify-self: center;
-        }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            justify-self: end;
-        }
-
-        .nav-link {
-            color: rgba(255,255,255,0.6);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 500;
-            letter-spacing: 0.04em;
-            padding: 8px 14px;
-            border-radius: var(--radius);
-            transition: color var(--transition);
-            white-space: nowrap;
-        }
-
-        .nav-link:hover { color: var(--white); }
-
-        .nav-link-primary {
-            background: transparent;
-            color: var(--gold) !important;
-            border: none;
-        }
-
-        .nav-link-primary:hover {
-            background: var(--gold-dim);
-        }
-
-        .logout-btn {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.5);
-            font-size: 0.85rem;
-            font-weight: 500;
-            letter-spacing: 0.04em;
-            padding: 8px 14px;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-family: var(--sans);
-            transition: all var(--transition);
-        }
-
-        .logout-btn:hover {
-            color: var(--white);
-            border-color: rgba(255,255,255,0.3);
-        }
-
-        /* ─── HERO ─── */
-        .hero {
-            background: var(--ink);
-            color: var(--white);
-            min-height: 92vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 100px 48px 80px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* No grid texture - clean background */
-
-        /* Gold orb */
-        .hero::after {
-            content: '';
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            right: -100px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: radial-gradient(circle, rgba(200,169,110,0.12) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .hero-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 420px;
-            gap: 80px;
-            align-items: center;
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 28px;
-        }
-
-        .hero-label::before {
-            content: '';
-            display: block;
-            width: 28px;
-            height: 1px;
-            background: var(--gold);
-        }
-
-        .hero h1 {
-            font-family: var(--serif);
-            font-size: clamp(2.6rem, 5vw, 4rem);
-            font-weight: 700;
-            line-height: 1.12;
-            margin-bottom: 28px;
-            letter-spacing: -0.01em;
-        }
-
-        .hero h1 em {
-            font-style: italic;
-            color: var(--gold-light);
-        }
-
-        .hero-sub {
-            font-size: 1.05rem;
-            color: rgba(255,255,255,0.55);
-            max-width: 480px;
-            line-height: 1.75;
-            margin-bottom: 48px;
-        }
-
-        .hero-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .hero-tag {
-            font-size: 0.72rem;
-            font-weight: 500;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.35);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 6px 14px;
-            border-radius: 2px;
-        }
-
-        /* Hero 4 pillars */
-        .hero-pillars {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            margin-top: 40px;
-        }
-
-        .hero-pillar {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.7);
-            line-height: 1.5;
-        }
-
-        .hero-pillar-icon {
-            font-size: 1rem;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
-        /* CTA Card */
-        .cta-card {
-            background: var(--surface);
-            border-radius: 6px;
-            padding: 44px 36px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .cta-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 6px;
-            border: 1px solid rgba(200,169,110,0.25);
-            pointer-events: none;
-        }
-
-        .cta-card-badge {
-            display: inline-block;
-            font-size: 0.68rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--gold);
-            background: var(--gold-dim);
-            border: 1px solid rgba(200,169,110,0.3);
-            padding: 5px 12px;
-            border-radius: 2px;
-            margin-bottom: 20px;
-        }
-
-        .cta-card h3 {
-            font-family: var(--serif);
-            font-size: 1.55rem;
-            font-weight: 700;
-            color: var(--ink);
-            margin-bottom: 10px;
-            line-height: 1.25;
-        }
-
-        .cta-card p {
-            font-size: 0.9rem;
-            color: var(--muted);
-            margin-bottom: 30px;
-            line-height: 1.65;
-        }
-
-        .btn-primary {
-            display: block;
-            width: 100%;
-            padding: 16px 24px;
-            background: var(--ink);
-            color: var(--white);
-            text-align: center;
-            text-decoration: none;
-            font-family: var(--sans);
-            font-size: 0.9rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            border-radius: var(--radius);
-            border: none;
-            cursor: pointer;
-            transition: all var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, transparent 40%, rgba(200,169,110,0.15));
-            pointer-events: none;
-        }
-
-        .btn-primary:hover {
-            background: #1a1a28;
-            transform: translateY(-1px);
-            box-shadow: 0 8px 28px rgba(0,0,0,0.25);
-        }
-
-        .btn-secondary-link {
-            display: block;
-            text-align: center;
-            margin-top: 14px;
-            font-size: 0.85rem;
-            color: var(--muted);
-            text-decoration: none;
-            transition: color var(--transition);
-        }
-
-        .btn-secondary-link:hover { color: var(--ink); }
-
-        /* ─── STATS ─── */
-        .stats {
-            background: var(--ink-soft);
-            padding: 56px 48px;
-            border-bottom: 1px solid rgba(200,169,110,0.1);
-        }
-
-        .stats-inner {
-            max-width: 1000px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 0 40px;
-            position: relative;
-        }
-
-        .stat-item + .stat-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 10%;
-            height: 80%;
-            width: 1px;
-            background: rgba(200,169,110,0.2);
-        }
-
-        .stat-number {
-            font-family: var(--serif);
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--gold);
-            margin-bottom: 8px;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 0.82rem;
-            color: rgba(255,255,255,0.45);
-            letter-spacing: 0.02em;
-            line-height: 1.5;
-        }
-
-        /* ─── SECTION BASE ─── */
-        section { padding: 100px 48px; }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .section-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.68rem;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 20px;
-        }
-
-        .section-label::before {
-            content: '';
-            display: block;
-            width: 20px;
-            height: 1px;
-            background: var(--gold);
-        }
-
-        h2.display {
-            font-family: var(--serif);
-            font-size: clamp(2rem, 3.5vw, 2.8rem);
-            font-weight: 700;
-            color: var(--ink);
-            line-height: 1.15;
-            margin-bottom: 20px;
-        }
-
-        h2.display em { font-style: italic; color: var(--gold); }
-
-        .section-intro {
-            font-size: 1rem;
-            color: var(--muted);
-            max-width: 560px;
-            line-height: 1.75;
-        }
-
-        /* ─── PROBLEM ─── */
-        .problem { background: var(--white); }
-
-        .problem-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            align-items: end;
-            margin-bottom: 70px;
-        }
-
-        .problem-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2px;
-            background: var(--surface2);
-        }
-
-        .problem-card {
-            background: var(--white);
-            padding: 40px 36px;
-            transition: background var(--transition);
-            cursor: default;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .problem-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 3px;
-            height: 0;
-            background: var(--gold);
-            transition: height var(--transition);
-        }
-
-        .problem-card:hover::before { height: 100%; }
-        .problem-card:hover { background: #fafaf8; }
-
-        .problem-icon {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            display: block;
-            line-height: 1;
-        }
-
-        .problem-card h3 {
-            font-family: var(--serif);
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--ink);
-            margin-bottom: 12px;
-        }
-
-        .problem-card p {
-            font-size: 0.9rem;
-            color: var(--muted);
-            line-height: 1.7;
-        }
-
-        .card-detail {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease;
-        }
-
-        .problem-card:hover .card-detail,
-        .solution-card:hover .card-detail {
-            max-height: 300px;
-        }
-
-        .card-detail p {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--surface2);
-            font-size: 0.85rem !important;
-            color: var(--muted) !important;
-        }
-
-        /* ─── SOLUTION ─── */
-        .solution {
-            background: var(--ink);
-            color: var(--white);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* clean - no grid */
-
-        .solution .section-label,
-        .solution .display { color: var(--white); }
-        .solution .display em { color: var(--gold-light); }
-        .solution .section-intro { color: rgba(255,255,255,0.45); }
-
-        .solution-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1px;
-            background: rgba(200,169,110,0.12);
-            margin-top: 60px;
-        }
-
-        .solution-card {
-            background: var(--ink-soft);
-            padding: 44px 40px;
-            position: relative;
-            overflow: hidden;
-            cursor: default;
-            transition: background var(--transition);
-        }
-
-        .solution-card:hover { background: var(--ink-mid); }
-
-        .solution-number {
-            font-family: var(--serif);
-            font-size: 3.5rem;
-            font-weight: 700;
-            color: rgba(200,169,110,0.15);
-            line-height: 1;
-            margin-bottom: 24px;
-            display: block;
-        }
-
-        .solution-card h3 {
-            font-family: var(--serif);
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--white);
-            margin-bottom: 14px;
-        }
-
-        .solution-card p {
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.5);
-            line-height: 1.7;
-        }
-
-        .solution-card .card-detail p {
-            color: rgba(255,255,255,0.4) !important;
-            border-top-color: rgba(200,169,110,0.15) !important;
-        }
-
-        .solution-cta {
-            text-align: center;
-            margin-top: 56px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .btn-gold {
-            display: inline-block;
-            padding: 16px 44px;
-            background: transparent;
-            border: 1px solid var(--gold);
-            color: var(--gold);
-            text-decoration: none;
-            font-family: var(--sans);
-            font-size: 0.88rem;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            border-radius: var(--radius);
-            transition: all var(--transition);
-        }
-
-        .btn-gold:hover {
-            background: var(--gold);
-            color: var(--ink);
-        }
-
-        /* ─── FEATURES ─── */
-        .features { background: var(--surface); }
-
-        .features-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            align-items: end;
-            margin-bottom: 60px;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-        }
-
-        .feature-card {
-            background: var(--white);
-            border: 1px solid var(--surface2);
-            padding: 36px 30px;
-            border-radius: var(--radius);
-            transition: all var(--transition);
-            position: relative;
-        }
-
-        .feature-card:hover {
-            border-color: rgba(200,169,110,0.4);
-            transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.07);
-        }
-
-        .feature-icon-wrap {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            display: block;
-            line-height: 1;
-        }
-
-        .feature-card h3 {
-            font-family: var(--sans);
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--ink);
-            margin-bottom: 10px;
-            letter-spacing: -0.01em;
-        }
-
-        .feature-card p {
-            font-size: 0.875rem;
-            color: var(--muted);
-            line-height: 1.7;
-        }
-
-        .feature-badge {
-            display: inline-block;
-            margin-top: 12px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--gold);
-            background: var(--gold-dim);
-            border: 1px solid rgba(200,169,110,0.25);
-            padding: 4px 10px;
-            border-radius: 2px;
-        }
-
-        .features-cta {
-            text-align: center;
-            margin-top: 56px;
-        }
-
-        .btn-dark {
-            display: inline-block;
-            padding: 16px 44px;
-            background: var(--ink);
-            color: var(--white);
-            text-decoration: none;
-            font-family: var(--sans);
-            font-size: 0.88rem;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            border-radius: var(--radius);
-            transition: all var(--transition);
-        }
-
-        .btn-dark:hover {
-            background: var(--ink-mid);
-            transform: translateY(-1px);
-            box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-        }
-
-        /* ─── ABOUT ─── */
-        .about {
-            background: var(--surface2);
-        }
-
-        .about-inner {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 80px;
-            align-items: center;
-        }
-
-        .about-image-wrap {
-            position: relative;
-        }
-
-        .about-image-wrap img {
-            width: 100%;
-            height: 420px;
-            object-fit: cover;
-            border-radius: var(--radius);
-            display: block;
-        }
-
-        .about-image-wrap::after {
-            content: '';
-            position: absolute;
-            bottom: -16px;
-            right: -16px;
-            width: 100%;
-            height: 100%;
-            border: 1px solid rgba(200,169,110,0.3);
-            border-radius: var(--radius);
-            pointer-events: none;
-        }
-
-        .about-text h2.display { margin-bottom: 20px; }
-
-        .about-text p {
-            font-size: 0.95rem;
-            color: var(--muted);
-            line-height: 1.8;
-            margin-bottom: 32px;
-        }
-
-        /* ─── FAQ ─── */
-        .faq { background: var(--white); }
-
-        .faq-header {
-            max-width: 560px;
-            margin-bottom: 56px;
-        }
-
-        .faq-list {
-            max-width: 780px;
-        }
-
-        .faq-item {
-            border-bottom: 1px solid var(--surface2);
-        }
-
-        .faq-question {
-            padding: 22px 0;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--ink);
-            transition: color var(--transition);
-            user-select: none;
-        }
-
-        .faq-question:hover { color: var(--gold); }
-
-        .faq-toggle {
-            width: 28px;
-            height: 28px;
-            border: 1px solid var(--surface2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            flex-shrink: 0;
-            margin-left: 16px;
-            transition: all var(--transition);
-            color: var(--muted);
-        }
-
-        .faq-item.active .faq-toggle {
-            background: var(--ink);
-            border-color: var(--ink);
-            color: var(--white);
-            transform: rotate(45deg);
-        }
-
-        .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, padding 0.3s ease;
-            font-size: 0.9rem;
-            color: var(--muted);
-            line-height: 1.75;
-        }
-
-        .faq-item.active .faq-answer {
-            max-height: 300px;
-            padding-bottom: 22px;
-        }
-
-        /* ─── CTA FINAL ─── */
-        .cta-final {
-            background: var(--ink);
-            color: var(--white);
-            padding: 120px 48px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cta-final::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(200,169,110,0.1), transparent 70%);
-        }
-
-        .cta-final-inner {
-            position: relative;
-            z-index: 1;
-        }
-
-        .cta-final h2 {
-            font-family: var(--serif);
-            font-size: clamp(2rem, 4vw, 3.2rem);
-            font-weight: 700;
-            margin-bottom: 20px;
-            line-height: 1.15;
-        }
-
-        .cta-final h2 em {
-            font-style: italic;
-            color: var(--gold-light);
-        }
-
-        .cta-final p {
-            font-size: 1rem;
-            color: rgba(255,255,255,0.5);
-            margin-bottom: 48px;
-        }
-
-        /* ─── FOOTER ─── */
-        footer {
-            background: #070709;
-            color: rgba(255,255,255,0.3);
-            padding: 48px;
-            border-top: 1px solid rgba(200,169,110,0.1);
-        }
-
-        .footer-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 24px;
-        }
-
-        .footer-social {
-            display: flex;
-            gap: 16px;
-            margin-left:auto;
-        }
-
-        .footer-social a {
-            color: rgba(255,255,255,0.25);
-            text-decoration: none;
-            transition: color var(--transition);
-        }
-
-        .footer-social a:hover { color: var(--gold); }
-
-        .footer-social svg { width: 16px; height: 16px; }
-
-        .footer-copy { font-size:0.75rem; text-align:left; color:rgba(255,255,255,0.45); }
-
-        /* ─── ANIMATIONS ─── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .hero-label   { animation: fadeUp 0.7s ease both; }
-        .hero h1      { animation: fadeUp 0.7s 0.1s ease both; }
-        .hero-sub     { animation: fadeUp 0.7s 0.2s ease both; }
-        .hero-tags    { animation: fadeUp 0.7s 0.3s ease both; }
-        .cta-card     { animation: fadeUp 0.7s 0.15s ease both; }
-
-        /* ─── RESPONSIVE ─── */
-        @media (max-width: 1024px) {
-            .hero-inner { grid-template-columns: 1fr; gap: 56px; }
-            .hero { min-height: auto; }
-            .cta-card { max-width: 520px; }
-            .problem-header { grid-template-columns: 1fr; gap: 24px; }
-            .features-header { grid-template-columns: 1fr; gap: 20px; }
-            .features-grid { grid-template-columns: repeat(2,1fr); }
-            .about-inner { grid-template-columns: 1fr; gap: 40px; }
-        }
-
-        @media (max-width: 768px) {
-            nav { padding: 0 20px; }
-            .nav-container {
-                display: flex;
-                justify-content: space-between;
-            }
-            .nav-links { display: none; }
-            .nav-actions { justify-self: unset; }
-            section { padding: 72px 20px; }
-            .hero { padding: 72px 20px 56px; min-height: auto; }
-            .hero-inner { grid-template-columns: 1fr; gap: 48px; }
-            .stats { padding: 48px 20px; }
-            .stats-inner { grid-template-columns: 1fr; gap: 40px; }
-            .stat-item + .stat-item::before { display: none; }
-            .problem-grid, .solution-grid { grid-template-columns: 1fr; }
-            .features-grid { grid-template-columns: 1fr; }
-            .about-inner { grid-template-columns: 1fr; gap: 40px; }
-            .cta-final { padding: 80px 20px; }
-            footer { padding: 32px 20px; }
-            .footer-inner { flex-direction: column; align-items: flex-start; }
-        }
-    </style>
-    <link rel="stylesheet" href="HTML/taleos-theme.css?v=20260504">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taleos — Automatisez vos candidatures en finance</title>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: #f7f5f0; color: #0c1a2e; font-family: 'Space Grotesk', sans-serif; overflow-x: hidden; }
+
+    .reveal-up { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal-up.in-view { opacity: 1; transform: none; }
+
+    @keyframes fadeIn    { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
+    @keyframes blink     { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes marquee   { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(12,26,46,0.12); border-radius: 3px; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: 'Space Grotesk', sans-serif; }
+  </style>
 </head>
 <body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
 
-<!-- ─── NAV ─── -->
-<nav>
-    <div class="nav-container">
-        <a href="HTML/landing_page_finance.html" class="logo">
-            <div class="logo-mark">
-                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 6H15M10 6V15" stroke="#c8a96e" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </div>
-            <div class="logo-text">Tale<span>os</span></div>
-        </a>
+/* ── TOKENS ── */
+const NAVY  = '#0c1a2e';
+const BG    = '#f7f5f0';
+const WHITE = '#ffffff';
+const S2    = '#edeae3';
+const BLUE  = 'oklch(52% 0.22 248)';
+const BLUE_D = 'oklch(52% 0.22 248 / 0.08)';
+const BLUE_B = 'oklch(52% 0.22 248 / 0.25)';
+const MUTED = '#6b7280';
+const BORDER= '#e5e0d8';
+const FH    = "'Lora', serif";
+const FB    = "'Space Grotesk', sans-serif";
 
-        <div class="nav-links">
-            <a href="HTML/landing_page_finance.html" class="nav-link nav-link-primary" id="presentationLink">Présentation</a>
-            <a href="HTML/offres.html" class="nav-link">Offres</a>
-            <a href="HTML/filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
-            <a href="HTML/mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
-            <a href="HTML/suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
-            <a href="HTML/connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
-            <a href="HTML/tarifs.html" class="nav-link">Tarifs</a>
-        </div>
+/* ── TAG COLORS (production palette) ── */
+const TAGS = {
+  location:   { bg:'rgba(59,130,246,0.07)',  color:'#1d4ed8' },
+  contract:   { bg:'rgba(200,169,110,0.12)', color:'#9a6c1a' },
+  experience: { bg:'rgba(245,158,11,0.08)',  color:'#b45309' },
+  family:     { bg:'rgba(16,185,129,0.07)',  color:'#059669' },
+  education:  { bg:'rgba(139,92,246,0.07)',  color:'#6d28d9' },
+};
 
-        <div class="nav-actions">
-            <a href="HTML/auth.html" class="nav-link" id="authLink">Inscription / Connexion</a>
-            <a href="HTML/profile.html" class="nav-link" id="profileLink" style="display:none">Mon profil</a>
-            <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none">Déconnexion</button>
-        </div>
+/* ── HOOKS ── */
+function useReveal(delay = 0) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setTimeout(() => el.classList.add('in-view'), delay); obs.disconnect(); }
+    }, { threshold: 0.08 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [delay]);
+  return ref;
+}
+
+/* ── SHARED COMPONENTS ── */
+function TaleosLogo({ size = 32, onDark = false }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap: size * 0.28 }}>
+      <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
+        <rect width="36" height="36" rx="8" fill={NAVY}/>
+        <path d="M8 14H24" stroke={BG} strokeWidth="2.5" strokeLinecap="round"/>
+        <path d="M24 14L30 7" stroke={BG} strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
+        <path d="M16 14V26" stroke={BG} strokeWidth="2.5" strokeLinecap="round"/>
+      </svg>
+      <span style={{ fontFamily:FH, fontSize:size * 0.58, fontWeight:600, letterSpacing:'0.05em', color: onDark ? WHITE : NAVY }}>TALEOS</span>
     </div>
-</nav>
+  );
+}
 
-<!-- ─── HERO ─── -->
-<section class="hero">
-    <div class="hero-inner">
-        <div class="hero-content">
-            <div class="hero-label">Votre partenaire pour trouver un job en finance</div>
-            <h1>Postulez plus.<br>Cherchez <em>moins</em>.</h1>
-            <p class="hero-sub">Taleos agrège toutes les offres en finance au même endroit, postule pour vous, et suit vos candidatures — pour que vous puissiez vous concentrer sur ce qui compte vraiment.</p>
+function Tag({ type, children }) {
+  const { bg, color } = TAGS[type] || TAGS.family;
+  return <span style={{ display:'inline-block', padding:'4px 10px', borderRadius:2, fontSize:12, fontWeight:500, background:bg, color, whiteSpace:'nowrap' }}>{children}</span>;
+}
 
-            <div class="hero-pillars">
-                <div class="hero-pillar">
-                    <span class="hero-pillar-icon">⏱</span>
-                    <span>Gagnez des dizaines d'heures sur vos candidatures</span>
+function CompanyLogo({ domain, name, size = 36 }) {
+  const [err, setErr] = useState(false);
+  return (
+    <div style={{ width:size, height:size, borderRadius:8, background:WHITE, border:`1px solid ${BORDER}`, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', flexShrink:0, padding:5 }}>
+      {err
+        ? <span style={{ fontSize:9, fontWeight:700, color:MUTED, textAlign:'center', lineHeight:1.2 }}>{name.split(' ').map(w=>w[0]).slice(0,2).join('')}</span>
+        : <img src={`https://logo.clearbit.com/${domain}`} alt={name} style={{ width:'100%', height:'100%', objectFit:'contain' }} onError={() => setErr(true)} />
+      }
+    </div>
+  );
+}
+
+/* ── NAV ── */
+function Nav({ onSignup }) {
+  const [sc, setSc] = useState(false);
+  useEffect(() => {
+    const h = () => setSc(window.scrollY > 40);
+    window.addEventListener('scroll', h, { passive:true });
+    return () => window.removeEventListener('scroll', h);
+  }, []);
+  const lk = { fontSize:13, fontWeight:500, color:MUTED, cursor:'pointer', transition:'color 0.2s' };
+  return (
+    <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, height:64, padding:'0 48px', display:'flex', alignItems:'center', justifyContent:'space-between', background: sc ? 'rgba(247,245,240,0.94)' : 'transparent', backdropFilter: sc ? 'blur(16px)' : 'none', borderBottom: sc ? `1px solid ${BORDER}` : '1px solid transparent', transition:'all 0.3s ease' }}>
+      <TaleosLogo />
+      <div style={{ display:'flex', gap:36 }}>
+        {[['Offres','#offres'],['Comment ça marche','#process'],['Tarifs','#tarifs'],['FAQ','#faq']].map(([l,h]) => (
+          <a key={l} href={h} style={lk} onMouseEnter={e=>e.target.style.color=NAVY} onMouseLeave={e=>e.target.style.color=MUTED}>{l}</a>
+        ))}
+      </div>
+      <div style={{ display:'flex', gap:14, alignItems:'center' }}>
+        <span style={lk}>Connexion</span>
+        <button onClick={onSignup} style={{ background:NAVY, color:WHITE, border:'none', padding:'9px 22px', borderRadius:4, fontSize:13, fontWeight:600, cursor:'pointer' }}>Commencer</button>
+      </div>
+    </nav>
+  );
+}
+
+/* ── HERO ── */
+function Hero({ onSignup }) {
+  return (
+    <section style={{ minHeight:'100vh', background:BG, display:'flex', alignItems:'center', padding:'100px 48px 60px', position:'relative', overflow:'hidden' }}>
+      <div style={{ position:'absolute', inset:0, backgroundImage:`repeating-linear-gradient(0deg,transparent,transparent 79px,${BORDER} 79px,${BORDER} 80px)`, opacity:0.38, pointerEvents:'none' }}/>
+      <div style={{ position:'absolute', top:'20%', right:'-3%', width:500, height:500, background:`radial-gradient(circle,${BLUE_D} 0%,transparent 65%)`, pointerEvents:'none' }}/>
+      <div style={{ maxWidth:1340, margin:'0 auto', width:'100%', display:'grid', gridTemplateColumns:'1fr 400px', gap:80, alignItems:'center', position:'relative', zIndex:1, animation:'fadeIn 0.8s ease both' }}>
+        <div>
+          <h1 style={{ fontFamily:FH, fontSize:'clamp(2.8rem,4.5vw,4.2rem)', fontWeight:400, lineHeight:1.1, color:NAVY, marginBottom:26, letterSpacing:'-0.01em' }}>
+            Décrochez votre<br/>poste en finance,<br/><em style={{ fontStyle:'italic' }}>sans effort.</em>
+          </h1>
+          <p style={{ fontSize:16, color:MUTED, lineHeight:1.82, maxWidth:520, marginBottom:44 }}>
+            Taleos agrège toutes les offres du secteur financier, génère des lettres de motivation personnalisées par IA et postule en votre nom — pendant que vous préparez vos entretiens.
+          </p>
+          <div style={{ display:'flex', gap:16, alignItems:'center', marginBottom:52 }}>
+            <button onClick={onSignup} style={{ background:NAVY, color:WHITE, border:'none', padding:'15px 30px', borderRadius:4, fontSize:13, fontWeight:600, cursor:'pointer', letterSpacing:'0.02em' }}>Créer mon compte — gratuit</button>
+            <span style={{ fontSize:13, color:MUTED, cursor:'pointer' }}>Voir une démo →</span>
+          </div>
+          <div style={{ display:'flex', gap:0, paddingTop:36, borderTop:`1px solid ${BORDER}` }}>
+            {[['7 000+','offres indexées'],['95%','temps économisé'],['24/7','candidatures actives']].map(([n,l],i) => (
+              <div key={n} style={{ paddingRight:36, marginRight:36, borderRight: i<2 ? `1px solid ${BORDER}` : 'none' }}>
+                <div style={{ fontFamily:FH, fontSize:26, fontWeight:600, color:NAVY }}>{n}</div>
+                <div style={{ fontSize:12, color:MUTED, marginTop:4 }}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Signup card */}
+        <div style={{ background:WHITE, border:`1px solid ${BORDER}`, borderRadius:10, padding:'36px 32px', boxShadow:'0 12px 56px rgba(12,26,46,0.09)', animation:'fadeIn 0.8s 0.15s ease both' }}>
+          <div style={{ fontFamily:FH, fontSize:26, fontWeight:600, color:NAVY, lineHeight:1.25, marginBottom:8 }}>Rejoindre la plateforme</div>
+          <div style={{ fontSize:14, color:MUTED, lineHeight:1.72, marginBottom:26 }}>Importez votre CV. Définissez vos critères. L'IA postule à votre place.</div>
+          {['Prénom et nom','Adresse email'].map(ph => (
+            <div key={ph} style={{ border:`1px solid ${BORDER}`, borderRadius:4, padding:'12px 16px', marginBottom:10, fontSize:13.5, color:'#ccc', background:'#fafaf8' }}>{ph}</div>
+          ))}
+          <div style={{ border:`1px dashed ${BLUE_B}`, borderRadius:4, padding:'13px 16px', marginBottom:20, textAlign:'center', cursor:'pointer', fontSize:13, color:BLUE }}>Déposer votre CV (PDF) ou parcourir</div>
+          <button onClick={onSignup} style={{ width:'100%', background:NAVY, color:WHITE, border:'none', padding:'14px', borderRadius:4, fontSize:14, fontWeight:600, cursor:'pointer' }}>Commencer maintenant →</button>
+          <div style={{ fontSize:12.5, color:MUTED, textAlign:'center', marginTop:16 }}>Déjà inscrit ? <span style={{ color:NAVY, fontWeight:600, cursor:'pointer' }}>Connexion</span></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── TRUST BAND — infinite marquee ── */
+const LOGO_LIST = [
+  { name:'BNP Paribas',      domain:'bnpparibas.com' },
+  { name:'Société Générale', domain:'societegenerale.com' },
+  { name:'Rothschild & Co',  domain:'rothschildandco.com' },
+  { name:'Deloitte',         domain:'deloitte.com' },
+  { name:'EY',               domain:'ey.com' },
+  { name:'PwC',              domain:'pwc.com' },
+  { name:'KPMG',             domain:'kpmg.com' },
+  { name:'Lazard',           domain:'lazard.com' },
+  { name:'Amundi',           domain:'amundi.com' },
+  { name:'AXA IM',           domain:'axa.com' },
+  { name:'Natixis',          domain:'natixis.com' },
+  { name:'Crédit Agricole',  domain:'credit-agricole.com' },
+  { name:'Goldman Sachs',    domain:'goldmansachs.com' },
+  { name:'JPMorgan',         domain:'jpmorgan.com' },
+  { name:'BlackRock',        domain:'blackrock.com' },
+];
+
+function LogoItem({ name, domain }) {
+  const [err, setErr] = useState(false);
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0, padding:'0 32px' }}>
+      {err
+        ? <span style={{ fontSize:13, fontWeight:600, color:'#b0a89a', whiteSpace:'nowrap' }}>{name}</span>
+        : <img src={`https://logo.clearbit.com/${domain}`} alt={name} style={{ height:22, width:'auto', maxWidth:100, objectFit:'contain', filter:'grayscale(100%) contrast(0.4)', opacity:0.7 }} onError={() => setErr(true)} />
+      }
+    </div>
+  );
+}
+
+function TrustBand() {
+  const doubled = [...LOGO_LIST, ...LOGO_LIST]; // seamless loop
+  return (
+    <div style={{ background:WHITE, borderTop:`1px solid ${BORDER}`, borderBottom:`1px solid ${BORDER}`, padding:'22px 0', overflow:'hidden' }}>
+      <div style={{ display:'flex', width:'max-content', animation:'marquee 36s linear infinite' }}>
+        {doubled.map((l, i) => <LogoItem key={i} name={l.name} domain={l.domain} />)}
+      </div>
+    </div>
+  );
+}
+
+/* ── DEMO DATA ── */
+const JOBS = [
+  { id:1, co:'BNP Paribas',    domain:'bnpparibas.com',     role:'Analyste M&A — Coverage & Investment Banking', location:'Paris, France',       contract:'Stage 6 mois', exp:'Bac+5',   family:"Banque d'investissement", date:'Publié aujourd\'hui', score:97 },
+  { id:2, co:'Rothschild & Co',domain:'rothschildandco.com', role:'IBD Analyst — Mergers & Acquisitions',         location:'Paris 8e, France',     contract:'CDI',          exp:'1–3 ans', family:"Banque d'investissement", date:'Publié hier',         score:94 },
+  { id:3, co:'Deloitte',       domain:'deloitte.com',        role:'Consultant Financial Advisory — Deals',        location:'La Défense, France',   contract:'Alternance',   exp:'Bac+5',   family:'Conseil & Audit',         date:'Il y a 2 jours',     score:91 },
+  { id:4, co:'EY',             domain:'ey.com',              role:'Analyste Strategy & Transactions',             location:'Paris 6e, France',     contract:'Stage 6 mois', exp:'Bac+4/5', family:'Conseil & Audit',         date:'Il y a 3 jours',     score:88 },
+  { id:5, co:'Lazard',         domain:'lazard.com',          role:'Analyste Structured Finance',                  location:'Paris 1er, France',    contract:'CDI',          exp:'1–3 ans', family:'Marchés de capitaux',     date:'Il y a 4 jours',     score:84 },
+];
+
+const APPS = [
+  { co:'BNP Paribas',    domain:'bnpparibas.com',     role:'Analyste M&A',     contract:'Stage',     location:'Paris',       status:'Entretien RH', sBg:'rgba(16,185,129,0.1)',  sColor:'#059669', date:'28 avr.' },
+  { co:'Rothschild & Co',domain:'rothschildandco.com', role:'Stage IBD',         contract:'CDI',       location:'Paris 8e',    status:'Vue',          sBg:'rgba(245,158,11,0.1)', sColor:'#b45309', date:'25 avr.' },
+  { co:'Deloitte',       domain:'deloitte.com',        role:'Consultant Deals',  contract:'Alternance',location:'La Défense',  status:'Envoyée',      sBg:BLUE_D,                 sColor:BLUE,      date:'23 avr.' },
+  { co:'EY',             domain:'ey.com',              role:'Analyste Strategy', contract:'Stage',     location:'Paris 6e',    status:'Envoyée',      sBg:BLUE_D,                 sColor:BLUE,      date:'22 avr.' },
+  { co:'Lazard',         domain:'lazard.com',          role:'Structured Finance',contract:'CDI',       location:'Paris 1er',   status:'Refusée',      sBg:'rgba(0,0,0,0.04)',     sColor:MUTED,     date:'18 avr.' },
+];
+
+const LETTER = `Madame, Monsieur,
+
+Passionné par les marchés financiers depuis mes études à Sciences Po, je me permets de candidater au poste d'Analyste M&A au sein de BNP Paribas CIB.
+
+Au cours de mon stage de six mois chez Lazard, j'ai contribué à l'exécution de transactions représentant plus d'1,8 Md€, développant une expertise en modélisation LBO et analyse de comparables.
+
+Votre département M&A offre une exposition unique aux grandes opérations de haut de bilan. Je suis convaincu que mon profil correspond aux exigences de ce poste.
+
+Dans l'attente d'un échange, je reste disponible pour tout entretien.
+
+Cordialement,
+Antoine Meynier`;
+
+/* ── JOB CARD (production-like) ── */
+function JobCard({ job, selected, onSelect }) {
+  const hue = 90 + (job.score - 80) * 2;
+  const scoreC = `oklch(48% 0.18 ${hue})`;
+  return (
+    <div onClick={() => onSelect(job.id)} style={{
+      background:WHITE, borderRadius:8, cursor:'pointer', transition:'all 0.15s',
+      border:`1px solid ${selected ? BLUE_B : BORDER}`,
+      borderLeft:`3px solid ${selected ? BLUE : 'transparent'}`,
+      padding:'16px 18px', display:'flex', flexDirection:'column', gap:0,
+      boxShadow: selected ? '0 4px 20px rgba(12,26,46,0.08)' : 'none',
+      position:'relative',
+    }}>
+      {/* Score chip */}
+      <div style={{ position:'absolute', top:12, right:12, padding:'3px 9px', borderRadius:20, fontSize:11, fontWeight:700, background:`${scoreC}18`, color:scoreC, border:`1px solid ${scoreC}30` }}>{job.score}%</div>
+
+      {/* Title */}
+      <div style={{ fontSize:13.5, fontWeight:700, color:NAVY, lineHeight:1.35, marginBottom:10, paddingRight:52 }}>{job.role}</div>
+
+      {/* Tags */}
+      <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:14 }}>
+        <Tag type="location">{job.location}</Tag>
+        <Tag type="contract">{job.contract}</Tag>
+        <Tag type="experience">{job.exp}</Tag>
+        <Tag type="family">{job.family}</Tag>
+      </div>
+
+      {/* Footer: logo + company + date + buttons */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:12, borderTop:`1px solid ${BORDER}`, marginTop:'auto' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:9 }}>
+          <CompanyLogo domain={job.domain} name={job.co} size={34} />
+          <div>
+            <div style={{ fontSize:12.5, fontWeight:600, color:MUTED }}>{job.co}</div>
+            <div style={{ fontSize:11, color:'#bbb' }}>{job.date}</div>
+          </div>
+        </div>
+        <div style={{ display:'flex', gap:6 }}>
+          <div style={{ padding:'6px 12px', fontSize:11.5, fontWeight:600, color:MUTED, border:`1px solid ${BORDER}`, borderRadius:4 }}>Voir l'offre</div>
+          {selected && <div style={{ padding:'6px 12px', fontSize:11.5, fontWeight:600, color:WHITE, background:NAVY, borderRadius:4 }}>Candidater</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── APP CARD (candidatures) ── */
+function AppCard({ app }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'13px 4px', borderBottom:`1px solid ${BORDER}`, gap:12 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:12, flex:1, minWidth:0 }}>
+        <CompanyLogo domain={app.domain} name={app.co} size={36} />
+        <div style={{ minWidth:0 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:NAVY, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{app.role}</div>
+          <div style={{ display:'flex', gap:5, marginTop:4, flexWrap:'wrap' }}>
+            <Tag type="contract">{app.contract}</Tag>
+            <Tag type="location">{app.location}</Tag>
+          </div>
+        </div>
+      </div>
+      <div style={{ display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
+        <div style={{ fontSize:11, color:MUTED }}>{app.date}</div>
+        <div style={{ padding:'5px 12px', borderRadius:20, fontSize:11.5, fontWeight:600, background:app.sBg, color:app.sColor, border:`1px solid ${app.sColor}30`, whiteSpace:'nowrap' }}>{app.status}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ── DEMO SECTION ── */
+function DemoSection() {
+  const [tab, setTab] = useState('offres');
+  const [sel, setSel] = useState(1);
+  const [lidx, setLidx] = useState(0);
+  const [typing, setTyping] = useState(false);
+  const ref = useReveal(80);
+
+  useEffect(() => {
+    if (tab !== 'ia') { setLidx(0); setTyping(false); return; }
+    const t = setTimeout(() => { setLidx(0); setTyping(true); }, 500);
+    return () => clearTimeout(t);
+  }, [tab]);
+
+  useEffect(() => {
+    if (!typing || tab !== 'ia') return;
+    if (lidx >= LETTER.length) { setTyping(false); return; }
+    const speed = LETTER[lidx] === '\n' ? 50 : 13;
+    const t = setTimeout(() => setLidx(i => i + 1), speed);
+    return () => clearTimeout(t);
+  }, [typing, lidx, tab]);
+
+  const TABS = [
+    { id:'offres',       label:'Parcourir les offres' },
+    { id:'candidatures', label:'Mes candidatures' },
+    { id:'ia',           label:'IA rédige' },
+  ];
+
+  return (
+    <section id="offres" className="reveal-up" ref={ref} style={{ background:BG, padding:'100px 48px' }}>
+      <div style={{ maxWidth:1260, margin:'0 auto' }}>
+        <div style={{ maxWidth:640, marginBottom:52 }}>
+          <h2 style={{ fontFamily:FH, fontSize:'clamp(2rem,3.5vw,3rem)', fontWeight:400, color:NAVY, letterSpacing:'-0.01em', lineHeight:1.12, marginBottom:14 }}>
+            Votre espace de recherche,<br/><em style={{ fontStyle:'italic' }}>enfin centralisé.</em>
+          </h2>
+          <p style={{ fontSize:15, color:MUTED, lineHeight:1.8 }}>Explorez les offres, suivez vos candidatures et laissez l'IA rédiger vos lettres — le tout dans un seul outil.</p>
+        </div>
+
+        {/* Browser chrome */}
+        <div style={{ background:WHITE, border:`1px solid ${BORDER}`, borderRadius:12, overflow:'hidden', boxShadow:'0 20px 60px rgba(12,26,46,0.10)' }}>
+          {/* Window bar */}
+          <div style={{ background:S2, padding:'11px 18px', display:'flex', alignItems:'center', gap:8, borderBottom:`1px solid ${BORDER}` }}>
+            {['#ff5f57','#febc2e','#28c840'].map(c => <div key={c} style={{ width:11, height:11, borderRadius:'50%', background:c, opacity:0.8 }}></div>)}
+            <div style={{ flex:1, background:'rgba(12,26,46,0.06)', borderRadius:6, height:22, marginLeft:8, display:'flex', alignItems:'center', paddingLeft:12 }}>
+              <span style={{ fontSize:11, color:'#bbb' }}>app.taleos.fr/offres</span>
+            </div>
+          </div>
+
+          {/* Tab bar */}
+          <div style={{ display:'flex', alignItems:'center', padding:'0 24px', height:50, borderBottom:`1px solid ${BORDER}`, background:WHITE, gap:4 }}>
+            <TaleosLogo size={22} />
+            <div style={{ display:'flex', gap:2, marginLeft:20 }}>
+              {TABS.map(t => (
+                <button key={t.id} onClick={() => setTab(t.id)} style={{ padding:'7px 16px', borderRadius:4, border:'none', cursor:'pointer', background: tab===t.id ? BLUE_D : 'transparent', color: tab===t.id ? BLUE : MUTED, fontSize:12.5, fontWeight:600, borderBottom: tab===t.id ? `2px solid ${BLUE}` : '2px solid transparent', transition:'all 0.15s' }}>{t.label}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div style={{ minHeight:440, padding:'18px 20px', background:'#fafaf8' }}>
+
+            {/* ── OFFRES ── */}
+            {tab === 'offres' && (
+              <div style={{ animation:'slideDown 0.2s ease' }}>
+                {/* Search + filters */}
+                <div style={{ display:'flex', gap:8, marginBottom:14 }}>
+                  <div style={{ flex:1, background:WHITE, border:`1px solid ${BORDER}`, borderRadius:6, padding:'9px 14px', fontSize:13, color:'#ccc' }}>Rechercher un poste, une entreprise, une ville…</div>
+                  {[['📄 Type de contrat','contract'],['🌍 Localisation','location'],['💼 Expérience','experience'],['🎯 Famille de métier','family']].map(([l]) => (
+                    <div key={l} style={{ padding:'9px 12px', background:WHITE, border:`1px solid ${BORDER}`, borderRadius:6, fontSize:11.5, color:MUTED, fontWeight:500, flexShrink:0, whiteSpace:'nowrap' }}>{l}</div>
+                  ))}
                 </div>
-                <div class="hero-pillar">
-                    <span class="hero-pillar-icon">🏦</span>
-                    <span>Un seul endroit pour toutes vos candidatures — BNP, Rothschild, Deloitte, et bien d'autres</span>
+                {/* Jobs grid */}
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                  {JOBS.map(job => <JobCard key={job.id} job={job} selected={sel===job.id} onSelect={setSel} />)}
                 </div>
-                <div class="hero-pillar">
-                    <span class="hero-pillar-icon">📋</span>
-                    <span>Suivez toutes vos candidatures en un seul tableau de bord</span>
+              </div>
+            )}
+
+            {/* ── CANDIDATURES ── */}
+            {tab === 'candidatures' && (
+              <div style={{ animation:'slideDown 0.2s ease' }}>
+                {/* Stats */}
+                <div style={{ display:'flex', gap:10, marginBottom:18 }}>
+                  {[['23','Envoyées','rgba(59,130,246,0.07)','#1d4ed8'],['8','Vues','rgba(245,158,11,0.08)','#b45309'],['3','Entretiens','rgba(16,185,129,0.07)','#059669'],['1','Offres reçues','rgba(139,92,246,0.07)','#6d28d9']].map(([n,l,bg,c]) => (
+                    <div key={l} style={{ flex:1, background:WHITE, border:`1px solid ${BORDER}`, borderRadius:8, padding:'14px 12px', textAlign:'center' }}>
+                      <div style={{ fontFamily:FH, fontSize:26, fontWeight:600, color:c }}>{n}</div>
+                      <div style={{ fontSize:11.5, color:MUTED, marginTop:4, lineHeight:1.3 }}>{l}</div>
+                    </div>
+                  ))}
                 </div>
-                <div class="hero-pillar">
-                    <span class="hero-pillar-icon">🎲</span>
-                    <span>Postulez à des offres auxquelles vous n'auriez jamais pensé</span>
+                {/* Filter chips */}
+                <div style={{ display:'flex', gap:7, marginBottom:14 }}>
+                  {['Toutes','Envoyées','Vues','Entretiens','Refusées'].map((f,i) => (
+                    <div key={f} style={{ padding:'5px 14px', borderRadius:20, fontSize:12, fontWeight:600, background: i===0 ? NAVY : WHITE, color: i===0 ? WHITE : MUTED, border:`1px solid ${i===0 ? NAVY : BORDER}`, cursor:'pointer' }}>{f}</div>
+                  ))}
                 </div>
-            </div>
-        </div>
+                {/* Application list */}
+                {APPS.map((app, i) => <AppCard key={i} app={app} />)}
+              </div>
+            )}
 
-        <div class="cta-card">
-            <div class="cta-card-badge">Accès gratuit</div>
-            <h3>Rejoignez la plateforme</h3>
-            <p>Créez votre compte et laissez l'IA postuler à votre place. Taleos ne vous garantit pas un job — mais vous fait gagner un temps précieux.</p>
-            <a href="HTML/auth.html" class="btn-primary" data-auth-cta="true">Automatiser mes candidatures</a>
-            <a href="HTML/auth.html" class="btn-secondary-link">Essayer avec mon CV →</a>
-        </div>
-    </div>
-</section>
-
-<!-- ─── STATS ─── -->
-<div class="stats">
-    <div class="stats-inner">
-        <div class="stat-item">
-            <div class="stat-number">95%</div>
-            <div class="stat-label">de temps économisé<br>sur vos candidatures</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number" id="totalJobsCount">7 000+</div>
-            <div class="stat-label">offres live et en croissance<br>constante</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">24/7</div>
-            <div class="stat-label">notre IA travaille<br>pour vous</div>
-        </div>
-    </div>
-</div>
-
-<!-- ─── PROBLEM ─── -->
-<section class="problem">
-    <div class="container">
-        <div class="problem-header">
-            <div>
-                <div class="section-label">Le problème</div>
-                <h2 class="display">Chercher un job en finance,<br>c'est <em>épuisant</em></h2>
-            </div>
-            <p class="section-intro">Que vous soyez étudiant, en alternance ou jeune actif avec quelques années d'expérience, vous n'avez pas de temps à perdre à remplir des formulaires répétitifs. Nous le savons.</p>
-        </div>
-
-        <div class="problem-grid">
-            <div class="problem-card">
-                <span class="problem-icon">⏰</span>
-                <h3>Des heures perdues</h3>
-                <p>Créer un compte sur chaque site d'entreprise, remplir des formulaires répétitifs, adapter chaque lettre de motivation...</p>
-                <div class="card-detail"><p>Chaque grand groupe demande un identifiant, un mot de passe, une re-saisie de votre parcours. Des soirées entières à copier-coller des informations déjà sur votre CV. Taleos centralise tout une fois pour toutes.</p></div>
-            </div>
-            <div class="problem-card">
-                <span class="problem-icon">🔍</span>
-                <h3>Offres éparpillées</h3>
-                <p>BNP, Société Générale, Rothschild, Lazard... Chaque entreprise a son propre site carrière avec ses propres filtres.</p>
-                <div class="card-detail"><p>Pas de portail unique en finance : il faut surveiller une dizaine de sites, chacun avec ses dates de mise à jour. Notre plateforme agrège les offres des principaux acteurs en un seul flux.</p></div>
-            </div>
-            <div class="problem-card">
-                <span class="problem-icon">😫</span>
-                <h3>Processus frustrant</h3>
-                <p>Captchas à n'en plus finir, bugs de formulaires, et cette sensation de toujours recommencer à zéro.</p>
-                <div class="card-detail"><p>Les sites carrière ne sont pas faits pour les candidats en série. Taleos s'adapte à chaque interface et envoie vos candidatures de façon fiable, sans que vous ayez à subir le parcours du combattant.</p></div>
-            </div>
-            <div class="problem-card">
-                <span class="problem-icon">📊</span>
-                <h3>Impossible à suivre</h3>
-                <p>Où en êtes-vous avec telle candidature ? Avez-vous postulé chez Deloitte ou EY ? Difficile de s'y retrouver.</p>
-                <div class="card-detail"><p>Un tableau de bord Taleos récapitule toutes vos candidatures : statut, date, entreprise. Plus de trou de mémoire ni de doublons. Vous pilotez votre recherche comme un vrai projet.</p></div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ─── SOLUTION ─── -->
-<section class="solution">
-    <div class="container">
-        <div class="section-label">Comment ça marche</div>
-        <h2 class="display">Quatre étapes.<br><em>Un seul résultat.</em></h2>
-        <p class="section-intro">De la configuration de votre profil à l'envoi des candidatures — automatiquement.</p>
-
-        <div class="solution-grid">
-            <div class="solution-card">
-                <span class="solution-number">01</span>
-                <h3>Configurez votre profil</h3>
-                <p>Uploadez votre CV, définissez vos critères. L'IA extrait vos compétences et préférences.</p>
-                <div class="card-detail"><p>Une seule configuration : stage, alternance, CDI, zones géographiques, familles de métiers. L'algorithme ne vous proposera que des offres cohérentes avec votre projet.</p></div>
-            </div>
-            <div class="solution-card">
-                <span class="solution-number">02</span>
-                <h3>L'IA trouve pour vous</h3>
-                <p>Nous scannons quotidiennement des milliers d'offres. Notre algorithme sélectionne celles qui vous correspondent vraiment.</p>
-                <div class="card-detail"><p>Banques, cabinets d'audit, conseil, asset managers. Chaque jour, les nouvelles offres sont comparées à votre profil. Vous recevez une sélection personnalisée, sans bruit.</p></div>
-            </div>
-            <div class="solution-card">
-                <span class="solution-number">03</span>
-                <h3>Validation et envoi</h3>
-                <p>Vous validez les opportunités. Notre système postule avec une lettre de motivation personnalisée pour chaque offre.</p>
-                <div class="card-detail"><p>Pour chaque offre, notre IA rédige une lettre sur mesure à partir de votre CV. Une fois validée, la candidature est envoyée directement. Vous gardez la main, nous gérons l'exécution.</p></div>
-            </div>
-            <div class="solution-card">
-                <span class="solution-number">04</span>
-                <h3>Suivez vos candidatures</h3>
-                <p>Tableau de bord intuitif, notifications email, historique complet. Vous gardez le contrôle, sans le stress.</p>
-                <div class="card-detail"><p>Candidatures envoyées, en cours de lecture, entretiens planifiés — tout est centralisé et traçable. Plus besoin de tenir un Excel à jour.</p></div>
-            </div>
-        </div>
-
-        <div class="solution-cta">
-            <a href="HTML/auth.html" class="btn-gold" data-auth-cta="true">Essayer Taleos gratuitement</a>
-        </div>
-    </div>
-</section>
-
-<!-- ─── FEATURES ─── -->
-<section class="features">
-    <div class="container">
-        <div class="features-header">
-            <div>
-                <div class="section-label">Pourquoi Taleos</div>
-                <h2 class="display">Conçu pour les<br><em>futurs talents</em> de la finance</h2>
-            </div>
-            <p class="section-intro">Une suite d'outils pensée pour les étudiants et jeunes professionnels qui visent les meilleures institutions financières.</p>
-        </div>
-
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon-wrap">🎯</div>
-                <h3>Spécialisé Finance</h3>
-                <p>Conçu pour la banque, l'audit, le conseil et l'asset management. Pensé pour les parcours finance exigeants.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap">🤖</div>
-                <h3>IA Avancée</h3>
-                <p>Lettres de motivation personnalisées, matching intelligent, apprentissage continu de vos préférences.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap">🔒</div>
-                <h3>Sécurisé et RGPD</h3>
-                <p>Vos données sont protégées, conformité RGPD, infrastructure sécurisée en France.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap">⚡</div>
-                <h3>Automatisation Totale</h3>
-                <p>De la recherche d'offres à l'envoi des candidatures, tout est géré automatiquement.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap">📱</div>
-                <h3>Interface Intuitive</h3>
-                <p>Accédez à votre dashboard depuis n'importe quel navigateur, à tout moment.</p>
-                <div class="feature-badge">Version mobile à venir</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap">💼</div>
-                <h3>Profils Multiples</h3>
-                <p>Créez différents profils pour stage, alternance ou CDI avec des CV adaptés à chaque cible.</p>
-            </div>
-        </div>
-
-        <div class="features-cta">
-            <a href="HTML/auth.html" class="btn-dark" data-auth-cta="true">Rejoindre Taleos</a>
-        </div>
-    </div>
-</section>
-
-<!-- ─── ABOUT ─── -->
-<section class="about">
-    <div class="container">
-        <div class="about-inner">
-            <div class="about-image-wrap">
-                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" alt="Équipe Taleos" loading="lazy" />
-            </div>
-            <div class="about-text">
-                <div class="section-label">Qui sommes-nous</div>
-                <h2 class="display">Une équipe passionnée par <em>votre carrière</em></h2>
-                <p>Taleos accompagne les futurs talents de la finance pour décrocher le poste qui leur correspond. Nous avons vécu la galère des candidatures répétitives — c'est pourquoi nous avons construit l'outil que nous aurions voulu avoir.</p>
-                <a href="contact.html" class="btn-dark">Nous contacter</a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ─── FAQ ─── -->
-<section class="faq">
-    <div class="container">
-        <div class="faq-header">
-            <div class="section-label">FAQ</div>
-            <h2 class="display">Questions <em>fréquentes</em></h2>
-        </div>
-
-        <div class="faq-list">
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Est-ce que c'est légal d'automatiser mes candidatures ?</span>
-                    <span class="faq-toggle">+</span>
+            {/* ── IA RÉDIGE ── */}
+            {tab === 'ia' && (
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, animation:'slideDown 0.2s ease' }}>
+                <div style={{ background:WHITE, border:`1px solid ${BORDER}`, borderRadius:8, padding:'20px' }}>
+                  <div style={{ fontSize:10.5, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', color:MUTED, marginBottom:14 }}>Offre sélectionnée</div>
+                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+                    <CompanyLogo domain="bnpparibas.com" name="BNP Paribas" size={40} />
+                    <div>
+                      <div style={{ fontSize:15, fontWeight:700, color:NAVY, lineHeight:1.25 }}>Analyste M&A</div>
+                      <div style={{ fontSize:12.5, color:BLUE }}>BNP Paribas CIB · Paris 8e</div>
+                    </div>
+                  </div>
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:14 }}>
+                    <Tag type="contract">Stage 6 mois</Tag>
+                    <Tag type="experience">Bac+5</Tag>
+                    <Tag type="family">Banque d'investissement</Tag>
+                  </div>
+                  <div style={{ fontSize:13, color:MUTED, lineHeight:1.75 }}>
+                    BNP Paribas CIB recherche un Analyste M&A pour son équipe Coverage & Investment Banking. Participation à l'origination et l'exécution de transactions M&A, leveraged finance et ECM pour des clients grands groupes et ETI européens.
+                  </div>
                 </div>
-                <div class="faq-answer">Oui, totalement. Vous nous donnez explicitement le mandat de postuler en votre nom. C'est comme déléguer cette tâche à un assistant personnel. Nous respectons les conditions d'utilisation des sites et sommes en contact avec les entreprises pour toute question.</div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Comment l'IA personnalise mes lettres de motivation ?</span>
-                    <span class="faq-toggle">+</span>
+                <div style={{ background:WHITE, border:`1px solid ${BORDER}`, borderRadius:8, padding:'20px', display:'flex', flexDirection:'column' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
+                    <div style={{ width:7, height:7, borderRadius:'50%', background:BLUE, animation:'blink 1.2s infinite' }}></div>
+                    <div style={{ fontSize:10.5, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', color:BLUE }}>IA rédige votre lettre de motivation</div>
+                  </div>
+                  <div style={{ fontSize:13, color:MUTED, lineHeight:1.85, whiteSpace:'pre-wrap', flex:1, overflowY:'auto', maxHeight:300, fontFamily:"Georgia, serif" }}>
+                    {LETTER.slice(0, lidx)}
+                    {typing && <span style={{ display:'inline-block', width:2, height:13, background:NAVY, marginLeft:1, verticalAlign:'middle', animation:'blink 0.7s infinite' }}></span>}
+                  </div>
                 </div>
-                <div class="faq-answer">Notre IA analyse votre CV, vos expériences, et les détails de chaque offre pour créer une lettre unique et pertinente. Elle adapte le ton, met en avant les compétences recherchées et crée un lien cohérent entre votre profil et le poste.</div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Quelles entreprises sont couvertes ?</span>
-                    <span class="faq-toggle">+</span>
-                </div>
-                <div class="faq-answer">Nous couvrons les principales banques (BNP Paribas, Société Générale, Crédit Agricole), les cabinets de conseil (Deloitte, PwC, EY, KPMG), les banques d'investissement (Rothschild, Lazard), les fonds d'investissement et les fintechs majeures. Nous ajoutons régulièrement de nouvelles entreprises.</div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Puis-je contrôler les candidatures avant l'envoi ?</span>
-                    <span class="faq-toggle">+</span>
-                </div>
-                <div class="faq-answer">Absolument. Vous validez chaque candidature avant envoi. L'IA vous propose les offres correspondantes, vous choisissez celles qui vous intéressent, et vous pouvez même modifier les lettres de motivation si vous le souhaitez.</div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Que faire si je reçois une réponse d'une entreprise ?</span>
-                    <span class="faq-toggle">+</span>
-                </div>
-                <div class="faq-answer">Vous recevez toutes les notifications directement sur votre email. Notre dashboard vous permet aussi de suivre l'évolution de chaque candidature. Ensuite, c'est à vous de jouer pour les entretiens !</div>
-            </div>
+              </div>
+            )}
+          </div>
         </div>
-    </div>
-</section>
+      </div>
+    </section>
+  );
+}
 
-<!-- ─── CTA FINAL ─── -->
-<section class="cta-final">
-    <div class="cta-final-inner">
-        <h2>Prêt à transformer<br>votre <em>recherche d'emploi</em> ?</h2>
-        <p>Rejoignez les centaines d'étudiants et professionnels qui automatisent leurs candidatures.</p>
-        <a href="HTML/auth.html" class="btn-gold" data-auth-cta="true">Commencer maintenant — c'est gratuit</a>
-    </div>
-</section>
+/* ── PROCESS ── */
+const STEPS = [
+  { n:'01', title:'Configurez votre profil', body:'Uploadez votre CV. L\'IA extrait vos compétences et configure vos préférences : poste, secteur, localisation, niveau d\'expérience.' },
+  { n:'02', title:'L\'IA trouve et postule', body:'Chaque jour, Taleos scrute 7 000+ offres, sélectionne celles qui matchent et envoie vos candidatures avec une lettre personnalisée.' },
+  { n:'03', title:'Suivez et décrochez', body:'Votre dashboard centralise tout : statuts, entretiens planifiés, relances. Vous pilotez votre recherche comme un vrai projet.' },
+];
 
-<!-- ─── FOOTER ─── -->
-<footer>
-    <div class="footer-inner">
-        <div class="footer-social">
-            <a href="https://instagram.com/taleos" aria-label="Instagram">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-            </a>
-            <a href="https://twitter.com/taleos" aria-label="X">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            </a>
-            <a href="https://linkedin.com/company/taleos" aria-label="LinkedIn">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-            </a>
-            <a href="https://youtube.com/@taleos" aria-label="YouTube">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-            </a>
+function Process() {
+  const ref = useReveal();
+  return (
+    <section id="process" className="reveal-up" ref={ref} style={{ background:S2, padding:'100px 48px', borderTop:`1px solid ${BORDER}` }}>
+      <div style={{ maxWidth:1260, margin:'0 auto' }}>
+        <div style={{ marginBottom:56 }}>
+          <h2 style={{ fontFamily:FH, fontSize:'clamp(2rem,3vw,3rem)', fontWeight:400, color:NAVY, letterSpacing:'-0.01em' }}>Trois étapes. Zéro friction.</h2>
         </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:2, background:BORDER }}>
+          {STEPS.map(s => (
+            <div key={s.n} style={{ background:S2, padding:'48px 40px' }}>
+              <div style={{ fontFamily:FH, fontSize:64, fontWeight:600, color:'rgba(12,26,46,0.07)', lineHeight:1, marginBottom:32 }}>{s.n}</div>
+              <h3 style={{ fontFamily:FH, fontSize:22, fontWeight:600, color:NAVY, marginBottom:14 }}>{s.title}</h3>
+              <p style={{ fontSize:14, color:MUTED, lineHeight:1.82 }}>{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-        <div class="footer-copy">© 2026 Taleos. Tous droits réservés. · 🇫🇷 Made in France</div>
+/* ── PRICING ── */
+const PLANS = [
+  { name:'Starter', monthly:0, yearly:0, desc:'Pour découvrir Taleos et tester la plateforme sans engagement.', features:['10 candidatures / mois','Accès aux 7 000+ offres','Dashboard de suivi','3 lettres IA / mois'], cta:'Commencer gratuitement', accent:false },
+  { name:'Pro', monthly:9, yearly:79, desc:'Pour les candidats actifs qui veulent maximiser leurs chances.', features:['Candidatures illimitées','Lettres IA illimitées & personnalisées','Suivi multi-statuts avancé','Alertes offres en temps réel','Support email prioritaire'], cta:'Essayer Pro — 14 jours gratuits', accent:true },
+  { name:'Expert', monthly:24, yearly:199, desc:'Pour les candidats sérieux avec plusieurs profils actifs.', features:['Tout Pro, plus…','3 profils CV distincts','Analytics & taux de réponse','Préparation entretiens par IA','Support chat dédié'], cta:'Essayer Expert', accent:false },
+];
+
+function Pricing() {
+  const [yearly, setYearly] = useState(false);
+  const ref = useReveal(80);
+  return (
+    <section id="tarifs" className="reveal-up" ref={ref} style={{ background:BG, padding:'100px 48px', borderTop:`1px solid ${BORDER}` }}>
+      <div style={{ maxWidth:1100, margin:'0 auto' }}>
+        <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:52, flexWrap:'wrap', gap:20 }}>
+          <h2 style={{ fontFamily:FH, fontSize:'clamp(2rem,3.5vw,3rem)', fontWeight:400, color:NAVY, letterSpacing:'-0.01em' }}>Simple et transparent</h2>
+          <div style={{ display:'inline-flex', alignItems:'center', background:WHITE, border:`1px solid ${BORDER}`, borderRadius:6, padding:'4px 5px', gap:2 }}>
+            {[['Mensuel',false],['Annuel (−30%)',true]].map(([l,y]) => (
+              <button key={l} onClick={() => setYearly(y)} style={{ padding:'8px 18px', borderRadius:4, border:'none', cursor:'pointer', background: yearly===y ? NAVY : 'transparent', color: yearly===y ? WHITE : MUTED, fontSize:13, fontWeight:600, transition:'all 0.2s' }}>{l}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
+          {PLANS.map(plan => (
+            <div key={plan.name} style={{ background: plan.accent ? NAVY : WHITE, border:`1px solid ${plan.accent ? NAVY : BORDER}`, borderRadius:10, padding:'36px 28px', position:'relative' }}>
+              {plan.accent && <div style={{ position:'absolute', top:-12, left:'50%', transform:'translateX(-50%)', background:BLUE, color:WHITE, padding:'4px 18px', borderRadius:20, fontSize:11, fontWeight:600, whiteSpace:'nowrap' }}>Recommandé</div>}
+              <div style={{ fontFamily:FH, fontSize:19, fontWeight:600, color: plan.accent ? WHITE : NAVY, marginBottom:10 }}>{plan.name}</div>
+              <div style={{ display:'flex', alignItems:'baseline', gap:6, marginBottom:12 }}>
+                <span style={{ fontFamily:FH, fontSize:40, fontWeight:600, color: plan.accent ? WHITE : NAVY }}>
+                  {plan.monthly === 0 ? 'Gratuit' : `${yearly ? Math.round(plan.yearly/12) : plan.monthly}€`}
+                </span>
+                {plan.monthly > 0 && <span style={{ fontSize:13, color: plan.accent ? 'rgba(255,255,255,0.55)' : MUTED }}>/mois{yearly ? ' (annuel)' : ''}</span>}
+              </div>
+              <p style={{ fontSize:13, color: plan.accent ? 'rgba(255,255,255,0.55)' : MUTED, lineHeight:1.72, marginBottom:24, paddingBottom:20, borderBottom:`1px solid ${plan.accent ? 'rgba(255,255,255,0.12)' : BORDER}` }}>{plan.desc}</p>
+              {plan.features.map((f,i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:11, fontSize:13.5, color: plan.accent ? (f.startsWith('Tout') ? 'rgba(255,255,255,0.4)' : WHITE) : (f.startsWith('Tout') ? MUTED : NAVY) }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink:0 }}>
+                    <path d="M2 7l4 4 6-6" stroke={plan.accent ? WHITE : BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  {f}
+                </div>
+              ))}
+              <button style={{ width:'100%', marginTop:28, background: plan.accent ? WHITE : 'transparent', border:`1px solid ${plan.accent ? WHITE : BORDER}`, color: plan.accent ? NAVY : NAVY, padding:'13px', borderRadius:4, fontSize:13.5, fontWeight:600, cursor:'pointer', transition:'all 0.2s' }}>{plan.cta}</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── FAQ ── */
+const FAQS = [
+  { q:"Est-ce légal d'automatiser mes candidatures ?", a:"Oui, totalement. Vous nous donnez explicitement mandat de postuler en votre nom — c'est comme déléguer à un assistant personnel. Nous respectons les conditions d'utilisation des sites carrières." },
+  { q:"Comment l'IA personnalise mes lettres de motivation ?", a:"Notre IA analyse votre CV, vos expériences et les détails de chaque offre pour générer une lettre unique. Elle adapte le ton, met en avant vos compétences les plus pertinentes et crée un lien narratif cohérent." },
+  { q:"Quelles entreprises sont couvertes ?", a:"BNP Paribas, Société Générale, Crédit Agricole, Rothschild & Co, Lazard, Deloitte, PwC, EY, KPMG, Amundi, Natixis, Goldman Sachs, JPMorgan et bien d'autres — plus de 200 entreprises du secteur financier." },
+  { q:"Puis-je contrôler les candidatures avant l'envoi ?", a:"Absolument. Vous validez chaque candidature avant qu'elle soit envoyée. Vous pouvez modifier la lettre, choisir de ne pas postuler à certaines offres, ou adapter votre CV selon la cible." },
+  { q:"Que faire si je reçois une réponse d'une entreprise ?", a:"Vous recevez toutes les notifications par email et dans votre dashboard. Taleos met à jour les statuts automatiquement. Ensuite, c'est à vous de briller en entretien !" },
+];
+
+function FAQ() {
+  const [open, setOpen] = useState(null);
+  const ref = useReveal();
+  return (
+    <section id="faq" className="reveal-up" ref={ref} style={{ background:WHITE, padding:'100px 48px', borderTop:`1px solid ${BORDER}` }}>
+      <div style={{ maxWidth:780, margin:'0 auto' }}>
+        <h2 style={{ fontFamily:FH, fontSize:'clamp(2rem,3vw,2.8rem)', fontWeight:400, color:NAVY, letterSpacing:'-0.01em', marginBottom:52 }}>Questions fréquentes</h2>
+        {FAQS.map((faq,i) => (
+          <div key={i} style={{ borderBottom:`1px solid ${BORDER}` }}>
+            <div onClick={() => setOpen(open===i ? null : i)} style={{ padding:'22px 0', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:15, fontWeight:600, color: open===i ? BLUE : NAVY, transition:'color 0.2s', userSelect:'none' }}>
+              <span style={{ textWrap:'pretty', paddingRight:16 }}>{faq.q}</span>
+              <div style={{ width:28, height:28, borderRadius:'50%', border:`1px solid ${open===i ? BLUE : BORDER}`, display:'flex', alignItems:'center', justifyContent:'center', color: open===i ? BLUE : MUTED, fontSize:20, flexShrink:0, transform: open===i ? 'rotate(45deg)' : 'none', transition:'all 0.25s' }}>+</div>
+            </div>
+            <div style={{ maxHeight: open===i ? 220 : 0, overflow:'hidden', transition:'max-height 0.4s ease', fontSize:14.5, color:MUTED, lineHeight:1.82, paddingBottom: open===i ? 22 : 0 }}>{faq.a}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ── CTA FINAL ── */
+function CTAFinal({ onSignup }) {
+  const ref = useReveal();
+  return (
+    <section className="reveal-up" ref={ref} style={{ background:NAVY, padding:'120px 48px', textAlign:'center', position:'relative', overflow:'hidden' }}>
+      <div style={{ position:'absolute', inset:0, background:`radial-gradient(ellipse 55% 55% at 50% 50%,${BLUE_D},transparent 70%)`, pointerEvents:'none' }}/>
+      <div style={{ position:'relative', zIndex:1, maxWidth:580, margin:'0 auto' }}>
+        <h2 style={{ fontFamily:FH, fontSize:'clamp(2rem,4vw,3.5rem)', fontWeight:400, color:WHITE, letterSpacing:'-0.015em', lineHeight:1.1, marginBottom:20 }}>
+          Prêt à transformer<br/><em style={{ fontStyle:'italic' }}>votre recherche d'emploi ?</em>
+        </h2>
+        <p style={{ fontSize:15, color:'rgba(255,255,255,0.55)', lineHeight:1.8, marginBottom:48 }}>Rejoignez des centaines d'étudiants et jeunes professionnels qui automatisent leurs candidatures en finance — gratuitement.</p>
+        <button onClick={onSignup} style={{ background:WHITE, color:NAVY, border:'none', padding:'16px 44px', borderRadius:4, fontSize:14, fontWeight:700, cursor:'pointer', letterSpacing:'0.02em' }}>Commencer gratuitement</button>
+        <div style={{ fontSize:12, color:'rgba(255,255,255,0.35)', marginTop:16 }}>Sans carte bancaire · Résiliable à tout moment</div>
+      </div>
+    </section>
+  );
+}
+
+/* ── FOOTER ── */
+function Footer() {
+  return (
+    <footer style={{ background:'#070f1c', borderTop:`1px solid rgba(255,255,255,0.07)`, padding:'44px 48px' }}>
+      <div style={{ maxWidth:1340, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:20 }}>
+        <TaleosLogo onDark />
+        <div style={{ display:'flex', gap:28 }}>
+          {['Offres','Tarifs','CGU','Confidentialité','Contact'].map(l => (
+            <span key={l} style={{ fontSize:13, color:'rgba(255,255,255,0.35)', cursor:'pointer' }}>{l}</span>
+          ))}
+        </div>
+        <div style={{ fontSize:12, color:'rgba(255,255,255,0.2)' }}>© 2026 Taleos · Made in France</div>
+      </div>
+    </footer>
+  );
+}
+
+/* ── MODAL ── */
+function SignupModal({ onClose }) {
+  return (
+    <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(12,26,46,0.55)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(6px)', animation:'fadeIn 0.2s ease' }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:WHITE, border:`1px solid ${BORDER}`, borderRadius:12, padding:'44px 40px', width:'100%', maxWidth:440, position:'relative', animation:'slideDown 0.25s ease', boxShadow:'0 24px 80px rgba(12,26,46,0.18)' }}>
+        <button onClick={onClose} style={{ position:'absolute', top:16, right:18, background:'none', border:'none', color:MUTED, fontSize:24, cursor:'pointer', lineHeight:1 }}>×</button>
+        <TaleosLogo />
+        <div style={{ fontFamily:FH, fontSize:26, fontWeight:600, color:NAVY, margin:'22px 0 8px', lineHeight:1.25 }}>Créez votre compte</div>
+        <div style={{ fontSize:14, color:MUTED, marginBottom:28 }}>Gratuit · Sans carte bancaire · 2 minutes</div>
+        {['Prénom et nom','Adresse email'].map(ph => (
+          <div key={ph} style={{ border:`1px solid ${BORDER}`, borderRadius:4, padding:'13px 16px', marginBottom:12, fontSize:14, color:'#ccc', background:'#fafaf8' }}>{ph}</div>
+        ))}
+        <div style={{ border:`1px dashed ${BLUE_B}`, borderRadius:4, padding:'14px 16px', marginBottom:20, fontSize:13.5, color:BLUE, textAlign:'center', cursor:'pointer' }}>Déposer votre CV (PDF) ou parcourir</div>
+        <button style={{ width:'100%', background:NAVY, color:WHITE, border:'none', padding:'14px', borderRadius:4, fontSize:14, fontWeight:600, cursor:'pointer' }}>Commencer gratuitement →</button>
+        <div style={{ fontSize:12.5, color:MUTED, textAlign:'center', marginTop:16 }}>Déjà inscrit ? <span style={{ color:NAVY, fontWeight:600, cursor:'pointer' }}>Connexion</span></div>
+      </div>
     </div>
-</footer>
+  );
+}
 
-<script>
-    const ADMIN_DASHBOARD_EMAILS = new Set([
-        'thibault.giraudet@outlook.com',
-        'thibault.giraudet94@gmail.com'
-    ]);
+/* ── APP ── */
+function App() {
+  const [modal, setModal] = useState(false);
+  return (
+    <div>
+      <Nav onSignup={() => setModal(true)} />
+      <Hero onSignup={() => setModal(true)} />
+      <TrustBand />
+      <DemoSection />
+      <Process />
+      <Pricing />
+      <FAQ />
+      <CTAFinal onSignup={() => setModal(true)} />
+      <Footer />
+      {modal && <SignupModal onClose={() => setModal(false)} />}
+    </div>
+  );
+}
 
-    function canViewExtensionRuns(email) {
-        return ADMIN_DASHBOARD_EMAILS.has(String(email || '').trim().toLowerCase());
-    }
-
-    // ─── FAQ Accordion ───
-    function initFAQAccordion() {
-        document.querySelectorAll('.faq-question').forEach(q => {
-            if (q.dataset.init) return;
-            q.dataset.init = 'true';
-            q.addEventListener('click', () => {
-                const item = q.parentElement;
-                const isActive = item.classList.contains('active');
-                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
-                if (!isActive) item.classList.add('active');
-            });
-        });
-    }
-
-    // ─── Auth / Nav ───
-    function updateLandingCtas(isAuthenticated) {
-        const target = isAuthenticated ? 'HTML/offres.html' : 'HTML/auth.html';
-        document.querySelectorAll('[data-auth-cta="true"]').forEach(el => el.setAttribute('href', target));
-    }
-
-    function highlightCurrentPage() {
-        let cur = window.location.pathname.split('/').pop() || 'landing_page_finance.html';
-        document.querySelectorAll('.nav-link:not(#logoutBtn)').forEach(link => {
-            link.classList.remove('nav-link-primary');
-            const page = (link.getAttribute('href') || '').split('/').pop();
-            if (page === cur) link.classList.add('nav-link-primary');
-        });
-    }
-
-    function checkAuthAndUpdateNav() {
-        const profileLink    = document.getElementById('profileLink');
-        const authLink       = document.getElementById('authLink');
-        const logoutBtn      = document.getElementById('logoutBtn');
-        const applicationsLink = document.getElementById('applicationsLink');
-        const extensionRunsLink = document.getElementById('extensionRunsLink');
-        const connexionsLink = document.getElementById('connexionsLink');
-        const rechercheLink  = document.getElementById('rechercheLink');
-        if (!profileLink || !authLink || !logoutBtn) return;
-
-        let isAuthenticated = false;
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-            try { if (firebase.auth().currentUser) isAuthenticated = true; } catch(e) {}
-        }
-        if (!isAuthenticated) {
-            const token = localStorage.getItem('authToken');
-            const email = localStorage.getItem('userEmail');
-            if (token || email) isAuthenticated = true;
-        }
-        const authEmail = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser?.email) || localStorage.getItem('userEmail') || '';
-
-        if (isAuthenticated) {
-            profileLink.style.display = 'block';
-            logoutBtn.style.display = 'block';
-            authLink.style.display = 'none';
-            if (applicationsLink) applicationsLink.style.display = 'block';
-            if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(authEmail) ? 'block' : 'none';
-            if (connexionsLink)   connexionsLink.style.display   = 'block';
-            if (rechercheLink)    rechercheLink.style.display    = 'inline-block';
-        } else {
-            profileLink.style.display = 'none';
-            logoutBtn.style.display = 'none';
-            authLink.style.display = 'block';
-            if (applicationsLink) applicationsLink.style.display = 'none';
-            if (extensionRunsLink) extensionRunsLink.style.display = 'none';
-            if (connexionsLink)   connexionsLink.style.display   = 'none';
-            if (rechercheLink)    rechercheLink.style.display    = 'none';
-        }
-
-        updateLandingCtas(isAuthenticated);
-        setTimeout(highlightCurrentPage, 50);
-    }
-
-    function initAuth() {
-        if (typeof firebase === 'undefined') { checkAuthAndUpdateNav(); return; }
-        try {
-            if (!firebase.apps || firebase.apps.length === 0) {
-                firebase.initializeApp({
-                    apiKey: "AIzaSyAGeNfIevsaNjfbKTYWMaURhJWdfzWMjmc",
-                    authDomain: "project-taleos.firebaseapp.com",
-                    projectId: "project-taleos",
-                    storageBucket: "project-taleos.firebasestorage.app",
-                    messagingSenderId: "974062127016",
-                    appId: "1:974062127016:web:b6cffae44f1bae56f03f9d",
-                    measurementId: "G-4PZJ4QXMJ0"
-                });
-            }
-            firebase.auth().onAuthStateChanged(() => checkAuthAndUpdateNav());
-            checkAuthAndUpdateNav();
-        } catch(e) { checkAuthAndUpdateNav(); }
-    }
-
-    async function handleLogout() {
-        try {
-            if (typeof firebase !== 'undefined' && firebase.auth) await firebase.auth().signOut();
-        } catch(e) {}
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userEmail');
-        window.location.href = 'HTML/auth.html';
-    }
-
-    // ─── Jobs Count ───
-    async function loadTotalJobsCount() {
-        const el = document.getElementById('totalJobsCount');
-        if (!el) return;
-        const inHtmlDir = /\/HTML\/|\/HTML$/.test(window.location.pathname);
-        const paths = inHtmlDir
-            ? ['./scraped_jobs_live.json', '../scraped_jobs_live.json']
-            : ['HTML/scraped_jobs_live.json', './scraped_jobs_live.json'];
-        paths.push(
-            'https://raw.githubusercontent.com/Dedale95/mon-site/main/HTML/scraped_jobs_live.json',
-            'https://raw.githubusercontent.com/Dedale95/mon-site/main/scraped_jobs_live.json'
-        );
-        for (const path of paths) {
-            try {
-                const r = await fetch(path);
-                if (r.ok) {
-                    const data = await r.json();
-                    const live = Array.isArray(data) ? data.filter(j => String(j?.status||'').toLowerCase().trim()==='live') : [];
-                    if (live.length > 0) {
-                        el.innerHTML = live.length.toLocaleString('fr-FR');
-                        return;
-                    }
-                }
-            } catch(e) { continue; }
-        }
-        el.innerHTML = '7 000+';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        initFAQAccordion();
-        initAuth();
-        loadTotalJobsCount();
-        highlightCurrentPage();
-        setTimeout(() => { checkAuthAndUpdateNav(); highlightCurrentPage(); }, 300);
-        setTimeout(() => { checkAuthAndUpdateNav(); highlightCurrentPage(); }, 1000);
-    });
-
-    if (document.readyState !== 'loading') {
-        initFAQAccordion();
-        initAuth();
-        loadTotalJobsCount();
-        highlightCurrentPage();
-        setTimeout(() => { checkAuthAndUpdateNav(); highlightCurrentPage(); }, 300);
-    }
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>

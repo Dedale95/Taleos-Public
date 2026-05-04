@@ -115,7 +115,7 @@ function Nav({ onSignup }) {
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, height:64, padding:'0 48px', display:'flex', alignItems:'center', justifyContent:'space-between', background: sc ? 'rgba(247,245,240,0.94)' : 'transparent', backdropFilter: sc ? 'blur(16px)' : 'none', borderBottom: sc ? `1px solid ${BORDER}` : '1px solid transparent', transition:'all 0.3s ease' }}>
       <TaleosLogo />
       <div style={{ display:'flex', gap:36 }}>
-        {[['Offres','#offres'],['Comment ça marche','#process'],['Tarifs','#tarifs'],['FAQ','#faq']].map(([l,h]) => (
+        {[['Offres','offres.html'],['Offres draft','offres-draft.html'],['Comment ça marche','#process'],['Tarifs','#tarifs'],['FAQ','#faq']].map(([l,h]) => (
           <a key={l} href={h} style={lk} onMouseEnter={e=>e.target.style.color=NAVY} onMouseLeave={e=>e.target.style.color=MUTED}>{l}</a>
         ))}
       </div>

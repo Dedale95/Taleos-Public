@@ -86,16 +86,21 @@ function useReveal(delay = 0) {
 }
 
 /* ── SHARED COMPONENTS ── */
-function TaleosLogo({ size = 32, onDark = false }) {
+function TaleosLogo({ size = 32, onDark = false, scrolled = false }) {
+  const mainColor = onDark ? WHITE : (scrolled ? NAVY : WHITE);
+  const accentColor = '#c8a96e';
   return (
-    <div style={{ display:'flex', alignItems:'center', gap: size * 0.28 }}>
-      <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-        <rect width="36" height="36" rx="8" fill={NAVY}/>
-        <path d="M8 14H24" stroke={BG} strokeWidth="2.5" strokeLinecap="round"/>
-        <path d="M24 14L30 7" stroke={BG} strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
-        <path d="M16 14V26" stroke={BG} strokeWidth="2.5" strokeLinecap="round"/>
-      </svg>
-      <span style={{ fontFamily:FH, fontSize:size * 0.58, fontWeight:600, letterSpacing:'0.05em', color: onDark ? WHITE : NAVY }}>TALEOS</span>
+    <div style={{ display:'flex', alignItems:'center', gap:11, textDecoration:'none' }}>
+      <div style={{ width:size, height:size, background:'#28324a', border:'1.5px solid rgba(200,169,110,0.5)', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+        <svg width={size * 0.56} height={size * 0.56} viewBox="0 0 36 36" fill="none">
+          <path d="M8 14H24" stroke={mainColor} strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M24 14L30 7" stroke={mainColor} strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
+          <path d="M16 14V26" stroke={mainColor} strokeWidth="2.5" strokeLinecap="round"/>
+        </svg>
+      </div>
+      <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:size * 0.58, fontWeight:700, color:mainColor, letterSpacing:'-0.01em' }}>
+        Tale<span style={{ color:accentColor }}>os</span>
+      </div>
     </div>
   );
 }
@@ -128,7 +133,7 @@ function Nav({ onSignup }) {
   const lk = { fontSize:13, fontWeight:500, color:MUTED, cursor:'pointer', transition:'color 0.2s' };
   return (
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, height:64, padding:'0 48px', display:'flex', alignItems:'center', justifyContent:'space-between', background: sc ? 'rgba(247,245,240,0.94)' : 'transparent', backdropFilter: sc ? 'blur(16px)' : 'none', borderBottom: sc ? `1px solid ${BORDER}` : '1px solid transparent', transition:'all 0.3s ease' }}>
-      <TaleosLogo />
+      <TaleosLogo scrolled={sc} />
       <div style={{ display:'flex', gap:36 }}>
         {[['Offres','offres.html'],['Offres draft','offres-draft.html'],['Comment ça marche','#process'],['Tarifs','#tarifs'],['FAQ','#faq']].map(([l,h]) => (
           <a key={l} href={h} style={lk} onMouseEnter={e=>e.target.style.color=NAVY} onMouseLeave={e=>e.target.style.color=MUTED}>{l}</a>

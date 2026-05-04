@@ -186,34 +186,15 @@ function Hero({ onSignup }) {
 }
 
 /* ── TRUST BAND — infinite marquee ── */
-const LOGO_LIST = [
-  { name:'BNP Paribas',      domain:'bnpparibas.com' },
-  { name:'Société Générale', domain:'societegenerale.com' },
-  { name:'Rothschild & Co',  domain:'rothschildandco.com' },
-  { name:'Deloitte',         domain:'deloitte.com' },
-  { name:'EY',               domain:'ey.com' },
-  { name:'PwC',              domain:'pwc.com' },
-  { name:'KPMG',             domain:'kpmg.com' },
-  { name:'Lazard',           domain:'lazard.com' },
-  { name:'Amundi',           domain:'amundi.com' },
-  { name:'AXA IM',           domain:'axa.com' },
-  { name:'Natixis',          domain:'natixis.com' },
-  { name:'Crédit Agricole',  domain:'credit-agricole.com' },
-  { name:'Goldman Sachs',    domain:'goldmansachs.com' },
-  { name:'JPMorgan',         domain:'jpmorgan.com' },
-  { name:'BlackRock',        domain:'blackrock.com' },
-];
+const LOGO_LIST = Object.entries(LANDING_COMPANY_LOGOS).map(([name, path]) => ({ name, path }));
 
-function LogoItem({ name }) {
+function LogoItem({ name, path }) {
   const [err, setErr] = useState(false);
-  const logoPath = LANDING_COMPANY_LOGOS[name] || null;
+  if (!path || err) return null;
   return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, padding:'0 14px' }}>
       <div style={{ minWidth:116, height:44, padding:'8px 14px', border:`1px solid ${BORDER}`, borderRadius:10, background:WHITE, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        {!logoPath || err
-          ? <span style={{ fontSize:12, fontWeight:600, color:'#8c8578', whiteSpace:'nowrap' }}>{name}</span>
-          : <img src={logoPath} alt={name} style={{ maxHeight:24, width:'auto', maxWidth:88, objectFit:'contain', opacity:0.9 }} onError={() => setErr(true)} />
-        }
+        <img src={path} alt={name} style={{ maxHeight:24, width:'auto', maxWidth:88, objectFit:'contain', opacity:0.9 }} onError={() => setErr(true)} />
       </div>
     </div>
   );
@@ -224,7 +205,7 @@ function TrustBand() {
   return (
     <div style={{ background:WHITE, borderTop:`1px solid ${BORDER}`, borderBottom:`1px solid ${BORDER}`, padding:'22px 0', overflow:'hidden' }}>
       <div style={{ display:'flex', width:'max-content', animation:'marquee 36s linear infinite' }}>
-        {doubled.map((l, i) => <LogoItem key={i} name={l.name} />)}
+        {doubled.map((l, i) => <LogoItem key={i} name={l.name} path={l.path} />)}
       </div>
     </div>
   );

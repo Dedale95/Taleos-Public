@@ -131,9 +131,21 @@ function canAccessDraftOffers() {
   return Boolean(token) && canViewTesterNav(email);
 }
 
+function isAuthenticated() {
+  return Boolean(localStorage.getItem('authToken'));
+}
+
 function getPresentationHref() {
   const filename = window.location.pathname.split('/').pop() || 'landing_page_finance.html';
   return `${filename}${window.location.search || ''}`;
+}
+
+function scrollToSection(targetId) {
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  const navOffset = 84;
+  const top = el.getBoundingClientRect().top + window.scrollY - navOffset;
+  window.scrollTo({ top, behavior: 'smooth' });
 }
 
 function Tag({ type, children }) {
@@ -156,29 +168,60 @@ function CompanyLogo({ domain, name, size = 36 }) {
 /* ── NAV ── */
 function Nav({ onSignup }) {
   const [canSeeDraft, setCanSeeDraft] = useState(canAccessDraftOffers());
+  const [activeSection, setActiveSection] = useState('presentation');
   useEffect(() => {
     const sync = () => setCanSeeDraft(canAccessDraftOffers());
     window.addEventListener('storage', sync);
     sync();
     return () => window.removeEventListener('storage', sync);
   }, []);
+  useEffect(() => {
+    const sections = ['presentation', 'offres', 'process', 'tarifs', 'faq'];
+    const computeActive = () => {
+      const marker = window.scrollY + 140;
+      let current = 'presentation';
+      for (const id of sections.slice(1)) {
+        const el = document.getElementById(id);
+        if (el && marker >= el.offsetTop) current = id;
+      }
+      setActiveSection(current);
+    };
+    computeActive();
+    window.addEventListener('scroll', computeActive, { passive: true });
+    return () => window.removeEventListener('scroll', computeActive);
+  }, []);
   const lk = { fontSize:13, fontWeight:500, color:'rgba(255,255,255,0.55)', cursor:'pointer', transition:'color 0.2s' };
   const activeLink = { ...lk, color:'#c8a96e', fontWeight:600 };
   const navItems = [
-    ['Présentation', getPresentationHref(), true],
-    ['Offres', 'offres.html', false],
-    ...(canSeeDraft ? [['Offres draft', 'offres-draft.html', false]] : []),
-    ['Comment ça marche', '#process', false],
-    ['Tarifs', '#tarifs', false],
-    ['FAQ', '#faq', false]
+    { label:'Présentation', href:getPresentationHref(), section:'presentation' },
+    { label:'Offres', href:isAuthenticated() ? 'offres.html' : '#offres', section:'offres' },
+    ...(canSeeDraft ? [{ label:'Offres draft', href:'offres-draft.html', section:null }] : []),
+    { label:'Comment ça marche', href:'#process', section:'process' },
+    { label:'Tarifs', href:'#tarifs', section:'tarifs' },
+    { label:'FAQ', href:'#faq', section:'faq' }
   ];
   return (
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, height:68, padding:'0 48px', display:'flex', alignItems:'center', justifyContent:'space-between', background:NAVY, borderBottom:'1px solid rgba(200,169,110,0.12)', transition:'all 0.3s ease' }}>
       <TaleosLogo scrolled={false} />
       <div style={{ display:'flex', gap:36 }}>
-        {navItems.map(([l,h,isActive]) => (
-          <a key={l} href={h} style={isActive ? activeLink : lk} onMouseEnter={e=>{ if(!isActive) e.target.style.color=WHITE; }} onMouseLeave={e=>{ if(!isActive) e.target.style.color='rgba(255,255,255,0.55)'; }}>{l}</a>
-        ))}
+        {navItems.map(({ label, href, section }) => {
+          const isActive = section && activeSection === section;
+          const handleClick = (event) => {
+            if (href.startsWith('#')) {
+              event.preventDefault();
+              const targetId = href.slice(1);
+              setActiveSection(targetId);
+              scrollToSection(targetId);
+            } else if (section === 'presentation') {
+              event.preventDefault();
+              setActiveSection('presentation');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+          return (
+            <a key={label} href={href} style={isActive ? activeLink : lk} onClick={handleClick} onMouseEnter={e=>{ if(!isActive) e.target.style.color=WHITE; }} onMouseLeave={e=>{ if(!isActive) e.target.style.color='rgba(255,255,255,0.55)'; }}>{label}</a>
+          );
+        })}
       </div>
       <div style={{ display:'flex', gap:14, alignItems:'center' }}>
         <span style={lk} onClick={() => openAuth('login')}>Connexion</span>
@@ -192,7 +235,7 @@ function Nav({ onSignup }) {
 function Hero({ onSignup }) {
   const [email, setEmail] = useState('');
   return (
-    <section style={{ minHeight:'100vh', background:BG, display:'flex', alignItems:'center', padding:'100px 48px 60px', position:'relative', overflow:'hidden' }}>
+    <section id="presentation" style={{ minHeight:'100vh', background:BG, display:'flex', alignItems:'center', padding:'100px 48px 60px', position:'relative', overflow:'hidden' }}>
       <div style={{ position:'absolute', inset:0, backgroundImage:`repeating-linear-gradient(0deg,transparent,transparent 79px,${BORDER} 79px,${BORDER} 80px)`, opacity:0.38, pointerEvents:'none' }}/>
       <div style={{ position:'absolute', top:'20%', right:'-3%', width:500, height:500, background:`radial-gradient(circle,${BLUE_D} 0%,transparent 65%)`, pointerEvents:'none' }}/>
       <div style={{ maxWidth:1340, margin:'0 auto', width:'100%', display:'grid', gridTemplateColumns:'1fr 400px', gap:80, alignItems:'center', position:'relative', zIndex:1, animation:'fadeIn 0.8s ease both' }}>

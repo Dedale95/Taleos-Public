@@ -2062,8 +2062,11 @@
                                             cnLower.includes('caisse regionale') || cnLower.includes('caisse federale') || cnLower.includes('caisse de credit mutuel')) {
                                             consolidated = 'Crédit Mutuel';
                                         }
-                                        if (consolidated) job.company_name = consolidated;
-                                    }
+                            if (consolidated) job.company_name = consolidated;
+                            else if (cnLower === 'banques de proximité à l\'international - crédit agricole italia' || cnLower === 'banques de proximite a l\'international - credit agricole italia') {
+                                job.company_name = 'Crédit Agricole Italia';
+                            }
+                        }
                                     
                                     // Harmonisation des types de contrat : une seule entrée "Alternance" pour tout ce qui est alternance/apprentissage
                                     const titleForContract = (job.job_title || '').toLowerCase();

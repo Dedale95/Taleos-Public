@@ -2799,6 +2799,9 @@
                                 consolidated = 'Crédit Mutuel';
                             }
                             if (consolidated) job.company_name = consolidated;
+                            else if (cnLower === 'banques de proximité à l\'international - crédit agricole italia' || cnLower === 'banques de proximite a l\'international - credit agricole italia') {
+                                job.company_name = 'Crédit Agricole Italia';
+                            }
                         }
                         
                         // Harmonisation des types de contrat : Stage, Alternance, VIE, CDD, CDI, Graduate Programme

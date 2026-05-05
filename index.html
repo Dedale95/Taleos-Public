@@ -90,18 +90,18 @@ function useReveal(delay = 0) {
 
 /* ── SHARED COMPONENTS ── */
 function TaleosLogo({ size = 32, onDark = false, scrolled = false }) {
-  const mainColor = onDark ? WHITE : (scrolled ? NAVY : WHITE);
+  const mainColor = onDark ? WHITE : (scrolled ? '#1e1e2a' : WHITE);
   const accentColor = '#c8a96e';
   return (
     <div style={{ display:'flex', alignItems:'center', gap:11, textDecoration:'none' }}>
-      <div style={{ width:size, height:size, background:'#28324a', border:'1.5px solid rgba(200,169,110,0.5)', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+      <div style={{ width:size, height:size, background:'#1e1e2a', border:'1.5px solid rgba(200,169,110,0.5)', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
         <svg width={size * 0.56} height={size * 0.56} viewBox="0 0 36 36" fill="none">
           <path d="M8 14H24" stroke={mainColor} strokeWidth="2.5" strokeLinecap="round"/>
           <path d="M24 14L30 7" stroke={mainColor} strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
           <path d="M16 14V26" stroke={mainColor} strokeWidth="2.5" strokeLinecap="round"/>
         </svg>
       </div>
-      <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:size * 0.58, fontWeight:700, color:mainColor, letterSpacing:'-0.01em' }}>
+      <div style={{ fontFamily:'DM Sans, system-ui, sans-serif', fontSize:size * 0.58, fontWeight:700, color:mainColor, letterSpacing:'-0.01em' }}>
         Tale<span style={{ color:accentColor }}>os</span>
       </div>
     </div>

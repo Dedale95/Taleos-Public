@@ -83,22 +83,22 @@ nav {
 
 .logo-mark,
 .logo-icon {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    background: var(--ink-mid) !important;
+    border: 1.5px solid rgba(200, 169, 110, 0.5) !important;
     border-radius: 9px !important;
     box-shadow: none !important;
 }
 
 .logo-text {
     font-family: var(--taleos-serif) !important;
-    font-size: 20px !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.05em !important;
+    font-size: 1.3rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
     color: var(--taleos-white) !important;
 }
 
 .logo-text span {
-    color: var(--taleos-white) !important;
+    color: var(--taleos-warm-accent) !important;
 }
 
 .nav-link {

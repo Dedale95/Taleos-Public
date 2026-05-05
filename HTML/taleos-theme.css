@@ -3,6 +3,8 @@
 :root {
     --taleos-navy: #0c1a2e;
     --taleos-navy-soft: #162540;
+    --taleos-warm-accent: #c8a96e;
+    --taleos-warm-accent-light: #e2cfa0;
     --taleos-bg: #f7f5f0;
     --taleos-white: #ffffff;
     --taleos-surface: #faf9f5;
@@ -173,6 +175,19 @@ footer {
 .hero h1 em,
 .brand-panel h2 em {
     font-style: italic !important;
+    color: var(--taleos-warm-accent-light) !important;
+}
+
+.page-label {
+    color: var(--taleos-warm-accent) !important;
+}
+
+.page-label::before {
+    background: var(--taleos-warm-accent) !important;
+}
+
+.dashboard-header h2 {
+    color: var(--taleos-navy) !important;
 }
 
 .page-top p,

@@ -385,7 +385,7 @@ class JobDatabase:
                 if col in df.columns:
                     df[col] = df[col].apply(
                         lambda x: ', '.join(json.loads(x))
-                        if x and x.startswith('[') else x
+                        if isinstance(x, str) and x.startswith('[') else x
                     )
             df.to_csv(csv_path, index=False, encoding='utf-8')
 

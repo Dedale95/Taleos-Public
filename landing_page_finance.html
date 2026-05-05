@@ -144,13 +144,13 @@ function Nav({ onSignup }) {
     window.addEventListener('scroll', h, { passive:true });
     return () => window.removeEventListener('scroll', h);
   }, []);
-  const lk = { fontSize:13, fontWeight:500, color:MUTED, cursor:'pointer', transition:'color 0.2s' };
+  const lk = { fontSize:13, fontWeight:500, color:'rgba(255,255,255,0.55)', cursor:'pointer', transition:'color 0.2s' };
   return (
-    <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, height:64, padding:'0 48px', display:'flex', alignItems:'center', justifyContent:'space-between', background: sc ? 'rgba(247,245,240,0.94)' : 'transparent', backdropFilter: sc ? 'blur(16px)' : 'none', borderBottom: sc ? `1px solid ${BORDER}` : '1px solid transparent', transition:'all 0.3s ease' }}>
-      <TaleosLogo scrolled={sc} />
+    <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, height:68, padding:'0 48px', display:'flex', alignItems:'center', justifyContent:'space-between', background:NAVY, borderBottom:'1px solid rgba(200,169,110,0.12)', transition:'all 0.3s ease' }}>
+      <TaleosLogo scrolled={false} />
       <div style={{ display:'flex', gap:36 }}>
         {[['Offres','offres.html'],['Offres draft','offres-draft.html'],['Comment ça marche','#process'],['Tarifs','#tarifs'],['FAQ','#faq']].map(([l,h]) => (
-          <a key={l} href={h} style={lk} onMouseEnter={e=>e.target.style.color=NAVY} onMouseLeave={e=>e.target.style.color=MUTED}>{l}</a>
+          <a key={l} href={h} style={lk} onMouseEnter={e=>e.target.style.color=WHITE} onMouseLeave={e=>e.target.style.color='rgba(255,255,255,0.55)'}>{l}</a>
         ))}
       </div>
       <div style={{ display:'flex', gap:14, alignItems:'center' }}>

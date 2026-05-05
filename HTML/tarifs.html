@@ -411,7 +411,7 @@
         <div class="nav-links">
             <a href="landing_page_finance.html?v=20260504c" class="nav-link">Présentation</a>
             <a href="offres.html" class="nav-link">Offres</a>
-            <a href="offres-draft.html" class="nav-link">Offres draft</a>
+            <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
             <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
             <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
             <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
@@ -604,8 +604,8 @@
     if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
 
     function updateNav(user) {
-        const ids = ['authLink','profileLink','logoutBtn','applicationsLink','extensionRunsLink','connexionsLink','rechercheLink'];
-        const [authLink,profileLink,logoutBtn,applicationsLink,extensionRunsLink,connexionsLink,rechercheLink] = ids.map(id=>document.getElementById(id));
+        const ids = ['authLink','profileLink','logoutBtn','applicationsLink','extensionRunsLink','connexionsLink','rechercheLink','draftLink'];
+        const [authLink,profileLink,logoutBtn,applicationsLink,extensionRunsLink,connexionsLink,rechercheLink,draftLink] = ids.map(id=>document.getElementById(id));
         const email = user?.email || localStorage.getItem('userEmail') || '';
         if (user) {
             if(authLink) authLink.style.display='none';
@@ -613,6 +613,7 @@
             if(logoutBtn) logoutBtn.style.display='block';
             if(applicationsLink) applicationsLink.style.display='block';
             if(extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
+            if(draftLink) draftLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
             if(connexionsLink) connexionsLink.style.display='block';
             if(rechercheLink) rechercheLink.style.display='inline-block';
         } else {
@@ -621,6 +622,7 @@
             if(logoutBtn) logoutBtn.style.display='none';
             if(applicationsLink) applicationsLink.style.display='none';
             if(extensionRunsLink) extensionRunsLink.style.display='none';
+            if(draftLink) draftLink.style.display='none';
             if(connexionsLink) connexionsLink.style.display='none';
             if(rechercheLink) rechercheLink.style.display='none';
         }

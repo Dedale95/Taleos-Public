@@ -53,6 +53,10 @@ const LANDING_LOGO_BASE = window.location.pathname.includes('/HTML/')
 const AUTH_PAGE_PATH = window.location.pathname.includes('/HTML/')
   ? 'auth.html'
   : 'HTML/auth.html';
+const ADMIN_DASHBOARD_EMAILS = new Set([
+  'thibault.giraudet@outlook.com',
+  'thibault.giraudet94@gmail.com'
+]);
 
 const LANDING_COMPANY_LOGOS = {
   'BNP Paribas': `${LANDING_LOGO_BASE}bnp_paribas.png`,
@@ -117,6 +121,21 @@ function openAuth(mode = 'signup', email = '') {
   window.location.href = buildAuthHref(mode, email);
 }
 
+function canViewTesterNav(email) {
+  return ADMIN_DASHBOARD_EMAILS.has(String(email || '').trim().toLowerCase());
+}
+
+function canAccessDraftOffers() {
+  const email = localStorage.getItem('userEmail') || '';
+  const token = localStorage.getItem('authToken') || '';
+  return Boolean(token) && canViewTesterNav(email);
+}
+
+function getPresentationHref() {
+  const filename = window.location.pathname.split('/').pop() || 'landing_page_finance.html';
+  return `${filename}${window.location.search || ''}`;
+}
+
 function Tag({ type, children }) {
   const { bg, color } = TAGS[type] || TAGS.family;
   return <span style={{ display:'inline-block', padding:'4px 10px', borderRadius:2, fontSize:12, fontWeight:500, background:bg, color, whiteSpace:'nowrap' }}>{children}</span>;
@@ -136,19 +155,29 @@ function CompanyLogo({ domain, name, size = 36 }) {
 
 /* ── NAV ── */
 function Nav({ onSignup }) {
-  const [sc, setSc] = useState(false);
+  const [canSeeDraft, setCanSeeDraft] = useState(canAccessDraftOffers());
   useEffect(() => {
-    const h = () => setSc(window.scrollY > 40);
-    window.addEventListener('scroll', h, { passive:true });
-    return () => window.removeEventListener('scroll', h);
+    const sync = () => setCanSeeDraft(canAccessDraftOffers());
+    window.addEventListener('storage', sync);
+    sync();
+    return () => window.removeEventListener('storage', sync);
   }, []);
   const lk = { fontSize:13, fontWeight:500, color:'rgba(255,255,255,0.55)', cursor:'pointer', transition:'color 0.2s' };
+  const activeLink = { ...lk, color:'#c8a96e', fontWeight:600 };
+  const navItems = [
+    ['Présentation', getPresentationHref(), true],
+    ['Offres', 'offres.html', false],
+    ...(canSeeDraft ? [['Offres draft', 'offres-draft.html', false]] : []),
+    ['Comment ça marche', '#process', false],
+    ['Tarifs', '#tarifs', false],
+    ['FAQ', '#faq', false]
+  ];
   return (
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, height:68, padding:'0 48px', display:'flex', alignItems:'center', justifyContent:'space-between', background:NAVY, borderBottom:'1px solid rgba(200,169,110,0.12)', transition:'all 0.3s ease' }}>
       <TaleosLogo scrolled={false} />
       <div style={{ display:'flex', gap:36 }}>
-        {[['Offres','offres.html'],['Offres draft','offres-draft.html'],['Comment ça marche','#process'],['Tarifs','#tarifs'],['FAQ','#faq']].map(([l,h]) => (
-          <a key={l} href={h} style={lk} onMouseEnter={e=>e.target.style.color=WHITE} onMouseLeave={e=>e.target.style.color='rgba(255,255,255,0.55)'}>{l}</a>
+        {navItems.map(([l,h,isActive]) => (
+          <a key={l} href={h} style={isActive ? activeLink : lk} onMouseEnter={e=>{ if(!isActive) e.target.style.color=WHITE; }} onMouseLeave={e=>{ if(!isActive) e.target.style.color='rgba(255,255,255,0.55)'; }}>{l}</a>
         ))}
       </div>
       <div style={{ display:'flex', gap:14, alignItems:'center' }}>

@@ -1495,7 +1495,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html?v=20260504c" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="offres-draft.html" class="nav-link">Offres draft</a>
+                <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
                 <a href="filtres.html" class="nav-link nav-link-primary" id="rechercheLink">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
                 <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
@@ -1547,7 +1547,7 @@
             <nav class="footer-nav">
                 <a href="landing_page_finance.html?v=20260504c">Présentation</a>
                 <a href="offres.html">Offres</a>
-                <a href="offres-draft.html">Offres draft</a>
+                <a href="offres-draft.html" id="footerDraftLink" style="display:none">Offres draft</a>
                 <a href="tarifs.html">Tarifs</a>
                 <a href="mailto:contact@taleos.co">Contact</a>
             </nav>
@@ -5224,6 +5224,8 @@
             const logoutBtn = document.getElementById('logoutBtn');
             const applicationsLink = document.getElementById('applicationsLink');
             const extensionRunsLink = document.getElementById('extensionRunsLink');
+            const draftLink = document.getElementById('draftLink');
+            const footerDraftLink = document.getElementById('footerDraftLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const rechercheLink = document.getElementById('rechercheLink');
 
@@ -5243,6 +5245,8 @@
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (applicationsLink) applicationsLink.style.display = 'block';
                 if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
+                if (draftLink) draftLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
+                if (footerDraftLink) footerDraftLink.style.display = canViewExtensionRuns(email) ? 'inline' : 'none';
                 if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 logoutBtn.style.display = 'block';
             } else {
@@ -5252,6 +5256,8 @@
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'none';
                 if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+                if (draftLink) draftLink.style.display = 'none';
+                if (footerDraftLink) footerDraftLink.style.display = 'none';
                 if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 logoutBtn.style.display = 'none';
             }
@@ -5268,6 +5274,8 @@
                 const logoutBtn = document.getElementById('logoutBtn');
                 const applicationsLink = document.getElementById('applicationsLink');
                 const extensionRunsLink = document.getElementById('extensionRunsLink');
+                const draftLink = document.getElementById('draftLink');
+                const footerDraftLink = document.getElementById('footerDraftLink');
                 const connexionsLink = document.getElementById('connexionsLink');
                 const rechercheLink = document.getElementById('rechercheLink');
 
@@ -5277,6 +5285,8 @@
                     if (logoutBtn) logoutBtn.style.display = 'block';
                     if (applicationsLink) applicationsLink.style.display = 'block';
                     if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
+                    if (draftLink) draftLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
+                    if (footerDraftLink) footerDraftLink.style.display = canViewExtensionRuns(user.email) ? 'inline' : 'none';
                     if (connexionsLink) connexionsLink.style.display = 'block';
                     if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 } else {
@@ -5285,6 +5295,8 @@
                     if (logoutBtn) logoutBtn.style.display = 'none';
                     if (applicationsLink) applicationsLink.style.display = 'none';
                     if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+                    if (draftLink) draftLink.style.display = 'none';
+                    if (footerDraftLink) footerDraftLink.style.display = 'none';
                     if (connexionsLink) connexionsLink.style.display = 'none';
                     if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 }

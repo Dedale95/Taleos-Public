@@ -732,7 +732,7 @@
         <div class="nav-links">
             <a href="landing_page_finance.html?v=20260504c" class="nav-link">Présentation</a>
             <a href="offres.html" class="nav-link">Offres</a>
-            <a href="offres-draft.html" class="nav-link">Offres draft</a>
+            <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
             <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
             <a href="mes-candidatures.html" class="nav-link" id="navCandidatures" style="display:none">Mes candidatures</a>
             <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
@@ -1108,6 +1108,7 @@
         const navProfile = document.getElementById('navProfile');
         const navCandidatures = document.getElementById('navCandidatures');
         const extensionRunsLink = document.getElementById('extensionRunsLink');
+        const draftLink = document.getElementById('draftLink');
         const navConnexions = document.getElementById('navConnexions');
         const btnLogout = document.getElementById('btnLogout');
         const rechercheLink = document.getElementById('rechercheLink');
@@ -1116,6 +1117,7 @@
             navProfile.style.display = 'block';
             if (navCandidatures) navCandidatures.style.display = 'block';
             if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
+            if (draftLink) draftLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
             if (navConnexions) navConnexions.style.display = 'block';
             if (rechercheLink) rechercheLink.style.display = 'inline-block';
             btnLogout.style.display = 'block';
@@ -1124,6 +1126,7 @@
             navProfile.style.display = 'none';
             if (navCandidatures) navCandidatures.style.display = 'none';
             if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+            if (draftLink) draftLink.style.display = 'none';
             if (navConnexions) navConnexions.style.display = 'none';
             if (rechercheLink) rechercheLink.style.display = 'none';
             btnLogout.style.display = 'none';
@@ -1139,10 +1142,12 @@
             document.getElementById('btnLogout').style.display = 'block';
             const navCandidatures = document.getElementById('navCandidatures');
             const extensionRunsLink = document.getElementById('extensionRunsLink');
+            const draftLink = document.getElementById('draftLink');
             const navConnexions = document.getElementById('navConnexions');
             const rechercheLink = document.getElementById('rechercheLink');
             if (navCandidatures) navCandidatures.style.display = 'block';
             if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
+            if (draftLink) draftLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
             if (navConnexions) navConnexions.style.display = 'block';
             if (rechercheLink) rechercheLink.style.display = 'inline-block';
         }

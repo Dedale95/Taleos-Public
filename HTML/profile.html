@@ -1139,7 +1139,7 @@
             <div class="nav-links">
                 <a href="landing_page_finance.html?v=20260504c" class="nav-link">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
-                <a href="offres-draft.html" class="nav-link">Offres draft</a>
+                <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
                 <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
                 <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
@@ -2622,6 +2622,7 @@
             const logoutBtn = document.getElementById('logoutBtn');
             const applicationsLink = document.getElementById('applicationsLink');
             const extensionRunsLink = document.getElementById('extensionRunsLink');
+            const draftLink = document.getElementById('draftLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const rechercheLink = document.getElementById('rechercheLink');
 
@@ -2646,6 +2647,7 @@
                 authLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'block';
                 if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
+                if (draftLink) draftLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (rechercheLink) rechercheLink.style.display = 'inline-block';
             } else {
@@ -2653,6 +2655,7 @@
                 profileLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'none';
                 if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+                if (draftLink) draftLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (rechercheLink) rechercheLink.style.display = 'none';
                 profileLink.classList.remove('nav-link-primary');
@@ -4159,6 +4162,7 @@
             const authLink = document.getElementById('authLink');
             const applicationsLink = document.getElementById('applicationsLink');
             const extensionRunsLink = document.getElementById('extensionRunsLink');
+            const draftLink = document.getElementById('draftLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const logoutBtn = document.getElementById('logoutBtn');
             const rechercheLink = document.getElementById('rechercheLink');
@@ -4194,6 +4198,7 @@
                 authLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'block';
                 if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(localStorage.getItem('userEmail') || currentUser?.email || auth?.currentUser?.email) ? 'block' : 'none';
+                if (draftLink) draftLink.style.display = canViewExtensionRuns(localStorage.getItem('userEmail') || currentUser?.email || auth?.currentUser?.email) ? 'block' : 'none';
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (rechercheLink) rechercheLink.style.display = 'inline-block';
             } else {
@@ -4205,6 +4210,7 @@
                 authLink.style.display = 'block';
                 if (applicationsLink) applicationsLink.style.display = 'none';
                 if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+                if (draftLink) draftLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (rechercheLink) rechercheLink.style.display = 'none';
                 authLink.classList.remove('nav-link-primary');

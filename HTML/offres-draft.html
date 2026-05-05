@@ -1659,19 +1659,19 @@
 
         /* Barre "Filtres / Tout réinitialiser" — style light dans offers-page */
         body.offers-page .filters-header {
-            background: transparent;
-            border: none;
-            border-top: 1px solid var(--surface2);
-            border-bottom: 1px solid var(--surface2);
-            padding: 10px 0;
-            margin: 14px 0 4px;
+            background: transparent !important;
+            border: none !important;
+            border-top: 1px solid var(--surface2) !important;
+            border-bottom: 1px solid var(--surface2) !important;
+            padding: 9px 0 !important;
+            margin: 12px 0 4px !important;
             gap: 8px;
             align-items: center;
             justify-content: space-between;
             cursor: default;
         }
-        body.offers-page .filters-header:hover { background: transparent; }
-        body.offers-page .filters-header:active { transform: none; }
+        body.offers-page .filters-header:hover { background: transparent !important; }
+        body.offers-page .filters-header:active { transform: none !important; }
         body.offers-page .filters-header-left { gap: 0; }
 
         /* Recherche dans sa propre zone au-dessus des filtres */
@@ -1689,17 +1689,30 @@
         /* ── Toolbar stats (centre) ── */
         .offers-toolbar-stats {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.82rem;
-            color: var(--muted);
+            align-items: baseline;
+            gap: 5px;
+            padding: 6px 16px;
+            background: var(--surface);
+            border: 1px solid var(--surface3);
+            border-radius: 8px;
             white-space: nowrap;
         }
         .offers-toolbar-stats strong {
             color: var(--ink);
             font-weight: 700;
+            font-size: 1rem;
+            line-height: 1;
         }
-        .toolbar-stat-sep { color: var(--surface3); }
+        .offers-toolbar-stats span {
+            font-size: 0.74rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .toolbar-stat-sep {
+            color: var(--surface3);
+            font-size: 0.9em;
+            margin: 0 2px;
+        }
 
         /* ── Accordion sidebar filtres ── */
         body.offers-page .filter-box-header {
@@ -1793,7 +1806,7 @@
         body.offers-page .filters-grid-wrapper .filter-group:nth-child(3) .filter-box-body-checkboxes,
         body.offers-page .filters-grid-wrapper .filter-group:nth-child(4) .filter-box-body-checkboxes {
             min-height: auto;
-            max-height: 210px;
+            max-height: 170px;
             padding: 0;
             border: none;
             background: transparent;
@@ -1821,9 +1834,9 @@
         }
 
         body.offers-page .filter-checkbox-container label {
-            padding: 6px 2px;
-            border-radius: 6px;
-            font-size: 0.85rem;
+            padding: 3px 2px;
+            border-radius: 4px;
+            font-size: 0.81rem;
         }
 
         body.offers-page .filter-row-reset {
@@ -6672,14 +6685,24 @@
         }
 
         // Fonction pour toggle l'accordéon des filtres
-        // Accordion par section de filtre (offers-page uniquement)
+        // Accordion exclusif : un seul ouvert à la fois, tous fermés au départ
         function initFilterAccordion() {
             if (!document.body.classList.contains('offers-page')) return;
-            document.querySelectorAll('.filters-grid-wrapper .filter-group').forEach(group => {
-                const header = group.querySelector('.filter-box-header');
-                if (!header) return;
-                if (!group.querySelector('.filter-checkbox-container')) return;
-                header.addEventListener('click', () => group.classList.toggle('collapsed'));
+            const groups = Array.from(
+                document.querySelectorAll('.filters-grid-wrapper .filter-group')
+            ).filter(g => g.querySelector('.filter-checkbox-container'));
+
+            // Tout fermer au départ
+            groups.forEach(g => g.classList.add('collapsed'));
+
+            groups.forEach(group => {
+                group.querySelector('.filter-box-header').addEventListener('click', () => {
+                    const isOpen = !group.classList.contains('collapsed');
+                    // Fermer tous
+                    groups.forEach(g => g.classList.add('collapsed'));
+                    // Si était fermé → ouvrir
+                    if (!isOpen) group.classList.remove('collapsed');
+                });
             });
         }
         document.addEventListener('DOMContentLoaded', initFilterAccordion);

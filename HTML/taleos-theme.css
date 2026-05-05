@@ -83,15 +83,27 @@ nav {
 
 .logo-mark,
 .logo-icon {
+    width: 32px !important;
+    height: 32px !important;
     background: var(--ink-mid) !important;
     border: 1.5px solid rgba(200, 169, 110, 0.5) !important;
     border-radius: 9px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
     box-shadow: none !important;
+}
+
+.logo-mark svg,
+.logo-icon svg {
+    width: 17.92px !important;
+    height: 17.92px !important;
 }
 
 .logo-text {
     font-family: var(--taleos-serif) !important;
-    font-size: 1.3rem !important;
+    font-size: 18.56px !important;
     font-weight: 700 !important;
     letter-spacing: -0.01em !important;
     color: var(--taleos-white) !important;

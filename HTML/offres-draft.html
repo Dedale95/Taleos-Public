@@ -1657,26 +1657,27 @@
             box-shadow: none;
         }
 
+        /* Barre "Filtres / Tout réinitialiser" — style light dans offers-page */
         body.offers-page .filters-header {
             background: transparent;
-            border-bottom: none;
-            padding: 0 0 16px;
+            border: none;
+            border-top: 1px solid var(--surface2);
+            border-bottom: 1px solid var(--surface2);
+            padding: 10px 0;
+            margin: 14px 0 4px;
             gap: 8px;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
             cursor: default;
         }
+        body.offers-page .filters-header:hover { background: transparent; }
+        body.offers-page .filters-header:active { transform: none; }
+        body.offers-page .filters-header-left { gap: 0; }
 
-        body.offers-page .filters-header:hover {
-            background: transparent;
-        }
-
-        body.offers-page .filters-header:active {
-            transform: none;
-        }
-
-        body.offers-page .filters-header-left {
-            gap: 0;
+        /* Recherche dans sa propre zone au-dessus des filtres */
+        .sidebar-search { margin-bottom: 4px; }
+        .sidebar-search .filter-box-header {
+            display: none; /* label "Recherche" inutile ici */
         }
 
         body.offers-page .toggle-icon,
@@ -1715,10 +1716,6 @@
             transition: transform 0.2s ease;
             flex-shrink: 0;
             margin-left: 6px;
-        }
-        /* Recherche n'a pas de checkbox container → pas de chevron */
-        body.offers-page .filter-group:first-child .filter-box-header::after {
-            display: none;
         }
         body.offers-page .filter-group.collapsed .filter-box-header::after {
             transform: rotate(-90deg);
@@ -2013,10 +2010,17 @@
             margin: 0;
             font-size: 0.78rem;
             color: #a1a1aa;
+            white-space: nowrap;
         }
 
+        /* Footer : date + boutons sur la même ligne */
         body.offers-page .job-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
             padding-top: 14px;
+            border-top: 1px solid var(--surface2);
             margin-top: auto;
         }
 
@@ -2231,7 +2235,17 @@
     <div class="container">
         <div class="offers-shell">
         <aside class="filters-wrapper">
-            <!-- Header cliquable pour toggle avec stats intégrées -->
+            <!-- Recherche en haut, hors accordéon -->
+            <div class="sidebar-search">
+                <div class="filter-box-body filter-box-body-search">
+                    <div class="search-wrapper">
+                        <input type="text" id="searchInput" placeholder="Poste, entreprise, compétence…">
+                        <div class="search-tags" id="searchTags"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Séparateur Filtres + reset -->
             <div class="filters-header" id="filtersToggle">
                 <div class="filters-header-left">
                     <span class="filters-title">Filtres</span>
@@ -2239,20 +2253,9 @@
                 <button class="reset-btn" type="button" onclick="resetFilters()">Tout réinitialiser</button>
             </div>
 
-            <!-- Contenu des filtres -->
+            <!-- Catégories de filtres (accordéon) -->
             <div class="filters-content" id="filtersContainer">
             <div class="filters-grid-wrapper">
-                <div class="filter-group">
-                    <div class="filter-box">
-                        <div class="filter-box-header">Recherche</div>
-                        <div class="filter-box-body filter-box-body-search">
-                            <div class="search-wrapper">
-                                <input type="text" id="searchInput" placeholder="Poste, entreprise, compétence">
-                                <div class="search-tags" id="searchTags"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div class="filter-group">
                     <div class="filter-box filter-box-contract">
                         <div class="filter-box-header">Type de contrat</div>
@@ -2366,18 +2369,6 @@
             </div>
         </div>
 
-        <div class="sections-wrapper" id="sectionsWrapper">
-            <div class="sections-toolbar">
-                <div class="sections-title">Sections personnalisees</div>
-                <div class="sections-actions">
-                    <button class="sections-btn" onclick="collapseAllSections()">Tout replier</button>
-                    <button class="sections-btn" onclick="expandAllSections()">Tout ouvrir</button>
-                    <button class="sections-btn primary" onclick="createSectionPrompt()">Nouvelle section</button>
-                </div>
-            </div>
-            <div class="sections-warning" id="sectionsWarning"></div>
-            <div class="sections-list" id="sectionsList"></div>
-        </div>
         </section>
         </div>
     </div>
@@ -3124,46 +3115,34 @@
         }
 
         // Fonction pour formater une date au format français dd/mm/yyyy
-        function formatDateToFrench(dateString) {
+        function formatDateRelative(dateString) {
             if (!dateString || dateString === 'date inconnue' || dateString === 'Date non spécifiée') {
-                return dateString || 'date inconnue';
+                return 'à une date inconnue';
             }
-            
             try {
-                // Essayer de parser différents formats de dates
                 let date;
-                
-                // Format YYYY-MM-DD
                 if (dateString.match(/^\d{4}-\d{2}-\d{2}/)) {
                     date = new Date(dateString + 'T00:00:00');
-                } 
-                // Format DD/MM/YYYY (déjà français)
-                else if (dateString.match(/^\d{2}\/\d{2}\/\d{4}/)) {
-                    return dateString;
-                }
-                // Format DD-MM-YYYY
-                else if (dateString.match(/^\d{2}-\d{2}-\d{4}/)) {
-                    const parts = dateString.split('-');
-                    return `${parts[0]}/${parts[1]}/${parts[2]}`;
-                }
-                // Essayer de parser comme date ISO
-                else {
+                } else if (dateString.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+                    const p = dateString.split('/');
+                    date = new Date(`${p[2]}-${p[1]}-${p[0]}T00:00:00`);
+                } else if (dateString.match(/^\d{2}-\d{2}-\d{4}/)) {
+                    const p = dateString.split('-');
+                    date = new Date(`${p[2]}-${p[1]}-${p[0]}T00:00:00`);
+                } else {
                     date = new Date(dateString);
                 }
-                
-                if (isNaN(date.getTime())) {
-                    return dateString; // Retourner la date originale si le parsing échoue
-                }
-                
-                // Formater en dd/mm/yyyy
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                
-                return `${day}/${month}/${year}`;
-            } catch (error) {
-                console.warn('Erreur lors du formatage de la date:', dateString, error);
-                return dateString; // Retourner la date originale en cas d'erreur
+                if (isNaN(date.getTime())) return 'à une date inconnue';
+                const days = Math.round((Date.now() - date.getTime()) / 86400000);
+                if (days <= 0) return "aujourd'hui";
+                if (days === 1) return 'il y a 1 jour';
+                if (days < 31) return `il y a ${days} jours`;
+                if (days < 60) return 'il y a 1 mois';
+                const months = Math.round(days / 30);
+                if (months < 12) return `il y a ${months} mois`;
+                return "il y a plus d'un an";
+            } catch (e) {
+                return 'à une date inconnue';
             }
         }
 
@@ -6490,8 +6469,8 @@
                 ${job.job_family ? `<span class="tag tag-family">🎯 ${job.job_family}</span>` : ''}
             </div>
             <div class="job-bottom-block">
-                <div class="job-date">Publiée le ${formatDateToFrench(job.publication_date)}</div>
                 <div class="job-footer">
+                    <div class="job-date">Publiée ${formatDateRelative(job.publication_date)}</div>
                     <div class="job-actions">
                     ${isAuthenticated ? (() => {
                         const status = applicationStatuses.get(job.job_id);
@@ -6511,6 +6490,7 @@
         </div>
     `;
             }
+
             
             // Rendre par batch pour éviter le débordement de stack
             const batchSize = 50; // Réduire la taille du batch pour éviter les problèmes

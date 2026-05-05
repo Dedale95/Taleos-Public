@@ -1492,24 +1492,54 @@
             font-size: 0.8rem;
         }
 
+        body.offers-page {
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body.offers-page .main-content {
+            min-height: 0;
+            overflow: hidden;
+        }
+
         body.offers-page .container {
             max-width: none;
             margin: 0;
             padding: 0;
+            height: 100%;
         }
 
         .offers-shell {
             display: grid;
             grid-template-columns: 300px 1fr;
-            height: calc(100vh - 68px);
+            height: 100%;
             overflow: hidden;
         }
 
         .offers-main-column {
             min-width: 0;
+            min-height: 0;
             padding: 24px 28px 40px;
             height: 100%;
             overflow-y: auto;
+        }
+
+        /* Stats dans la barre toolbar */
+        .offers-toolbar-stats {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        .offers-toolbar-stats strong {
+            color: var(--ink);
+            font-weight: 700;
+        }
+        .toolbar-stat-sep {
+            color: var(--surface3);
+            font-size: 0.9em;
         }
 
         .offers-toolbar {
@@ -1630,8 +1660,8 @@
         }
 
         body.offers-page .filters-wrapper {
-            position: sticky;
-            top: 68px;
+            position: relative;
+            top: auto;
             height: 100%;
             overflow-y: auto;
             border: none;
@@ -1670,25 +1700,13 @@
             display: none;
         }
 
-        /* Stats dans la sidebar */
-        .sidebar-stats {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 12px 0 16px;
-            border-bottom: 1px solid var(--surface2);
-            margin-bottom: 18px;
-            font-size: 0.82rem;
-            color: var(--muted);
+        /* Sections repliées : hauteur minimale */
+        body.offers-page .filter-group.collapsed {
+            padding-bottom: 6px;
+            margin-bottom: 6px;
         }
-        .sidebar-stats-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .sidebar-stats-row strong {
-            color: var(--ink);
-            font-weight: 700;
+        body.offers-page .filter-group.collapsed .filter-box-header {
+            padding-bottom: 0;
         }
 
         /* Accordion par section de filtre */
@@ -2217,11 +2235,6 @@
                 </div>
                 <button class="reset-btn" type="button" onclick="resetFilters()">Tout réinitialiser</button>
             </div>
-            <div class="sidebar-stats" id="sidebarStats">
-                <div class="sidebar-stats-row"><span>Offres live</span><strong id="sidebarLive">⏳</strong></div>
-                <div class="sidebar-stats-row"><span>Affichées</span><strong id="sidebarFiltered">⏳</strong></div>
-                <div class="sidebar-stats-row"><span>Pays</span><strong id="sidebarPays">⏳</strong></div>
-            </div>
 
             <!-- Contenu des filtres -->
             <div class="filters-content" id="filtersContainer">
@@ -2280,7 +2293,6 @@
         <section class="offers-main-column">
         <div class="offers-toolbar">
             <div class="offers-toolbar-left">
-                <div class="offers-results-count"><strong id="filteredJobs">⏳</strong> offres</div>
                 <button class="favorites-toggle" id="favoritesToggle" type="button" onclick="toggleFavoritesOnly()">
                     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
                         <path d="M10 16.5S2 11.3 2 6.5a4 4 0 0 1 8-1.1A4 4 0 0 1 18 6.5c0 4.8-8 10-8 10z"/>
@@ -2288,6 +2300,13 @@
                     Favoris
                     <span class="favorites-count-pill" id="favoritesCount">0</span>
                 </button>
+            </div>
+            <div class="offers-toolbar-stats">
+                <strong id="sidebarLive">⏳</strong><span> live</span>
+                <span class="toolbar-stat-sep">·</span>
+                <strong id="sidebarFiltered">⏳</strong><span> affichées</span>
+                <span class="toolbar-stat-sep">·</span>
+                <strong id="sidebarPays">⏳</strong><span> pays</span>
             </div>
             <div class="offers-toolbar-right">
                 <select class="offers-sort-select" id="sortSelect" onchange="applyFilters()">
@@ -3668,8 +3687,6 @@
                 }
 
                 filteredJobs = [...allJobs];
-                const filteredJobsEl = document.getElementById('filteredJobs');
-                if (filteredJobsEl) filteredJobsEl.textContent = allJobs.length.toLocaleString('fr-FR');
 
                 await initializeFilters();
                 await renderJobs();
@@ -6626,9 +6643,6 @@
         }
 
         function updateStats() {
-            const filteredEl = document.getElementById('filteredJobs');
-            if (filteredEl) filteredEl.textContent = filteredJobs.length.toLocaleString('fr-FR');
-
             const liveEl = document.getElementById('sidebarLive');
             const filtEl = document.getElementById('sidebarFiltered');
             const paysEl = document.getElementById('sidebarPays');

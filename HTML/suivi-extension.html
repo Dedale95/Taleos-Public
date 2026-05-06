@@ -1107,9 +1107,10 @@
         const SCRAPING_COVERAGE_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/getScrapingCoverageSnapshot';
         const SCRAPING_COVERAGE_CACHE_KEY = 'taleosScrapingCoverageSnapshotV2';
         const SCRAPING_COVERAGE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-        // siteCount = nombre d'offres visible sur le site carrière (mis à jour manuellement, ~1×/semaine)
-        // Pour Goldman : inclut PROFESSIONAL + EARLY_CAREER + CAMPUS (undergrads + stages d'été)
-        // Pour JP Morgan : inclut tous types via API Oracle HCM (CX_1001)
+        // siteCount = somme de TOUS les types d'offres affichés sur le site carrière
+        // Mis à jour manuellement (~1×/semaine). Vérifier les URLs de référence pour recalculer.
+        // Goldman : 1 467 (Careers Home) + 85 (Students/Campus) = 1 552  — vérifié le 06/05/2026
+        // JP Morgan : 7 542 via API Oracle HCM CX_1001 — vérifié le 06/05/2026
         const SCRAPING_COVERAGE_FALLBACK_BANKS = [
             { name: 'Groupe BPCE', siteCount: 2568, careerUrl: 'https://recrutement.bpce.fr/offres-emploi?external=false', sourceLabel: 'API BPCE' },
             { name: 'Groupe BNP Paribas', siteCount: 4876, careerUrl: 'https://group.bnpparibas/emploi-carriere/toutes-offres-emploi', sourceLabel: 'Page offres BNP Paribas' },
@@ -1117,7 +1118,7 @@
             { name: 'Groupe Société Générale', siteCount: 1713, careerUrl: 'https://careers.societegenerale.com/', sourceLabel: 'Page carrière Société Générale' },
             { name: 'Groupe Crédit Mutuel', siteCount: 862, careerUrl: 'https://recrutement.creditmutuel.fr/fr/nos_offres.html', sourceLabel: 'Page offres Crédit Mutuel' },
             { name: 'J.P. Morgan', siteCount: 7542, careerUrl: 'https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs', sourceLabel: 'API Oracle HCM (tous types)' },
-            { name: 'Goldman Sachs', siteCount: 1500, careerUrl: 'https://higher.gs.com/results?&page=1&sort=RELEVANCE', sourceLabel: 'Page carrière Goldman Sachs (Professional + Early Career + Campus)' },
+            { name: 'Goldman Sachs', siteCount: 1552, careerUrl: 'https://higher.gs.com/results?&page=1&sort=RELEVANCE', sourceLabel: '1 467 Careers Home + 85 Students — higher.gs.com' },
             { name: 'Deloitte', siteCount: 417, careerUrl: 'https://www.deloitte.com/fr/fr/careers/content/job/results.html', sourceLabel: 'Page offres Deloitte' },
             { name: 'Bpifrance', siteCount: 224, careerUrl: 'https://talents.bpifrance.fr/nos-opportunites/?criteres=cdi%7Calternance%7Cstage%7Cvie', sourceLabel: 'Somme des contrats Bpifrance' },
             { name: 'ODDO BHF', siteCount: 215, careerUrl: 'https://www.oddo-bhf.com/fr/decouvrez-nos-offres-demplois/', sourceLabel: 'Page offres ODDO BHF' }
@@ -1239,29 +1240,30 @@
 
             const trackedBanks = SCRAPING_COVERAGE_FALLBACK_BANKS.map((bank) => {
                 const name = bank.name;
-                // siteCount = référence hardcodée. Si on scrappe plus (fluctuation normale),
-                // on utilise le max pour ne jamais afficher >100%.
-                const siteCountRaw = Number(bank.siteCount);
+                const siteCount = Number(bank.siteCount);
                 const taleosCount = Number(summary.counts_by_group[name] || 0);
-                const hasSiteCount = Number.isFinite(siteCountRaw) && siteCountRaw > 0;
-                // siteCount effectif = max(hardcodé, scrapé) pour éviter >100%
-                const siteCount = hasSiteCount ? Math.max(siteCountRaw, taleosCount) : 0;
-                const coveragePct = hasSiteCount ? Math.min(100, Number(((taleosCount / siteCount) * 100).toFixed(1))) : null;
-                const missingCount = hasSiteCount ? Math.max(siteCount - taleosCount, 0) : null;
+                const hasSiteCount = Number.isFinite(siteCount) && siteCount > 0;
+                // coveragePct brut — pas de cap, on veut voir si on dépasse
+                const coveragePct = hasSiteCount ? Number(((taleosCount / siteCount) * 100).toFixed(1)) : null;
+                // offres manquantes (négatif = on scrappe plus que le site n'affiche)
+                const missingCount = hasSiteCount ? siteCount - taleosCount : null;
 
                 // Fraîcheur : date de la dernière offre mise à jour pour ce groupe
                 const lastUpdatedIso = freshness[name] || null;
                 const lastUpdatedMs = lastUpdatedIso ? new Date(lastUpdatedIso).getTime() : null;
                 const ageHours = lastUpdatedMs ? Math.round((now - lastUpdatedMs) / 3600000) : null;
 
-                // Détection des anomalies
+                // Détection des anomalies — par ordre de gravité
                 let alert = null;
                 if (hasSiteCount && taleosCount === 0) {
                     alert = { type: 'error', msg: `Aucune offre en base — scraper en panne ?` };
                 } else if (hasSiteCount && coveragePct < 5) {
-                    alert = { type: 'error', msg: `Scraper en panne ? Seulement ${taleosCount} offres sur ${siteCountRaw} attendues (${coveragePct}%)` };
+                    alert = { type: 'error', msg: `Scraper en panne ? Seulement ${taleosCount} offres scrapées sur ${siteCount} disponibles (${coveragePct}%)` };
+                } else if (hasSiteCount && coveragePct > 110) {
+                    // On scrappe significativement plus que ce que le site affiche
+                    alert = { type: 'warn', msg: `${taleosCount} scrapées > ${siteCount} sur le site (${coveragePct}%) — siteCount à mettre à jour ou offres expirées encore en base` };
                 } else if (hasSiteCount && coveragePct < 50) {
-                    alert = { type: 'warn', msg: `Couverture faible : ${coveragePct}% (${taleosCount}/${siteCountRaw})` };
+                    alert = { type: 'warn', msg: `Couverture faible : ${coveragePct}% (${taleosCount}/${siteCount}) — scraper incomplet ?` };
                 } else if (ageHours !== null && ageHours > 48) {
                     const days = Math.round(ageHours / 24);
                     alert = { type: 'warn', msg: `Données non rafraîchies depuis ${days} jour${days > 1 ? 's' : ''} — vérifier le pipeline` };
@@ -1271,7 +1273,6 @@
                     id: name.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
                     name,
                     siteCount: hasSiteCount ? siteCount : null,
-                    siteCountRef: hasSiteCount ? siteCountRaw : null,  // référence initiale (pour affichage)
                     taleosCount,
                     coveragePct,
                     missingCount,
@@ -1508,11 +1509,12 @@
 
                 const statusIcon = bank.alert?.type === 'error' ? '🔴' : bank.alert?.type === 'warn' ? '🟡' : '🟢';
 
-                const missingText = bank.missingCount === 0
-                    ? '<span style="color:#047857;font-weight:600">✓ Complet</span>'
-                    : bank.missingCount !== null
+                const missingText = bank.missingCount === null ? '—'
+                    : bank.missingCount === 0
+                        ? '<span style="color:#047857;font-weight:600">✓ Complet</span>'
+                    : bank.missingCount > 0
                         ? `<strong style="color:#b45309">${formatCount(bank.missingCount)}</strong> <span style="font-size:0.75rem;color:#7a7a8a">manquantes</span>`
-                        : '—';
+                        : `<span style="color:#7c3aed;font-weight:600">+${formatCount(-bank.missingCount)} en trop</span>`;
 
                 return `
                     <tr${bank.alert ? ` class="row-has-alert row-alert-${bank.alert.type}"` : ''}>

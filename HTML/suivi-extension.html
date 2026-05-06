@@ -1083,14 +1083,17 @@
         const SCRAPING_COVERAGE_CF_URL = 'https://europe-west1-project-taleos.cloudfunctions.net/getScrapingCoverageSnapshot';
         const SCRAPING_COVERAGE_CACHE_KEY = 'taleosScrapingCoverageSnapshotV2';
         const SCRAPING_COVERAGE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+        // siteCount = nombre d'offres visible sur le site carrière (mis à jour manuellement, ~1×/semaine)
+        // Pour Goldman : inclut PROFESSIONAL + EARLY_CAREER + CAMPUS (undergrads + stages d'été)
+        // Pour JP Morgan : inclut tous types via API Oracle HCM (CX_1001)
         const SCRAPING_COVERAGE_FALLBACK_BANKS = [
             { name: 'Groupe BPCE', siteCount: 2568, careerUrl: 'https://recrutement.bpce.fr/offres-emploi?external=false', sourceLabel: 'API BPCE' },
             { name: 'Groupe BNP Paribas', siteCount: 4876, careerUrl: 'https://group.bnpparibas/emploi-carriere/toutes-offres-emploi', sourceLabel: 'Page offres BNP Paribas' },
             { name: 'Groupe Crédit Agricole', siteCount: 2031, careerUrl: 'https://groupecreditagricole.jobs/fr/nos-offres/', sourceLabel: 'Page offres Crédit Agricole' },
             { name: 'Groupe Société Générale', siteCount: 1713, careerUrl: 'https://careers.societegenerale.com/', sourceLabel: 'Page carrière Société Générale' },
-            { name: 'Groupe Crédit Mutuel', siteCount: 854, careerUrl: 'https://recrutement.creditmutuel.fr/fr/nos_offres.html', sourceLabel: 'Page offres Crédit Mutuel' },
-            { name: 'J.P. Morgan', siteCount: 7402, careerUrl: 'https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs', sourceLabel: 'Page carrière J.P. Morgan' },
-            { name: 'Goldman Sachs', siteCount: 1439, careerUrl: 'https://higher.gs.com/results?&page=1&sort=RELEVANCE', sourceLabel: 'Page carrière Goldman Sachs' },
+            { name: 'Groupe Crédit Mutuel', siteCount: 862, careerUrl: 'https://recrutement.creditmutuel.fr/fr/nos_offres.html', sourceLabel: 'Page offres Crédit Mutuel' },
+            { name: 'J.P. Morgan', siteCount: 7542, careerUrl: 'https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs', sourceLabel: 'API Oracle HCM (tous types)' },
+            { name: 'Goldman Sachs', siteCount: 1500, careerUrl: 'https://higher.gs.com/results?&page=1&sort=RELEVANCE', sourceLabel: 'Page carrière Goldman Sachs (Professional + Early Career + Campus)' },
             { name: 'Deloitte', siteCount: 417, careerUrl: 'https://www.deloitte.com/fr/fr/careers/content/job/results.html', sourceLabel: 'Page offres Deloitte' },
             { name: 'Bpifrance', siteCount: 224, careerUrl: 'https://talents.bpifrance.fr/nos-opportunites/?criteres=cdi%7Calternance%7Cstage%7Cvie', sourceLabel: 'Somme des contrats Bpifrance' },
             { name: 'ODDO BHF', siteCount: 215, careerUrl: 'https://www.oddo-bhf.com/fr/decouvrez-nos-offres-demplois/', sourceLabel: 'Page offres ODDO BHF' }

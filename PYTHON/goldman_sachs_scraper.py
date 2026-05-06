@@ -49,6 +49,7 @@ REQUEST_TIMEOUT = 30
 MAX_RETRIES   = 3
 
 # Expériences à inclure (INTERNAL_MOBILITY exclus = postes internes GS)
+# CAMPUS inclus : programmes undergraduate + internships d'été (périmètre Taleos)
 EXPERIENCES = ["PROFESSIONAL", "EARLY_CAREER", "CAMPUS"]
 
 # ─────────────────────────── Config ─────────────────────────────

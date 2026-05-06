@@ -1806,10 +1806,22 @@
         body.offers-page .filters-grid-wrapper .filter-group:nth-child(3) .filter-box-body-checkboxes,
         body.offers-page .filters-grid-wrapper .filter-group:nth-child(4) .filter-box-body-checkboxes {
             min-height: auto;
-            max-height: 170px;
+            max-height: min(36vh, 340px);
             padding: 0;
             border: none;
             background: transparent;
+        }
+
+        body.offers-page .filter-group.filter-group-location .filter-checkbox-container,
+        body.offers-page .filter-group.filter-group-location .filter-box-body-checkboxes {
+            max-height: min(48vh, 520px);
+        }
+
+        body.offers-page .filter-group:nth-child(5) .filter-checkbox-container,
+        body.offers-page .filter-group:nth-child(5) .filter-box-body-checkboxes,
+        body.offers-page .filter-group:nth-child(6) .filter-checkbox-container,
+        body.offers-page .filter-group:nth-child(6) .filter-box-body-checkboxes {
+            max-height: min(44vh, 460px);
         }
 
         body.offers-page #searchInput {
@@ -2103,6 +2115,17 @@
 
             .offers-main-column {
                 padding: 18px 18px 32px;
+            }
+
+            body.offers-page .filter-box-body-checkboxes,
+            body.offers-page .filter-checkbox-container,
+            body.offers-page .filter-group.filter-group-location .filter-checkbox-container,
+            body.offers-page .filter-group.filter-group-location .filter-box-body-checkboxes,
+            body.offers-page .filter-group:nth-child(5) .filter-checkbox-container,
+            body.offers-page .filter-group:nth-child(5) .filter-box-body-checkboxes,
+            body.offers-page .filter-group:nth-child(6) .filter-checkbox-container,
+            body.offers-page .filter-group:nth-child(6) .filter-box-body-checkboxes {
+                max-height: 220px;
             }
         }
 

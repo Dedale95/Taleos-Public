@@ -107,6 +107,7 @@ nav {
     font-weight: 700 !important;
     letter-spacing: -0.01em !important;
     color: var(--taleos-white) !important;
+    text-transform: uppercase !important;
 }
 
 .logo-text span {

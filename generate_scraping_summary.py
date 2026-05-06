@@ -61,6 +61,18 @@ def load_jobs():
     return max(candidates, key=len)
 
 
+def is_axa(name: str) -> bool:
+    n = (name or "").lower()
+    return (
+        n.startswith("axa")
+        or any(s in n for s in [
+            "direct assurance", "gie axa", "juridica",
+            "mutuelle saint-christophe", "mutuelle saint christophe",
+            "axa liabilities", "axa investment managers",
+        ])
+    )
+
+
 def is_credit_agricole(name: str) -> bool:
     n = (name or "").lower()
     return (
@@ -124,6 +136,8 @@ def canonical_group(name: str) -> str:
         return "J.P. Morgan"
     if "société générale" in low or "societe generale" in low:
         return "Groupe Société Générale"
+    if is_axa(n):
+        return "AXA"
     if is_credit_agricole(n):
         return "Groupe Crédit Agricole"
     if is_bpce(n):

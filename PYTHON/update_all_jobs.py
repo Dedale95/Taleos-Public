@@ -39,6 +39,7 @@ CREDIT_MUTUEL_DB = PYTHON_DIR / "credit_mutuel_jobs.db"
 ODDO_BHF_DB = PYTHON_DIR / "oddo_bhf_jobs.db"
 JP_MORGAN_DB = PYTHON_DIR / "jp_morgan_jobs.db"
 GOLDMAN_SACHS_DB = PYTHON_DIR / "goldman_sachs_jobs.db"
+AXA_DB           = PYTHON_DIR / "axa_jobs.db"
 
 EXPIRED_PAGE_PATTERNS = [
     "la page que vous recherchez est introuvable",
@@ -209,6 +210,46 @@ def revalidate_live_offers_in_db(
         conn.close()
 
 
+def _print_db_live_expired_snapshot(title: str):
+    """Affiche un snapshot compact Live/Expired/Invalid par base pour diagnostiquer la consolidation."""
+    print() 
+    print("=" * 60)
+    print(title)
+    print("=" * 60)
+    print(f"   {'Entité':<22} │ {'Live':>6} │ {'Expired':>7} │ {'Invalid':>7}")
+    print("   " + "-" * 54)
+    for name, db_path in [
+        ("Crédit Agricole", CA_DB),
+        ("Société Générale", SG_DB),
+        ("Deloitte", DELOITTE_DB),
+        ("BNP Paribas", BNP_DB),
+        ("BPCE", BPCE_DB),
+        ("Bpifrance", BPIFRANCE_DB),
+        ("Crédit Mutuel", CREDIT_MUTUEL_DB),
+        ("ODDO BHF", ODDO_BHF_DB),
+        ("JP Morgan Chase", JP_MORGAN_DB),
+        ("Goldman Sachs", GOLDMAN_SACHS_DB),
+        ("AXA", AXA_DB),
+    ]:
+        if not db_path.exists() or not _db_has_jobs_table(db_path):
+            print(f"   {name:<22} │   ---  │    ---  │    ---  (base absente)")
+            continue
+        conn = sqlite3.connect(db_path)
+        try:
+            row = conn.execute("""
+                SELECT 
+                    SUM(CASE WHEN status = 'Live' AND is_valid = 1 THEN 1 ELSE 0 END) as live,
+                    SUM(CASE WHEN status = 'Expired' THEN 1 ELSE 0 END) as expired,
+                    SUM(CASE WHEN is_valid = 0 THEN 1 ELSE 0 END) as invalid
+                FROM jobs
+            """).fetchone()
+        finally:
+            conn.close()
+        live, expired, invalid = (row[0] or 0), (row[1] or 0), (row[2] or 0)
+        print(f"   {name:<22} │ {live:>6} │ {expired:>7} │ {invalid:>7}")
+    print("=" * 60)
+
+
 def revalidate_live_offers_all_sources():
     """Passe globale de revalidation sur toutes les bases d'offres."""
     print("\n🔁 Revalidation globale des offres Live (HTTP + détection 404)...")
@@ -228,6 +269,7 @@ def revalidate_live_offers_all_sources():
         ("ODDO BHF", ODDO_BHF_DB),
         ("JP Morgan Chase", JP_MORGAN_DB),
         ("Goldman Sachs", GOLDMAN_SACHS_DB),
+        ("AXA", AXA_DB),
     ]:
         total += revalidate_live_offers_in_db(
             db_path, name, max_urls=max_per
@@ -484,6 +526,7 @@ def merge_from_databases():
         ("ODDO BHF", ODDO_BHF_DB),
         ("JP Morgan Chase", JP_MORGAN_DB),
         ("Goldman Sachs", GOLDMAN_SACHS_DB),
+        ("AXA", AXA_DB),
     ]
 
     for name, db_path in sources_info:
@@ -572,6 +615,10 @@ if __name__ == "__main__":
     if not run_script("goldman_sachs_scraper.py"):
         failures.append("goldman_sachs_scraper.py")
 
+    # 7e. Scraper AXA (API REST pure — pas de Playwright)
+    if not run_script("axa_scraper.py"):
+        failures.append("axa_scraper.py")
+
     if failures:
         print("\n❌ Scrapers en échec:")
         for s in failures:
@@ -579,8 +626,12 @@ if __name__ == "__main__":
         if require_bnp_db:
             raise RuntimeError("Au moins un scraper a échoué en mode strict (TALEOS_REQUIRE_BNP_DB=1).")
 
+    # Diagnostic: état des bases téléchargées avant toute consolidation
+    _print_db_live_expired_snapshot("📦 SNAPSHOT DES BASES TÉLÉCHARGÉES (avant revalidation)")
+
     # 8. Revalidation globale des offres encore marquées Live
     revalidate_live_offers_all_sources()
+    _print_db_live_expired_snapshot("🧪 SNAPSHOT APRÈS REVALIDATION GLOBALE")
 
     # 9. Fusion des données depuis les bases SQLite
     merge_from_databases()
@@ -609,7 +660,7 @@ if __name__ == "__main__":
         total_expired = 0
         print(f"   {'Entité':<22} │ {'Live':>6} │ {'Expired':>7}")
         print("   " + "-" * 40)
-        for name, db_path in [("Crédit Agricole", CA_DB), ("Société Générale", SG_DB), ("Deloitte", DELOITTE_DB), ("BNP Paribas", BNP_DB), ("BPCE", BPCE_DB), ("Bpifrance", BPIFRANCE_DB), ("Crédit Mutuel", CREDIT_MUTUEL_DB), ("ODDO BHF", ODDO_BHF_DB), ("JP Morgan Chase", JP_MORGAN_DB), ("Goldman Sachs", GOLDMAN_SACHS_DB)]:
+        for name, db_path in [("Crédit Agricole", CA_DB), ("Société Générale", SG_DB), ("Deloitte", DELOITTE_DB), ("BNP Paribas", BNP_DB), ("BPCE", BPCE_DB), ("Bpifrance", BPIFRANCE_DB), ("Crédit Mutuel", CREDIT_MUTUEL_DB), ("ODDO BHF", ODDO_BHF_DB), ("JP Morgan Chase", JP_MORGAN_DB), ("Goldman Sachs", GOLDMAN_SACHS_DB), ("AXA", AXA_DB)]:
             if db_path.exists():
                 conn = sqlite3.connect(db_path)
                 row = conn.execute("""

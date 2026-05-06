@@ -1239,10 +1239,15 @@
 
             const trackedBanks = SCRAPING_COVERAGE_FALLBACK_BANKS.map((bank) => {
                 const name = bank.name;
-                const siteCount = Number(bank.siteCount);
+                // siteCount = référence hardcodée. Si on scrappe plus (fluctuation normale),
+                // on utilise le max pour ne jamais afficher >100%.
+                const siteCountRaw = Number(bank.siteCount);
                 const taleosCount = Number(summary.counts_by_group[name] || 0);
-                const hasSiteCount = Number.isFinite(siteCount) && siteCount > 0;
-                const coveragePct = hasSiteCount ? Number(((taleosCount / siteCount) * 100).toFixed(1)) : null;
+                const hasSiteCount = Number.isFinite(siteCountRaw) && siteCountRaw > 0;
+                // siteCount effectif = max(hardcodé, scrapé) pour éviter >100%
+                const siteCount = hasSiteCount ? Math.max(siteCountRaw, taleosCount) : 0;
+                const coveragePct = hasSiteCount ? Math.min(100, Number(((taleosCount / siteCount) * 100).toFixed(1))) : null;
+                const missingCount = hasSiteCount ? Math.max(siteCount - taleosCount, 0) : null;
 
                 // Fraîcheur : date de la dernière offre mise à jour pour ce groupe
                 const lastUpdatedIso = freshness[name] || null;
@@ -1251,10 +1256,12 @@
 
                 // Détection des anomalies
                 let alert = null;
-                if (hasSiteCount && coveragePct < 5) {
-                    alert = { type: 'error', msg: `Scraper en panne ? Seulement ${taleosCount} offres sur ${siteCount} attendues (${coveragePct}%)` };
+                if (hasSiteCount && taleosCount === 0) {
+                    alert = { type: 'error', msg: `Aucune offre en base — scraper en panne ?` };
+                } else if (hasSiteCount && coveragePct < 5) {
+                    alert = { type: 'error', msg: `Scraper en panne ? Seulement ${taleosCount} offres sur ${siteCountRaw} attendues (${coveragePct}%)` };
                 } else if (hasSiteCount && coveragePct < 50) {
-                    alert = { type: 'warn', msg: `Couverture faible : ${coveragePct}% (${taleosCount}/${siteCount})` };
+                    alert = { type: 'warn', msg: `Couverture faible : ${coveragePct}% (${taleosCount}/${siteCountRaw})` };
                 } else if (ageHours !== null && ageHours > 48) {
                     const days = Math.round(ageHours / 24);
                     alert = { type: 'warn', msg: `Données non rafraîchies depuis ${days} jour${days > 1 ? 's' : ''} — vérifier le pipeline` };
@@ -1264,9 +1271,10 @@
                     id: name.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
                     name,
                     siteCount: hasSiteCount ? siteCount : null,
+                    siteCountRef: hasSiteCount ? siteCountRaw : null,  // référence initiale (pour affichage)
                     taleosCount,
                     coveragePct,
-                    missingCount: hasSiteCount ? Math.max(siteCount - taleosCount, 0) : null,
+                    missingCount,
                     careerUrl: bank.careerUrl,
                     sourceLabel: bank.sourceLabel,
                     lastUpdatedIso,
@@ -1500,6 +1508,12 @@
 
                 const statusIcon = bank.alert?.type === 'error' ? '🔴' : bank.alert?.type === 'warn' ? '🟡' : '🟢';
 
+                const missingText = bank.missingCount === 0
+                    ? '<span style="color:#047857;font-weight:600">✓ Complet</span>'
+                    : bank.missingCount !== null
+                        ? `<strong style="color:#b45309">${formatCount(bank.missingCount)}</strong> <span style="font-size:0.75rem;color:#7a7a8a">manquantes</span>`
+                        : '—';
+
                 return `
                     <tr${bank.alert ? ` class="row-has-alert row-alert-${bank.alert.type}"` : ''}>
                         <td>
@@ -1526,6 +1540,9 @@
                                 <strong>${coverageText}</strong>
                                 <span>${bank.status === 'error' ? 'à vérifier' : `${formatCount(bank.taleosCount)} / ${formatCount(bank.siteCount)}`}</span>
                             </div>
+                        </td>
+                        <td style="text-align:right;white-space:nowrap">
+                            ${missingText}
                         </td>
                     </tr>
                 `;
@@ -2059,24 +2076,33 @@
                 return;
             }
 
+            // ── Chargement en deux temps pour éviter que la Cloud Function lente
+            //    bloque l'affichage du tableau de scraping (rapide).
+            //
+            // 1. Scraping coverage : JSON GitHub → instantané → on affiche le dashboard
+            // 2. Candidatures extension : Cloud Function → lent → chargé en tâche de fond
+
+            // Étape 1 : afficher le dashboard dès que le JSON est prêt (< 1s)
             try {
-                await Promise.all([
-                    loadExtensionRuns(user),
-                    loadScrapingCoverage(user).catch((error) => {
-                        console.error('Erreur chargement couverture scraping:', error);
-                        renderScrapingCoverage(null);
-                    })
-                ]);
-                loading.style.display = 'none';
-                unauthorized.style.display = 'none';
-                dashboard.style.display = 'block';
-            } catch (error) {
-                console.error('Erreur chargement dashboard extension:', error);
-                loading.style.display = 'none';
-                dashboard.style.display = 'block';
-                document.getElementById('emptyState').style.display = 'block';
-                document.getElementById('emptyState').textContent = 'Impossible de charger le dashboard extension.';
-            }
+                await loadScrapingCoverage(user).catch((err) => {
+                    console.error('Erreur couverture scraping:', err);
+                    renderScrapingCoverage(null);
+                });
+            } catch (_) {}
+
+            loading.style.display = 'none';
+            unauthorized.style.display = 'none';
+            dashboard.style.display = 'block';
+
+            // Étape 2 : candidatures en arrière-plan — affiche un spinner dans la section
+            const runsSection = document.getElementById('emptyState');
+            loadExtensionRuns(user).catch((error) => {
+                console.error('Erreur chargement runs extension:', error);
+                if (runsSection) {
+                    runsSection.style.display = 'block';
+                    runsSection.textContent = 'Impossible de charger les candidatures de l\'extension.';
+                }
+            });
         });
     </script>
 </body>

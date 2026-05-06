@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-05-05T07:41:22.462109+00:00",
-  "total_jobs": 18326,
+  "generated_at": "2026-05-06T08:00:14.515028+00:00",
+  "total_jobs": 20500,
   "counts_by_group": {
-    "J.P. Morgan": 7459,
-    "Groupe BNP Paribas": 2650,
-    "Groupe BPCE": 2405,
-    "Groupe Crédit Agricole": 1938,
+    "J.P. Morgan": 7546,
+    "Groupe BNP Paribas": 4718,
+    "Groupe BPCE": 2437,
+    "Groupe Crédit Agricole": 1926,
     "Groupe Société Générale": 1576,
-    "Goldman Sachs": 1442,
+    "Goldman Sachs": 1452,
     "Deloitte": 401,
-    "Bpifrance": 222,
-    "ODDO BHF": 217,
+    "Bpifrance": 217,
+    "ODDO BHF": 211,
     "Groupe Crédit Mutuel": 15,
     "Non spécifié": 1
   }

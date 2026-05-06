@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="AXA">
+  <rect width="160" height="160" rx="24" fill="#0A3DAA"/>
+  <path d="M122 28L61 132" stroke="#E22B2B" stroke-width="9" stroke-linecap="round"/>
+  <path d="M31 116L53 44H72L94 116H77L72 100H52L47 116H31ZM56 86H68L62 63L56 86Z" fill="#fff"/>
+  <path d="M83 116L104 80L86 44H103L113 66L126 44H143L123 79L144 116H127L114 93L100 116H83Z" fill="#fff"/>
+</svg>

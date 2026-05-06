@@ -2353,7 +2353,7 @@
             <div class="offers-toolbar-right">
                 <select class="offers-sort-select" id="sortSelect" onchange="applyFilters()">
                     <option value="pertinence">Pertinence</option>
-                    <option value="recent">Date — plus récent</option>
+                    <option value="recent" selected>Date — plus récent</option>
                     <option value="ancien">Date — plus ancien</option>
                     <option value="entreprise">Entreprise A→Z</option>
                 </select>
@@ -6568,7 +6568,7 @@
         }
 
         function sortJobs(jobs) {
-            const sortValue = document.getElementById('sortSelect')?.value || 'pertinence';
+            const sortValue = document.getElementById('sortSelect')?.value || 'recent';
             const sorted = [...jobs];
 
             const parseDate = (job) => {

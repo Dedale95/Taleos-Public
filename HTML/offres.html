@@ -5754,6 +5754,13 @@
             if (jobs !== undefined) {
                 filteredJobs = jobs;
             }
+
+            const parseJobDate = (job) => {
+                const value = job?.publication_date || '';
+                const parsed = parseFlexibleDate(value);
+                return parsed ? parsed.getTime() : 0;
+            };
+            filteredJobs = [...filteredJobs].sort((a, b) => parseJobDate(b) - parseJobDate(a));
             
             // Reset à la page 1
             currentPage = 1;

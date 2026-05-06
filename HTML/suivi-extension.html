@@ -431,6 +431,30 @@
             background: rgba(239,68,68,0.10);
         }
 
+        /* Fraîcheur des données */
+        .scraping-freshness {
+            font-size: 0.72rem;
+            margin-top: 3px;
+        }
+        .freshness-ok { color: #047857; }
+        .freshness-stale { color: #b45309; font-weight: 600; }
+
+        /* Alertes inline dans les lignes */
+        .scraping-alert {
+            font-size: 0.72rem;
+            margin-top: 4px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            line-height: 1.4;
+        }
+        .scraping-alert-error { background: rgba(239,68,68,0.10); color: #b91c1c; }
+        .scraping-alert-warn  { background: rgba(245,158,11,0.10); color: #b45309; }
+
+        /* Lignes avec alerte remontées visuellement */
+        .row-has-alert td:first-child { border-left: 3px solid transparent; }
+        .row-alert-error td:first-child { border-left-color: #ef4444; }
+        .row-alert-warn  td:first-child { border-left-color: #f59e0b; }
+
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1210,21 +1234,45 @@
 
             if (!summary || !summary.counts_by_group) return null;
 
+            const freshness = summary.freshness_by_group || {};
+            const now = Date.now();
+
             const trackedBanks = SCRAPING_COVERAGE_FALLBACK_BANKS.map((bank) => {
                 const name = bank.name;
                 const siteCount = Number(bank.siteCount);
                 const taleosCount = Number(summary.counts_by_group[name] || 0);
                 const hasSiteCount = Number.isFinite(siteCount) && siteCount > 0;
+                const coveragePct = hasSiteCount ? Number(((taleosCount / siteCount) * 100).toFixed(1)) : null;
+
+                // Fraîcheur : date de la dernière offre mise à jour pour ce groupe
+                const lastUpdatedIso = freshness[name] || null;
+                const lastUpdatedMs = lastUpdatedIso ? new Date(lastUpdatedIso).getTime() : null;
+                const ageHours = lastUpdatedMs ? Math.round((now - lastUpdatedMs) / 3600000) : null;
+
+                // Détection des anomalies
+                let alert = null;
+                if (hasSiteCount && coveragePct < 5) {
+                    alert = { type: 'error', msg: `Scraper en panne ? Seulement ${taleosCount} offres sur ${siteCount} attendues (${coveragePct}%)` };
+                } else if (hasSiteCount && coveragePct < 50) {
+                    alert = { type: 'warn', msg: `Couverture faible : ${coveragePct}% (${taleosCount}/${siteCount})` };
+                } else if (ageHours !== null && ageHours > 48) {
+                    const days = Math.round(ageHours / 24);
+                    alert = { type: 'warn', msg: `Données non rafraîchies depuis ${days} jour${days > 1 ? 's' : ''} — vérifier le pipeline` };
+                }
+
                 return {
                     id: name.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
                     name,
                     siteCount: hasSiteCount ? siteCount : null,
                     taleosCount,
-                    coveragePct: hasSiteCount ? Number(((taleosCount / siteCount) * 100).toFixed(1)) : null,
+                    coveragePct,
                     missingCount: hasSiteCount ? Math.max(siteCount - taleosCount, 0) : null,
                     careerUrl: bank.careerUrl,
                     sourceLabel: bank.sourceLabel,
-                    status: hasSiteCount ? 'ok' : 'error',
+                    lastUpdatedIso,
+                    ageHours,
+                    alert,
+                    status: alert?.type === 'error' ? 'error' : (alert?.type === 'warn' ? 'warn' : (hasSiteCount ? 'ok' : 'error')),
                     error: hasSiteCount ? null : 'Total site carrière non branché'
                 };
             });
@@ -1431,15 +1479,35 @@
                 const siteCountText = bank.status === 'error' ? 'Indisponible' : formatCount(bank.siteCount);
                 const taleosCountText = formatCount(bank.taleosCount);
                 const coverageText = bank.status === 'error' ? 'Indisponible' : formatPercent(bank.coveragePct);
-                const missingText = bank.status === 'error' ? escapeHtml(bank.error || 'Source indisponible') : `${formatCount(bank.missingCount)} offres manquantes`;
                 const width = Number.isFinite(Number(bank.coveragePct)) ? Math.max(3, Math.min(100, Number(bank.coveragePct))) : 3;
+
+                // Fraîcheur
+                let freshnessHtml = '';
+                if (bank.ageHours !== null) {
+                    const ageLabel = bank.ageHours < 24
+                        ? `il y a ${bank.ageHours}h`
+                        : `il y a ${Math.round(bank.ageHours / 24)}j`;
+                    const freshnessClass = bank.ageHours > 48 ? 'freshness-stale' : 'freshness-ok';
+                    freshnessHtml = `<div class="scraping-freshness ${freshnessClass}">🕐 MàJ ${ageLabel}</div>`;
+                }
+
+                // Alerte
+                let alertHtml = '';
+                if (bank.alert) {
+                    const alertClass = bank.alert.type === 'error' ? 'scraping-alert-error' : 'scraping-alert-warn';
+                    alertHtml = `<div class="scraping-alert ${alertClass}">⚠️ ${escapeHtml(bank.alert.msg)}</div>`;
+                }
+
+                const statusIcon = bank.alert?.type === 'error' ? '🔴' : bank.alert?.type === 'warn' ? '🟡' : '🟢';
+
                 return `
-                    <tr>
+                    <tr${bank.alert ? ` class="row-has-alert row-alert-${bank.alert.type}"` : ''}>
                         <td>
                             <div class="scraping-bank">
-                                <strong>${escapeHtml(bank.name || 'Banque')}</strong>
+                                <strong>${statusIcon} ${escapeHtml(bank.name || 'Banque')}</strong>
                                 <span><a href="${escapeHtml(bank.careerUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(bank.sourceLabel || 'Source')}</a></span>
                             </div>
+                            ${alertHtml}
                         </td>
                         <td>
                             <div>${siteCountText}</div>
@@ -1448,6 +1516,7 @@
                         <td>
                             <div>${taleosCountText}</div>
                             <div class="scraping-count-meta">dans Taleos</div>
+                            ${freshnessHtml}
                         </td>
                         <td class="scraping-coverage-cell">
                             <div class="coverage-bar">
@@ -1457,9 +1526,6 @@
                                 <strong>${coverageText}</strong>
                                 <span>${bank.status === 'error' ? 'à vérifier' : `${formatCount(bank.taleosCount)} / ${formatCount(bank.siteCount)}`}</span>
                             </div>
-                        </td>
-                        <td>
-                            <span class="scraping-status-pill ${tone}">${bank.status === 'error' ? '⚠️' : tone === 'ok' ? '✅' : '🛠️'} ${missingText}</span>
                         </td>
                     </tr>
                 `;

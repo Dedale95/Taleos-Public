@@ -162,10 +162,26 @@ def canonical_group(name: str) -> str:
 def main():
     jobs = load_jobs()
     grouped = Counter(canonical_group(job.get("company_name") or "") for job in jobs)
+
+    # Fraîcheur par groupe : date de la dernière offre ajoutée/mise à jour
+    # On prend le max de first_seen et last_updated pour chaque offre, par groupe.
+    freshness: dict[str, str] = {}
+    for job in jobs:
+        group = canonical_group(job.get("company_name") or "")
+        # Prendre la date la plus récente disponible sur l'offre
+        dates = [d for d in [job.get("first_seen"), job.get("last_updated")] if d]
+        if not dates:
+            continue
+        job_latest = max(dates)
+        if group not in freshness or job_latest > freshness[group]:
+            freshness[group] = job_latest
+
     summary = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "total_jobs": len(jobs),
         "counts_by_group": dict(sorted(grouped.items(), key=lambda item: (-item[1], item[0].lower()))),
+        # dernière date d'ajout/mise à jour d'une offre, par groupe (ISO 8601)
+        "freshness_by_group": dict(sorted(freshness.items())),
     }
     for path in (ROOT_SUMMARY, HTML_SUMMARY):
         with open(path, "w", encoding="utf-8") as f:

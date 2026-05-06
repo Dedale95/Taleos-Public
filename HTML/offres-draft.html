@@ -1875,6 +1875,90 @@
             grid-template-columns: 1fr;
         }
 
+        body.offers-page .jobs-container.list-view .job-card {
+            padding: 14px 18px;
+            min-height: 0;
+            border-radius: 18px;
+        }
+
+        body.offers-page .jobs-container.list-view .job-card-head {
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        body.offers-page .jobs-container.list-view .job-company-header {
+            gap: 10px;
+            align-items: center;
+        }
+
+        body.offers-page .jobs-container.list-view .job-company-logo-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+        }
+
+        body.offers-page .jobs-container.list-view .job-title {
+            font-size: 1rem;
+            line-height: 1.22;
+            margin-bottom: 3px;
+        }
+
+        body.offers-page .jobs-container.list-view .job-company-name {
+            font-size: 0.82rem;
+            line-height: 1.2;
+        }
+
+        body.offers-page .jobs-container.list-view .job-favorite-btn {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+        }
+
+        body.offers-page .jobs-container.list-view .job-tags {
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+
+        body.offers-page .jobs-container.list-view .tag {
+            padding: 3px 9px;
+            font-size: 0.76rem;
+            line-height: 1.1;
+        }
+
+        body.offers-page .jobs-container.list-view .job-footer {
+            padding-top: 8px;
+            border-top: 1px solid #edf0f4;
+        }
+
+        body.offers-page .jobs-container.list-view .job-date {
+            margin: 0;
+            font-size: 0.76rem;
+        }
+
+        body.offers-page .jobs-container.list-view .job-actions {
+            gap: 8px;
+            min-width: 0;
+        }
+
+        body.offers-page .jobs-container.list-view .job-apply-btn,
+        body.offers-page .jobs-container.list-view .job-link,
+        body.offers-page .jobs-container.list-view .job-cancel-btn {
+            width: 122px;
+            min-width: 122px;
+            max-width: 122px;
+            padding: 8px 10px;
+            font-size: 0.82rem;
+            border-radius: 10px;
+        }
+
+        body.offers-page .jobs-container.list-view .job-card-badge {
+            top: 10px;
+            right: 58px;
+            padding: 4px 9px;
+            font-size: 0.7rem;
+            max-width: 180px;
+        }
+
         .job-card-head {
             display: flex;
             justify-content: space-between;
@@ -2150,6 +2234,18 @@
                 width: 100%;
                 justify-content: flex-start;
                 flex-wrap: wrap;
+            }
+
+            body.offers-page .jobs-container.list-view .job-card {
+                padding: 14px;
+            }
+
+            body.offers-page .jobs-container.list-view .job-apply-btn,
+            body.offers-page .jobs-container.list-view .job-link,
+            body.offers-page .jobs-container.list-view .job-cancel-btn {
+                width: 100%;
+                min-width: 0;
+                max-width: none;
             }
         }
 

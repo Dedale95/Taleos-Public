@@ -283,13 +283,57 @@
         /* Ligne du bouton reset */
         .filter-row-reset {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
             margin-top: 20px;
             padding-top: 20px;
         }
 
         .filter-row-reset .reset-btn {
             margin: 0;
+        }
+
+        .favorites-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            border: 1px solid var(--surface3);
+            background: var(--white);
+            color: var(--muted);
+            font-family: var(--sans);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .favorites-toggle:hover {
+            color: #d14343;
+            border-color: rgba(209, 67, 67, 0.28);
+            background: rgba(209, 67, 67, 0.04);
+        }
+
+        .favorites-toggle.active {
+            color: #d14343;
+            border-color: rgba(209, 67, 67, 0.28);
+            background: rgba(209, 67, 67, 0.06);
+        }
+
+        .favorites-toggle svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .favorites-count-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #d14343;
+            background: rgba(209, 67, 67, 0.12);
+            border-radius: 999px;
+            padding: 2px 8px;
         }
 
         /* Responsive : colonnes empilées sur petit écran */
@@ -764,14 +808,14 @@
             border-radius: var(--radius-md);
             padding: 22px;
             border: 1px solid var(--surface2);
-            transition: border-color var(--transition), box-shadow var(--transition);
+            transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
             cursor: pointer;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 100%;
-            min-height: 360px;
+            min-height: 260px;
         }
 
         /* États de candidature */
@@ -804,9 +848,8 @@
             text-align: center;
         }
 
-        /* Ajouter du padding au titre pour éviter qu'il soit masqué par le badge */
-        .job-card:has(.job-card-badge) .job-title {
-            padding-right: 200px;
+        .job-card.favorite {
+            border-color: rgba(209, 67, 67, 0.18);
         }
 
         .job-card.application-pending .job-card-badge {
@@ -853,18 +896,105 @@
             transform: translateY(-4px);
         }
 
+        .job-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .job-company-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .job-company-logo-box {
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--surface2);
+            overflow: hidden;
+        }
+
+        .job-company-logo-box .company-logo {
+            width: 100%;
+            height: 100%;
+            padding: 6px;
+            background: transparent;
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        .job-company-logo-box .company-logo.company-logo-goldman {
+            padding: 3px;
+        }
+
+        .job-company-initials {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .job-title-wrap {
+            min-width: 0;
+            flex: 1;
+        }
+
         .job-title {
-            font-size: 1.35rem;
+            font-size: 1.18rem;
+            line-height: 1.32;
+            margin-bottom: 4px;
             font-weight: 700;
             color: #1a1a1a;
-            margin-bottom: 8px;
         }
 
         .job-id {
-            color: var(--gold);
+            display: none;
+        }
+
+        .job-company-name {
+            color: var(--muted);
+            font-size: 0.92rem;
             font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
+        }
+
+        .job-favorite-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            border: 1px solid var(--surface3);
+            background: var(--white);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            flex-shrink: 0;
+        }
+
+        .job-favorite-btn:hover {
+            border-color: rgba(209, 67, 67, 0.28);
+            background: rgba(209, 67, 67, 0.05);
+        }
+
+        .job-favorite-btn.active {
+            border-color: rgba(209, 67, 67, 0.3);
+            background: rgba(209, 67, 67, 0.08);
+        }
+
+        .job-favorite-btn svg {
+            width: 17px;
+            height: 17px;
+            transition: all var(--transition);
         }
 
         .job-tags {
@@ -896,13 +1026,7 @@
         }
 
         .job-company {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #666;
-            font-weight: 500;
-            padding: 0 0 10px 0;
-            min-height: 58px;
+            display: none;
         }
 
         .company-logo {
@@ -922,27 +1046,22 @@
             object-position: center;
         }
 
-        .company-name-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-        }
-
         .job-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
             padding-top: 14px;
-            border-top: 2px solid #f3f4f6;
+            border-top: 1px solid var(--surface2);
+            margin-top: auto;
         }
 
         .job-date {
-            color: #6b7280;
-            font-size: 0.85rem;
+            color: #a1a1aa;
+            font-size: 0.78rem;
             font-weight: 500;
-            margin-bottom: 12px;
-            margin-top: 4px;
+            margin: 0;
+            white-space: nowrap;
         }
 
         /* Harmoniser Candidater, Voir l'offre, Annuler : même taille, centrés à droite */
@@ -952,19 +1071,19 @@
             gap: 10px;
             align-items: center;
             justify-content: flex-end;
-            min-width: 300px;
+            min-width: 0;
         }
 
         .job-apply-btn,
         .job-link,
         .job-cancel-btn {
             padding: 10px 16px;
-            font-size: 0.9rem;
+            font-size: 0.84rem;
             font-weight: 600;
-            border-radius: 10px;
-            width: 150px;
-            min-width: 150px;
-            max-width: 150px;
+            border-radius: 8px;
+            width: auto;
+            min-width: 0;
+            max-width: none;
             text-align: center;
             flex-shrink: 0;
         }
@@ -973,22 +1092,25 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: var(--ink);
-            color: var(--white);
+            background: var(--white);
+            color: var(--muted);
+            border: 1px solid var(--surface3);
             text-decoration: none;
             transition: all var(--transition);
         }
 
         .job-link:hover {
-            background: var(--ink-mid);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+            background: var(--white);
+            color: var(--ink);
+            border-color: var(--ink);
+            transform: none;
+            box-shadow: none;
         }
 
         .job-apply-btn {
-            background: var(--white);
-            color: var(--gold);
-            border: 1px solid rgba(200,169,110,0.4);
+            background: var(--ink);
+            color: var(--white);
+            border: none;
             text-decoration: none;
             transition: all var(--transition);
             cursor: pointer;
@@ -996,9 +1118,8 @@
         }
 
         .job-apply-btn:hover:not(:disabled) {
-            background: var(--gold-dim);
-            border-color: var(--gold);
-            color: var(--text-body);
+            background: var(--ink-mid);
+            color: var(--white);
         }
 
         .job-apply-btn:disabled {
@@ -1687,6 +1808,13 @@
                 </div>
             </div>
             <div class="filter-row-reset">
+                <button class="favorites-toggle" id="favoritesToggle" type="button" onclick="toggleFavoritesOnly()">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M10 16.5S2 11.3 2 6.5a4 4 0 0 1 8-1.1A4 4 0 0 1 18 6.5c0 4.8-8 10-8 10z"/>
+                    </svg>
+                    Favoris
+                    <span class="favorites-count-pill" id="favoritesCount">0</span>
+                </button>
                 <button class="reset-btn" onclick="resetFilters()">🔄 Réinitialiser tous les filtres</button>
             </div>
             </div>
@@ -1762,6 +1890,8 @@
         // Pagination variables
         let currentPage = 1;
         let itemsPerPage = 25;
+        let favoriteJobs = new Set(JSON.parse(localStorage.getItem('taleosFavoriteJobs') || '[]'));
+        let showFavoritesOnly = false;
         const SECTIONS_MAX = 12;
         let customSections = [];
         let sectionsLoaded = false;
@@ -4534,9 +4664,10 @@
                 const jobEdu = job.education_level && String(job.education_level).trim();
                 const matchEducation = !selectedEducations.length || selectedEducations.includes(jobEdu) ||
                     (selectedEducations.includes('Non spécifié') && !jobEdu);
+                const matchFavorites = !showFavoritesOnly || favoriteJobs.has(job.job_id);
 
                 return matchSearch && matchCountry && matchRegion && matchContract &&
-                    matchExperience && matchFamily && matchCompany && matchEducation;
+                    matchExperience && matchFamily && matchCompany && matchEducation && matchFavorites;
             });
 
             // Mettre à jour les statistiques immédiatement après le filtrage (avant le rendu)
@@ -5660,15 +5791,14 @@
                             const jobTitle = cleanJobTitle(job.job_title);
                             
                             let buttonHTML = '';
-                            const jobLinkHTML = `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                            const jobLinkHTML = `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>`;
                             
                             if (isExpired) {
                                 buttonHTML = `<span class="job-expired-label">Offre expirée</span>`;
                             } else if (isSubmitted || isApplied || isPending) {
                                 buttonHTML = jobLinkHTML;
                             } else {
-                                buttonHTML = `<button class="job-apply-btn" onclick="applyToJob('${jobId}', '${jobTitle.replace(/'/g, "\\'")}', this)">📝 Candidater</button>`;
-                                buttonHTML += jobLinkHTML;
+                                buttonHTML = `${jobLinkHTML}<button class="job-apply-btn" onclick="applyToJob('${jobId}', '${jobTitle.replace(/'/g, "\\'")}', this)">Postuler</button>`;
                             }
                             
                             actionsDiv.innerHTML = buttonHTML;
@@ -5794,7 +5924,7 @@
             const container = document.getElementById('jobsContainer');
             
             if (filteredJobs.length === 0) {
-                container.innerHTML = '<div class="no-results"><h3>😕 Aucune offre</h3><p>Modifiez vos filtres</p></div>';
+                container.innerHTML = `<div class="no-results"><h3>${showFavoritesOnly ? '♡ Aucun favori' : '😕 Aucune offre'}</h3><p>${showFavoritesOnly ? 'Ajoutez des offres à vos favoris pour les retrouver ici.' : 'Modifiez vos filtres'}</p></div>`;
                 document.getElementById('paginationTop').style.display = 'none';
                 document.getElementById('paginationBottom').style.display = 'none';
                 return;
@@ -5836,6 +5966,7 @@
                 const isPending = pendingApplications[job.job_id];
                 const status = applicationStatuses.get(job.job_id);
                 const isSubmitted = status === 'envoyée';
+                const isFavorite = favoriteJobs.has(job.job_id);
                 
                 // Classes CSS selon l'état
                 let cardClass = 'job-card';
@@ -5845,14 +5976,31 @@
                     cardClass += ' application-submitted';
                     badgeHTML = '<div class="job-card-badge">✓ Candidature envoyée</div>';
                 }
+                if (isFavorite) cardClass += ' favorite';
                 // Plus de "Candidature en cours" avec timer : la vignette passe à "envoyée" uniquement via l'onglet de candidature
-                
+
+                const logoPath = getCompanyLogo(job.company_name);
+                const logoUrl = logoPath ? (() => { try { return new URL(logoPath, window.location.href).href; } catch(e) { return logoPath; } })() : null;
+                const logoClass = getCompanyLogoClass(job.company_name, logoPath);
+
                 return `
         <div class="${cardClass}" data-job-url="${job.job_url}">
             ${badgeHTML}
-            <div class="job-title">${cleanJobTitle(job.job_title)}</div>
-            <div class="job-id">${job.job_id}</div>
-            <div class="job-date">Publiée le ${formatDateToFrench(job.publication_date)}</div>
+            <div class="job-card-head">
+                <div class="job-company-header">
+                    <div class="job-company-logo-box">
+                        ${logoUrl ? `<img src="${logoUrl}" alt="${(job.company_name || '').replace(/"/g, '&quot;')}" class="${logoClass}" loading="lazy" onerror="this.closest('.job-company-logo-box').innerHTML='<span class=&quot;job-company-initials&quot;>${getCompanyInitials(job.company_name)}</span>'">` : `<span class="job-company-initials">${getCompanyInitials(job.company_name)}</span>`}
+                    </div>
+                    <div class="job-title-wrap">
+                        <div class="job-title">${cleanJobTitle(job.job_title)}</div>
+                        <div class="job-company-name">${job.company_name || ''}</div>
+                        <div class="job-id">${job.job_id}</div>
+                    </div>
+                </div>
+                <button class="job-favorite-btn ${isFavorite ? 'active' : ''}" onclick="toggleFavoriteJob(event, '${job.job_id}', this)" title="${isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+                    ${getFavoriteIconMarkup(isFavorite)}
+                </button>
+            </div>
             <div class="job-tags">
                 ${job.location ? `<span class="tag tag-location">🌍 ${job.location}</span>` : ''}
                 ${job.contract_type ? `<span class="tag tag-contract">📄 ${job.contract_type}</span>` : ''}
@@ -5861,32 +6009,20 @@
                 ${job.job_family ? `<span class="tag tag-family">🎯 ${job.job_family}</span>` : ''}
             </div>
             <div class="job-bottom-block">
-                ${job.company_name ? (() => {
-                    const logoPath = getCompanyLogo(job.company_name);
-                    const logoUrl = logoPath ? (() => { try { return new URL(logoPath, window.location.href).href; } catch(e) { return logoPath; } })() : null;
-                    const logoClass = getCompanyLogoClass(job.company_name, logoPath);
-                    return `
-                <div class="job-company">
-                    ${logoUrl ? `<img src="${logoUrl}" alt="${(job.company_name || '').replace(/"/g, '&quot;')}" class="${logoClass}" loading="lazy" onerror="this.style.display='none'">` : ''}
-                    <div class="company-name-wrapper">
-                        <span>${job.company_name}</span>
-                    </div>
-                </div>`;
-                })() : ''}
                 <div class="job-footer">
+                    <div class="job-date">Publiée ${formatDateRelative(job.publication_date)}</div>
                     <div class="job-actions">
                     ${isAuthenticated ? (() => {
                         const status = applicationStatuses.get(job.job_id);
                         const isSubmitted = status === 'envoyée';
 
                         if (isSubmitted || hasApplied) {
-                            return `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                            return `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>`;
                         } else {
-                            // Pas encore candidaté : Candidater + Voir l'offre
-                            return `<button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">📝 Candidater</button>
-                                    <a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                            return `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>
+                                    <button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">Postuler</button>`;
                         }
-                    })() : `<a href="${job.job_url}" target="_blank" class="job-link">Voir l'offre →</a>`}
+                    })() : `<a href="${job.job_url}" target="_blank" class="job-link">Voir l'offre</a>`}
                     </div>
                 </div>
             </div>
@@ -5928,6 +6064,92 @@
                     }
                 });
             });
+        }
+
+        function formatDateRelative(dateString) {
+            if (!dateString || dateString === 'date inconnue' || dateString === 'Date non spécifiée') {
+                return 'à une date inconnue';
+            }
+            try {
+                const raw = String(dateString || '').trim();
+                let parsed = null;
+
+                const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                if (iso) {
+                    const [, y, m, d] = iso;
+                    parsed = new Date(Number(y), Number(m) - 1, Number(d));
+                } else {
+                    const fr = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+                    if (fr) {
+                        const [, d, m, y] = fr;
+                        parsed = new Date(Number(y), Number(m) - 1, Number(d));
+                    } else {
+                        const fallback = new Date(raw);
+                        parsed = Number.isNaN(fallback.getTime()) ? null : fallback;
+                    }
+                }
+
+                if (!parsed || Number.isNaN(parsed.getTime())) return 'à une date inconnue';
+                const days = Math.round((Date.now() - parsed.getTime()) / 86400000);
+                if (days <= 0) return "aujourd'hui";
+                if (days === 1) return 'il y a 1 jour';
+                if (days < 31) return `il y a ${days} jours`;
+                if (days < 60) return 'il y a 1 mois';
+                const months = Math.round(days / 30);
+                if (months < 12) return `il y a ${months} mois`;
+                return "il y a plus d'un an";
+            } catch (e) {
+                return 'à une date inconnue';
+            }
+        }
+
+        function getFavoriteIconMarkup(isFavorite) {
+            return `
+                <svg viewBox="0 0 20 20" fill="${isFavorite ? '#d14343' : 'none'}" stroke="${isFavorite ? '#d14343' : 'currentColor'}" stroke-width="1.8">
+                    <path d="M10 16.5S2 11.3 2 6.5a4 4 0 0 1 8-1.1A4 4 0 0 1 18 6.5c0 4.8-8 10-8 10z"/>
+                </svg>
+            `;
+        }
+
+        function getCompanyInitials(name) {
+            return String(name || '')
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(part => part[0]?.toUpperCase() || '')
+                .join('');
+        }
+
+        function toggleFavoriteJob(event, jobId, btn) {
+            event.stopPropagation();
+            if (favoriteJobs.has(jobId)) favoriteJobs.delete(jobId);
+            else favoriteJobs.add(jobId);
+            localStorage.setItem('taleosFavoriteJobs', JSON.stringify(Array.from(favoriteJobs)));
+            updateFavoritesToggle();
+            if (btn && btn.isConnected) {
+                const isFavorite = favoriteJobs.has(jobId);
+                btn.classList.toggle('active', isFavorite);
+                btn.innerHTML = getFavoriteIconMarkup(isFavorite);
+                btn.title = isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris';
+                btn.closest('.job-card')?.classList.toggle('favorite', isFavorite);
+            }
+            if (showFavoritesOnly) {
+                applyFilters();
+            }
+        }
+
+        function toggleFavoritesOnly() {
+            showFavoritesOnly = !showFavoritesOnly;
+            currentPage = 1;
+            updateFavoritesToggle();
+            applyFilters();
+        }
+
+        function updateFavoritesToggle() {
+            const countEl = document.getElementById('favoritesCount');
+            if (countEl) countEl.textContent = favoriteJobs.size;
+            const toggle = document.getElementById('favoritesToggle');
+            if (toggle) toggle.classList.toggle('active', showFavoritesOnly);
         }
 
         function updateStats() {
@@ -6015,6 +6237,7 @@
                 if (filtersHeader) filtersHeader.classList.add('collapsed');
                 if (filtersWrapper) filtersWrapper.classList.add('collapsed');
             }
+            updateFavoritesToggle();
         });
 
 

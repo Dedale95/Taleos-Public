@@ -5755,6 +5755,26 @@
                 filteredJobs = jobs;
             }
 
+            const parseFlexibleDate = (value) => {
+                const raw = String(value || '').trim();
+                if (!raw) return null;
+
+                const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (iso) {
+                    const [, y, m, d] = iso;
+                    return new Date(Number(y), Number(m) - 1, Number(d));
+                }
+
+                const fr = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                if (fr) {
+                    const [, d, m, y] = fr;
+                    return new Date(Number(y), Number(m) - 1, Number(d));
+                }
+
+                const native = new Date(raw);
+                return Number.isNaN(native.getTime()) ? null : native;
+            };
+
             const parseJobDate = (job) => {
                 const value = job?.publication_date || '';
                 const parsed = parseFlexibleDate(value);

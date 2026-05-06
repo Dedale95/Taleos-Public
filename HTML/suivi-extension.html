@@ -842,7 +842,7 @@
             </a>
 
             <div class="nav-links">
-                <a href="landing_page_finance.html?v=20260504c" class="nav-link">Présentation</a>
+                <a href="landing_page_finance.html?v=20260504c" class="nav-link" id="presentationLink">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
                 <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
                 <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
@@ -1874,6 +1874,9 @@
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (extensionRunsLink) extensionRunsLink.style.display = 'none';
                 if (draftLink) draftLink.style.display = 'none';
+                if (presentationLink) presentationLink.style.display = 'block';
+                if (presentationLink) presentationLink.style.display = 'block';
+                if (presentationLink) presentationLink.style.display = 'block';
             } else {
                 if (authLink) authLink.style.display = 'block';
                 if (profileLink) profileLink.style.display = 'none';
@@ -1882,6 +1885,7 @@
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (extensionRunsLink) extensionRunsLink.style.display = 'none';
                 if (draftLink) draftLink.style.display = 'none';
+                if (presentationLink) presentationLink.style.display = 'block';
             }
         }
 
@@ -1902,6 +1906,7 @@
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (extensionRunsLink) extensionRunsLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none';
                 if (draftLink) draftLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none';
+                if (presentationLink) presentationLink.style.display = 'none';
             } else {
                 if (authLink) authLink.style.display = 'block';
                 if (profileLink) profileLink.style.display = 'none';
@@ -1910,6 +1915,7 @@
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (extensionRunsLink) extensionRunsLink.style.display = 'none';
                 if (draftLink) draftLink.style.display = 'none';
+                if (presentationLink) presentationLink.style.display = 'block';
             }
         }
 

@@ -730,7 +730,7 @@
         </a>
 
         <div class="nav-links">
-            <a href="landing_page_finance.html?v=20260504c" class="nav-link">Présentation</a>
+            <a href="landing_page_finance.html?v=20260504c" class="nav-link" id="presentationLink">Présentation</a>
             <a href="offres.html" class="nav-link">Offres</a>
             <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
             <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
@@ -1118,6 +1118,7 @@
             if (navCandidatures) navCandidatures.style.display = 'block';
             if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
             if (draftLink) draftLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
+            if (presentationLink) presentationLink.style.display = 'none';
             if (navConnexions) navConnexions.style.display = 'block';
             if (rechercheLink) rechercheLink.style.display = 'inline-block';
             btnLogout.style.display = 'block';
@@ -1127,6 +1128,7 @@
             if (navCandidatures) navCandidatures.style.display = 'none';
             if (extensionRunsLink) extensionRunsLink.style.display = 'none';
             if (draftLink) draftLink.style.display = 'none';
+            if (presentationLink) presentationLink.style.display = 'block';
             if (navConnexions) navConnexions.style.display = 'none';
             if (rechercheLink) rechercheLink.style.display = 'none';
             btnLogout.style.display = 'none';
@@ -1143,11 +1145,13 @@
             const navCandidatures = document.getElementById('navCandidatures');
             const extensionRunsLink = document.getElementById('extensionRunsLink');
             const draftLink = document.getElementById('draftLink');
+            const presentationLink = document.getElementById('presentationLink');
             const navConnexions = document.getElementById('navConnexions');
             const rechercheLink = document.getElementById('rechercheLink');
             if (navCandidatures) navCandidatures.style.display = 'block';
             if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
             if (draftLink) draftLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
+            if (presentationLink) presentationLink.style.display = email ? 'none' : 'block';
             if (navConnexions) navConnexions.style.display = 'block';
             if (rechercheLink) rechercheLink.style.display = 'inline-block';
         }

@@ -1137,7 +1137,7 @@
             </a>
 
             <div class="nav-links">
-                <a href="landing_page_finance.html?v=20260504c" class="nav-link">Présentation</a>
+                <a href="landing_page_finance.html?v=20260504c" class="nav-link" id="presentationLink">Présentation</a>
                 <a href="offres.html" class="nav-link">Offres</a>
                 <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
                 <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
@@ -2648,6 +2648,7 @@
                 if (applicationsLink) applicationsLink.style.display = 'block';
                 if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
                 if (draftLink) draftLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
+                if (presentationLink) presentationLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (rechercheLink) rechercheLink.style.display = 'inline-block';
             } else {
@@ -2656,6 +2657,8 @@
                 if (applicationsLink) applicationsLink.style.display = 'none';
                 if (extensionRunsLink) extensionRunsLink.style.display = 'none';
                 if (draftLink) draftLink.style.display = 'none';
+                if (presentationLink) presentationLink.style.display = 'block';
+                if (presentationLink) presentationLink.style.display = 'block';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (rechercheLink) rechercheLink.style.display = 'none';
                 profileLink.classList.remove('nav-link-primary');
@@ -4199,6 +4202,7 @@
                 if (applicationsLink) applicationsLink.style.display = 'block';
                 if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(localStorage.getItem('userEmail') || currentUser?.email || auth?.currentUser?.email) ? 'block' : 'none';
                 if (draftLink) draftLink.style.display = canViewExtensionRuns(localStorage.getItem('userEmail') || currentUser?.email || auth?.currentUser?.email) ? 'block' : 'none';
+                if (presentationLink) presentationLink.style.display = 'none';
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (rechercheLink) rechercheLink.style.display = 'inline-block';
             } else {
@@ -4211,6 +4215,8 @@
                 if (applicationsLink) applicationsLink.style.display = 'none';
                 if (extensionRunsLink) extensionRunsLink.style.display = 'none';
                 if (draftLink) draftLink.style.display = 'none';
+                if (presentationLink) presentationLink.style.display = 'block';
+                if (presentationLink) presentationLink.style.display = 'block';
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (rechercheLink) rechercheLink.style.display = 'none';
                 authLink.classList.remove('nav-link-primary');

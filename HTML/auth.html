@@ -479,7 +479,7 @@
         </a>
 
         <div class="nav-links">
-            <a href="landing_page_finance.html?v=20260504c" class="nav-link">Présentation</a>
+            <a href="landing_page_finance.html?v=20260504c" class="nav-link" id="presentationLink">Présentation</a>
             <a href="offres.html" class="nav-link">Offres</a>
             <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
             <a href="landing_page_finance.html?v=20260504c#process" class="nav-link">Comment ça marche</a>
@@ -718,9 +718,11 @@
             const rechercheLink = document.getElementById('rechercheLink');
             const extensionRunsLink = document.getElementById('extensionRunsLink');
             const draftLink = document.getElementById('draftLink');
+            const presentationLink = document.getElementById('presentationLink');
             if (rechercheLink) rechercheLink.style.display = user ? 'inline-block' : 'none';
             if (extensionRunsLink) extensionRunsLink.style.display = user && canViewExtensionRuns(user.email) ? 'inline-block' : 'none';
             if (draftLink) draftLink.style.display = user && canViewExtensionRuns(user.email) ? 'inline-block' : 'none';
+            if (presentationLink) presentationLink.style.display = user ? 'none' : 'inline-block';
             if (user) {
                 const target = localStorage.getItem('postLoginRedirect') || 'offres.html';
                 localStorage.removeItem('postLoginRedirect');

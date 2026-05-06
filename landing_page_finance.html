@@ -193,7 +193,7 @@ function Nav({ onSignup }) {
   const lk = { fontSize:13, fontWeight:500, color:'rgba(255,255,255,0.55)', cursor:'pointer', transition:'color 0.2s' };
   const activeLink = { ...lk, color:'#c8a96e', fontWeight:600 };
   const navItems = [
-    { label:'Présentation', href:getPresentationHref(), section:'presentation' },
+    ...(!isAuthenticated() ? [{ label:'Présentation', href:getPresentationHref(), section:'presentation' }] : []),
     { label:'Offres', href:isAuthenticated() ? 'offres.html' : '#offres', section:'offres' },
     ...(canSeeDraft ? [{ label:'Offres draft', href:'offres-draft.html', section:null }] : []),
     { label:'Comment ça marche', href:'#process', section:'process' },

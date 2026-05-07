@@ -1119,7 +1119,9 @@ async function fetchProfile(uid, bankId, token) {
     bpce_handicap: profile.bpce_handicap || '',
     bpce_vivier_natixis: profile.bpce_vivier_natixis || '',
     linkedin_url: (profile.linkedin_url || '').trim(),
-    bpce_job_alerts: !!profile.bpce_job_alerts
+    bpce_job_alerts: !!profile.bpce_job_alerts,
+    bpifrance_talent_pool: profile.bpifrance_talent_pool || '',
+    axa_talent_pool: profile.axa_talent_pool || ''
   };
 }
 

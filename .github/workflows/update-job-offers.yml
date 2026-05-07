@@ -37,6 +37,7 @@ on:
           - oddo_bhf
           - jp_morgan
           - goldman_sachs
+          - axa
 
 jobs:
   scrape:
@@ -98,6 +99,11 @@ jobs:
             script: goldman_sachs_scraper.py
             db_file: goldman_sachs_jobs.db
             timeout_minutes: 30
+          - name: AXA
+            key: axa
+            script: axa_scraper.py
+            db_file: axa_jobs.db
+            timeout_minutes: 15
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       PYTHONUNBUFFERED: 1

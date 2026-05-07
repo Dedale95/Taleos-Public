@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 """
-CRÉDIT MUTUEL - JOB SCRAPER (v2)
+CRÉDIT MUTUEL - JOB SCRAPER (v3)
 Extrait les offres d'emploi depuis recrutement.creditmutuel.fr
 
 Architecture :
-  - Playwright pour la phase listing (clic "Plus de résultats" jusqu'au bout)
-  - requests + BeautifulSoup pour les détails (plus rapide, pas de JS nécessaire)
+  - requests + BeautifulSoup pour la phase listing (form POST "Plus de résultats")
+    → plus de Playwright nécessaire, fonctionne en CI headless sans bot-detection
+  - requests + BeautifulSoup pour les détails (parallèle)
   - Delta scraping : seules les nouvelles offres sont scrapées en détail ;
     les offres disparues du listing sont marquées Expired immédiatement.
-  - Les nouvelles URLs sont insérées en DB avec les données listing
-    (titre extrait de l'URL + type de contrat si disponible) avant le
-    scraping détail — elles sont donc visibles dans l'export immédiatement.
+
+Mécanique listing :
+  Le site utilise la plateforme e-i.com (DevBooster). Le bouton "Plus de résultats"
+  soumet un formulaire POST vers l'URL principale avec le champ _FID_PlusDoffres.
+  Le serveur retourne une page HTML complète avec 30 offres supplémentaires cumulées.
+  On répète jusqu'à atteindre le compte cible ou stagnation.
 """
 
-import asyncio
 import logging
 import re
 import sqlite3
@@ -21,10 +24,8 @@ import json
 import time
 from pathlib import Path
 from typing import List, Dict, Set, Optional
-from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
-from tqdm.asyncio import tqdm
-from datetime import datetime
+from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from requests.adapters import HTTPAdapter
@@ -59,19 +60,13 @@ LISTING_URL = f"{BASE_URL}/fr/nos_offres.html"
 
 # ================= Config =================
 class Config:
-    # Listing Playwright
-    PAGE_TIMEOUT        = 60000   # 60 s pour la navigation initiale
-    NETWORK_IDLE_TIMEOUT = 20000  # (conservé pour compatibilité, non utilisé dans la boucle)
-    WAIT_AFTER_NAV      = 4.0     # secondes après goto() pour que le JS s'initialise
-    WAIT_AFTER_CLICK    = 5.0     # secondes de sécurité après clic (fallback ultime)
-    WAIT_NEW_LINKS      = 25000   # ms max pour détecter de nouveaux liens après clic
-    MAX_LOAD_MORE_ROUNDS = 200    # max de clics "Plus de résultats"
+    # Listing requests
+    MAX_LOAD_MORE_ROUNDS = 200    # max de POSTs "Plus de résultats"
     MAX_STAGNANT_ROUNDS  = 3      # arrêt si N rounds consécutifs sans nouvelles URLs
-    HEADLESS            = True
 
     # Détails requests
     MAX_WORKERS      = 8          # parallélisme HTTP pour les détails
-    REQUEST_TIMEOUT  = 20         # secondes par requête
+    REQUEST_TIMEOUT  = 30         # secondes par requête (listing + détails)
     DETAIL_MAX_RETRY = 3
 
     BASE_DIR = Path(__file__).parent
@@ -333,197 +328,167 @@ class JobDatabase:
 
 
 # =========================================================
-# LISTING — collecte des URLs (Playwright)
+# LISTING — collecte des URLs via form POST (pure requests)
 # =========================================================
-_JS_GET_IDS = """
-() => {
-    const links = document.querySelectorAll('a[href*="offre.html?annonce="]');
-    const s = new Set();
-    links.forEach(a => {
-        const m = a.href.match(/annonce=(\\d+)/);
-        if (m) s.add(m[1]);
-    });
-    return Array.from(s);
+
+# URL de base du POST : params fixes reflétant l'état de filtres vides.
+# Le serveur e-i.com attend ces paramètres dans la query string du POST.
+_POST_QS = (
+    "?_tabi=RHEC&_pid=Offres"
+    "&k_tc=&k_fp=&k_dpts=&k_locs=&k_pays=0"
+    "&k_motsCles=&k_iAnnonces=&k_iSocietes=&k_to=False"
+)
+_POST_HEADERS = {
+    "Origin": BASE_URL,
+    "Referer": LISTING_URL,
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
 }
-"""
-
-_LOAD_MORE_SELECTORS = [
-    'a[id*="plusDoffresAccessibilite:link"]',
-    'a[id*="plusDoffres"]',
-    'input[id*="plusDoffres"]',
-    'button[id*="plusDoffres"]',
-    # texte en fallback
-    'a:has-text("Plus de résultats")',
-    'button:has-text("Plus de résultats")',
-    'a:has-text("Afficher plus")',
-    'button:has-text("Afficher plus")',
-]
 
 
-async def _try_click_load_more(page) -> bool:
-    """Cherche et clique le bouton 'Plus de résultats'. Retourne True si cliqué."""
-    for sel in _LOAD_MORE_SELECTORS:
-        try:
-            btn = page.locator(sel).first
-            if await btn.count() == 0:
-                continue
-            # Vérifier que le bouton est visible (bounding box non nulle)
-            box = await btn.bounding_box()
-            if not box:
-                continue
-            await btn.scroll_into_view_if_needed()
-            await asyncio.sleep(0.3)
-            await btn.click(force=True)
-            return True
-        except Exception:
+def _extract_ids_from_soup(soup: BeautifulSoup) -> Set[str]:
+    """Extrait tous les IDs d'offres (annonce=XXXXX) depuis le HTML parsé."""
+    ids: Set[str] = set()
+    for a in soup.find_all("a", href=True):
+        m = re.search(r'annonce=(\d+)', a["href"])
+        if m:
+            ids.add(m.group(1))
+    return ids
+
+
+def _extract_form_data(soup: BeautifulSoup) -> dict:
+    """Extrait tous les champs du formulaire pour les soumettre tels quels."""
+    data: dict = {}
+    form = soup.find("form")
+    if not form:
+        return data
+    for inp in form.find_all("input"):
+        name = inp.get("name", "")
+        if not name:
             continue
-    return False
+        inp_type = (inp.get("type") or "text").lower()
+        if inp_type in ("submit", "button", "image"):
+            continue
+        if inp_type == "checkbox":
+            if inp.get("checked"):
+                data[name] = inp.get("value", "on")
+            # cases non cochées : ne pas inclure (comportement navigateur)
+        elif inp_type == "radio":
+            if inp.get("checked"):
+                data[name] = inp.get("value", "")
+        else:
+            data[name] = inp.get("value", "")
+    for sel in form.find_all("select"):
+        name = sel.get("name", "")
+        if not name:
+            continue
+        opt = sel.find("option", selected=True)
+        if opt is None:
+            opt = sel.find("option")  # première option par défaut
+        data[name] = opt.get("value", "") if opt else ""
+    return data
 
 
-async def _clear_overlays(page):
-    """Supprime cookie banner et modals CM qui bloquent les clics."""
-    await page.evaluate("""
-        () => {
-            document.getElementById('cookieLB')?.remove();
-            document.getElementById('bg_modal_name')?.remove();
-            // Nettoyer tout élément de type overlay générique
-            document.querySelectorAll('[class*="modal"], [class*="overlay"], [id*="cookie"]')
-                .forEach(el => {
-                    if (el.style) {
-                        el.style.display = 'none';
-                        el.style.visibility = 'hidden';
-                    }
-                });
-            document.body?.style?.setProperty('overflow', 'auto', 'important');
-        }
-    """)
-
-
-async def collect_all_job_ids() -> Set[str]:
-    """Collecte tous les IDs d'offres depuis le listing CM via Playwright.
+def collect_all_job_ids(session: requests.Session) -> Set[str]:
+    """Collecte tous les IDs d'offres via form POST répété (sans Playwright).
 
     Stratégie :
-      1. Chargement de la page d'offres avec wait_until='networkidle'.
-      2. Suppression des overlays (cookie banner, modal).
-      3. Boucle : récupération des IDs visibles → clic 'Plus de résultats'
-         → attente networkidle → répétition jusqu'à atteindre le compte attendu
-         ou MAX_STAGNANT_ROUNDS consécutifs sans nouvelles URLs.
+      1. GET de la page listing → extraction $CPT + IDs initiaux.
+      2. Boucle : POST avec _FID_PlusDoffres → réponse HTML cumulative
+         → extraction des nouveaux IDs → mise à jour $CPT → répétition.
+      3. Arrêt quand objectif atteint ou MAX_STAGNANT_ROUNDS sans progression.
     """
     all_ids: Set[str] = set()
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=config.HEADLESS)
-        context = await browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/122.0.0.0 Safari/537.36"
-            ),
-            viewport={"width": 1280, "height": 900},
-        )
-        page = await context.new_page()
+    # ── Étape 1 : chargement initial ─────────────────────────────────────────
+    logging.info(f"  Chargement listing CM: {LISTING_URL}")
+    try:
+        resp = session.get(LISTING_URL, timeout=config.REQUEST_TIMEOUT)
+        resp.raise_for_status()
+    except Exception as e:
+        logging.error(f"  Erreur GET listing CM: {e}")
+        return all_ids
 
-        # Bloquer images/fonts pour accélérer
-        await context.route(
-            "**/*",
-            lambda route: route.abort()
-            if route.request.resource_type in {"image", "font", "media"}
-            else route.continue_()
-        )
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    # Nombre cible d'offres (champ caché Data_NbOffresChargees)
+    target_count: Optional[int] = None
+    nb_el = soup.find("input", {"name": "Data_NbOffresChargees"})
+    if nb_el:
+        try:
+            target_count = int(nb_el.get("value", 0) or 0)
+        except (ValueError, TypeError):
+            pass
+    if not target_count:
+        body_text = soup.get_text(" ", strip=True)
+        target_count = extract_expected_offer_count(body_text)
+    if target_count:
+        logging.info(f"  Cible annoncée: {target_count} offres")
+    else:
+        logging.warning("  Nombre d'offres attendu introuvable")
+
+    # IDs de la page initiale
+    ids = _extract_ids_from_soup(soup)
+    all_ids.update(ids)
+    logging.info(f"  Page initiale: {len(all_ids)} IDs")
+
+    # ── Étape 2 : boucle POST ─────────────────────────────────────────────────
+    post_url = LISTING_URL + _POST_QS
+    stagnant_rounds = 0
+
+    for round_idx in range(config.MAX_LOAD_MORE_ROUNDS):
+        # Objectif atteint
+        if target_count and len(all_ids) >= target_count:
+            logging.info(f"  ✅ Objectif atteint ({len(all_ids)}/{target_count})")
+            break
+
+        # Extraire les champs du formulaire depuis la dernière réponse
+        form_data = _extract_form_data(soup)
+        if not form_data.get("$CPT"):
+            logging.warning("  ⚠️  $CPT manquant dans le formulaire — arrêt")
+            break
+
+        # Ajouter l'action "Plus de résultats"
+        form_data["_FID_PlusDoffres"] = ""
 
         try:
-            logging.info(f"  Chargement listing CM: {LISTING_URL}")
-            await page.goto(LISTING_URL, timeout=config.PAGE_TIMEOUT, wait_until="networkidle")
-            await asyncio.sleep(config.WAIT_AFTER_NAV)
-            await _clear_overlays(page)
+            resp = session.post(
+                post_url,
+                data=form_data,
+                headers=_POST_HEADERS,
+                timeout=config.REQUEST_TIMEOUT,
+            )
+            resp.raise_for_status()
+        except Exception as e:
+            logging.error(f"  Erreur POST tour {round_idx + 1}: {e}")
+            break
 
-            # Nombre attendu d'offres : d'abord via le champ caché Data_NbOffresChargees
-            # (plus fiable que le texte visible), sinon fallback texte.
-            target_count = await page.evaluate("""
-                () => {
-                    const el = document.querySelector('input[name="Data_NbOffresChargees"]');
-                    if (el) {
-                        const n = parseInt(el.value, 10);
-                        if (!isNaN(n) && n > 0) return n;
-                    }
-                    return null;
-                }
-            """)
-            if not target_count:
-                body_text = await page.text_content("body")
-                target_count = extract_expected_offer_count(body_text)
-            if target_count:
-                logging.info(f"  Cible annoncée par le site: {target_count} offres")
-            else:
-                logging.warning("  Nombre d'offres attendu introuvable dans la page")
+        soup = BeautifulSoup(resp.text, "html.parser")
+        new_ids = _extract_ids_from_soup(soup)
 
+        prev_count = len(all_ids)
+        all_ids.update(new_ids)
+        curr_count = len(all_ids)
+
+        logging.info(
+            f"  Tour {round_idx + 1:3d}: {curr_count} IDs"
+            + (f" / {target_count}" if target_count else "")
+        )
+
+        if curr_count == prev_count:
+            stagnant_rounds += 1
+            logging.warning(f"  Pas de progression ({stagnant_rounds}/{config.MAX_STAGNANT_ROUNDS})")
+            if stagnant_rounds >= config.MAX_STAGNANT_ROUNDS:
+                logging.warning(
+                    f"  ⚠️  Arrêt après {config.MAX_STAGNANT_ROUNDS} tours sans progression"
+                    + (f" ({curr_count}/{target_count})" if target_count else f" ({curr_count})")
+                )
+                break
+        else:
             stagnant_rounds = 0
 
-            for round_idx in range(config.MAX_LOAD_MORE_ROUNDS):
-                ids = await page.evaluate(_JS_GET_IDS)
-                prev_count = len(all_ids)
-                all_ids.update(ids)
-                curr_count = len(all_ids)
-
-                logging.info(
-                    f"  Tour {round_idx + 1:3d}: {curr_count} IDs collectés"
-                    + (f" / {target_count}" if target_count else "")
-                )
-
-                # Objectif atteint
-                if target_count and curr_count >= target_count:
-                    logging.info(f"  ✅ Objectif atteint ({curr_count}/{target_count})")
-                    break
-
-                # Stagnation
-                if curr_count == prev_count:
-                    stagnant_rounds += 1
-                    logging.warning(f"  Pas de progression ({stagnant_rounds}/{config.MAX_STAGNANT_ROUNDS})")
-                    if stagnant_rounds >= config.MAX_STAGNANT_ROUNDS:
-                        logging.warning(
-                            f"  ⚠️  Arrêt après {config.MAX_STAGNANT_ROUNDS} tours sans progression"
-                            + (f" ({curr_count}/{target_count})" if target_count else f" ({curr_count})")
-                        )
-                        break
-                else:
-                    stagnant_rounds = 0
-
-                # Scroll + clic
-                await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                await asyncio.sleep(0.5)
-                await _clear_overlays(page)  # Re-supprimer les overlays qui réapparaissent
-
-                ids_before_click = len(await page.evaluate(_JS_GET_IDS))
-                clicked = await _try_click_load_more(page)
-
-                if not clicked:
-                    # Bouton introuvable → fin du listing
-                    if target_count and curr_count < target_count:
-                        logging.warning(
-                            f"  ⚠️  Bouton 'Plus de résultats' introuvable — "
-                            f"seulement {curr_count}/{target_count} offres collectées"
-                        )
-                    else:
-                        logging.info("  Bouton 'Plus de résultats' absent → listing terminé")
-                    break
-
-                # ── Attente après clic : on attend que de nouveaux liens apparaissent.
-                # On évite networkidle (le site a des analytics permanentes qui empêchent
-                # networkidle de se stabiliser rapidement en CI headless).
-                try:
-                    await page.wait_for_function(
-                        f"() => document.querySelectorAll('a[href*=\"offre.html?annonce=\"]').length > {ids_before_click}",
-                        timeout=config.WAIT_NEW_LINKS,
-                    )
-                except Exception:
-                    # Le AJAX n'a pas répondu dans le délai : on attend un peu plus
-                    # puis on retente le clic au prochain tour (stagnation détectée).
-                    await asyncio.sleep(config.WAIT_AFTER_CLICK)
-
-        except Exception as e:
-            logging.error(f"Erreur listing CM: {e}")
-        finally:
-            await browser.close()
+        time.sleep(0.5)
 
     logging.info(f"  Total IDs collectés: {len(all_ids)}")
     return all_ids
@@ -539,9 +504,10 @@ def create_session() -> requests.Session:
     session.mount("https://", adapter)
     session.headers.update({
         "User-Agent": (
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "Mozilla/5.0 (X11; Linux x86_64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-        )
+        ),
+        "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
     })
     return session
 
@@ -668,7 +634,7 @@ def scrape_details_parallel(urls: List[str], session: requests.Session) -> List[
 
     with ThreadPoolExecutor(max_workers=config.MAX_WORKERS) as executor:
         futures = {executor.submit(scrape_detail_with_retries, u, session): u for u in urls}
-        for future in tqdm(as_completed(futures), total=len(futures), desc="Détails CM"):
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Détails CM", ncols=80):
             job = future.result()
             if job:
                 results.append(job)
@@ -688,7 +654,7 @@ def scrape_details_parallel(urls: List[str], session: requests.Session) -> List[
 # =========================================================
 # MAIN PIPELINE
 # =========================================================
-async def main_async():
+def main():
     start = time.time()
     db = JobDatabase(config.DB_PATH)
     session = create_session()
@@ -704,7 +670,7 @@ async def main_async():
 
     # ── 1. Collecte des IDs depuis le listing ──────────────────────────────
     logging.info("\n📋 ÉTAPE 1: Collecte des IDs via le listing CM")
-    all_ids = await collect_all_job_ids()
+    all_ids = collect_all_job_ids(session)
     if not all_ids:
         logging.error("❌ Aucun ID collecté — arrêt")
         return
@@ -741,8 +707,8 @@ async def main_async():
         logging.info(f"  ✓ {len(new_urls)} offres insérées (visibles dans l'export)")
 
     # ── 5. Scraping des détails (toutes les offres sans description) ───────
-    # Pas de cap artificiel ici : CM a ~900 offres max, requests est rapide.
-    # ~900 offres à 8 workers avec 20 s timeout max = < 5 min en général.
+    # CM a ~900 offres max, requests parallèle est rapide.
+    # ~900 offres à 8 workers = < 5 min en général.
     backlog_count = db.count_without_details()
 
     if backlog_count == 0:
@@ -753,7 +719,6 @@ async def main_async():
 
         jobs_scraped = scrape_details_parallel(urls_to_detail, session)
 
-        # Sauvegarder
         saved = 0
         for job in jobs_scraped:
             db.insert_or_update_job(job)
@@ -784,10 +749,6 @@ async def main_async():
     logging.info(f"  Invalides      : {stats[3]}")
     logging.info(f"  Durée          : {elapsed:.1f}s")
     logging.info("=" * 60)
-
-
-def main():
-    asyncio.run(main_async())
 
 
 if __name__ == "__main__":

@@ -3035,6 +3035,7 @@ async function fetchProfile(uid, bankId, token) {
     linkedin_url: (profile.linkedin_url || '').trim(),
     bpce_job_alerts: !!profile.bpce_job_alerts,
     bpifrance_talent_pool: (profile.bpifrance_talent_pool || '').trim(),
+    axa_talent_pool: (profile.axa_talent_pool || '').trim(),
     group_data_sharing_scope: (profile.group_data_sharing_scope || profile.bnp_data_sharing_scope || '').trim(),
     sg_eu_work_authorization: sgEuWorkAuthorization,
     sg_notice_period: profile.sg_notice_period || '',

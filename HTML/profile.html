@@ -1933,6 +1933,10 @@
                                     <input type="checkbox" id="talentPoolBpifrance" name="talentPools" value="bpifrance" onchange="applyTalentPoolsSectionState()">
                                     <span class="checkbox-text">Bpifrance</span>
                                 </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="talentPoolAxa" name="talentPools" value="axa" onchange="applyTalentPoolsSectionState()">
+                                    <span class="checkbox-text">AXA</span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -3151,10 +3155,13 @@
         function loadTalentPoolInfo(profile) {
             const bpceCheckbox = document.getElementById('talentPoolBpce');
             const bpifranceCheckbox = document.getElementById('talentPoolBpifrance');
+            const axaCheckbox = document.getElementById('talentPoolAxa');
             const bpceChecked = !!profile.bpce_job_alerts || String(profile.bpce_vivier_natixis || '').trim().toLowerCase() === 'oui';
             const bpifranceChecked = String(profile.bpifrance_talent_pool || '').trim().toLowerCase() === 'oui';
+            const axaChecked = String(profile.axa_talent_pool || '').trim().toLowerCase() === 'oui';
             if (bpceCheckbox) bpceCheckbox.checked = bpceChecked;
             if (bpifranceCheckbox) bpifranceCheckbox.checked = bpifranceChecked;
+            if (axaCheckbox) axaCheckbox.checked = axaChecked;
         }
 
         function loadJpMorganInfo(profile) {
@@ -4024,6 +4031,7 @@
                 linkedin_url: document.getElementById('linkedinUrl')?.value?.trim() || '',
                 bpce_job_alerts: document.getElementById('talentPoolBpce')?.checked || false,
                 bpifrance_talent_pool: document.getElementById('talentPoolBpifrance')?.checked ? 'Oui' : 'Non',
+                axa_talent_pool: document.getElementById('talentPoolAxa')?.checked ? 'Oui' : 'Non',
                 jp_morgan_military_service: document.getElementById('jpMorganMilitaryService')?.value || '',
                 jp_morgan_work_authorizations: window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [],
                 sg_eu_work_authorization: deriveEuropeanUnionWorkAuthorizationValue(window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : []),

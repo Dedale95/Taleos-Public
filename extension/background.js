@@ -1624,6 +1624,10 @@ const CA_CONNEXION_URL = 'https://groupecreditagricole.jobs/fr/connexion/';
 function getAxaApplyUrl(jobUrl) {
   const match = String(jobUrl || '').match(/\/jobs\/(\d+)(?:[/?#]|$)/i);
   if (!match) return jobUrl;
+  const normalizedUrl = String(jobUrl || '').toLowerCase();
+  if (normalizedUrl.includes('lang=en')) {
+    return `https://careers-en-axa.icims.com/jobs/${match[1]}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
+  }
   return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
 }
 
@@ -2134,7 +2138,7 @@ function computeLegacyRouteAs(bankId, offerUrl) {
   if (bid === 'credit_mutuel' || url.includes('recrutement.creditmutuel.fr')) return 'credit_mutuel';
   if (bid === 'bpifrance' || url.includes('talents.bpifrance.fr') || url.includes('bpi.tzportal.io')) return 'bpifrance';
   if (bid === 'jp_morgan' || bid.includes('jp morgan') || bid.includes('jpmorgan') || url.includes('jpmc.fa.oraclecloud.com')) return 'jp_morgan';
-  if (bid === 'axa' || url.includes('careers.axa.com') || url.includes('careers-fr-axa.icims.com') || url.includes('candidature-recrutement.axa.fr')) return 'axa';
+  if (bid === 'axa' || url.includes('careers.axa.com') || url.includes('careers-fr-axa.icims.com') || url.includes('careers-en-axa.icims.com') || url.includes('candidature-recrutement.axa.fr')) return 'axa';
   if (bid === 'deloitte' || (url.includes('myworkdayjobs.com') && url.includes('deloitte'))) return 'deloitte';
   if (bid === 'societe_generale' || url.includes('careers.societegenerale.com') || url.includes('socgen.taleo.net')) return 'sg';
   if (bid === 'bpce' || url.includes('recrutement.bpce.fr') || url.includes('recruitmentplatform.com')) return 'bpce';
@@ -3632,7 +3636,7 @@ function normalizeSite(site, offerUrl) {
   if (url.includes('talents.bpifrance.fr') || url.includes('bpi.tzportal.io')) return 'bpifrance';
   if (url.includes('jpmc.fa.oraclecloud.com')) return 'jp_morgan';
   if (url.includes('higher.gs.com') || url.includes('hdpc.fa.us2.oraclecloud.com')) return 'goldman_sachs';
-  if (url.includes('careers.axa.com') || url.includes('careers-fr-axa.icims.com') || url.includes('candidature-recrutement.axa.fr')) return 'axa';
+  if (url.includes('careers.axa.com') || url.includes('careers-fr-axa.icims.com') || url.includes('careers-en-axa.icims.com') || url.includes('candidature-recrutement.axa.fr')) return 'axa';
   if (url.includes('societegenerale') || url.includes('socgen.taleo.net')) return 'societe_generale';
   if (url.includes('recrutement.bpce.fr') || url.includes('oraclecloud.com') || url.includes('recruitmentplatform.com')) return 'bpce';
   if (url.includes('myworkdayjobs.com') || url.includes('deloitte.com')) return 'deloitte';

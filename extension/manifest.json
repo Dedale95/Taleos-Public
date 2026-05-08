@@ -37,6 +37,7 @@
     "https://bpi.tzportal.io/*",
     "https://careers.axa.com/*",
     "https://careers-fr-axa.icims.com/*",
+    "https://careers-en-axa.icims.com/*",
     "https://login.icims.eu/*",
     "https://candidature-recrutement.axa.fr/*",
     "https://*.myworkdayjobs.com/*",
@@ -246,6 +247,7 @@
       "matches": [
         "https://careers.axa.com/*",
         "https://careers-fr-axa.icims.com/*",
+        "https://careers-en-axa.icims.com/*",
         "https://login.icims.eu/*"
       ],
       "js": [

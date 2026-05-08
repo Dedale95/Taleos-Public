@@ -253,6 +253,10 @@
   function getAxaApplyUrl(jobUrl) {
     const match = String(jobUrl || '').match(/\/jobs\/(\d+)(?:[/?#]|$)/i);
     if (!match) return jobUrl;
+    const normalizedUrl = String(jobUrl || '').toLowerCase();
+    if (normalizedUrl.includes('lang=en')) {
+      return `https://careers-en-axa.icims.com/jobs/${match[1]}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
+    }
     return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
   }
 

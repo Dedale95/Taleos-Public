@@ -112,25 +112,26 @@
     const host = window.location.hostname;
     const path = window.location.pathname;
     const iframeSrc = getIframeSrc();
+    const isAxaIcimsHost = /careers-(fr|en)-axa\.icims\.com$/i.test(host);
 
     if (host.includes('careers.axa.com') && /\/careers-home\/jobs\/\d+/i.test(path)) return 'public_job';
     if (host.includes('careers.axa.com') && /\/jobs$/i.test(path)) return 'jobs_index';
-    if (host.includes('careers-fr-axa.icims.com') && /\/jobs\/\d+\/login$/i.test(path) && !url.includes('loginOnly=1')) return 'wrapper_login';
-    if (host.includes('careers-fr-axa.icims.com') && iframeSrc && !url.includes('in_iframe=1')) return 'apply_wrapper';
+    if (isAxaIcimsHost && /\/jobs\/\d+\/login$/i.test(path) && !url.includes('loginOnly=1')) return 'wrapper_login';
+    if (isAxaIcimsHost && iframeSrc && !url.includes('in_iframe=1')) return 'apply_wrapper';
     const visiblePassword = Array.from(document.querySelectorAll('input[type="password"], input[name="password"], input[name="passwd"]')).some(visible);
     const visibleUsername = Array.from(document.querySelectorAll('#username, input[name="username"], input[type="email"]')).some(visible);
     if (host.includes('login.icims.eu') && visiblePassword) return 'password_step';
     if (host.includes('login.icims.eu') && path.includes('/u/login/identifier') && visibleUsername) return 'identifier_step';
     if (host.includes('login.icims.eu') && path.includes('/u/login/password')) return 'password_step';
-    if (host.includes('careers-fr-axa.icims.com') && document.querySelector('#enterEmailForm, input#email[name="css_loginName"]')) return 'email_step';
-    if (host.includes('careers-fr-axa.icims.com') && document.querySelector('input[type="password"]')) return 'password_step';
+    if (isAxaIcimsHost && document.querySelector('#enterEmailForm, input#email[name="css_loginName"]')) return 'email_step';
+    if (isAxaIcimsHost && document.querySelector('input[type="password"]')) return 'password_step';
     if (document.body && document.body.innerText && document.body.innerText.includes(SUCCESS_TEXT)) return 'success';
     const normalizedText = (document.body?.innerText || '').toLowerCase();
     if (
-      (host.includes('careers.axa.com') || host.includes('careers-fr-axa.icims.com')) &&
+      (host.includes('careers.axa.com') || isAxaIcimsHost) &&
       APPLY_ROUTE_UNAVAILABLE_TEXTS.some((snippet) => normalizedText.includes(snippet))
     ) return 'apply_unavailable';
-    if (host.includes('careers-fr-axa.icims.com') && url.includes('in_iframe=1') && (
+    if (isAxaIcimsHost && url.includes('in_iframe=1') && (
       document.querySelector('#PortalProfileFields.Resume_Button, #PersonProfileFields.FirstName, #PersonProfileFields.RegulatoryCountry, #cp_form_submit_i, select[id^="Q"], select[name*="Q" i], input[name*="salary" i]')
     )) return 'candidate_form';
     return 'unknown';
@@ -438,7 +439,7 @@
     const age = Date.now() - (pending.timestamp || 0);
     if (age > MAX_PENDING_AGE) return false;
     const host = window.location.hostname;
-    return host.includes('careers.axa.com') || host.includes('careers-fr-axa.icims.com') || host.includes('login.icims.eu');
+    return host.includes('careers.axa.com') || /careers-(fr|en)-axa\.icims\.com$/i.test(host) || host.includes('login.icims.eu');
   }
 
   function init() {

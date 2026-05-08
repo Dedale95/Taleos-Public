@@ -56,6 +56,30 @@ Conséquence :
 - cette offre n’expose pas, au moment du test, un flux de candidature iCIMS exploitable comme `15538`
 - le filler AXA doit reconnaître ce cas et s’arrêter avec un message clair, sans boucle ni faux positif
 
+## Variante confirmée sur l’offre `16638` via domaine `careers-en-axa.icims.com`
+
+Le lien suivant est bien vivant :
+
+- `https://careers-en-axa.icims.com/jobs/16638/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`
+
+Dans cette variante, on n’arrive pas d’abord sur `login.icims.eu`. On passe par une iframe AXA iCIMS anglaise avec :
+
+- `input#email[name="css_loginName"]`
+- `select#gdpr_consent_type`
+- `input#accept_gdpr`
+- `input#enterEmailSubmitButton` valeur `Next`
+- hCaptcha invisible présent dans la frame
+
+Texte confirmé :
+
+- `Do you want to be a part of the AXA Community?`
+- `I acknowledge the privacy notice.`
+
+Conséquence de mapping :
+
+- les offres AXA `lang=en-*` doivent être routées vers `careers-en-axa.icims.com`
+- les offres AXA `lang=fr-*` continuent de partir vers `careers-fr-axa.icims.com`
+
 ## Pages
 
 - `offer_public`

@@ -29,6 +29,13 @@
       selectorsAny: ['a[href*="icims.com/jobs/"][href*="/login"]', 'button', 'h1'],
       textPatterns: TEXT.offerPublic
     },
+    email_step: {
+      label: 'Login iCIMS AXA - email + GDPR',
+      hostIncludes: ['careers-en-axa.icims.com'],
+      pathMatches: [/\/jobs\/\d+\/login/],
+      selectorsAny: ['#email', '#gdpr_consent_type', '#accept_gdpr', '#enterEmailSubmitButton'],
+      textPatterns: ['do you want to be a part of the axa community', 'i acknowledge the privacy notice', 'next']
+    },
     login_identifier: {
       label: 'Login iCIMS - email',
       hostIncludes: ['login.icims.eu'],

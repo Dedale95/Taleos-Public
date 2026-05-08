@@ -253,7 +253,7 @@
   function getAxaApplyUrl(jobUrl) {
     const match = String(jobUrl || '').match(/\/jobs\/(\d+)(?:[/?#]|$)/i);
     if (!match) return jobUrl;
-    return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login`;
+    return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
   }
 
   function findJobCard(el) {

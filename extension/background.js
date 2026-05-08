@@ -1624,7 +1624,7 @@ const CA_CONNEXION_URL = 'https://groupecreditagricole.jobs/fr/connexion/';
 function getAxaApplyUrl(jobUrl) {
   const match = String(jobUrl || '').match(/\/jobs\/(\d+)(?:[/?#]|$)/i);
   if (!match) return jobUrl;
-  return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login`;
+  return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
 }
 
 const CONNECTION_TEST_URLS = {

@@ -2,9 +2,10 @@
  * Taleos - Remplissage automatique AXA / iCIMS
  * Portée actuelle :
  * - ouverture de l'URL apply iCIMS
- * - redirection vers la vue iframe réelle
- * - étape email + consentement RGPD
- * - étape mot de passe
+ * - redirection vers le vrai login iCIMS
+ * - étape identifiant iCIMS
+ * - étape mot de passe iCIMS
+ * - fallback sur l'ancien écran email/consentement RGPD si AXA le réaffiche
  * - détection du formulaire candidat / succès
  *
  * La soumission finale du formulaire candidat AXA reste volontairement manuelle
@@ -57,7 +58,9 @@
     const path = window.location.pathname;
 
     if (host.includes('careers.axa.com') && /\/careers-home\/jobs\/\d+/i.test(path)) return 'public_job';
-    if (host.includes('careers-fr-axa.icims.com') && /\/jobs\/\d+\/login$/i.test(path) && !url.includes('in_iframe=1')) return 'wrapper_login';
+    if (host.includes('careers-fr-axa.icims.com') && /\/jobs\/\d+\/login$/i.test(path) && !url.includes('loginOnly=1')) return 'wrapper_login';
+    if (host.includes('login.icims.eu') && path.includes('/u/login/identifier')) return 'identifier_step';
+    if (host.includes('login.icims.eu') && path.includes('/u/login/password')) return 'password_step';
     if (host.includes('careers-fr-axa.icims.com') && document.querySelector('#enterEmailForm, input#email[name="css_loginName"]')) return 'email_step';
     if (host.includes('careers-fr-axa.icims.com') && document.querySelector('input[type="password"]')) return 'password_step';
     if (document.body && document.body.innerText && document.body.innerText.includes(SUCCESS_TEXT)) return 'success';
@@ -144,12 +147,36 @@
   async function handleWrapperLogin() {
     const iframe = document.querySelector('#icims_content_iframe[src]');
     if (!iframe?.src) {
-      log('⚠️ AXA wrapper login : iframe introuvable');
+      const loginOnlyUrl = window.location.href.includes('loginOnly=1')
+        ? window.location.href
+        : window.location.href.replace(/\/login(?:\?.*)?$/i, (m) => m.includes('?') ? `${m}&loginOnly=1&in_iframe=1` : '/login?loginOnly=1&in_iframe=1');
+      log('🔗 AXA wrapper login : fallback direct vers loginOnly');
+      window.location.replace(loginOnlyUrl);
       return;
     }
     showBanner('AXA → ouverture du vrai formulaire de candidature…');
     log(`🔗 AXA → redirection vers l’iframe iCIMS réelle`);
     window.location.replace(iframe.src);
+  }
+
+  async function handleIdentifierStep(profile) {
+    showBanner('AXA → connexion en cours (identifiant)…');
+    const emailInput = document.querySelector('#username, input[name="username"]');
+    const continueButton = Array.from(document.querySelectorAll('button[type="submit"], button, input[type="submit"]')).find((el) => {
+      const label = (el.value || textValue(el)).toLowerCase();
+      return /continue|continuer/.test(label);
+    });
+
+    log('🧾 AXA → audit détaillé Firebase vs formulaire (étape identifiant)');
+    compareAndFillField('Email', emailInput, profile.auth_email || profile.email || '');
+
+    if (!continueButton) {
+      log('⚠️ AXA → bouton Continue introuvable');
+      return;
+    }
+
+    log('➡️ AXA : clic sur Continue après saisie de l’email');
+    continueButton.click();
   }
 
   async function handleEmailStep(profile) {
@@ -186,10 +213,10 @@
   async function handlePasswordStep(profile) {
     showBanner('AXA → connexion en cours (mot de passe)…');
     const passwordInput = document.querySelector('input[type="password"], input[name="password"], input[name="passwd"]');
-    const emailInput = document.querySelector('input[type="email"], input[name="username"], input[name="email"]');
+    const emailInput = document.querySelector('input[type="email"], input[name="username"], input[name="email"], #username');
     const submitButton = Array.from(document.querySelectorAll('button, input[type="submit"]')).find((el) => {
       const label = (el.value || textValue(el)).toLowerCase();
-      return /se connecter|connexion|sign in|log in|continue|continuer/.test(label);
+      return /se connecter|connexion|sign in|log in|continue|continuer|log in to axa/.test(label);
     });
 
     log('🧾 AXA → audit détaillé Firebase vs formulaire (étape mot de passe)');
@@ -251,7 +278,7 @@
     if (page === 'public_job') {
       const match = window.location.pathname.match(/\/jobs\/(\d+)/i);
       if (match) {
-        const nextUrl = `https://careers-fr-axa.icims.com/jobs/${match[1]}/login`;
+        const nextUrl = `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
         showBanner('AXA → ouverture du portail de candidature…');
         log('🔗 AXA → redirection depuis la page vitrine vers le portail iCIMS');
         window.location.replace(nextUrl);
@@ -259,6 +286,7 @@
       return;
     }
     if (page === 'wrapper_login') return handleWrapperLogin();
+    if (page === 'identifier_step') return handleIdentifierStep(profile);
     if (page === 'email_step') return handleEmailStep(profile);
     if (page === 'password_step') return handlePasswordStep(profile);
     if (page === 'candidate_form') return handleCandidateForm(profile);
@@ -271,7 +299,7 @@
     const age = Date.now() - (pending.timestamp || 0);
     if (age > MAX_PENDING_AGE) return false;
     const host = window.location.hostname;
-    return host.includes('careers.axa.com') || host.includes('careers-fr-axa.icims.com');
+    return host.includes('careers.axa.com') || host.includes('careers-fr-axa.icims.com') || host.includes('login.icims.eu');
   }
 
   function init() {

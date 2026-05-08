@@ -245,9 +245,14 @@
     {
       "matches": [
         "https://careers.axa.com/*",
-        "https://careers-fr-axa.icims.com/*"
+        "https://careers-fr-axa.icims.com/*",
+        "https://login.icims.eu/*"
       ],
-      "js": ["content/axa-careers-filler.js"],
+      "js": [
+        "scripts/taleos-automation-banner.js",
+        "scripts/axa_blueprint.js",
+        "content/axa-careers-filler.js"
+      ],
       "run_at": "document_idle"
     },
     {

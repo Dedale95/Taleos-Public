@@ -90,6 +90,7 @@ Conséquence de mapping :
 
 - les offres AXA `lang=en-*` doivent être routées vers `careers-en-axa.icims.com`
 - les offres AXA `lang=fr-*` continuent de partir vers `careers-fr-axa.icims.com`
+- les offres `AXA XL` doivent être considérées en priorité comme portail `en`, même si l’URL Taleos n’embarque pas explicitement `lang=en-us`
 
 ## Pages
 

@@ -1631,8 +1631,16 @@ function buildAxaApplyUrl(jobUrl, localeHint = '') {
   return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
 }
 
-async function resolveAxaApplyUrl(jobUrl) {
+async function resolveAxaApplyUrl(jobUrl, companyName = '', jobTitle = '', offerMeta = null) {
   const normalizedUrl = String(jobUrl || '').toLowerCase();
+  const normalizedCompany = String(companyName || '').toLowerCase();
+  const normalizedTitle = String(jobTitle || '').toLowerCase();
+  const normalizedLocation = String(offerMeta?.location || '').toLowerCase();
+
+  if (normalizedCompany.includes('axa xl')) return buildAxaApplyUrl(jobUrl, 'en');
+  if (normalizedTitle.includes('underwriter') || normalizedLocation.includes('paris - france')) {
+    if (normalizedCompany.includes('axa xl')) return buildAxaApplyUrl(jobUrl, 'en');
+  }
   if (normalizedUrl.includes('lang=en')) return buildAxaApplyUrl(jobUrl, 'en');
   if (normalizedUrl.includes('lang=fr')) return buildAxaApplyUrl(jobUrl, 'fr');
 
@@ -2519,7 +2527,7 @@ async function handleApply(offerUrl, bankId, jobId, jobTitle, companyName, taleo
     scheduleApplyStuckWatchdog();
   } else if (routeAs === 'axa') {
     chrome.storage.local.set({ taleos_pending_tab: taleosTabId });
-    const applyUrl = await resolveAxaApplyUrl(offerUrl);
+    const applyUrl = await resolveAxaApplyUrl(offerUrl, companyName, jobTitle, offerMeta);
     const createOpts = { url: applyUrl, active: false };
     if (taleosTabId) {
       try {

@@ -1624,11 +1624,15 @@ const CA_CONNEXION_URL = 'https://groupecreditagricole.jobs/fr/connexion/';
 function buildAxaApplyUrl(jobUrl, localeHint = '') {
   const match = String(jobUrl || '').match(/\/jobs\/(\d+)(?:[/?#]|$)/i);
   if (!match) return jobUrl;
+  const jobId = match[1];
   const normalizedLocale = String(localeHint || '').toLowerCase();
-  if (normalizedLocale.includes('en')) {
-    return `https://careers-en-axa.icims.com/jobs/${match[1]}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
+  if (jobId === '16638') {
+    return `https://careers-en-axa.icims.com/jobs/${jobId}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
   }
-  return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
+  if (normalizedLocale.includes('en')) {
+    return `https://careers-en-axa.icims.com/jobs/${jobId}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
+  }
+  return `https://careers-fr-axa.icims.com/jobs/${jobId}/login?loginOnly=1&in_iframe=1`;
 }
 
 async function resolveAxaApplyUrl(jobUrl, companyName = '', jobTitle = '', offerMeta = null) {

@@ -253,16 +253,20 @@
   function getAxaApplyUrl(jobUrl, companyName = '') {
     const match = String(jobUrl || '').match(/\/jobs\/(\d+)(?:[/?#]|$)/i);
     if (!match) return jobUrl;
+    const jobId = match[1];
+    if (jobId === '16638') {
+      return `https://careers-en-axa.icims.com/jobs/${jobId}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
+    }
     const normalizedUrl = String(jobUrl || '').toLowerCase();
     const normalizedCompany = String(companyName || '').toLowerCase();
     if (normalizedCompany.includes('axa xl')) {
-      return `https://careers-en-axa.icims.com/jobs/${match[1]}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
+      return `https://careers-en-axa.icims.com/jobs/${jobId}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
     }
     if (normalizedUrl.includes('lang=en')) {
-      return `https://careers-en-axa.icims.com/jobs/${match[1]}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
+      return `https://careers-en-axa.icims.com/jobs/${jobId}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
     }
     if (normalizedUrl.includes('lang=fr')) {
-      return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
+      return `https://careers-fr-axa.icims.com/jobs/${jobId}/login?loginOnly=1&in_iframe=1`;
     }
     return jobUrl;
   }

@@ -207,6 +207,61 @@
             color: rgba(255,255,255,0.7);
         }
 
+        .filters-header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .filters-header-right .favorites-toggle,
+        .filters-header-favorite {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            border: 1px solid var(--surface3);
+            background: var(--white);
+            color: var(--muted);
+            font-family: var(--sans);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .filters-header-right .favorites-toggle:hover,
+        .filters-header-favorite:hover {
+            color: #d14343;
+            border-color: rgba(209, 67, 67, 0.28);
+            background: rgba(209, 67, 67, 0.04);
+        }
+
+        .filters-header-right .favorites-toggle.active,
+        .filters-header-favorite.active {
+            color: #d14343;
+            border-color: rgba(209, 67, 67, 0.28);
+            background: rgba(209, 67, 67, 0.06);
+        }
+
+        .filters-header-right .favorites-toggle svg,
+        .filters-header-favorite svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .filters-header-right .favorites-count-pill,
+        .filters-header-favorite-count {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #d14343;
+            background: rgba(209, 67, 67, 0.12);
+            border-radius: 999px;
+            padding: 2px 8px;
+        }
+
         .toggle-badge {
             background: var(--gold-dim);
             padding: 6px 14px;
@@ -702,49 +757,35 @@
             margin-bottom: 12px;
         }
 
-        .offers-display-toolbar {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            margin: 4px 0 14px;
-        }
-
         .offers-view-tabs {
             display: inline-flex;
-            align-items: center;
-            border: 1px solid var(--surface2);
-            border-radius: 14px;
+            border: 1px solid var(--surface3);
+            border-radius: var(--radius);
             overflow: hidden;
             background: var(--white);
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
         }
 
         .offers-view-tab {
-            width: 72px;
-            height: 64px;
-            border: none;
-            background: transparent;
-            color: #7b8190;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            width: 40px;
+            height: 38px;
+            border: none;
+            background: transparent;
+            color: var(--muted);
             cursor: pointer;
-            transition: background var(--transition), color var(--transition);
+            transition: all var(--transition);
         }
 
         .offers-view-tab svg {
-            width: 26px;
-            height: 26px;
+            width: 16px;
+            height: 16px;
         }
 
         .offers-view-tab.active {
             background: var(--ink);
             color: var(--white);
-        }
-
-        .offers-view-tab:not(.active):hover {
-            background: #f8fafc;
-            color: var(--ink);
         }
 
         #paginationBottom {
@@ -1816,13 +1857,21 @@
                     </div>
                 </div>
                 <div class="filters-header-right">
-                    <button class="filters-header-favorite" id="favoritesToggle" type="button" onclick="event.stopPropagation(); toggleFavoritesOnly()">
+                    <button class="favorites-toggle" id="favoritesToggle" type="button" onclick="event.stopPropagation(); toggleFavoritesOnly()">
                         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path d="M10 16.5S2 11.3 2 6.5a4 4 0 0 1 8-1.1A4 4 0 0 1 18 6.5c0 4.8-8 10-8 10z"/>
                         </svg>
                         Favoris
-                        <span class="filters-header-favorite-count" id="favoritesCount">0</span>
+                        <span class="favorites-count-pill" id="favoritesCount">0</span>
                     </button>
+                    <div class="offers-view-tabs" aria-label="Changer l'affichage des offres">
+                        <button class="offers-view-tab active" id="gridViewBtn" type="button" onclick="event.stopPropagation(); setOffersView('grid')" title="Affichage en grille">
+                            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+                        </button>
+                        <button class="offers-view-tab" id="listViewBtn" type="button" onclick="event.stopPropagation(); setOffersView('list')" title="Affichage en liste">
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+                        </button>
+                    </div>
                     <span class="toggle-badge" id="activeFiltersBadge">Aucun filtre</span>
                 </div>
             </div>
@@ -1881,17 +1930,6 @@
             <div class="filter-row-reset">
                 <button class="reset-btn" onclick="resetFilters()">🔄 Réinitialiser tous les filtres</button>
             </div>
-            </div>
-        </div>
-
-        <div class="offers-display-toolbar">
-            <div class="offers-view-tabs" aria-label="Changer l'affichage des offres">
-                <button class="offers-view-tab active" id="gridViewBtn" type="button" onclick="setOffersView('grid')" title="Affichage en grille">
-                    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
-                </button>
-                <button class="offers-view-tab" id="listViewBtn" type="button" onclick="setOffersView('list')" title="Affichage en liste">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
-                </button>
             </div>
         </div>
 

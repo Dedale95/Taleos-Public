@@ -2009,34 +2009,81 @@
             if (currentUserId) renderAccordions();
         });
 
+        // ── Chargement des offres (index + fichiers par source en parallèle) ───
+        const JSON_BASE_URLS = [
+            '',
+            'HTML/',
+            'https://dedale95.github.io/Taleos-Public/HTML/',
+            'https://dedale95.github.io/Taleos-Public/',
+            'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/',
+            'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/',
+        ];
+
+        async function fetchAllJobsRaw() {
+            const cacheBust = `v=${Date.now()}`;
+            const cb = (url) => url.includes('?') ? `${url}&${cacheBust}` : `${url}?${cacheBust}`;
+            const tryFetch = async (url, timeout = 20000) => {
+                try {
+                    const ctrl = new AbortController();
+                    const tid = setTimeout(() => ctrl.abort(), timeout);
+                    const res = await fetch(cb(url), {
+                        signal: ctrl.signal,
+                        headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
+                    });
+                    clearTimeout(tid);
+                    return res.ok ? res : null;
+                } catch { return null; }
+            };
+
+            // 1. Chercher l'index puis charger tous les fichiers source en parallèle
+            for (const base of JSON_BASE_URLS) {
+                const res = await tryFetch(base + 'scraped_jobs_index.json', 10000);
+                if (!res) continue;
+                try {
+                    const index = await res.json();
+                    if (!Array.isArray(index) || !index.length) continue;
+                    console.log(`📋 Index trouvé (${index.length} sources) depuis ${base || '.'}`);
+                    const results = await Promise.allSettled(
+                        index.map(entry =>
+                            tryFetch(base + entry.file, 30000)
+                                .then(r => r ? r.json() : [])
+                                .catch(() => [])
+                        )
+                    );
+                    const jobs = results
+                        .filter(r => r.status === 'fulfilled')
+                        .flatMap(r => Array.isArray(r.value) ? r.value : []);
+                    if (jobs.length > 0) {
+                        console.log(`✅ ${jobs.length} offres chargées en parallèle depuis ${index.length} fichiers`);
+                        return jobs;
+                    }
+                } catch { continue; }
+            }
+
+            // 2. Fallback : scraped_jobs_live.json (ancien format ou slim)
+            for (const base of JSON_BASE_URLS) {
+                const res = await tryFetch(base + 'scraped_jobs_live.json', 30000);
+                if (!res) continue;
+                try {
+                    const data = await res.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        console.log(`✅ ${data.length} offres depuis ${base}scraped_jobs_live.json (fallback)`);
+                        return data;
+                    }
+                } catch { continue; }
+            }
+            return null;
+        }
+
         async function loadJobs() {
             try {
-                const cacheBust = `v=${Date.now()}`;
-                const withCacheBust = (path) => path.includes('?') ? `${path}&${cacheBust}` : `${path}?${cacheBust}`;
-                const paths = [
-                    './scraped_jobs_live.json',
-                    'scraped_jobs_live.json',
-                    'HTML/scraped_jobs_live.json',
-                    './HTML/scraped_jobs_live.json',
-                    'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json',
-                    'https://dedale95.github.io/Taleos-Public/scraped_jobs_live.json',
-                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json',
-                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/scraped_jobs_live.json'
-                ];
-
-                for (const rawPath of paths) {
-                    try {
-                        const path = withCacheBust(rawPath);
-                        const response = await fetch(path);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (Array.isArray(data) && data.length > 0) {
-                                const statusLive = (s) => String(s || '').toLowerCase().trim() === 'live';
-                                const liveData = data.filter(job => job && statusLive(job.status));
-                                if (liveData.length < data.length) {
-                                    console.log(`📋 Filtrage : ${data.length - liveData.length} offres expirées exclues → ${liveData.length} offres live`);
-                                }
-                                allJobs = liveData.map(job => {
+                const rawJobs = await fetchAllJobsRaw();
+                if (!rawJobs || !rawJobs.length) {
+                    console.error('❌ Impossible de charger les offres');
+                    return;
+                }
+                const statusLive = (s) => String(s || '').toLowerCase().trim() === 'live';
+                allJobs = rawJobs.filter(job => job && statusLive(job.status)).map(job => {
                                     // Nettoyage et consolidation des noms d'entreprises (Groupe Crédit Mutuel)
                                     if (job && job.company_name && typeof job.company_name === 'string') {
                                         job.company_name = job.company_name.replace(/\s*\([A-Z&]+\)\s*$/g, '').trim();
@@ -2242,17 +2289,9 @@
                                         }
                                     }
                                     
-                                    return job;
-                                });
-                                console.log(`✅ ${allJobs.length} offres live chargées`);
-                                return;
-                            }
-                        }
-                    } catch (e) {
-                        continue;
-                    }
-                }
-                console.error('❌ Impossible de charger les offres');
+                    return job;
+                });
+                console.log(`✅ ${allJobs.length} offres live chargées`);
             } catch (error) {
                 console.error('Erreur lors du chargement des offres:', error);
             }

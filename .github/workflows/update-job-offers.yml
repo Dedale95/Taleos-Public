@@ -238,7 +238,9 @@ jobs:
       - name: Vérifier les changements
         id: changes
         run: |
-          if git diff --quiet HTML/scraped_jobs_live.json HTML/scraped_jobs.json HTML/scraped_jobs_summary.json scraped_jobs_live.json scraped_jobs.json scraped_jobs_summary.json 2>/dev/null; then
+          # Fichiers par source (scraped_jobs_*.json) + index + live slim + full + summary
+          if git diff --quiet -- HTML/scraped_jobs_*.json scraped_jobs_*.json HTML/scraped_jobs_full.json HTML/scraped_jobs_summary.json scraped_jobs_summary.json 2>/dev/null && \
+             ! git ls-files --others --exclude-standard -- "HTML/scraped_jobs_*.json" "scraped_jobs_*.json" | grep -q .; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
@@ -249,8 +251,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add HTML/scraped_jobs_live.json HTML/scraped_jobs.json HTML/scraped_jobs_summary.json scraped_jobs_live.json scraped_jobs.json scraped_jobs_summary.json
+          # Fichiers par source (un par banque), index, live slim, full, summary
+          git add HTML/scraped_jobs_*.json scraped_jobs_*.json \
+                  HTML/scraped_jobs_full.json HTML/scraped_jobs_summary.json \
+                  scraped_jobs_summary.json
           git commit -m "chore: mise à jour quotidienne des offres (pipeline parallèle)"
+          git pull --rebase --autostash origin main
           git push origin main
 
   # S’exécute si au moins un scraper échoue (la consolidation tourne quand même).

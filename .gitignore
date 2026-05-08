@@ -39,3 +39,8 @@ TEST_CREDENTIALS.txt
 
 # HTML de debug (peut contenir données sensibles)
 sg_after_login.html
+
+# Ancien fichier JSON monolithique (remplacé par scraped_jobs_*.json par source)
+# scraped_jobs_live.json est gardé (version slim, <15 MB) → NE PAS ignorer
+scraped_jobs.json
+HTML/scraped_jobs.json

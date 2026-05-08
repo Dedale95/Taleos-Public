@@ -175,7 +175,9 @@
     return {
       firebase: optedIn ? 'Communauté AXA = Oui' : 'Communauté AXA = Non',
       value: optedIn ? '37002057001' : '37002057002',
-      labelIncludes: optedIn ? 'opportunités futures' : 'ce poste',
+      labelIncludes: optedIn
+        ? ['opportunités futures', 'future opportunities']
+        : ['ce poste', 'application to this position'],
       checkbox: true
     };
   }
@@ -202,8 +204,13 @@
     }
     const currentOption = select.options?.[select.selectedIndex];
     const currentText = textValue(currentOption);
+    const currentValue = String(select.value || '').trim();
     const targetText = target.firebase;
-    if (currentText.toLowerCase().includes(target.labelIncludes.toLowerCase())) {
+    const labelChecks = Array.isArray(target.labelIncludes) ? target.labelIncludes : [target.labelIncludes];
+    const matchesCurrent =
+      (target.value && currentValue === String(target.value).trim()) ||
+      labelChecks.some((snippet) => currentText.toLowerCase().includes(String(snippet || '').toLowerCase()));
+    if (matchesCurrent) {
       log(`   ✅ ${label} : formulaire='${currentText || '(vide)'}' | Firebase='${targetText}' -> Skip`);
       return;
     }
@@ -372,9 +379,9 @@
     if (coverLetterLabel) log(`   ℹ️ Document supplémentaire : type='${coverLetterLabel.value || '(vide)'}'`);
     if (coverLetterButton) log(`   ℹ️ Lettre de motivation AXA : action visible='${coverLetterButton.textContent?.trim() || coverLetterButton.value || ''}'`);
     if (regulatoryCountry) compareAndFillSelect('Pays du poste', regulatoryCountry, { firebase: 'France', value: 'France', labelIncludes: 'france' });
-    if (source) compareAndFillSelect('Source de candidature', source, { firebase: 'AXA CAREER SITE', value: '31437', labelIncludes: 'axa career site' });
-    if (sourceOther) compareAndFillSelect('Précision source', sourceOther, { firebase: 'Non applicable', value: '36717', labelIncludes: 'non applicable' });
-    if (aiConsent) compareAndFillSelect('Consentement IA', aiConsent, { firebase: describeConsent(profile).firebase, value: '36716', labelIncludes: 'accepter' });
+    if (source) compareAndFillSelect('Source de candidature', source, { firebase: 'AXA CAREER SITE', value: '31437', labelIncludes: ['axa career site'] });
+    if (sourceOther) compareAndFillSelect('Précision source', sourceOther, { firebase: 'Non applicable', value: '36717', labelIncludes: ['non applicable'] });
+    if (aiConsent) compareAndFillSelect('Consentement IA', aiConsent, { firebase: describeConsent(profile).firebase, value: '36716', labelIncludes: ['accepter', 'accept'] });
 
     const finalSubmit = Array.from(document.querySelectorAll('button, input[type="submit"]')).find((el) => {
       const label = (el.value || textValue(el)).toLowerCase();

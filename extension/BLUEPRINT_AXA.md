@@ -70,6 +70,17 @@ Dans cette variante, on n’arrive pas d’abord sur `login.icims.eu`. On passe 
 - `input#enterEmailSubmitButton` valeur `Next`
 - hCaptcha invisible présent dans la frame
 
+Mapping fonctionnel attendu :
+
+- email Firebase -> `#email`
+- consentement communauté AXA :
+  - `37002057001` si l’utilisateur a coché AXA dans Taleos
+  - `37002057002` sinon
+- validation privacy :
+  - cocher `#accept_gdpr`
+- CTA :
+  - `#enterEmailSubmitButton`
+
 Texte confirmé :
 
 - `Do you want to be a part of the AXA Community?`

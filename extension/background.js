@@ -1621,14 +1621,46 @@ async function reloadAndContinue(tabId, offerUrl, bankId, profile) {
 }
 
 const CA_CONNEXION_URL = 'https://groupecreditagricole.jobs/fr/connexion/';
-function getAxaApplyUrl(jobUrl) {
+function buildAxaApplyUrl(jobUrl, localeHint = '') {
   const match = String(jobUrl || '').match(/\/jobs\/(\d+)(?:[/?#]|$)/i);
   if (!match) return jobUrl;
-  const normalizedUrl = String(jobUrl || '').toLowerCase();
-  if (normalizedUrl.includes('lang=en')) {
+  const normalizedLocale = String(localeHint || '').toLowerCase();
+  if (normalizedLocale.includes('en')) {
     return `https://careers-en-axa.icims.com/jobs/${match[1]}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
   }
   return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
+}
+
+async function resolveAxaApplyUrl(jobUrl) {
+  const normalizedUrl = String(jobUrl || '').toLowerCase();
+  if (normalizedUrl.includes('lang=en')) return buildAxaApplyUrl(jobUrl, 'en');
+  if (normalizedUrl.includes('lang=fr')) return buildAxaApplyUrl(jobUrl, 'fr');
+
+  try {
+    const res = await fetch(jobUrl, { credentials: 'omit', redirect: 'follow' });
+    const html = await res.text();
+    const lc = html.toLowerCase();
+    if (
+      lc.includes('"language":"en-us"') ||
+      lc.includes('lang="en"') ||
+      lc.includes('lang="en-us"') ||
+      lc.includes('hreflang="en-us"')
+    ) {
+      return buildAxaApplyUrl(jobUrl, 'en');
+    }
+    if (
+      lc.includes('"language":"fr-fr"') ||
+      lc.includes('lang="fr"') ||
+      lc.includes('lang="fr-fr"') ||
+      lc.includes('hreflang="fr-fr"')
+    ) {
+      return buildAxaApplyUrl(jobUrl, 'fr');
+    }
+  } catch (e) {
+    console.warn('[Taleos AXA] Impossible de résoudre la langue de l’offre, fallback fr:', e?.message || e);
+  }
+
+  return buildAxaApplyUrl(jobUrl, 'fr');
 }
 
 const CONNECTION_TEST_URLS = {
@@ -2487,7 +2519,8 @@ async function handleApply(offerUrl, bankId, jobId, jobTitle, companyName, taleo
     scheduleApplyStuckWatchdog();
   } else if (routeAs === 'axa') {
     chrome.storage.local.set({ taleos_pending_tab: taleosTabId });
-    const createOpts = { url: getAxaApplyUrl(offerUrl), active: false };
+    const applyUrl = await resolveAxaApplyUrl(offerUrl);
+    const createOpts = { url: applyUrl, active: false };
     if (taleosTabId) {
       try {
         const taleosTab = await chrome.tabs.get(taleosTabId);
@@ -2506,7 +2539,7 @@ async function handleApply(offerUrl, bankId, jobId, jobTitle, companyName, taleo
       taleos_pending_axa: {
         profile: { ...profile, __jobId: jobId, __jobTitle: jobTitle, __companyName: companyName || 'AXA', __offerUrl: offerUrl },
         offerUrl,
-        applyUrl: getAxaApplyUrl(offerUrl),
+        applyUrl,
         jobId,
         jobTitle,
         companyName: companyName || 'AXA',

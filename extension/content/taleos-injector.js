@@ -257,7 +257,10 @@
     if (normalizedUrl.includes('lang=en')) {
       return `https://careers-en-axa.icims.com/jobs/${match[1]}/login?mobile=false&width=1331&height=500&bga=true&needsRedirect=false&jan1offset=60&jun1offset=120`;
     }
-    return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
+    if (normalizedUrl.includes('lang=fr')) {
+      return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login?loginOnly=1&in_iframe=1`;
+    }
+    return jobUrl;
   }
 
   function findJobCard(el) {

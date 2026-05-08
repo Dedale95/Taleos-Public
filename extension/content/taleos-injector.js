@@ -250,6 +250,12 @@
     return null;
   }
 
+  function getAxaApplyUrl(jobUrl) {
+    const match = String(jobUrl || '').match(/\/jobs\/(\d+)(?:[/?#]|$)/i);
+    if (!match) return jobUrl;
+    return `https://careers-fr-axa.icims.com/jobs/${match[1]}/login`;
+  }
+
   function findJobCard(el) {
     let node = el;
     while (node && node !== document.body) {
@@ -473,7 +479,7 @@
     // mais ne jamais retomber sur Crédit Agricole par défaut.
     if (bankId === 'axa') {
       setButtonProcessing(btn, jobId);
-      window.open(jobUrl, '_blank', 'noopener');
+      window.open(getAxaApplyUrl(jobUrl), '_blank', 'noopener');
       clearProcessing(jobId, true);
       return;
     }

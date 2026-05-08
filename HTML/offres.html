@@ -879,16 +879,14 @@
         }
 
         .job-card.application-submitted {
-            background: linear-gradient(to right, #e6f7ed 0%, #ffffff 100%);
-            border-color: #34c759;
-            box-shadow: 0 4px 20px rgba(52, 199, 89, 0.15);
+            background: linear-gradient(180deg, #f4fbf6 0%, #ffffff 74%);
+            border-color: #b8e4c3;
+            box-shadow: 0 8px 24px rgba(52, 199, 89, 0.10);
         }
 
-        /* Badge d'état dans le coin */
+        /* Badge d'état dans le flux pour ne jamais masquer le contenu */
         .job-card-badge {
-            position: absolute;
-            top: 12px;
-            right: 56px;
+            position: relative;
             padding: 6px 12px;
             border-radius: 8px;
             font-size: 0.75rem;
@@ -897,8 +895,11 @@
             align-items: center;
             gap: 6px;
             z-index: 1;
-            max-width: calc(100% - 120px);
+            max-width: 100%;
             text-align: center;
+            align-self: flex-end;
+            margin: 0 0 12px auto;
+            white-space: nowrap;
         }
 
         .job-card.favorite {
@@ -913,6 +914,14 @@
         .job-card.application-submitted .job-card-badge {
             background: #34c759;
             color: white;
+        }
+
+        .job-card.application-submitted::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(52, 199, 89, 0.055) 0%, rgba(52, 199, 89, 0) 40%);
         }
         
         /* Empêcher le tremblement quand on clique sur les boutons */

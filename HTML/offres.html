@@ -1806,7 +1806,16 @@
                         <span class="stat-label-compact">Pays</span>
                     </div>
                 </div>
-                <span class="toggle-badge" id="activeFiltersBadge">Aucun filtre</span>
+                <div class="filters-header-right">
+                    <button class="filters-header-favorite" id="favoritesToggle" type="button" onclick="event.stopPropagation(); toggleFavoritesOnly()">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path d="M10 16.5S2 11.3 2 6.5a4 4 0 0 1 8-1.1A4 4 0 0 1 18 6.5c0 4.8-8 10-8 10z"/>
+                        </svg>
+                        Favoris
+                        <span class="filters-header-favorite-count" id="favoritesCount">0</span>
+                    </button>
+                    <span class="toggle-badge" id="activeFiltersBadge">Aucun filtre</span>
+                </div>
             </div>
 
             <!-- Contenu des filtres -->
@@ -1861,13 +1870,6 @@
                 </div>
             </div>
             <div class="filter-row-reset">
-                <button class="favorites-toggle" id="favoritesToggle" type="button" onclick="toggleFavoritesOnly()">
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M10 16.5S2 11.3 2 6.5a4 4 0 0 1 8-1.1A4 4 0 0 1 18 6.5c0 4.8-8 10-8 10z"/>
-                    </svg>
-                    Favoris
-                    <span class="favorites-count-pill" id="favoritesCount">0</span>
-                </button>
                 <button class="reset-btn" onclick="resetFilters()">🔄 Réinitialiser tous les filtres</button>
             </div>
             </div>

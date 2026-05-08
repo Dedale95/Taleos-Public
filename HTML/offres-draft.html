@@ -804,9 +804,11 @@
         }
 
         .job-card.application-submitted {
-            background: linear-gradient(to right, #e6f7ed 0%, #ffffff 100%);
-            border-color: #34c759;
-            box-shadow: 0 4px 20px rgba(52, 199, 89, 0.15);
+            background:
+                linear-gradient(180deg, rgba(180, 237, 197, 0.72) 0%, rgba(221, 246, 230, 0.58) 18%, rgba(255, 255, 255, 0.96) 62%),
+                linear-gradient(135deg, rgba(52, 199, 89, 0.14) 0%, rgba(52, 199, 89, 0) 52%);
+            border-color: #7ccf95;
+            box-shadow: 0 12px 28px rgba(52, 199, 89, 0.16);
         }
 
         /* Badge d'état dans le coin */
@@ -839,6 +841,14 @@
         .job-card.application-submitted .job-card-badge {
             background: #34c759;
             color: white;
+        }
+
+        .job-card.application-submitted::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(52, 199, 89, 0.12) 0%, rgba(52, 199, 89, 0.035) 34%, rgba(52, 199, 89, 0) 62%);
         }
         
         /* Empêcher le tremblement quand on clique sur les boutons */

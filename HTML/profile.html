@@ -1958,7 +1958,7 @@
                         <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces réponses sont réutilisées quand certains formulaires demandent des informations réglementaires, sensibles ou très spécifiques à certaines candidatures.</p>
 
                         <div class="form-group">
-                            <label for="sgHandicap">Avez-vous une reconnaissance administrative de situation de handicap (RQTH) ?</label>
+                            <label for="sgHandicap">Avez-vous une reconnaissance de la qualité de travailleur handicapé (RQTH) ?</label>
                             <select id="sgHandicap" name="sgHandicap" onchange="toggleSgHandicapAccommodation(this.value)">
                                 <option value="">Sélectionnez…</option>
                                 <option value="non">Non</option>
@@ -2145,16 +2145,6 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="gsDisability">Considérez-vous avoir un handicap ?</label>
-                            <p style="color: #888; font-size: 0.85rem; margin-bottom: 8px;">Distinct de la RQTH française, cette question peut être posée telle quelle sur certains formulaires internationaux.</p>
-                            <select id="gsDisability" name="gs_disability">
-                                <option value="">Sélectionnez…</option>
-                                <option value="No">Non</option>
-                                <option value="Yes">Oui</option>
-                                <option value="Prefer not to say">Je préfère ne pas répondre</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
 
@@ -3279,8 +3269,6 @@
                     if (sel3) populateAdditionalOriginSelect(sel3, 'Aucune', additionalOrigins[2] || '');
                 }
             }
-            const disability = document.getElementById('gsDisability');
-            if (disability && profile.gs_disability) disability.value = profile.gs_disability;
         }
 
         function deriveEuropeanUnionWorkAuthorizationValue(rows) {
@@ -3306,6 +3294,14 @@
             if (raw === 'oui' || raw === 'yes') return 'Oui';
             if (raw === 'non' || raw === 'no') return 'Non';
             if (raw === 'prefer_not' || raw.includes('prefer')) return 'Je ne souhaite pas répondre';
+            return '';
+        }
+
+        function deriveGlobalDisabilityFromSharedField(value) {
+            const raw = String(value || '').trim().toLowerCase();
+            if (raw === 'oui' || raw === 'yes') return 'Yes';
+            if (raw === 'non' || raw === 'no') return 'No';
+            if (raw === 'prefer_not' || raw.includes('prefer')) return 'Prefer not to say';
             return '';
         }
 
@@ -3732,8 +3728,7 @@
             const transgender = document.getElementById('gsTransgender')?.value?.trim() || '';
             const sexual = document.getElementById('gsSexualOrientation')?.value?.trim() || '';
             const race = document.getElementById('gsRaceEthnicity')?.value?.trim() || '';
-            const disability = document.getElementById('gsDisability')?.value?.trim() || '';
-            const hasContent = !!(consent || transgender || sexual || race || disability);
+            const hasContent = !!(consent || transgender || sexual || race);
 
             document.querySelectorAll('.accordion-header h2').forEach(header => {
                 if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Diversité & Identité') {
@@ -4073,7 +4068,7 @@
                         .map(id => document.getElementById(id)?.value || '')
                         .filter(v => v !== '');
                 })(),
-                gs_disability: document.getElementById('gsDisability')?.value || '',
+                gs_disability: deriveGlobalDisabilityFromSharedField(document.getElementById('sgHandicap')?.value || ''),
                 email: userEmail || '',
                 updated_at: new Date().toISOString(),
                 created_at: null // Sera défini lors de la première création

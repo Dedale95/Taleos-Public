@@ -673,6 +673,14 @@
             align-items: stretch; /* Force toutes les cartes à avoir la même hauteur dans une rangée */
         }
 
+        .jobs-container.list-view {
+            grid-template-columns: 1fr;
+        }
+
+        .jobs-container.list-view .job-card {
+            min-height: 0;
+        }
+
         @media (max-width: 1200px) {
             .jobs-container {
                 grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -692,6 +700,51 @@
             border-radius: var(--radius);
             border: 1px solid var(--surface2);
             margin-bottom: 12px;
+        }
+
+        .offers-display-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin: 4px 0 14px;
+        }
+
+        .offers-view-tabs {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid var(--surface2);
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--white);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .offers-view-tab {
+            width: 72px;
+            height: 64px;
+            border: none;
+            background: transparent;
+            color: #7b8190;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        .offers-view-tab svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        .offers-view-tab.active {
+            background: var(--ink);
+            color: var(--white);
+        }
+
+        .offers-view-tab:not(.active):hover {
+            background: #f8fafc;
+            color: var(--ink);
         }
 
         #paginationBottom {
@@ -1820,6 +1873,17 @@
             </div>
         </div>
 
+        <div class="offers-display-toolbar">
+            <div class="offers-view-tabs" aria-label="Changer l'affichage des offres">
+                <button class="offers-view-tab active" id="gridViewBtn" type="button" onclick="setOffersView('grid')" title="Affichage en grille">
+                    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+                </button>
+                <button class="offers-view-tab" id="listViewBtn" type="button" onclick="setOffersView('list')" title="Affichage en liste">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+                </button>
+            </div>
+        </div>
+
         <!-- Pagination supérieure -->
         <div class="pagination-container" id="paginationTop" style="display: none;">
             <div class="pagination-controls">
@@ -1892,6 +1956,7 @@
         let itemsPerPage = 25;
         let favoriteJobs = new Set(JSON.parse(localStorage.getItem('taleosFavoriteJobs') || '[]'));
         let showFavoritesOnly = false;
+        let offersViewMode = localStorage.getItem('taleosOffersView') || 'grid';
         const SECTIONS_MAX = 12;
         let customSections = [];
         let sectionsLoaded = false;
@@ -5922,6 +5987,7 @@
         // Fonction pour afficher les offres paginées
         async function renderPaginatedJobs() {
             const container = document.getElementById('jobsContainer');
+            setOffersView(offersViewMode);
             
             if (filteredJobs.length === 0) {
                 container.innerHTML = `<div class="no-results"><h3>${showFavoritesOnly ? '♡ Aucun favori' : '😕 Aucune offre'}</h3><p>${showFavoritesOnly ? 'Ajoutez des offres à vos favoris pour les retrouver ici.' : 'Modifiez vos filtres'}</p></div>`;
@@ -5951,6 +6017,15 @@
             document.getElementById('paginationButtonsBottom').innerHTML = paginationButtons;
             
             updatePaginationInfo();
+        }
+
+        function setOffersView(mode) {
+            offersViewMode = mode === 'list' ? 'list' : 'grid';
+            localStorage.setItem('taleosOffersView', offersViewMode);
+            const container = document.getElementById('jobsContainer');
+            if (container) container.classList.toggle('list-view', offersViewMode === 'list');
+            document.getElementById('gridViewBtn')?.classList.toggle('active', offersViewMode === 'grid');
+            document.getElementById('listViewBtn')?.classList.toggle('active', offersViewMode === 'list');
         }
 
         async function renderJobsCards(jobs) {
@@ -6394,6 +6469,7 @@
 
         // ⚡ OPTIMISATION : Charger les jobs IMMÉDIATEMENT sans attendre l'auth
         // Les statistiques s'affichent tout de suite, les boutons se mettent à jour après
+        setOffersView(offersViewMode);
         console.log('⚡ Démarrage du chargement des jobs (optimisé)...');
         loadJobs().then(() => {
             jobsLoaded = true;

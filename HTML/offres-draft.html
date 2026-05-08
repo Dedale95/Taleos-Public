@@ -2805,7 +2805,7 @@
                 const title = cleanJobTitle(job.job_title || 'Sans titre');
                 const company = job.company_name || 'Entreprise non specifiee';
                 const location = job.location || 'Lieu non specifie';
-                const url = job.job_url || '#';
+                const url = normalizeOfferUrl(job) || '#';
                 return `
                     <div class="section-job-item">
                         <a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>
@@ -6198,7 +6198,7 @@
                 }
 
                 // Toutes les candidatures nécessitent l'ouverture d'un onglet (pas de timer)
-                const url = job.job_url || job.url || '';
+                const url = normalizeOfferUrl(job);
                 if (!url) {
                     showToast('Erreur', 'URL de l\'offre introuvable.', 'error');
                     reEnableBtn();
@@ -6227,6 +6227,17 @@
                    companyName.includes('caceis') ||
                    companyName.includes('indosuez') ||
                    companyName.includes('idia');
+        }
+
+        function normalizeOfferUrl(job) {
+            const rawUrl = String(job?.job_url || job?.url || '').trim();
+            if (!rawUrl) return '';
+            const companyName = String(job?.company_name || '').toLowerCase();
+            const match = rawUrl.match(/careers\.axa\.com\/careers-home\/jobs\/(\d+)(?:[/?#]|$)/i);
+            if (match && companyName.includes('axa xl')) {
+                return `https://careers.axa.com/careers-home/jobs/${match[1]}?lang=en-us`;
+            }
+            return rawUrl;
         }
 
         // Envoi candidature vers l'API /apply (vignettes Crédit Agricole).
@@ -6306,7 +6317,7 @@
                 // Si c'est Crédit Agricole, envoyer vers le backend AWS
                 if (isCA) {
                     console.log('[TIMER] Timer terminé pour offre Crédit Agricole, envoi vers backend');
-                    apiResult = await sendApplicationToBackend(userId, job.job_url, 'credit_agricole');
+                    apiResult = await sendApplicationToBackend(userId, normalizeOfferUrl(job), 'credit_agricole');
                     
                     if (!apiResult.success) {
                         // Ne pas afficher "Erreur d'envoi" si le message de l'API indique un succès (réponse mal formée)
@@ -6333,7 +6344,7 @@
                 const applicationData = {
                     jobId: jobId,
                     jobTitle: cleanJobTitle(job.job_title),
-                    jobUrl: job.job_url,
+                    jobUrl: normalizeOfferUrl(job),
                     companyName: job.company_name || 'Non spécifié',
                     location: job.location || 'Non spécifié',
                     contractType: job.contract_type || 'Non spécifié',
@@ -6579,7 +6590,7 @@
                             const jobTitle = cleanJobTitle(job.job_title);
                             
                             let buttonHTML = '';
-                            const jobLinkHTML = `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                            const jobLinkHTML = `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
                             
                             if (isExpired) {
                                 buttonHTML = `<span class="job-expired-label">Offre expirée</span>`;
@@ -6749,7 +6760,7 @@
                 const logoClass = getCompanyLogoClass(job.company_name, logoPath);
                 
                 return `
-        <div class="${cardClass}" data-job-url="${job.job_url}">
+        <div class="${cardClass}" data-job-url="${normalizeOfferUrl(job)}">
             ${badgeHTML}
             <div class="job-card-head">
                 <div class="job-company-header">
@@ -6781,13 +6792,13 @@
                         const isSubmitted = status === 'envoyée';
 
                         if (isSubmitted || hasApplied) {
-                            return `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>`;
+                            return `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>`;
                         } else {
                             // Pas encore candidaté : Candidater + Voir l'offre
-                            return `<a href="${job.job_url}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>
+                            return `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>
                                     <button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">Postuler</button>`;
                         }
-                    })() : `<a href="${job.job_url}" target="_blank" class="job-link">Voir l'offre</a>`}
+                    })() : `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link">Voir l'offre</a>`}
                     </div>
                 </div>
             </div>

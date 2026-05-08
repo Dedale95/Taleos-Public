@@ -18,9 +18,36 @@
   const MAX_PENDING_AGE = 20 * 60 * 1000;
   const BANNER_ID = 'taleos-axa-automation-banner';
   const SUCCESS_TEXT = 'Votre candidature a bien été transmise. Merci d\'avoir postulé.';
+  const STEP_GUARD_PREFIX = 'taleos_axa_step_guard:';
 
   function log(message) {
     console.log(`[${new Date().toLocaleTimeString('fr-FR')}] [Taleos AXA] ${message}`);
+  }
+
+  function visible(el) {
+    if (!el) return false;
+    const style = window.getComputedStyle ? window.getComputedStyle(el) : null;
+    const rect = typeof el.getBoundingClientRect === 'function' ? el.getBoundingClientRect() : { width: 1, height: 1 };
+    if (style && (style.display === 'none' || style.visibility === 'hidden')) return false;
+    return !!(rect.width || rect.height);
+  }
+
+  function stepGuardKey(step) {
+    return `${STEP_GUARD_PREFIX}${step}:${window.location.pathname}:${window.location.search}`;
+  }
+
+  function hasStepGuard(step) {
+    try {
+      return sessionStorage.getItem(stepGuardKey(step)) === '1';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function markStepGuard(step) {
+    try {
+      sessionStorage.setItem(stepGuardKey(step), '1');
+    } catch (_) {}
   }
 
   function showBanner(text, tone) {
@@ -59,7 +86,10 @@
 
     if (host.includes('careers.axa.com') && /\/careers-home\/jobs\/\d+/i.test(path)) return 'public_job';
     if (host.includes('careers-fr-axa.icims.com') && /\/jobs\/\d+\/login$/i.test(path) && !url.includes('loginOnly=1')) return 'wrapper_login';
-    if (host.includes('login.icims.eu') && path.includes('/u/login/identifier')) return 'identifier_step';
+    const visiblePassword = Array.from(document.querySelectorAll('input[type="password"], input[name="password"], input[name="passwd"]')).some(visible);
+    const visibleUsername = Array.from(document.querySelectorAll('#username, input[name="username"], input[type="email"]')).some(visible);
+    if (host.includes('login.icims.eu') && visiblePassword) return 'password_step';
+    if (host.includes('login.icims.eu') && path.includes('/u/login/identifier') && visibleUsername) return 'identifier_step';
     if (host.includes('login.icims.eu') && path.includes('/u/login/password')) return 'password_step';
     if (host.includes('careers-fr-axa.icims.com') && document.querySelector('#enterEmailForm, input#email[name="css_loginName"]')) return 'email_step';
     if (host.includes('careers-fr-axa.icims.com') && document.querySelector('input[type="password"]')) return 'password_step';
@@ -161,6 +191,10 @@
 
   async function handleIdentifierStep(profile) {
     showBanner('AXA → connexion en cours (identifiant)…');
+    if (hasStepGuard('identifier')) {
+      log('⏸️ AXA : étape identifiant déjà déclenchée sur cette URL -> attente de transition');
+      return;
+    }
     const emailInput = document.querySelector('#username, input[name="username"]');
     const continueButton = Array.from(document.querySelectorAll('button[type="submit"], button, input[type="submit"]')).find((el) => {
       const label = (el.value || textValue(el)).toLowerCase();
@@ -176,11 +210,16 @@
     }
 
     log('➡️ AXA : clic sur Continue après saisie de l’email');
+    markStepGuard('identifier');
     continueButton.click();
   }
 
   async function handleEmailStep(profile) {
     showBanner('AXA → connexion en cours (email + consentement)…');
+    if (hasStepGuard('email_step')) {
+      log('⏸️ AXA : étape email AXA déjà déclenchée sur cette URL -> attente de transition');
+      return;
+    }
     const emailInput = document.querySelector('input#email[name="css_loginName"], #email');
     const consentSelect = document.querySelector('select[name="gdpr_consent_type"], #gdpr_consent_type');
     const consentCheckbox = document.querySelector('input#accept_gdpr[name="accept_gdpr"]');
@@ -207,11 +246,16 @@
     }
 
     log('➡️ AXA : clic sur Suivant après email/consentement');
+    markStepGuard('email_step');
     submitButton.click();
   }
 
   async function handlePasswordStep(profile) {
     showBanner('AXA → connexion en cours (mot de passe)…');
+    if (hasStepGuard('password')) {
+      log('⏸️ AXA : étape mot de passe déjà déclenchée sur cette URL -> attente de transition');
+      return;
+    }
     const passwordInput = document.querySelector('input[type="password"], input[name="password"], input[name="passwd"]');
     const emailInput = document.querySelector('input[type="email"], input[name="username"], input[name="email"], #username');
     const submitButton = Array.from(document.querySelectorAll('button, input[type="submit"]')).find((el) => {
@@ -229,6 +273,7 @@
     }
 
     log('➡️ AXA : clic sur Se connecter');
+    markStepGuard('password');
     submitButton.click();
   }
 

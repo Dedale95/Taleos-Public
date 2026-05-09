@@ -5965,6 +5965,13 @@
                 'facto': 'images/logos/factofrance.png',
                 'monabanq': 'images/logos/monabanq.png',
                 'ataraxia_promotion': 'images/logos/credit_mutuel.svg',
+                'allianz': 'images/logos/allianz.svg',
+                'pimco': 'images/logos/allianz.svg',
+                'la_banque_postale': 'images/logos/banque_postale.svg',
+                'bedl': 'images/logos/banque_postale.svg',
+                'ids': 'images/logos/banque_postale.svg',
+                'kkbb': 'images/logos/banque_postale.svg',
+                'adeus': 'images/logos/banque_postale.svg',
                 'oddo_bhf': 'images/logos/oddo_bhf.svg',
                 'goldman_sachs': 'images/logos/goldman_sachs.png',
                 'j.p._morgan': 'images/logos/jp_morgan.png',
@@ -6002,6 +6009,12 @@
             // Fallback : toute marque BNP Paribas sans logo spécifique → logo groupe
             if (typeof isBNPParibasBrand === 'function' && isBNPParibasBrand(companyName)) {
                 return 'images/logos/bnp_paribas.png';
+            }
+            if (normalized.startsWith('allianz') || normalized.includes('allianz') || normalized.includes('agcs') || normalized.includes('euler_hermes') || normalized === 'pimco' || normalized.includes('pimco_prime_real_estate')) {
+                return 'images/logos/allianz.svg';
+            }
+            if (normalized.includes('la_banque_postale') || normalized === 'bedl' || normalized === 'ids' || normalized === 'kkbb' || normalized === 'adeus') {
+                return 'images/logos/banque_postale.svg';
             }
             return null;
         }

@@ -5609,6 +5609,13 @@
                 'facto': 'images/logos/factofrance.png',
                 'monabanq': 'images/logos/monabanq.png',
                 'ataraxia_promotion': 'images/logos/credit_mutuel.svg',
+                'allianz': 'images/logos/allianz.svg',
+                'pimco': 'images/logos/allianz.svg',
+                'la_banque_postale': 'images/logos/banque_postale.svg',
+                'bedl': 'images/logos/banque_postale.svg',
+                'ids': 'images/logos/banque_postale.svg',
+                'kkbb': 'images/logos/banque_postale.svg',
+                'adeus': 'images/logos/banque_postale.svg',
                 'oddo_bhf': 'images/logos/oddo_bhf.svg',
                 'goldman_sachs': 'images/logos/goldman_sachs.png',
                 'j.p._morgan': 'images/logos/jp_morgan.png',
@@ -5646,6 +5653,12 @@
             // Fallback : toute marque BNP Paribas sans logo spécifique → logo groupe
             if (typeof isBNPParibasBrand === 'function' && isBNPParibasBrand(companyName)) {
                 return 'images/logos/bnp_paribas.png';
+            }
+            if (typeof isAllianzBrand === 'function' && isAllianzBrand(companyName)) {
+                return 'images/logos/allianz.svg';
+            }
+            if (typeof isBanquePostaleBrand === 'function' && isBanquePostaleBrand(companyName)) {
+                return 'images/logos/banque_postale.svg';
             }
             return null;
         }

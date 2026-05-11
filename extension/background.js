@@ -2036,12 +2036,41 @@ async function runTestConnection(msg) {
 
   const tab = await chrome.tabs.create({ url: loginUrl, active: false });
   const tabId = tab.id;
+  const testWindowId = tab.windowId;
 
   async function restoreTaleosTabIfNeeded() {
     if (!taleosTabId) return;
     try {
       await chrome.tabs.update(taleosTabId, { active: true });
     } catch (_) {}
+  }
+
+  async function closeConnectionTestTabs() {
+    const idsToClose = new Set();
+    if (Number.isInteger(tabId)) idsToClose.add(tabId);
+    try {
+      const state = await chrome.storage.local.get(['taleos_connection_test']);
+      const trackedTabId = state?.taleos_connection_test?.tabId;
+      if (Number.isInteger(trackedTabId)) idsToClose.add(trackedTabId);
+    } catch (_) {}
+
+    if (bankId === 'allianz') {
+      try {
+        const allianzTabs = await chrome.tabs.query({ windowId: testWindowId, url: ['https://career5.successfactors.eu/*'] });
+        for (const t of allianzTabs) {
+          const url = String(t.url || '');
+          if (url.includes('company=AZGROUPPROD') || url.includes('/career?company=AZGROUPPROD')) {
+            idsToClose.add(t.id);
+          }
+        }
+      } catch (_) {}
+    }
+
+    for (const id of idsToClose) {
+      try {
+        await chrome.tabs.remove(id);
+      } catch (_) {}
+    }
   }
 
   await chrome.storage.local.set({
@@ -2116,8 +2145,8 @@ async function runTestConnection(msg) {
       }
       const r2 = await runFill(2);
       if (r2?.[0]?.result?.error && !r2?.[0]?.result?.submitted) {
-        await chrome.tabs.remove(tabId).catch(() => {});
-        chrome.storage.local.remove('taleos_connection_test');
+        await closeConnectionTestTabs();
+        await chrome.storage.local.remove('taleos_connection_test');
         await restoreTaleosTabIfNeeded();
         return { success: false, message: r2[0].result.error };
       }
@@ -2126,8 +2155,8 @@ async function runTestConnection(msg) {
 
     const fillRes = bankId === 'axa' ? null : await runFill(bankId === 'deloitte' ? 2 : 0);
     if (fillRes?.[0]?.result?.error && !fillRes[0].result?.submitted) {
-      await chrome.tabs.remove(tabId).catch(() => {});
-      chrome.storage.local.remove('taleos_connection_test');
+      await closeConnectionTestTabs();
+      await chrome.storage.local.remove('taleos_connection_test');
       await restoreTaleosTabIfNeeded();
       return { success: false, message: fillRes[0].result.error };
     }
@@ -2146,8 +2175,8 @@ async function runTestConnection(msg) {
     const checkRes = await runCheck();
     const result = checkRes?.[0]?.result?.success !== undefined ? checkRes[0].result : null;
 
-    await chrome.tabs.remove(tabId).catch(() => {});
-    chrome.storage.local.remove('taleos_connection_test');
+    await closeConnectionTestTabs();
+    await chrome.storage.local.remove('taleos_connection_test');
     await restoreTaleosTabIfNeeded();
 
     if (result && result.success) {
@@ -2168,8 +2197,8 @@ async function runTestConnection(msg) {
       message: (result && result.message) || 'Échec de connexion (état inconnu).'
     };
   } catch (e) {
-    await chrome.tabs.remove(tabId).catch(() => {});
-    chrome.storage.local.remove('taleos_connection_test');
+    await closeConnectionTestTabs();
+    await chrome.storage.local.remove('taleos_connection_test');
     await restoreTaleosTabIfNeeded();
     return { success: false, message: e.message || 'Erreur technique' };
   }

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Taleos",
-  "version": "1.2.7",
-  "version_name": "1.2.7-allianz-connexion",
+  "version": "1.2.8",
+  "version_name": "1.2.8-allianz-close-tabs",
   "description": "Automatisation de candidatures bancaires - Taleos",
   "permissions": [
     "activeTab",

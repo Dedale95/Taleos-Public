@@ -660,11 +660,7 @@
     if (degreeValue) {
       await selectDropdownValueWithSelectors('Degree', ['input[name*="DEGREE" i]', 'input[id*="DEGREE" i]'], degreeValue, [degreeValue.replace(/'/g, '’')]);
     }
-    const schoolField = findFieldByLabel('School') || findFieldByLabel('School Name') || findFieldByLabel('University');
-    if (schoolField && profile.establishment) {
-      auditAndFill('School', schoolField, profile.establishment);
-    }
-    log(`ℹ️ JP Morgan → section 3 : ${educationCards} bloc(s) éducation et ${experienceCards} bloc(s) expérience visibles`);
+    log(`ℹ️ JP Morgan → section 3 : ${educationCards} bloc(s) éducation et ${experienceCards} bloc(s) expérience visibles -> Degree piloté, nom d'école laissé inchangé pour éviter d'écraser plusieurs diplômes`, 1);
     const nextBtn = findButtonByText('Next');
     if (nextBtn && !state.nextSection3) {
       state.nextSection3 = true;

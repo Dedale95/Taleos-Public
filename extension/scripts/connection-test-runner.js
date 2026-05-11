@@ -94,7 +94,7 @@
         const loginVisible = !!document.querySelector('#username') && !!document.querySelector('#password');
         if (loginVisible) return false;
         return /my profile|jobs applied|saved applications|candidate profile|welcome,|sign out/i.test(text) ||
-          /top_nav_my_profile|top_nav_jobs_applied|signout|logoutlink/.test(html) ||
+          /top_nav_my_profile|top_nav_jobs_applied|signout|logoutlink|_signout|loggedinstatus/.test(html) ||
           (!/career opportunities: sign in|already have an account|forgot your password\?/i.test(text) && !loginVisible);
       },
       failureCheck: (url, content) => {
@@ -122,7 +122,7 @@
     const loginVisible = !!document.querySelector('#username') && !!document.querySelector('#password');
     if (loginVisible) return false;
     return /candidate profile|my profile|jobs applied|saved applications|welcome,|sign out/i.test(text) ||
-      /top_nav_my_profile|top_nav_jobs_applied|signout|logoutlink|lnklogout/.test(html);
+      /top_nav_my_profile|top_nav_jobs_applied|signout|logoutlink|lnklogout|_signout|loggedinstatus/.test(html);
   }
   function fillAndSubmit(bankId, email, password) {
     const cfg = CONFIG[bankId];
@@ -186,7 +186,9 @@
 
       if (bankId === 'allianz' && isAllianzLoggedInPage()) {
         const signOutEl =
+          document.querySelector('#_signout') ||
           document.querySelector('#lnkLogout') ||
+          document.querySelector('a.loggedInStatus[title="Sign Out"]') ||
           findVisibleByText('a, button, [role="button"], input[type="button"], input[type="submit"]', /sign out|log out/i);
         if (!signOutEl) {
           return { done: false, error: 'Bouton Sign Out Allianz introuvable.' };

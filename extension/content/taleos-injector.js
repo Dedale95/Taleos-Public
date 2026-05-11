@@ -250,9 +250,28 @@
     if (lowerUrl.includes('recrutement.creditmutuel.fr') || lowerUrl.includes('creditmutuel.fr')) return 'credit_mutuel';
     if (lowerUrl.includes('talents.bpifrance.fr') || lowerUrl.includes('bpi.tzportal.io')) return 'bpifrance';
     if (lowerUrl.includes('higher.gs.com') || lowerUrl.includes('hdpc.fa.us2.oraclecloud.com')) return 'goldman_sachs';
-    if (lowerUrl.includes('jpmc.fa.oraclecloud.com')) return 'jp_morgan';
+    if (
+      lowerUrl.includes('jpmc.fa.oraclecloud.com')
+      || lowerUrl.includes('careers.jpmorgan.com')
+      || lowerUrl.includes('jobs.jpmorganchase.com')
+      || lowerUrl.includes('jpmorganchase.com')
+    ) return 'jp_morgan';
     if (lowerUrl.includes('careers.axa.com') || lowerUrl.includes('axa.com/careers-home') || lowerUrl.includes('icims.com/jobs/') || lowerUrl.includes('icims.eu/jobs/')) return 'axa';
     return null;
+  }
+
+  function isJpMorganCompanyName(companyName) {
+    return /j\.?\s*p\.?\s*morgan|jp\s*morgan|jpmorgan|jpmorgan\s+chase|jp\s*morgan\s+chase/i.test(String(companyName || ''));
+  }
+
+  function isJpMorganOfferUrl(url) {
+    const lowerUrl = String(url || '').toLowerCase();
+    return (
+      lowerUrl.includes('jpmc.fa.oraclecloud.com')
+      || lowerUrl.includes('careers.jpmorgan.com')
+      || lowerUrl.includes('jobs.jpmorganchase.com')
+      || lowerUrl.includes('jpmorganchase.com')
+    );
   }
 
   function getBankIdFromCompanyName(companyName) {
@@ -480,13 +499,21 @@
       publicationDate: publicationDate || ''
     };
     let bankId = getBankIdFromUrl(jobUrl);
+    const jpMorganByCompany = isJpMorganCompanyName(companyName);
+    const jpMorganByUrl = isJpMorganOfferUrl(jobUrl);
+    if (jpMorganByCompany || jpMorganByUrl) {
+      bankId = 'jp_morgan';
+    }
     if (jobUrl && String(jobUrl).toLowerCase().includes('groupecreditagricole.jobs')) {
       bankId = 'credit_agricole';
+    }
+    if (jpMorganByCompany || jpMorganByUrl) {
+      bankId = 'jp_morgan';
     }
     if (bankId === 'credit_agricole' && /société\s+générale|societe\s+generale|société\s+generale/i.test(companyName || '')) {
       bankId = 'societe_generale';
     }
-    if ((bankId === 'credit_agricole' || !bankId) && /j\.?\s*p\.?\s*morgan|jp\s*morgan|jpmorgan/i.test(companyName || '')) {
+    if ((bankId === 'credit_agricole' || !bankId) && jpMorganByCompany) {
       bankId = 'jp_morgan';
     }
     if (!bankId) bankId = getBankIdFromCompanyName(companyName);

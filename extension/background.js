@@ -2221,7 +2221,15 @@ function computeLegacyRouteAs(bankId, offerUrl) {
   if (bid === 'credit_agricole' || url.includes('groupecreditagricole.jobs')) return 'ca';
   if (bid === 'credit_mutuel' || url.includes('recrutement.creditmutuel.fr')) return 'credit_mutuel';
   if (bid === 'bpifrance' || url.includes('talents.bpifrance.fr') || url.includes('bpi.tzportal.io')) return 'bpifrance';
-  if (bid === 'jp_morgan' || bid.includes('jp morgan') || bid.includes('jpmorgan') || url.includes('jpmc.fa.oraclecloud.com')) return 'jp_morgan';
+  if (
+    bid === 'jp_morgan'
+    || bid.includes('jp morgan')
+    || bid.includes('jpmorgan')
+    || url.includes('jpmc.fa.oraclecloud.com')
+    || url.includes('careers.jpmorgan.com')
+    || url.includes('jobs.jpmorganchase.com')
+    || url.includes('jpmorganchase.com')
+  ) return 'jp_morgan';
   if (bid === 'axa' || url.includes('careers.axa.com') || url.includes('careers-fr-axa.icims.com') || url.includes('careers-en-axa.icims.com') || url.includes('candidature-recrutement.axa.fr')) return 'axa';
   if (bid === 'deloitte' || (url.includes('myworkdayjobs.com') && url.includes('deloitte'))) return 'deloitte';
   if (bid === 'societe_generale' || url.includes('careers.societegenerale.com') || url.includes('socgen.taleo.net')) return 'sg';
@@ -2294,6 +2302,18 @@ async function injectAutomationTab(tabId, profile, scriptPath, pilotExec, bankId
 }
 
 async function handleApply(offerUrl, bankId, jobId, jobTitle, companyName, taleosTabId, offerMeta = null) {
+  const lowerOfferUrl = String(offerUrl || '').toLowerCase();
+  const looksLikeJpMorgan = (
+    /j\.?\s*p\.?\s*morgan|jp\s*morgan|jpmorgan|jpmorgan\s+chase|jp\s*morgan\s+chase/i.test(String(companyName || ''))
+    || lowerOfferUrl.includes('jpmc.fa.oraclecloud.com')
+    || lowerOfferUrl.includes('careers.jpmorgan.com')
+    || lowerOfferUrl.includes('jobs.jpmorganchase.com')
+    || lowerOfferUrl.includes('jpmorganchase.com')
+  );
+  if ((!bankId || bankId === 'credit_agricole') && looksLikeJpMorgan) {
+    bankId = 'jp_morgan';
+  }
+
   if (bankId && !hasBankAutomation(bankId)) {
     const createOpts = { url: offerUrl, active: false };
     if (taleosTabId) {
@@ -2348,6 +2368,7 @@ async function handleApply(offerUrl, bankId, jobId, jobTitle, companyName, taleo
   profile.__companyName = companyName || (
     normalizedBankId === 'credit_mutuel' ? 'Crédit Mutuel'
       : normalizedBankId === 'bpifrance' ? 'Bpifrance'
+        : normalizedBankId === 'jp_morgan' ? 'J.P. Morgan'
         : 'Crédit Agricole'
   );
   profile.__offerUrl = offerUrl;
@@ -3719,7 +3740,12 @@ function normalizeSite(site, offerUrl) {
   if (url.includes('groupecreditagricole.jobs')) return 'credit_agricole';
   if (url.includes('recrutement.creditmutuel.fr')) return 'credit_mutuel';
   if (url.includes('talents.bpifrance.fr') || url.includes('bpi.tzportal.io')) return 'bpifrance';
-  if (url.includes('jpmc.fa.oraclecloud.com')) return 'jp_morgan';
+  if (
+    url.includes('jpmc.fa.oraclecloud.com')
+    || url.includes('careers.jpmorgan.com')
+    || url.includes('jobs.jpmorganchase.com')
+    || url.includes('jpmorganchase.com')
+  ) return 'jp_morgan';
   if (url.includes('higher.gs.com') || url.includes('hdpc.fa.us2.oraclecloud.com')) return 'goldman_sachs';
   if (url.includes('careers.axa.com') || url.includes('careers-fr-axa.icims.com') || url.includes('careers-en-axa.icims.com') || url.includes('candidature-recrutement.axa.fr')) return 'axa';
   if (url.includes('societegenerale') || url.includes('socgen.taleo.net')) return 'societe_generale';

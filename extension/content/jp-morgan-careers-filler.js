@@ -345,10 +345,16 @@
     if (state.successSent) return;
     const text = norm(document.body?.innerText || '');
     const hasSuccessText = text.includes('thank you for your job application');
+    const hasAlreadyApplied = text.includes('you already applied for this job') || text.includes('you may also view other jobs');
     const hasMyApplications = /\/my-profile/i.test(location.pathname || '') && text.includes('under consideration');
-    if (!hasSuccessText && !hasMyApplications) return;
+    if (!hasSuccessText && !hasAlreadyApplied && !hasMyApplications) return;
     state.successSent = true;
-    log(`🎉 Succès JP Morgan détecté : ${hasSuccessText ? 'Thank you for your job application.' : 'My Applications / Under Consideration'}`);
+    const successLabel = hasSuccessText
+      ? 'Thank you for your job application.'
+      : hasAlreadyApplied
+        ? 'You already applied for this job.'
+        : 'My Applications / Under Consideration';
+    log(`🎉 Succès JP Morgan détecté : ${successLabel}`);
     await chrome.runtime.sendMessage({
       action: 'candidature_success',
       bankId: 'jp_morgan',
@@ -356,8 +362,8 @@
       jobTitle: pending.jobTitle || pending.profile?.__jobTitle || '',
       companyName: pending.companyName || pending.profile?.__companyName || 'J.P. Morgan',
       offerUrl: pending.offerUrl || pending.profile?.__offerUrl || location.href,
-      successType: hasSuccessText ? 'toast' : 'my_applications',
-      successMessage: hasSuccessText ? 'Thank you for your job application.' : 'Under Consideration'
+      successType: hasSuccessText ? 'toast' : (hasAlreadyApplied ? 'already_applied' : 'my_applications'),
+      successMessage: hasSuccessText ? 'Thank you for your job application.' : (hasAlreadyApplied ? 'You already applied for this job.' : 'Under Consideration')
     }).catch(() => null);
     await chrome.storage.local.remove([PENDING_KEY, TAB_KEY]);
   }
@@ -577,7 +583,7 @@
           log('🔗 JP Morgan → clic sur Apply Now');
         }
       }
-      if (detected.key === 'my_profile_success') {
+      if (detected.key === 'my_profile_success' || detected.key === 'already_applied' || detected.key === 'success') {
         return handleSuccess(pending);
       }
     } catch (e) {

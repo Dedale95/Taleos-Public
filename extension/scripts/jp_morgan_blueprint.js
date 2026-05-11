@@ -20,6 +20,7 @@
     section3: ['experience', 'education', 'work experience'],
     section4: ['more about you', 'resume or additional documents', 'upload cover letter', 'e-signature'],
     success: ['thank you for your job application'],
+    alreadyApplied: ['you already applied for this job', 'you may also view other jobs'],
     myProfile: ['my applications', 'under consideration', 'active job applications']
   };
 
@@ -79,6 +80,12 @@
       selectorsAny: ['div', 'main'],
       textPatterns: TEXT.success
     },
+    already_applied: {
+      label: 'Déjà candidaté',
+      hostIncludes: ['jpmc.fa.oraclecloud.com'],
+      selectorsAny: ['div', 'main'],
+      textPatterns: TEXT.alreadyApplied
+    },
     my_profile_success: {
       label: 'My Applications',
       hostIncludes: ['jpmc.fa.oraclecloud.com'],
@@ -137,6 +144,9 @@
 
     if (text.includes(normalizeText(TEXT.success[0]))) {
       return { key: 'success', score: 100, label: PAGE_DEFS.success.label };
+    }
+    if (text.includes(normalizeText(TEXT.alreadyApplied[0]))) {
+      return { key: 'already_applied', score: 100, label: PAGE_DEFS.already_applied.label };
     }
 
     let best = { key: 'unknown', score: 0, label: 'Inconnue' };

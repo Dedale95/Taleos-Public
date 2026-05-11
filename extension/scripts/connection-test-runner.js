@@ -269,13 +269,12 @@
       }
       return { done: false, error: 'Bouton Connexion non trouvé' };
     }
-<<<<<<< HEAD
     if (bankId === 'axa') {
-        const trustLaterBtn = findVisibleByText('button, a, [role="button"]', /me rappeler plus tard|pas sur cet appareil/i);
-        if (trustLaterBtn) {
-          trustLaterBtn.click();
-          return { done: true, submitted: true, successHint: true };
-        }
+      const trustLaterBtn = findVisibleByText('button, a, [role="button"]', /me rappeler plus tard|pas sur cet appareil/i);
+      if (trustLaterBtn) {
+        trustLaterBtn.click();
+        return { done: true, submitted: true, successHint: true };
+      }
       if (phase === 1) {
         const emailEl = document.querySelector('input[formcontrolname="email"], input[type="email"], input[name*="email" i], input[id*="email" i], input[name*="username" i], input[id*="username" i]');
         if (emailEl && !document.querySelector('input[type="password"]')) {
@@ -299,6 +298,13 @@
     }
     if (bankId === 'allianz' && phase === 2) {
       return fillAndSubmit(bankId, email, password);
+    }
+    if (!bankId || !email || !password) {
+      const missing = [];
+      if (!bankId) missing.push('bankId');
+      if (!email) missing.push('email');
+      if (!password) missing.push('mot de passe');
+      return { done: false, error: `Paramètres manquants: ${missing.join(', ')}` };
     }
     return fillAndSubmit(bankId, email, password);
   };

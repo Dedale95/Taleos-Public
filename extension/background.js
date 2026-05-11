@@ -1681,6 +1681,7 @@ const CONNECTION_TEST_URLS = {
   societe_generale: 'https://socgen.taleo.net/careersection/iam/accessmanagement/login.jsf?lang=fr-FR&redirectionURI=https%3A%2F%2Fsocgen.taleo.net%2Fcareersection%2Fsgcareers%2Fprofile.ftl%3Flang%3Dfr-FR%26src%3DCWS-1%26pcid%3Dmjlsx8hz6i4vn92z&TARGET=https%3A%2F%2Fsocgen.taleo.net%2Fcareersection%2Fsgcareers%2Fprofile.ftl%3Flang%3Dfr-FR%26src%3DCWS-1%26pcid%3Dmjlsx8hz6i4vn92z',
   deloitte: 'https://fina.wd103.myworkdayjobs.com/fr-FR/DeloitteRecrute',
   bpifrance: 'https://bpi.tzportal.io//fr/login',
+  allianz: 'https://career5.successfactors.eu/career?company=AZGROUPPROD&site=&lang=en_GB&login_ns=login&loginFlowRequired=true&showLogOutMsg=true&brandUrl=&_s.crb=vGbBbLMSiPxDaedOIn8tTt8WApNMjWQcgDbELe1OyzA%253d',
   axa: 'https://careers.axa.com/careers-home/auth/1/verify-login-type'
 };
 

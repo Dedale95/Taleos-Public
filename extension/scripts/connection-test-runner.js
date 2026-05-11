@@ -1,6 +1,6 @@
 /**
  * Taleos - Script de test de connexion bancaire (injecté dans l'onglet)
- * Gère le remplissage, la soumission et la détection du résultat pour CA, BNP, SG, Deloitte, Bpifrance, AXA.
+ * Gère le remplissage, la soumission et la détection du résultat pour CA, BNP, SG, Deloitte, Bpifrance, AXA, Allianz.
  * JP Morgan est géré côté background car aucune authentification par mot de passe n'est requise ici.
  */
 (function() {
@@ -80,6 +80,29 @@
         return !!errorText ||
           /nom d'utilisateur ou mot de passe incorrect/i.test(content) ||
           /incorrect|invalide|erreur|invalid|failed/i.test(content);
+      }
+    },
+    allianz: {
+      loginUrl: 'https://career5.successfactors.eu/career?company=AZGROUPPROD&site=&lang=en_GB&login_ns=login&loginFlowRequired=true&showLogOutMsg=true&brandUrl=&_s.crb=vGbBbLMSiPxDaedOIn8tTt8WApNMjWQcgDbELe1OyzA%253d',
+      emailSel: '#username',
+      passwordSel: '#password',
+      submitSel: 'button[onclick*="validateFields"], .aquabtn.active button, .button_row button',
+      cookieSel: null,
+      successCheck: (url, content) => {
+        const text = (content || '').toLowerCase();
+        const html = (document.body?.innerHTML || '').toLowerCase();
+        const loginVisible = !!document.querySelector('#username') && !!document.querySelector('#password');
+        if (loginVisible) return false;
+        return /my profile|jobs applied|saved applications|candidate profile|welcome,|sign out/i.test(text) ||
+          /top_nav_my_profile|top_nav_jobs_applied|signout|logoutlink/.test(html) ||
+          (!/career opportunities: sign in|already have an account|forgot your password\?/i.test(text) && !loginVisible);
+      },
+      failureCheck: (url, content) => {
+        const text = (content || '').toLowerCase();
+        const html = (document.body?.innerHTML || '').toLowerCase();
+        return !!document.querySelector('#errorMsg_1, #uiErrorContainer_2, #uiErrorMsg') ||
+          /errormsg_1|uierrorcontainer_2|uierrormsg/.test(html) ||
+          /incorrect|invalid user id|invalid login|login failed|unable to sign in|wrong email|wrong password/.test(text);
       }
     }
   };
@@ -202,6 +225,10 @@
           success: false,
           message: errorText || "Nom d'utilisateur ou mot de passe incorrect"
         };
+      }
+      if (bankId === 'allianz') {
+        const errText = document.querySelector('#errorMsg_1, #uiErrorMsg, #uiErrorContainer_2')?.innerText?.trim();
+        return { success: false, message: errText || 'Identifiants Allianz incorrects.' };
       }
       return { success: false, message: 'Email ou mot de passe incorrect.' };
     }

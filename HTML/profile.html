@@ -153,6 +153,37 @@
         .page-top h1 em { font-style: italic; color: var(--gold-light) !important; }
         .page-top p { font-size: 0.9rem; color: rgba(255,255,255,0.72) !important; max-width: 600px; line-height: 1.7; }
 
+        .profile-progress-wrap {
+            margin-top: 26px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .profile-progress-track {
+            flex: 1;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            overflow: hidden;
+        }
+
+        .profile-progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #3b82f6 0%, var(--gold) 100%);
+            transition: width 0.35s ease;
+        }
+
+        .profile-progress-label {
+            font-size: 0.76rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: rgba(255,255,255,0.68);
+            white-space: nowrap;
+        }
+
         /* Container principal */
         .container {
             max-width: 1000px;
@@ -199,6 +230,34 @@
             user-select: none;
         }
 
+        .accordion-head-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .accordion-icon-wrap {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: var(--surface2);
+            border: 1px solid rgba(200,169,110,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background var(--transition), border-color var(--transition);
+        }
+
+        .accordion-icon-wrap svg {
+            width: 16px;
+            height: 16px;
+            color: var(--muted);
+            transition: color var(--transition);
+        }
+
         .accordion-header:hover {
             background: var(--surface2);
         }
@@ -206,6 +265,15 @@
         .accordion-section.active .accordion-header {
             background: var(--ink);
             border-bottom: 1px solid rgba(200,169,110,0.15);
+        }
+
+        .accordion-section.active .accordion-icon-wrap {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(200,169,110,0.24);
+        }
+
+        .accordion-section.active .accordion-icon-wrap svg {
+            color: rgba(255,255,255,0.76);
         }
 
         .accordion-header h2 {
@@ -220,6 +288,50 @@
 
         .accordion-section.active .accordion-header h2 {
             color: var(--gold);
+        }
+
+        .section-status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            flex-shrink: 0;
+            transition: all var(--transition);
+        }
+
+        .section-status-pill.complete {
+            background: rgba(16,185,129,0.1);
+            color: #059669;
+        }
+
+        .section-status-pill.incomplete {
+            background: rgba(239,68,68,0.08);
+            color: #dc2626;
+        }
+
+        .section-status-pill.optional {
+            background: rgba(122,122,138,0.12);
+            color: var(--muted);
+        }
+
+        .accordion-section.active .section-status-pill.complete {
+            background: rgba(16,185,129,0.18);
+            color: #d1fae5;
+        }
+
+        .accordion-section.active .section-status-pill.incomplete {
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+        }
+
+        .accordion-section.active .section-status-pill.optional {
+            background: rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.8);
         }
 
         .accordion-icon {
@@ -575,12 +687,7 @@
             color: #1a1a1a;
         }
 
-        .accordion-section.complete .accordion-header h2::after {
-            content: ' ✓';
-            color: #34c759;
-            font-weight: bold;
-            margin-left: 8px;
-        }
+        .accordion-section.complete .accordion-header h2::after { content: none; }
 
         .accordion-section.complete .accordion-header:hover {
             background: rgba(52, 199, 89, 0.1);
@@ -1160,6 +1267,12 @@
         <div class="page-top-inner">
             <h1>Informations <em>requises</em></h1>
             <p>Ces informations sont essentielles pour automatiser vos candidatures. Notre IA les utilise pour postuler en votre nom.</p>
+            <div class="profile-progress-wrap">
+                <div class="profile-progress-track">
+                    <div class="profile-progress-fill" id="profileProgressFill"></div>
+                </div>
+                <span class="profile-progress-label" id="profileProgressLabel">0% complété</span>
+            </div>
         </div>
     </div>
 
@@ -2209,6 +2322,124 @@
             'thibault.giraudet@outlook.com',
             'thibault.giraudet94@gmail.com'
         ]);
+
+        const PROFILE_SECTION_META = {
+            'Informations personnelles': { icon: 'person', required: true },
+            'Adresse': { icon: 'pin', required: true },
+            'Les métiers qui m\'intéressent': { icon: 'briefcase', required: true },
+            'Contrat et disponibilité': { icon: 'calendar', required: true },
+            'Préférences géographiques': { icon: 'globe', required: true },
+            'Formation et expérience': { icon: 'graduation', required: true },
+            'Questions récurrentes des employeurs': { icon: 'repeat', required: true },
+            'Alertes et viviers talents': { icon: 'bell', required: false },
+            'Questions administratives et réglementaires': { icon: 'shield', required: false },
+            'Diversité & Identité': { icon: 'sparkles', required: false },
+            'Documents': { icon: 'folder', required: true }
+        };
+
+        function getAccordionTitleText(headerEl) {
+            const titleEl = headerEl?.querySelector('h2');
+            return (titleEl?.textContent || '').replace(/\s*✓\s*$/g, '').trim();
+        }
+
+        function getSectionIconSvg(iconName) {
+            const icons = {
+                person: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="6.5" r="3.2"></circle><path d="M4 16c0-3.2 2.7-5.8 6-5.8s6 2.6 6 5.8"></path></svg>',
+                pin: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 17s5-4.8 5-9a5 5 0 1 0-10 0c0 4.2 5 9 5 9Z"></path><circle cx="10" cy="8" r="1.9"></circle></svg>',
+                briefcase: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="14" height="9" rx="2"></rect><path d="M7 6V4.8C7 4 7.7 3.3 8.5 3.3h3c.8 0 1.5.7 1.5 1.5V6"></path><path d="M3 10h14"></path></svg>',
+                calendar: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4.5" width="14" height="12" rx="2"></rect><path d="M6.5 3v3M13.5 3v3M3 8h14"></path></svg>',
+                globe: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="7"></circle><path d="M3.5 10h13"></path><path d="M10 3c2 2.2 3.2 4.5 3.2 7S12 14.8 10 17c-2-2.2-3.2-4.5-3.2-7S8 5.2 10 3Z"></path></svg>',
+                graduation: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2.8 7.8 10 4l7.2 3.8L10 11.6 2.8 7.8Z"></path><path d="M5.5 9.4v3.1c0 1.2 2 2.2 4.5 2.2s4.5-1 4.5-2.2V9.4"></path></svg>',
+                repeat: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14.5 6H6.8a3 3 0 0 0-2.1.9L3 8.5"></path><path d="m3 5.5 0 3 3 0"></path><path d="M5.5 14h7.7a3 3 0 0 0 2.1-.9L17 11.5"></path><path d="m17 14.5 0-3-3 0"></path></svg>',
+                bell: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 17a2.3 2.3 0 0 0 2.2-1.7H7.8A2.3 2.3 0 0 0 10 17Z"></path><path d="M5.5 8.2a4.5 4.5 0 1 1 9 0c0 4 1.6 4.5 1.6 4.5H3.9s1.6-.5 1.6-4.5Z"></path></svg>',
+                shield: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 3.2 15.5 5v4.4c0 3.4-2.2 5.8-5.5 7.4-3.3-1.6-5.5-4-5.5-7.4V5L10 3.2Z"></path></svg>',
+                sparkles: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m10 3 1.2 3.3L14.5 7.5l-3.3 1.2L10 12l-1.2-3.3L5.5 7.5l3.3-1.2L10 3Z"></path><path d="m15.5 12.5.6 1.7 1.7.6-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6.6-1.7Z"></path><path d="m4.5 11 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"></path></svg>',
+                folder: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3.5 5.5h4l1.3 1.6h7.7v6.9a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5V5.5Z"></path></svg>'
+            };
+            return icons[iconName] || icons.folder;
+        }
+
+        function enhanceProfileSectionChrome() {
+            document.querySelectorAll('.accordion-section .accordion-header').forEach((header) => {
+                const titleEl = header.querySelector('h2');
+                const chevronEl = header.querySelector('.accordion-icon');
+                if (!titleEl || !chevronEl) return;
+
+                let left = header.querySelector('.accordion-head-left');
+                if (!left) {
+                    left = document.createElement('div');
+                    left.className = 'accordion-head-left';
+                    header.insertBefore(left, titleEl);
+                }
+
+                let iconWrap = left.querySelector('.accordion-icon-wrap');
+                if (!iconWrap) {
+                    iconWrap = document.createElement('div');
+                    iconWrap.className = 'accordion-icon-wrap';
+                    left.prepend(iconWrap);
+                }
+
+                const sectionName = getAccordionTitleText(header);
+                const meta = PROFILE_SECTION_META[sectionName] || { icon: 'folder', required: false };
+                iconWrap.innerHTML = getSectionIconSvg(meta.icon);
+
+                if (titleEl.parentElement !== left) {
+                    left.appendChild(titleEl);
+                }
+
+                let statusPill = left.querySelector('.section-status-pill');
+                if (!statusPill) {
+                    statusPill = document.createElement('span');
+                    statusPill.className = 'section-status-pill optional';
+                    left.appendChild(statusPill);
+                }
+
+                chevronEl.textContent = '▼';
+            });
+        }
+
+        function updateProfileCompletionChrome() {
+            const sections = Array.from(document.querySelectorAll('.accordion-section'));
+            let requiredTotal = 0;
+            let requiredComplete = 0;
+
+            sections.forEach((section) => {
+                const header = section.querySelector('.accordion-header');
+                const title = getAccordionTitleText(header);
+                const meta = PROFILE_SECTION_META[title] || { required: false };
+                const statusPill = header?.querySelector('.section-status-pill');
+                if (!statusPill) return;
+
+                if (meta.required) {
+                    requiredTotal += 1;
+                    if (section.classList.contains('complete')) {
+                        requiredComplete += 1;
+                        statusPill.textContent = 'Complet';
+                        statusPill.className = 'section-status-pill complete';
+                    } else {
+                        statusPill.textContent = 'Incomplet';
+                        statusPill.className = 'section-status-pill incomplete';
+                    }
+                } else {
+                    if (section.classList.contains('complete')) {
+                        statusPill.textContent = 'Complet';
+                        statusPill.className = 'section-status-pill complete';
+                    } else if (section.classList.contains('incomplete')) {
+                        statusPill.textContent = 'Incomplet';
+                        statusPill.className = 'section-status-pill incomplete';
+                    } else {
+                        statusPill.textContent = 'Optionnel';
+                        statusPill.className = 'section-status-pill optional';
+                    }
+                }
+            });
+
+            const progressPercent = requiredTotal > 0 ? Math.round((requiredComplete / requiredTotal) * 100) : 0;
+            const progressFill = document.getElementById('profileProgressFill');
+            const progressLabel = document.getElementById('profileProgressLabel');
+            if (progressFill) progressFill.style.width = `${progressPercent}%`;
+            if (progressLabel) progressLabel.textContent = `${progressPercent}% complété`;
+        }
 
         function canViewExtensionRuns(email) {
             return ADMIN_DASHBOARD_EMAILS.has(String(email || '').trim().toLowerCase());
@@ -3377,6 +3608,7 @@
                     }
                 }
             });
+            updateProfileCompletionChrome();
         }
 
         // Fonction pour gérer la sélection de fichier
@@ -3682,6 +3914,7 @@
                     }
                 }
             });
+            updateProfileCompletionChrome();
         }
 
         function applyTalentPoolsSectionState() {
@@ -3698,6 +3931,7 @@
                     }
                 }
             });
+            updateProfileCompletionChrome();
         }
 
         function applyPortalQuestionsSectionState() {
@@ -3721,6 +3955,7 @@
                     }
                 }
             });
+            updateProfileCompletionChrome();
         }
 
         function applyGsDiversitySectionState() {
@@ -3739,6 +3974,7 @@
                     }
                 }
             });
+            updateProfileCompletionChrome();
         }
 
         function validateProfile(opts) {
@@ -3891,6 +4127,7 @@
             applyPortalQuestionsSectionState();
             applyGsDiversitySectionState();
             applyDocumentsSectionState();
+            updateProfileCompletionChrome();
 
             // Si des champs sont incomplets, afficher un toast (sauf validation silencieuse) et retourner false
             if (incompleteFields.length > 0) {
@@ -3907,7 +4144,7 @@
 
                 // Scroller vers la première section incomplète
                 const firstIncompleteSection = document.querySelector('.accordion-section.incomplete');
-                if (firstIncompleteSection) {
+                if (firstIncompleteSection && !silent) {
                     firstIncompleteSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     // Ouvrir la section si elle est fermée
                     if (!firstIncompleteSection.classList.contains('active')) {
@@ -4321,6 +4558,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             initDeloitteCountrySelect();
             initPhoneCountryCodeSelect();
+            enhanceProfileSectionChrome();
+            updateProfileCompletionChrome();
             // Ajouter des listeners sur tous les champs pour valider en temps réel
             const form = document.getElementById('profileForm');
             if (form) {

@@ -509,7 +509,7 @@ def main():
         ("ODDO BHF", ODDO_BHF_DB),
         ("JP Morgan Chase", JP_MORGAN_DB),
         ("Goldman Sachs", GOLDMAN_SACHS_DB),
-        ("KPMG France",  KPMG_DB),
+        ("KPMG Global",  KPMG_DB),
     ]
 
     # Mode strict pour éviter d'exporter des données BNP obsolètes en cas d'échec scraper/base manquante.

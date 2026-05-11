@@ -118,11 +118,11 @@ jobs:
             db_file: axa_jobs.db
             timeout_minutes: 15
             playwright_browser: ""
-          - name: KPMG France
+          - name: KPMG Global
             key: kpmg
-            script: kpmg_scraper.py
+            script: kpmg_global_scraper.py
             db_file: kpmg_jobs.db
-            timeout_minutes: 30
+            timeout_minutes: 90
             playwright_browser: ""
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

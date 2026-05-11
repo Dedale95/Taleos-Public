@@ -204,6 +204,82 @@
     return candidates[0]?.field || null;
   }
 
+  function findQuestionRow(textNeedle) {
+    const target = norm(textNeedle);
+    const nodes = Array.from(document.querySelectorAll('label, legend, h1, h2, h3, h4, h5, h6, p, span, div'));
+    const candidates = [];
+    for (const node of nodes) {
+      const text = norm(node.textContent || '');
+      if (!text || !text.includes(target)) continue;
+      let current = node;
+      for (let depth = 0; current && depth < 6; depth += 1, current = current.parentElement) {
+        const row = current.closest?.('.input-row, .oj-form-layout, .oj-flex-item, .oj-form, .oj-panel, .oj-flex');
+        const scoped = row || current;
+        const fields = scoped.querySelectorAll('input, textarea, select, [role="combobox"]');
+        if (!fields.length) continue;
+        const currentText = norm(scoped.textContent || '');
+        if (!currentText.includes(target)) continue;
+        candidates.push({ node: scoped, score: Math.max(0, 60 - currentText.length) - depth });
+      }
+    }
+    candidates.sort((a, b) => b.score - a.score);
+    return candidates[0]?.node || null;
+  }
+
+  function findPhoneInputs() {
+    const row = findQuestionRow('phone number') || findQuestionRow('phone');
+    if (!row) return { countryCodeInput: null, phoneInput: null };
+    const inputs = Array.from(row.querySelectorAll('input')).filter((el) => isElementVisible(el) || el === document.activeElement);
+    if (!inputs.length) return { countryCodeInput: null, phoneInput: null };
+    const countryCodeInput = inputs.find((el) => /country code/i.test(el.getAttribute('aria-label') || '') || /country code/i.test(el.placeholder || '')) || inputs[0];
+    const phoneInput = inputs.find((el) => el !== countryCodeInput) || inputs[inputs.length - 1];
+    return { countryCodeInput, phoneInput };
+  }
+
+  async function selectDropdownValue(label, desiredValue, aliases = []) {
+    const row = findQuestionRow(label);
+    if (!row || !desiredValue) {
+      log(`⚠️ ${label} : menu déroulant introuvable`, 1);
+      return false;
+    }
+    const input = row.querySelector('input[role="combobox"], input[type="text"], select');
+    if (!input) {
+      log(`⚠️ ${label} : champ dropdown introuvable`, 1);
+      return false;
+    }
+    const desiredNorm = norm(desiredValue);
+    const currentRaw = getValue(input);
+    if (norm(currentRaw) === desiredNorm) {
+      log(`✅ ${label} : formulaire='${currentRaw || '(vide)'}' | Firebase='${desiredValue}' -> Skip`, 1);
+      return true;
+    }
+    log(`✏️ ${label} : formulaire='${currentRaw || '(vide)'}' | Firebase='${desiredValue}' -> Correction`, 1);
+    const toggleBtn = row.querySelector('button[aria-label*="Open the drop-down list" i], button.icon-dropdown-arrow');
+    if (toggleBtn) toggleBtn.click();
+    await sleep(200);
+    setInputValue(input, desiredValue);
+    input.focus?.();
+    await sleep(200);
+    for (const candidate of [desiredValue, ...aliases]) {
+      if (await pickVisibleOption(candidate)) return true;
+    }
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }
+
+  function mapEducationLevelToDegree(educationLevel, schoolType = '') {
+    const lvl = norm(educationLevel);
+    const school = norm(schoolType);
+    if (!lvl && !school) return '';
+    if (school.includes('engineer')) return "Engineer's Degree";
+    if (lvl.includes('bac + 5') || lvl.includes('m2') || lvl.includes('master')) return "Master's Degree";
+    if (lvl.includes('bac + 4') || lvl.includes('bac + 3') || lvl.includes('l3') || lvl.includes('l4') || lvl.includes('bachelor')) return "Bachelor's Degree";
+    if (lvl.includes('bac + 2') || lvl.includes('l2') || lvl.includes('associate')) return "Associate's Degree";
+    if (lvl === 'bac' || lvl.includes('high school')) return 'High School Diploma/GED';
+    return '';
+  }
+
   function findQuestionContainer(textNeedle) {
     const target = norm(textNeedle);
     const nodes = Array.from(document.querySelectorAll('label, legend, h1, h2, h3, h4, h5, h6, p, span, div'));
@@ -481,11 +557,11 @@
     auditAndFill('Nom', findBySelectors(['input[id*="lastName" i]', 'input[name*="lastName" i]', 'input[aria-label*="Last Name" i]']), profile.lastname);
     auditAndFill('Email', findBySelectors(['input[id*="email" i]', 'input[name*="email" i]', 'input[aria-label*="Email" i]']), profile.email || profile.auth_email);
 
-    const phoneCcEl = findFieldByLabel('Phone country code') || findBySelectors(['input[aria-label*="Phone country code" i]', 'input[id*="countryCode" i]', 'input[id*="country-code" i]', '[role="combobox"][aria-label*="country code" i] input']);
+    const { countryCodeInput: phoneCcEl, phoneInput } = findPhoneInputs();
     const phoneNational = normalizeNationalPhoneDigits(profile['phone-number'] || profile.phone_number || '', profile.phone_country_code || '+33');
     auditAndFill('Indicatif pays', phoneCcEl, profile.phone_country_code || '+33');
     await pickVisibleOption(profile.phone_country_code || '+33');
-    auditAndFill('Téléphone', findFieldByLabel('Phone number') || findBySelectors(['input[type="tel"]', 'input[aria-label*="Phone Number" i]', 'input[id*="phoneNumber" i]']), phoneNational);
+    auditAndFill('Téléphone', phoneInput || findFieldByLabel('Phone number') || findBySelectors(['input[type="tel"]', 'input[aria-label*="Phone Number" i]', 'input[id*="phoneNumber" i]']), phoneNational);
 
     auditAndFill('Pays', findFieldByLabel('Country') || findBySelectors(['input[aria-label*="Country" i]', '[role="combobox"][aria-label*="Country" i] input']), profile.country || 'France');
     await pickVisibleOption(profile.country || 'France');
@@ -534,18 +610,26 @@
     }
   }
 
-  async function handleSection3() {
+  async function handleSection3(profile) {
     ensureBanner(getBannerApi()?.getText() || '⏳ Automatisation Taleos en cours — Ne touchez à rien.');
     const report = blueprint?.getStructureReport?.('section_3');
     if (report) log(`Blueprint JP Morgan section 3: ${report.ok ? 'OK' : 'KO'} (${report.matchedSelectors.length} sélecteurs)`);
     const educationCards = document.querySelectorAll('[data-testid*="education"], [id*="education"], .education-card').length;
     const experienceCards = document.querySelectorAll('[data-testid*="experience"], [id*="experience"], .experience-card').length;
-    log(`ℹ️ JP Morgan → section 3 : ${educationCards} bloc(s) éducation et ${experienceCards} bloc(s) expérience visibles -> Skip (pas de référentiel Firebase détaillé)`);
+    const degreeValue = mapEducationLevelToDegree(profile.education_level, profile.school_type);
+    if (degreeValue) {
+      await selectDropdownValue('Degree', degreeValue, [degreeValue.replace(/'/g, '’')]);
+    }
+    const schoolField = findFieldByLabel('School') || findFieldByLabel('School Name') || findFieldByLabel('University');
+    if (schoolField && profile.establishment) {
+      auditAndFill('School', schoolField, profile.establishment);
+    }
+    log(`ℹ️ JP Morgan → section 3 : ${educationCards} bloc(s) éducation et ${experienceCards} bloc(s) expérience visibles`);
     const nextBtn = findButtonByText('Next');
     if (nextBtn && !state.nextSection3) {
       state.nextSection3 = true;
       nextBtn.click();
-      log('➡️ JP Morgan : section 3 laissée inchangée, clic sur Next');
+      log('➡️ JP Morgan : section 3 validée, clic sur Next');
     }
   }
 
@@ -574,18 +658,14 @@
 
     auditAndFill('LinkedIn', findBySelectors(['input[id*="siteLink" i]', 'input[aria-label*="Link 1" i]']), profile.linkedin_url || '');
 
-    const gender = deriveGender(profile);
+    const gender = deriveGender(profile) || profile.gender || '';
     if (gender) {
-      const genderContainer = findQuestionContainer('gender') || document;
-      auditAndSelectButton('Gender', genderContainer, gender);
+      await selectDropdownValue('Gender', gender, [gender === 'Male' ? 'Male' : 'Female']);
     } else {
       log('⚠️ Gender : impossible à déduire depuis Firebase', 1);
     }
     const militaryTarget = profile.jp_morgan_military_service || 'No';
-    const militaryContainer = findQuestionContainer('served in the armed forces') ||
-      findQuestionContainer('military') ||
-      findQuestionContainer('veteran');
-    auditAndSelectButton('Military service', militaryContainer, militaryTarget);
+    await selectDropdownValue('Have you ever served as a member of the armed forces of any country?', militaryTarget, [militaryTarget]);
 
     const fullName = `${profile.firstname || ''} ${profile.lastname || ''}`.trim();
     auditAndFill('E-signature', findBySelectors(['input[id*="fullName" i]', 'input[aria-label*="Full Name" i]']), fullName);
@@ -616,7 +696,7 @@
       if (detected.key === 'pin') return handlePinStep();
       if (detected.key === 'section_1') return handleSection1(profile);
       if (detected.key === 'section_2') return handleSection2(profile, pending);
-      if (detected.key === 'section_3') return handleSection3();
+      if (detected.key === 'section_3') return handleSection3(profile);
       if (detected.key === 'section_4') return handleSection4(profile);
       if (detected.key === 'offer') {
         ensureBanner(getBannerApi()?.getText() || '⏳ Automatisation Taleos en cours — Ne touchez à rien.');

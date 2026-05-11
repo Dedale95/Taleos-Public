@@ -2153,7 +2153,17 @@ async function runTestConnection(msg) {
       await new Promise(r => setTimeout(r, 7000));
     }
 
-    const fillRes = bankId === 'axa' ? null : await runFill(bankId === 'deloitte' ? 2 : 0);
+    let fillRes = bankId === 'axa' ? null : await runFill(bankId === 'deloitte' ? 2 : bankId === 'allianz' ? 1 : 0);
+    if (bankId === 'allianz' && fillRes?.[0]?.result?.needRetry) {
+      await new Promise(r => setTimeout(r, 3000));
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: ['scripts/connection-test-runner.js']
+        });
+      } catch (_) {}
+      fillRes = await runFill(2);
+    }
     if (fillRes?.[0]?.result?.error && !fillRes[0].result?.submitted) {
       await closeConnectionTestTabs();
       await chrome.storage.local.remove('taleos_connection_test');

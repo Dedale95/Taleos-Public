@@ -12,11 +12,13 @@
   let currentTabIdPromise = null;
   let logged = new Set();
   let state = {
+    termsAccepted: false,
     emailSubmitted: false,
     pinSubmitted: false,
     nextSection1: false,
     nextSection2: false,
     nextSection3: false,
+    educationFilled: false,
     submitSection4: false,
     reviewStartedAt: 0,
     successSent: false,
@@ -564,6 +566,25 @@
     await chrome.storage.local.remove([PENDING_KEY, TAB_KEY]);
   }
 
+  async function handleTermsAndConditions() {
+    ensureBanner(getBannerApi()?.getText() || '⏳ Automatisation Taleos en cours — Ne touchez à rien.');
+    const report = blueprint?.getStructureReport?.('terms');
+    if (report) log(`Blueprint JP Morgan terms: ${report.ok ? 'OK' : 'KO'} (${report.matchedSelectors.length} sélecteurs)`);
+    log('📋 JP Morgan → page Conditions générales');
+    if (state.termsAccepted) return;
+    // Bouton AGREE : texte exact "AGREE" (majuscules dans l'UI Oracle)
+    const agreeBtn = Array.from(document.querySelectorAll('button')).find(
+      (b) => /^agree$/i.test(b.textContent.trim())
+    );
+    if (agreeBtn) {
+      state.termsAccepted = true;
+      agreeBtn.click();
+      log('✅ JP Morgan : Conditions générales acceptées (AGREE)');
+    } else {
+      log('⚠️ JP Morgan : bouton AGREE introuvable sur la page T&C', 1);
+    }
+  }
+
   async function handleEmailStep(profile) {
     ensureBanner(getBannerApi()?.getText() || '⏳ Automatisation Taleos en cours — Ne touchez à rien.');
     const report = blueprint?.getStructureReport?.('email');
@@ -731,42 +752,214 @@
     }
   }
 
-  async function handleSection3(profile) {
-    ensureBanner(getBannerApi()?.getText() || '⏳ Automatisation Taleos en cours — Ne touchez à rien.');
-    const report = blueprint?.getStructureReport?.('section_3');
-    if (report) log(`Blueprint JP Morgan section 3: ${report.ok ? 'OK' : 'KO'} (${report.matchedSelectors.length} sélecteurs)`);
-    const educationCards = document.querySelectorAll('[data-testid*="education"], [id*="education"], .education-card').length;
-    const experienceCards = document.querySelectorAll('[data-testid*="experience"], [id*="experience"], .experience-card').length;
-    const degreeValue = mapEducationLevelToDegree(profile.education_level, profile.school_type);
-    if (degreeValue) {
-      const desiredNorm = norm(degreeValue);
-      const degreeInputs = Array.from(document.querySelectorAll('input[name*="DEGREE" i], input[id*="DEGREE" i]'))
-        .filter((el) => isElementVisible(el) || el === document.activeElement);
-      if (degreeInputs.length > 1) {
-        let keptMatch = false;
-        for (const input of degreeInputs) {
-          const currentRaw = getValue(input);
-          const currentNorm = norm(currentRaw);
-          if (!currentNorm) continue;
-          if (currentNorm === desiredNorm && !keptMatch) {
-            keptMatch = true;
-            continue;
+  // ──────────────────────────────────────────────────────────────────────────────
+  // Helpers spécifiques au formulaire inline Education / Experience (section 3)
+  // ──────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Ouvre un cx-select dans le formulaire inline et sélectionne l'option souhaitée.
+   * Gère les deux cas :
+   *  - disabled (ex. Degree "contentItemId") → clic sur .cx-select-container
+   *  - normal (Month, Year, Country) → clic sur l'input puis typing pour filtrer
+   */
+  async function selectCxDropdownInForm(label, input, desiredValue, aliases = []) {
+    if (!input || !desiredValue) {
+      log(`⚠️ ${label} : champ cx-select introuvable dans le formulaire inline`, 1);
+      return false;
+    }
+    const currentRaw = getValue(input);
+    if (norm(currentRaw) === norm(desiredValue)) {
+      log(`✅ ${label} : '${currentRaw}' -> Skip`, 1);
+      return true;
+    }
+    log(`✏️ ${label} : '${currentRaw}' → '${desiredValue}'`, 1);
+    const isDisabled = input.classList.contains('cx-select-input--disabled') || input.readOnly || input.disabled;
+    const cxContainer = input.closest('.cx-select-container');
+    if (isDisabled && cxContainer) {
+      cxContainer.click();
+    } else {
+      input.click();
+      input.focus?.();
+    }
+    await sleep(400);
+    if (!isDisabled) {
+      setInputValue(input, desiredValue);
+      await sleep(300);
+    }
+    for (const candidate of [desiredValue, ...aliases]) {
+      if (await pickVisibleOption(candidate)) return true;
+    }
+    if (!isDisabled) {
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    return false;
+  }
+
+  /**
+   * Remplit le formulaire inline d'éducation une fois qu'il est ouvert.
+   * Champs Oracle CX confirmés en production (session 2026-05-12) :
+   *   input[name="contentItemId"]          — Diplôme (cx-select disabled)
+   *   input[name="educationalEstablishment"] — École (cx-select autocomplete)
+   *   input[name="endDate"][0] (id=month-endDate-N) — Mois de fin
+   *   input[name="endDate"][1] (id=year-endDate-N)  — Année de fin
+   *   input[name="countryCode"]            — Pays
+   *   input[name="areaOfStudy"]            — Domaine d'études (texte libre)
+   *   button.save-btn                      — Sauvegarder
+   */
+  async function fillEducationInlineForm(degree, school, gradMonth, gradYear, country, areaOfStudy) {
+    await sleep(300);
+    const formEl = document.querySelector('.profile-item-content--form');
+    if (!formEl) {
+      log('⚠️ JP Morgan : formulaire inline éducation non apparu', 1);
+      return false;
+    }
+
+    // ── Diplôme (cx-select disabled → clic sur .cx-select-container) ───────
+    if (degree) {
+      const degreeInput = formEl.querySelector('input[name="contentItemId"]') ||
+        document.querySelector('input[name="contentItemId"]');
+      await selectCxDropdownInForm('Diplôme', degreeInput, degree, [degree.replace(/'/g, '’')]);
+    }
+
+    // ── École (cx-select autocomplete serveur) ───────────────────────────────
+    if (school) {
+      const schoolInput = formEl.querySelector('input[name="educationalEstablishment"]') ||
+        document.querySelector('input[name="educationalEstablishment"]');
+      if (schoolInput) {
+        const currentSchool = getValue(schoolInput);
+        if (norm(currentSchool) !== norm(school)) {
+          schoolInput.click();
+          schoolInput.focus?.();
+          await sleep(200);
+          setInputValue(schoolInput, school);
+          await sleep(700); // attendre suggestions serveur
+          const picked = await pickVisibleOption(school);
+          if (!picked) {
+            // Aucune suggestion : confirmer la valeur tapée
+            schoolInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }));
+            schoolInput.dispatchEvent(new Event('change', { bubbles: true }));
           }
-          if (currentNorm !== desiredNorm) {
-            await removeEducationEntry(getEducationBlockForField(input), currentRaw);
-          }
+          log(`✏️ École : → ${school}`, 1);
+        } else {
+          log(`✅ École : '${currentSchool}' -> Skip`, 1);
         }
       }
     }
-    if (degreeValue) {
-      await selectDropdownValueWithSelectors('Degree', ['input[name*="DEGREE" i]', 'input[id*="DEGREE" i]'], degreeValue, [degreeValue.replace(/'/g, '’')]);
+
+    // ── Mois de fin (1er input[name="endDate"]) ─────────────────────────────
+    if (gradMonth) {
+      const endDateInputs = (formEl || document).querySelectorAll('input[name="endDate"]');
+      const monthInput = endDateInputs[0] || document.querySelector('input[id^="month-endDate"]');
+      await selectCxDropdownInForm('Mois de diplôme', monthInput, gradMonth);
     }
-    log(`ℹ️ JP Morgan → section 3 : ${educationCards} bloc(s) éducation et ${experienceCards} bloc(s) expérience visibles -> Degree piloté, nom d'école laissé inchangé pour éviter d'écraser plusieurs diplômes`, 1);
-    const nextBtn = findButtonByText('Next');
+
+    // ── Année de fin (2e input[name="endDate"]) ──────────────────────────────
+    if (gradYear) {
+      const endDateInputs = (formEl || document).querySelectorAll('input[name="endDate"]');
+      const yearInput = endDateInputs[1] || document.querySelector('input[id^="year-endDate"]');
+      await selectCxDropdownInForm('Année de diplôme', yearInput, String(gradYear));
+    }
+
+    // ── Pays (cx-select) ────────────────────────────────────────────────────
+    if (country) {
+      const countryInput = formEl.querySelector('input[name="countryCode"]') ||
+        document.querySelector('input[name="countryCode"]');
+      await selectCxDropdownInForm('Pays (éducation)', countryInput, country);
+    }
+
+    // ── Domaine d'études (texte libre) ──────────────────────────────────────
+    const areaInput = formEl.querySelector('input[name="areaOfStudy"]') ||
+      document.querySelector('input[name="areaOfStudy"]');
+    if (areaInput) {
+      if (areaOfStudy) auditAndFill("Domaine d'études", areaInput, areaOfStudy);
+      else log("ℹ️ Domaine d'études : non renseigné dans Firebase -> Skip", 1);
+    }
+
+    // ── Sauvegarder ──────────────────────────────────────────────────────────
+    const saveBtn = document.querySelector('button.save-btn');
+    if (saveBtn) {
+      saveBtn.click();
+      await sleep(800);
+      log('💾 JP Morgan : formulaire éducation sauvegardé', 1);
+      return true;
+    }
+    log('⚠️ JP Morgan : bouton Save introuvable dans le formulaire éducation', 1);
+    return false;
+  }
+
+  async function handleSection3(profile) {
+    ensureBanner(getBannerApi()?.getText() || ‘⏳ Automatisation Taleos en cours — Ne touchez à rien.’);
+    const report = blueprint?.getStructureReport?.(‘section_3’);
+    if (report) log(`Blueprint JP Morgan section 3: ${report.ok ? ‘OK’ : ‘KO’} (${report.matchedSelectors.length} sélecteurs)`);
+    log(‘🧾 JP Morgan → audit éducation & expérience (section 3)’);
+
+    // ── Trouver les conteneurs Education / Experience ────────────────────────
+    // Chaque section est dans un .profile-item-container distinct identifié par
+    // le texte de son bouton "Add Education" ou "Add Experience".
+    const allContainers = document.querySelectorAll(‘[class*="standard-apply-flow-profile-item-"]’);
+    let eduContainer = null;
+    allContainers.forEach((c) => {
+      const addBtn = c.querySelector(‘button[class*="new-tile"]’);
+      if (norm(addBtn?.textContent || ‘’).includes(‘add education’)) eduContainer = c;
+    });
+
+    // ── Paramètres éducation depuis Firebase ────────────────────────────────
+    const degreeValue = mapEducationLevelToDegree(profile.education_level, profile.school_type);
+    const school = profile.school || profile.university || profile.education_school || ‘’;
+    const gradYear = String(profile.graduation_year || profile.grad_year || ‘’);
+    const gradMonth = profile.graduation_month || profile.grad_month || ‘’;
+    const eduCountry = profile.education_country || profile.country || ‘France’;
+    const areaOfStudy = profile.area_of_study || profile.major || profile.field_of_study || ‘’;
+
+    // ── Remplissage éducation ────────────────────────────────────────────────
+    if (!eduContainer) {
+      log(‘⚠️ JP Morgan section 3 : conteneur Education introuvable’, 1);
+    } else if (!state.educationFilled) {
+      // Vérifier si un formulaire inline est déjà ouvert (save-btn visible)
+      const isEditOpen = !!document.querySelector(‘button.save-btn’);
+      if (isEditOpen) {
+        log(‘ℹ️ JP Morgan section 3 : formulaire éducation déjà ouvert -> attente’, 1);
+      } else {
+        const tiles = eduContainer.querySelectorAll(‘.apply-flow-profile-item-tile’);
+        if (tiles.length === 0) {
+          // Aucun diplôme → cliquer "Add Education"
+          const addBtn = eduContainer.querySelector(‘button[class*="new-tile"]’);
+          if (addBtn) {
+            addBtn.click();
+            await sleep(500);
+            log(‘➕ JP Morgan : ajout d\’une entrée éducation’, 1);
+            const ok = await fillEducationInlineForm(degreeValue, school, gradMonth, gradYear, eduCountry, areaOfStudy);
+            if (ok) state.educationFilled = true;
+          }
+        } else {
+          // Éditer la première carte (diplôme principal)
+          const firstTile = tiles[0];
+          const editBtn = firstTile.querySelector(‘button[aria-label="Edit"]’);
+          if (editBtn) {
+            editBtn.click();
+            await sleep(500);
+            log(‘✏️ JP Morgan : édition du diplôme existant (tile[0])’, 1);
+            const ok = await fillEducationInlineForm(degreeValue, school, gradMonth, gradYear, eduCountry, areaOfStudy);
+            if (ok) state.educationFilled = true;
+          } else {
+            log(‘⚠️ JP Morgan section 3 : bouton Edit introuvable sur la carte éducation’, 1);
+          }
+        }
+      }
+    } else {
+      log(‘✅ JP Morgan section 3 : éducation déjà remplie -> Skip’, 1);
+    }
+
+    // ── Expérience : laisser inchangé (Oracle HCM récupère le profil existant) ─
+    const expTiles = document.querySelectorAll(‘.apply-flow-profile-item-tile’).length - (eduContainer?.querySelectorAll(‘.apply-flow-profile-item-tile’).length || 0);
+    log(`ℹ️ JP Morgan → section 3 : ${expTiles} carte(s) expérience laissée(s) inchangée(s)`, 1);
+
+    const nextBtn = findButtonByText(‘Next’);
     if (nextBtn && !state.nextSection3) {
       state.nextSection3 = true;
       nextBtn.click();
-      log('➡️ JP Morgan : section 3 validée, clic sur Next');
+      log(‘➡️ JP Morgan : section 3 validée, clic sur Next’);
     }
   }
 
@@ -810,8 +1003,9 @@
       [militaryTarget]
     );
 
-    const fullName = `${profile.firstname || ''} ${profile.lastname || ''}`.trim();
-    auditAndFill('E-signature', findBySelectors(['input[id*="fullName" i]', 'input[aria-label*="Full Name" i]']), fullName);
+    // Firebase snake_case (first_name/last_name) avec fallback legacy (firstname/lastname)
+    const fullName = `${profile.first_name || profile.firstname || ''} ${profile.last_name || profile.lastname || ''}`.trim();
+    auditAndFill('E-signature', findBySelectors(['input[name="fullName"]', 'input[id*="fullName" i]', 'input[aria-label*="Full Name" i]']), fullName);
 
     const submitBtn = findButtonByText('Submit');
     if (submitBtn && !state.submitSection4) {
@@ -847,6 +1041,7 @@
       await handleSuccess(pending);
       if (state.successSent) return;
 
+      if (detected.key === 'terms') return handleTermsAndConditions();
       if (detected.key === 'email') return handleEmailStep(profile);
       if (detected.key === 'pin') return handlePinStep();
       if (detected.key === 'section_1') return handleSection1(profile);

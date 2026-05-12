@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Taleos",
-  "version": "1.2.11",
-  "version_name": "1.2.11-jp-morgan-filler-fix",
+  "version": "1.2.12",
+  "version_name": "1.2.12-jp-morgan-section3-education",
   "description": "Automatisation de candidatures bancaires - Taleos",
   "permissions": [
     "activeTab",

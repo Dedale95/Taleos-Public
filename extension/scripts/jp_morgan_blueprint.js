@@ -13,11 +13,12 @@
 
   const TEXT = {
     offer: ['apply now', 'job identification', 'job description', 'prime financial services'],
+    terms: ['terms and conditions', 'candidate recruitment privacy policies', 'employment and workforce related privacy notice', 'agree'],
     email: ['email address', 'terms and conditions', 'next'],
     pin: ['confirm your identity', 'send new code', 'verify'],
     section1: ['personal information', 'phone country code', 'house number', 'postal code'],
     section2: ['job application questions', 'at least 18 years of age', 'legally authorized'],
-    section3: ['experience', 'education', 'work experience'],
+    section3: ['experience', 'education', 'work experience', 'add education', 'add experience'],
     section4: ['more about you', 'resume or additional documents', 'upload cover letter', 'e-signature'],
     success: ['thank you for your job application'],
     alreadyApplied: ['you already applied for this job', 'you may also view other jobs'],
@@ -31,6 +32,17 @@
       pathMatches: [/\/job\//],
       selectorsAny: ['a[href*="/apply/email"]', 'button', 'h1'],
       textPatterns: TEXT.offer
+    },
+    // Interstitielle Conditions générales — apparaît au DÉBUT d'une NOUVELLE candidature
+    // avant la section 1. Même URL que section 1 (/apply/section/1/).
+    // Détectée par texte unique "candidate recruitment privacy policies" + bouton "AGREE".
+    // Bouton: <button class="button app-dialog__footer-button"> AGREE </button>
+    terms: {
+      label: 'Conditions générales',
+      hostIncludes: ['jpmc.fa.oraclecloud.com'],
+      pathMatches: [/\/apply\//],
+      selectorsAny: ['button'],
+      textPatterns: TEXT.terms
     },
     email: {
       label: 'Email / consentement',
@@ -67,10 +79,49 @@
       textPatterns: TEXT.section2
     },
     section_3: {
-      label: 'Section 3 - Experience',
+      label: 'Section 3 - Education & Experience',
       hostIncludes: ['jpmc.fa.oraclecloud.com'],
       pathMatches: [/\/apply\/section\/3/],
-      selectorsAny: ['button', 'section', '[data-testid]'],
+      // Structure des cartes (état FERMÉ) :
+      //   .apply-flow-profile-item-tile                     — carte fermée
+      //   .apply-flow-profile-item-tile__summary-title      — titre (ex. "Master's Degree" ou "Analyst")
+      //   .apply-flow-profile-item-tile__summary-subtitle   — sous-titre (ex. "12/2018" ou "NATIXIS CIB …")
+      //   button[aria-label="Edit"]  .apply-flow-profile-item-tile__edit-item-icon  — crayon edit
+      //   button[aria-label="Delete"] .apply-flow-profile-item-tile__delete-icon    — croix supprimer
+      //   button.apply-flow-profile-item-tile__new-tile     — "Add Education" / "Add Experience"
+      //
+      // Différencier Education vs Expérience :
+      //   container Education  → button[class*="new-tile"] dont textContent = "Add Education"
+      //   container Experience → button[class*="new-tile"] dont textContent = "Add Experience"
+      //   Les deux sont dans des .profile-item-container[class*="standard-apply-flow-profile-item-"]
+      //
+      // Formulaire inline ÉDUCATION (s'ouvre dans .profile-item-content--form) :
+      //   input[name="contentItemId"]          — Diplôme (cx-select, DISABLED → cliquer .cx-select-container)
+      //   input[name="educationalEstablishment"] — École (cx-select autocomplete, role=combobox)
+      //   input[name="endDate"] [0] (id=month-endDate-N) — Mois de fin (cx-select, role=combobox)
+      //   input[name="endDate"] [1] (id=year-endDate-N)  — Année de fin (cx-select, role=combobox)
+      //   input[name="countryCode"]            — Pays (cx-select, role=combobox)
+      //   input[name="areaOfStudy"]            — Domaine d'études (texte libre, class=input-row__control)
+      //   button.save-btn                      — Sauvegarder
+      //   button.cancel-btn                    — Annuler
+      //
+      // Formulaire inline EXPÉRIENCE (même structure) :
+      //   input[name="employerName"]           — Entreprise (texte libre)
+      //   input[name="jobTitle"]               — Intitulé de poste (texte libre)
+      //   input[name="startDate"] [0/1]        — Début Mois / Année (cx-select)
+      //   input[name="endDate"] [0/1]          — Fin Mois / Année (cx-select)
+      //   input[name="countryCode"]            — Pays (cx-select)
+      //   input[name="employerCity"]           — Ville (texte libre)
+      //   input[name="achievements"]           — Description (textarea-like)
+      //   button.save-btn / button.cancel-btn
+      //
+      // Options cx-select : .cx-select__list-item--content (PAS role="option")
+      selectorsAny: [
+        'button[aria-label="Edit"]',
+        '.apply-flow-profile-item-tile',
+        'button[class*="new-tile"]',
+        '.apply-flow-profile-item-tile__summary-title'
+      ],
       textPatterns: TEXT.section3
     },
     section_4: {
@@ -159,6 +210,11 @@
     }
     if (text.includes(normalizeText(TEXT.alreadyApplied[0]))) {
       return { key: 'already_applied', score: 100, label: PAGE_DEFS.already_applied.label };
+    }
+    // Interstitielle T&C : texte unique "candidate recruitment privacy policies" + bouton AGREE
+    // (même URL que section 1, doit être détectée en priorité)
+    if (text.includes(normalizeText('candidate recruitment privacy policies'))) {
+      return { key: 'terms', score: 100, label: PAGE_DEFS.terms.label };
     }
 
     let best = { key: 'unknown', score: 0, label: 'Inconnue' };

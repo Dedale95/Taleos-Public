@@ -50,7 +50,13 @@
       label: 'Section 1 - Personal Info',
       hostIncludes: ['jpmc.fa.oraclecloud.com'],
       pathMatches: [/\/apply\/section\/1/],
-      selectorsAny: ['input[id*="firstName"]', 'input[id*="lastName"]', 'input[type="tel"]'],
+      // Confirmed IDs (suffixes vary per session, use name= selectors):
+      // firstName-N (name=firstName), middleNames-N (name=middleNames), lastName-N (name=lastName)
+      // email-N (name=email), country-codes-dropdownphoneNumber (name=phoneNumber, country code combobox)
+      // phone digits: no id/name — class="input-row__control phone-row__input"
+      // country-N (name=country), addressLine1-N, addressLine2-N, postalCode-N, city-N, region2-N
+      // Title: buttons.cx-select-pill-section (Doctor/Miss/Mr./Mrs./Ms.)
+      selectorsAny: ['input[name="firstName"]', 'input[name="lastName"]', 'input[name="postalCode"]', 'button.cx-select-pill-section'],
       textPatterns: TEXT.section1
     },
     section_2: {
@@ -71,7 +77,13 @@
       label: 'Section 4 - More About You',
       hostIncludes: ['jpmc.fa.oraclecloud.com'],
       pathMatches: [/\/apply\/section\/4/],
-      selectorsAny: ['input[type="file"]', 'input[id*="siteLink"]', 'input[id*="fullName"]'],
+      // Confirmed IDs: siteLink-1-N (name=siteLink-1), fullName-N (name=fullName)
+      // Gender: id=FR-STANDARD-ORA_GENDER-STANDARD-N (name=FR-STANDARD-ORA_GENDER-STANDARD) — cx-select dropdown
+      // Military: id=FR-DFF-emeaMilitaryStatus-ATTRIBUTE13-N (name=FR-DFF-emeaMilitaryStatus-ATTRIBUTE13) — cx-select dropdown
+      // cx-select options: .cx-select__list-item--content (NOT role="option")
+      // Military options: "Yes, I am a UK Veteran" / "Yes, I am a Veteran of a country other than the UK" /
+      //   "Yes, I am a UK Reservist" / "No" / "I do not wish to answer" / "Yes, I am a Reservist of a country other than the UK"
+      selectorsAny: ['input[type="file"]', 'input[name="siteLink-1"]', 'input[name="fullName"]', 'input[name*="ORA_GENDER"]'],
       textPatterns: TEXT.section4
     },
     success: {

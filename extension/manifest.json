@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Taleos",
-  "version": "1.2.10",
-  "version_name": "1.2.10-bridge-health-file-pages",
+  "version": "1.2.11",
+  "version_name": "1.2.11-jp-morgan-filler-fix",
   "description": "Automatisation de candidatures bancaires - Taleos",
   "permissions": [
     "activeTab",

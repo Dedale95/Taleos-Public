@@ -255,8 +255,10 @@
       return true;
     }
     log(`✏️ ${label} : formulaire='${currentRaw || '(vide)'}' | Firebase='${desiredValue}' -> Correction`, 1);
+    // Oracle JET uses aria-label button; Oracle CX uses the input itself as toggle
     const toggleBtn = row.querySelector('button[aria-label*="Open the drop-down list" i], button.icon-dropdown-arrow');
     if (toggleBtn) toggleBtn.click();
+    else { input.click(); input.focus?.(); }
     await sleep(200);
     setInputValue(input, desiredValue);
     input.focus?.();
@@ -294,8 +296,10 @@
       return true;
     }
     log(`✏️ ${label} : formulaire='${currentRaw || '(vide)'}' | Firebase='${desiredValue}' -> Correction`, 1);
+    // Oracle JET uses aria-label button; Oracle CX uses the input itself as toggle
     const toggleBtn = row.querySelector('button[aria-label*="Open the drop-down list" i], button.icon-dropdown-arrow');
     if (toggleBtn) toggleBtn.click();
+    else { input.click(); input.focus?.(); }
     await sleep(200);
     setInputValue(input, desiredValue);
     input.focus?.();
@@ -384,13 +388,24 @@
 
   async function pickVisibleOption(textNeedle) {
     const target = norm(textNeedle);
-    const options = Array.from(document.querySelectorAll('[role="option"], li[role="option"], .oj-listbox-result, .oj-listview-item'));
+    // Oracle HCM CX uses .cx-select__list-item--content (no role="option"), OJet uses .oj-listbox-result
+    const options = Array.from(document.querySelectorAll(
+      '[role="option"], li[role="option"], .oj-listbox-result, .oj-listview-item, .cx-select__list-item--content, [class*="cx-select__list-item"]'
+    ));
     const option = options.find((el) => {
       const text = norm(el.textContent || '');
       return text === target || text.includes(target) || target.includes(text);
     });
     if (option) {
-      option.click();
+      // Walk up to find clickable ancestor if needed
+      let clickTarget = option;
+      for (let i = 0; i < 4 && clickTarget; i++) {
+        if (clickTarget.tagName === 'LI' || clickTarget.getAttribute('role') === 'option' || clickTarget.getAttribute('tabindex') !== null) break;
+        const parent = clickTarget.parentElement;
+        if (!parent || parent.tagName === 'UL' || parent.tagName === 'BODY') break;
+        clickTarget = parent;
+      }
+      clickTarget.click();
       await sleep(300);
       return true;
     }
@@ -623,25 +638,61 @@
     if (report) log(`Blueprint JP Morgan section 1: ${report.ok ? 'OK' : 'KO'} (${report.matchedSelectors.length} sélecteurs)`);
     log('🧾 JP Morgan → audit détaillé Firebase vs formulaire (section 1)');
 
-    auditAndFill('Prénom', findBySelectors(['input[id*="firstName" i]', 'input[name*="firstName" i]', 'input[aria-label*="First Name" i]']), profile.firstname);
-    auditAndFill('Nom', findBySelectors(['input[id*="lastName" i]', 'input[name*="lastName" i]', 'input[aria-label*="Last Name" i]']), profile.lastname);
-    auditAndFill('Email', findBySelectors(['input[id*="email" i]', 'input[name*="email" i]', 'input[aria-label*="Email" i]']), profile.email || profile.auth_email);
+    // --- Title (Doctor / Miss / Mr. / Mrs. / Ms.) ---
+    const civility = norm(profile.civility || '');
+    const titleMap = { monsieur: 'Mr.', madame: 'Mrs.', mme: 'Mrs.', miss: 'Miss', ms: 'Ms.' };
+    const desiredTitle = titleMap[civility] || (civility.includes('monsieur') ? 'Mr.' : civility.includes('madame') ? 'Mrs.' : '');
+    if (desiredTitle) {
+      const titleBtns = Array.from(document.querySelectorAll('button.cx-select-pill-section, button[class*="cx-select-pill"]'));
+      const titleBtn = titleBtns.find((b) => norm(b.textContent) === norm(desiredTitle));
+      if (titleBtn) {
+        const alreadySelected = titleBtn.getAttribute('aria-pressed') === 'true' || titleBtn.classList.contains('cx-select-pill-section--selected');
+        if (!alreadySelected) { titleBtn.click(); log(`✏️ Titre : → ${desiredTitle}`, 1); }
+        else { log(`✅ Titre : ${desiredTitle} -> Skip`, 1); }
+      } else {
+        log(`⚠️ Titre : bouton '${desiredTitle}' introuvable`, 1);
+      }
+    }
 
-    const { countryCodeInput: phoneCcEl, phoneInput } = findPhoneInputs();
-    const phoneNational = normalizeNationalPhoneDigits(profile['phone-number'] || profile.phone_number || '', profile.phone_country_code || '+33');
+    // --- Prénom / Middle Name (vider) / Nom ---
+    // Firebase uses first_name / last_name (snake_case), legacy: firstname / lastname
+    const firstName = profile.first_name || profile.firstname || '';
+    const lastName = profile.last_name || profile.lastname || '';
+    auditAndFill('Prénom', findBySelectors(['input[name="firstName"]', 'input[id*="firstName" i]', 'input[name*="firstName" i]', 'input[aria-label*="First Name" i]']), firstName);
+    // Middle Name MUST be empty — a previous bug could have filled it with the phone number
+    const middleNameEl = findBySelectors(['input[name="middleNames"]', 'input[id*="middleNames" i]', 'input[name*="middleNames" i]']);
+    if (middleNameEl && getValue(middleNameEl) !== '') {
+      log(`🗑️ Middle Name : '${getValue(middleNameEl)}' → vidé (champ non utilisé)`, 1);
+      setInputValue(middleNameEl, '');
+    }
+    auditAndFill('Nom', findBySelectors(['input[name="lastName"]', 'input[id*="lastName" i]', 'input[name*="lastName" i]', 'input[aria-label*="Last Name" i]']), lastName);
+    auditAndFill('Email', findBySelectors(['input[name="email"]', 'input[id*="email" i]', 'input[name*="email" i]', 'input[aria-label*="Email" i]']), profile.email || profile.auth_email);
+
+    // --- Téléphone ---
+    // The phone field: country code combobox id="country-codes-dropdownphoneNumber" (name="phoneNumber")
+    // The digits input has NO id/name — class="input-row__control phone-row__input"
+    // Using findPhoneInputs() is reliable; fallback to .phone-row__input class selector
+    const { countryCodeInput: phoneCcEl, phoneInput: phoneDigitsEl } = findPhoneInputs();
+    const rawPhone = profile.phone || profile['phone-number'] || profile.phone_number || '';
+    const phoneNational = normalizeNationalPhoneDigits(rawPhone, profile.phone_country_code || '+33');
     auditAndFill('Indicatif pays', phoneCcEl, profile.phone_country_code || '+33');
     await pickVisibleOption(profile.phone_country_code || '+33');
-    auditAndFill('Téléphone', phoneInput || findFieldByLabel('Phone number') || findBySelectors(['input[type="tel"]', 'input[aria-label*="Phone Number" i]', 'input[id*="phoneNumber" i]']), phoneNational);
+    // Prefer DOM-traversal result, fallback to class selector — NEVER use id*="phoneNumber" which matches country code combobox
+    const phoneInputEl = phoneDigitsEl || findBySelectors(['input.phone-row__input', 'input[aria-label*="Phone Number" i]']);
+    auditAndFill('Téléphone', phoneInputEl, phoneNational);
 
-    auditAndFill('Pays', findFieldByLabel('Country') || findBySelectors(['input[aria-label*="Country" i]', '[role="combobox"][aria-label*="Country" i] input']), profile.country || 'France');
+    // --- Adresse ---
+    auditAndFill('Pays', findBySelectors(['input[name="country"]', 'input[id*="country-" i]']), profile.country || 'France');
     await pickVisibleOption(profile.country || 'France');
-    auditAndFill('Numéro', findFieldByLabel('House Number') || findBySelectors(['input[aria-label*="House Number" i]', 'input[id*="houseNumber" i]']), (profile.address || '').match(/^\s*(\d+[A-Za-z\-]*)/)?.[1] || '30');
-    auditAndFill('Rue', findFieldByLabel('Street Name') || findBySelectors(['input[aria-label*="Street Name" i]', 'input[id*="streetName" i]']), (profile.address || '').replace(/^\s*\d+[A-Za-z\-]*\s+/, '') || 'rue des Garonnes');
-    auditAndFill('Code postal', findFieldByLabel('Postal Code') || findBySelectors(['input[aria-label*="Postal Code" i]', 'input[id*="postalCode" i]', '[role="combobox"][aria-label*="Postal Code" i] input']), profile.zipcode);
+    auditAndFill('Numéro', findBySelectors(['input[name="addressLine1"]', 'input[id*="addressLine1" i]']), (profile.address || '').match(/^\s*(\d+[A-Za-z\-]*)/)?.[1] || '30');
+    auditAndFill('Rue', findBySelectors(['input[name="addressLine2"]', 'input[id*="addressLine2" i]']), (profile.address || '').replace(/^\s*\d+[A-Za-z\-]*\s+/, '') || 'rue des Garonnes');
+    // postal_code (Firebase snake_case) or legacy zipcode
+    const postalCode = profile.postal_code || profile.zipcode || '';
+    auditAndFill('Code postal', findBySelectors(['input[name="postalCode"]', 'input[id*="postalCode" i]']), postalCode);
     await sleep(300);
     await selectPostalSuggestion();
-    auditAndFill('Ville', findFieldByLabel('City') || findBySelectors(['input[aria-label*="City" i]', 'input[id*="city" i]', '[role="combobox"][aria-label*="City" i] input']), profile.city);
-    const departmentEl = findFieldByLabel('Department') || findFieldByLabel('State') || findBySelectors(['input[aria-label*="Department" i]', 'input[aria-label*="State" i]', 'input[id*="region" i]', 'input[id*="department" i]']);
+    auditAndFill('Ville', findBySelectors(['input[name="city"]', 'input[id*="city-" i]']), profile.city);
+    const departmentEl = findBySelectors(['input[name="region2"]', 'input[id*="region2" i]', 'input[name*="region" i]', 'input[id*="region" i]']);
     if (departmentEl) {
       log(`ℹ️ Département : formulaire='${getValue(departmentEl) || '(vide)'}' | Firebase='(piloté via code postal)' -> Skip`, 1);
     }
@@ -733,10 +784,11 @@
       uploadButtonText: 'Upload Resume',
       token: 'resumeUploadToken'
     });
+    // Firebase uses letter_storage_path / letter_filename (snake_case); legacy: lm_storage_path / lm_filename
     await ensureAttachment({
       label: 'Lettre de motivation',
-      storagePath: profile.lm_storage_path,
-      filename: profile.lm_filename,
+      storagePath: profile.letter_storage_path || profile.lm_storage_path,
+      filename: profile.letter_filename || profile.lm_filename,
       rootKeywords: ['cover letter', 'motivation'],
       uploadButtonText: 'Upload Cover Letter',
       token: 'coverUploadToken'

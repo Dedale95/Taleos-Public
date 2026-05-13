@@ -24,10 +24,34 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 chrome.runtime.onInstalled.addListener((details) => {
   chrome.alarms.create('taleos-keepalive', { periodInMinutes: 4 });
   if (details.reason === 'update') {
+    // 1. Recharger les pages Taleos (control panel)
     const patterns = ['https://*.taleos.co/*', 'http://localhost/*', 'http://127.0.0.1/*'];
     patterns.forEach((url) => {
       chrome.tabs.query({ url }, (tabs) => {
         tabs.forEach((tab) => { try { chrome.tabs.reload(tab.id); } catch (_) {} });
+      });
+    });
+    // 2. Recharger les onglets de candidature en cours
+    // — le rechargement réinitialise le content script avec un état frais,
+    //   ce qui évite les "onglets morts" après rechargement de l'extension.
+    const bankTabKeys = [
+      'taleos_jp_morgan_tab_id',
+      'taleos_gs_tab_id',
+      'taleos_bpce_tab_id',
+      'taleos_bnp_tab_id',
+      'taleos_credit_mutuel_tab_id',
+      'taleos_axa_tab_id',
+      'taleos_sg_tab_id',
+      'taleos_ca_apply_tab_id'
+    ];
+    chrome.storage.local.get(bankTabKeys, (s) => {
+      bankTabKeys.forEach((key) => {
+        const tabId = s[key];
+        if (!tabId) return;
+        chrome.tabs.reload(tabId, {}, () => {
+          if (chrome.runtime.lastError) return; // onglet fermé entre-temps
+          console.log(`[Taleos] Onglet candidature rechargé après mise à jour extension : ${key}=${tabId}`);
+        });
       });
     });
   }

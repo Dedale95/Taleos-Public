@@ -83,6 +83,9 @@
       currentTabIdPromise = chrome.runtime.sendMessage({ action: 'taleos_get_current_tab_id' })
         .then((res) => res?.tabId || null)
         .catch(() => null);
+      // Si le message échoue (background redémarré après rechargement extension),
+      // on réinitialise pour que le prochain run() réessaie.
+      currentTabIdPromise.then((id) => { if (!id) currentTabIdPromise = null; });
     }
     return currentTabIdPromise;
   }
@@ -416,21 +419,49 @@
   async function pickVisibleOption(textNeedle) {
     // normText : apostrophes Unicode normalisées → évite le mismatch "Master's" (U+2019) vs "Master's" (U+0027)
     const target = normText(textNeedle);
-    // Oracle HCM CX uses .cx-select__list-item--content (no role="option"), OJet uses .oj-listbox-result
-    const options = Array.from(document.querySelectorAll(
+
+    function tryMatch(collection) {
+      // Priorité 1 : correspondance exacte (évite ex. 'female'.includes('male'))
+      // Priorité 2 : l'option contient la cible (ex. 'France métropolitaine' pour 'france')
+      // Priorité 3 : la cible contient le texte de l'option (ex. option abrégée)
+      return (
+        collection.find((el) => normText(el.textContent || '') === target) ||
+        collection.find((el) => normText(el.textContent || '').includes(target)) ||
+        collection.find((el) => { const t = normText(el.textContent || ''); return t.length > 2 && target.includes(t); }) ||
+        null
+      );
+    }
+
+    // Stratégie 1 : sélecteurs Oracle connus (cx-select, OJet, role="option")
+    let option = tryMatch(Array.from(document.querySelectorAll(
       '[role="option"], li[role="option"], .oj-listbox-result, .oj-listview-item, .cx-select__list-item--content, [class*="cx-select__list-item"]'
-    ));
-    // Priorité 1 : correspondance exacte (évite ex. 'female'.includes('male'))
-    // Priorité 2 : l'option contient la cible (ex. 'France métropolitaine' pour 'france')
-    // Priorité 3 : la cible contient le texte de l'option (ex. option abrégée)
-    const option =
-      options.find((el) => normText(el.textContent || '') === target) ||
-      options.find((el) => normText(el.textContent || '').includes(target)) ||
-      options.find((el) => { const t = normText(el.textContent || ''); return t.length > 2 && target.includes(t); });
+    )));
+
+    // Stratégie 2 : chercher dans tout conteneur listbox/dropdown ouvert
+    // (pour les cx-select dont les classes internes varient selon la version Oracle)
+    if (!option) {
+      const openContainers = Array.from(document.querySelectorAll(
+        '[role="listbox"], [class*="cx-select__list"]:not([class*="__list-item"]), [class*="cx-select__dropdown"], [class*="select-list"], [class*="select-dropdown"]'
+      )).filter(isElementVisible);
+      for (const container of openContainers) {
+        const items = Array.from(container.querySelectorAll('li, div, span')).filter(isElementVisible);
+        option = tryMatch(items);
+        if (option) break;
+      }
+    }
+
+    // Stratégie 3 (filet de sécurité) : tout élément visible dont le texte normalisé
+    // correspond EXACTEMENT à la cible — le match exact évite les faux positifs.
+    if (!option) {
+      option = Array.from(document.querySelectorAll(
+        'li, [class*="item"], [class*="option"], [class*="result"], [class*="choice"]'
+      )).find((el) => isElementVisible(el) && normText(el.textContent || '') === target) || null;
+    }
+
     if (option) {
-      // Walk up to find clickable ancestor if needed
+      // Walk up to find clickable ancestor if needed (max 2 niveaux pour éviter de remonter trop haut)
       let clickTarget = option;
-      for (let i = 0; i < 4 && clickTarget; i++) {
+      for (let i = 0; i < 2 && clickTarget; i++) {
         if (clickTarget.tagName === 'LI' || clickTarget.getAttribute('role') === 'option' || clickTarget.getAttribute('tabindex') !== null) break;
         const parent = clickTarget.parentElement;
         if (!parent || parent.tagName === 'UL' || parent.tagName === 'BODY') break;

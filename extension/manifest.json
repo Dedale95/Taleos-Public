@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Taleos",
-  "version": "1.2.14",
-  "version_name": "1.2.14-jp-morgan-degree-fallback-reload-fix",
+  "version": "1.2.15",
+  "version_name": "1.2.15-jp-morgan-enriched-logs",
   "description": "Automatisation de candidatures bancaires - Taleos",
   "permissions": [
     "activeTab",

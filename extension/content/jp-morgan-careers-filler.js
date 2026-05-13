@@ -270,15 +270,15 @@
       log(`✅ ${label} : formulaire='${currentRaw || '(vide)'}' | Firebase='${desiredValue}' -> Skip`, 1);
       return true;
     }
-    log(`✏️ ${label} : formulaire='${currentRaw || '(vide)'}' | Firebase='${desiredValue}' -> Correction`, 1);
-    const isCxSelect = input.classList.contains('cx-select-input') ||
+    const isCxSelect2 = input.classList.contains('cx-select-input') ||
       input.classList.contains('cx-select-input--disabled');
+    log(`✏️ ${label} : formulaire='${currentRaw || '(vide)'}' | Firebase='${desiredValue}' | isCxSelect=${isCxSelect2} classes="${input.className}" -> Correction`, 1);
     // Oracle JET uses aria-label button; Oracle CX uses the input itself as toggle
-    const toggleBtn = row.querySelector('button[aria-label*="Open the drop-down list" i], button.icon-dropdown-arrow');
-    if (toggleBtn) toggleBtn.click();
+    const toggleBtn2 = row.querySelector('button[aria-label*="Open the drop-down list" i], button.icon-dropdown-arrow');
+    if (toggleBtn2) toggleBtn2.click();
     else { input.click(); input.focus?.(); }
     await sleep(300);
-    if (!isCxSelect) {
+    if (!isCxSelect2) {
       setInputValue(input, desiredValue);
       input.focus?.();
       await sleep(200);
@@ -286,10 +286,11 @@
     for (const candidate of [desiredValue, ...aliases]) {
       if (await pickVisibleOption(candidate)) return true;
     }
-    if (!isCxSelect) {
+    if (!isCxSelect2) {
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
     }
+    log(`⚠️ ${label} : aucune option sélectionnée pour '${desiredValue}'`, 1);
     return true;
   }
 
@@ -317,15 +318,15 @@
       log(`✅ ${label} : formulaire='${currentRaw || '(vide)'}' | Firebase='${desiredValue}' -> Skip`, 1);
       return true;
     }
-    log(`✏️ ${label} : formulaire='${currentRaw || '(vide)'}' | Firebase='${desiredValue}' -> Correction`, 1);
-    // Oracle CX cx-select : NE PAS appeler setInputValue — les events input/change déclenchent
-    // la logique interne Oracle qui peut sélectionner la mauvaise option (ex. "Female" quand on cherche "Male").
     const isCxSelect = input.classList.contains('cx-select-input') ||
       input.classList.contains('cx-select-input--disabled');
+    log(`✏️ ${label} : formulaire='${currentRaw || '(vide)'}' | Firebase='${desiredValue}' | isCxSelect=${isCxSelect} classes="${input.className}" -> Correction`, 1);
+    // Oracle CX cx-select : NE PAS appeler setInputValue — les events input/change déclenchent
+    // la logique interne Oracle qui peut sélectionner la mauvaise option (ex. "Female" quand on cherche "Male").
     // Oracle JET uses aria-label button; Oracle CX uses the input itself as toggle
     const toggleBtn = row.querySelector('button[aria-label*="Open the drop-down list" i], button.icon-dropdown-arrow');
-    if (toggleBtn) toggleBtn.click();
-    else { input.click(); input.focus?.(); }
+    if (toggleBtn) { log(`   [dropdown] ouverture via toggleBtn`, 2); toggleBtn.click(); }
+    else { log(`   [dropdown] ouverture via input.click()`, 2); input.click(); input.focus?.(); }
     await sleep(300);
     if (!isCxSelect) {
       setInputValue(input, desiredValue);
@@ -339,6 +340,7 @@
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
     }
+    log(`⚠️ ${label} : aucune option sélectionnée pour '${desiredValue}'`, 1);
     return true;
   }
 
@@ -420,46 +422,61 @@
     // normText : apostrophes Unicode normalisées → évite le mismatch "Master's" (U+2019) vs "Master's" (U+0027)
     const target = normText(textNeedle);
 
-    function tryMatch(collection) {
+    function tryMatch(collection, strategyLabel) {
       // Priorité 1 : correspondance exacte (évite ex. 'female'.includes('male'))
-      // Priorité 2 : l'option contient la cible (ex. 'France métropolitaine' pour 'france')
+      const exact = collection.find((el) => normText(el.textContent || '') === target);
+      if (exact) {
+        log(`   [pickOption S${strategyLabel}] exact match: "${normText(exact.textContent || '')}" tag=${exact.tagName} class="${exact.className}"`, 2);
+        return exact;
+      }
+      // Priorité 2 : l'option contient la cible
+      const contains = collection.find((el) => normText(el.textContent || '').includes(target));
+      if (contains) {
+        log(`   [pickOption S${strategyLabel}] contains match: "${normText(contains.textContent || '').slice(0, 60)}" tag=${contains.tagName}`, 2);
+        return contains;
+      }
       // Priorité 3 : la cible contient le texte de l'option (ex. option abrégée)
-      return (
-        collection.find((el) => normText(el.textContent || '') === target) ||
-        collection.find((el) => normText(el.textContent || '').includes(target)) ||
-        collection.find((el) => { const t = normText(el.textContent || ''); return t.length > 2 && target.includes(t); }) ||
-        null
-      );
+      const abbr = collection.find((el) => { const t = normText(el.textContent || ''); return t.length > 2 && target.includes(t); });
+      if (abbr) {
+        log(`   [pickOption S${strategyLabel}] abbr match: "${normText(abbr.textContent || '')}"`, 2);
+        return abbr;
+      }
+      return null;
     }
 
     // Stratégie 1 : sélecteurs Oracle connus (cx-select, OJet, role="option")
-    let option = tryMatch(Array.from(document.querySelectorAll(
+    const s1candidates = Array.from(document.querySelectorAll(
       '[role="option"], li[role="option"], .oj-listbox-result, .oj-listview-item, .cx-select__list-item--content, [class*="cx-select__list-item"]'
-    )));
+    ));
+    log(`   [pickOption] cible="${target}" — S1: ${s1candidates.length} candidat(s)`, 2);
+    let option = tryMatch(s1candidates, '1');
 
     // Stratégie 2 : chercher dans tout conteneur listbox/dropdown ouvert
-    // (pour les cx-select dont les classes internes varient selon la version Oracle)
     if (!option) {
       const openContainers = Array.from(document.querySelectorAll(
         '[role="listbox"], [class*="cx-select__list"]:not([class*="__list-item"]), [class*="cx-select__dropdown"], [class*="select-list"], [class*="select-dropdown"]'
       )).filter(isElementVisible);
+      log(`   [pickOption] S2: ${openContainers.length} conteneur(s) listbox ouvert(s)`, 2);
       for (const container of openContainers) {
         const items = Array.from(container.querySelectorAll('li, div, span')).filter(isElementVisible);
-        option = tryMatch(items);
+        log(`   [pickOption] S2 conteneur class="${container.className.slice(0, 60)}" → ${items.length} items visibles`, 2);
+        option = tryMatch(items, '2');
         if (option) break;
       }
     }
 
-    // Stratégie 3 (filet de sécurité) : tout élément visible dont le texte normalisé
-    // correspond EXACTEMENT à la cible — le match exact évite les faux positifs.
+    // Stratégie 3 (filet de sécurité) : tout élément visible avec texte exact
     if (!option) {
-      option = Array.from(document.querySelectorAll(
+      const s3candidates = Array.from(document.querySelectorAll(
         'li, [class*="item"], [class*="option"], [class*="result"], [class*="choice"]'
-      )).find((el) => isElementVisible(el) && normText(el.textContent || '') === target) || null;
+      )).filter((el) => isElementVisible(el) && normText(el.textContent || '') === target);
+      log(`   [pickOption] S3: ${s3candidates.length} candidat(s) texte-exact parmi li/item/option`, 2);
+      option = s3candidates[0] || null;
+      if (option) log(`   [pickOption S3] trouvé: tag=${option.tagName} class="${option.className}"`, 2);
     }
 
     if (option) {
-      // Walk up to find clickable ancestor if needed (max 2 niveaux pour éviter de remonter trop haut)
+      // Walk up to find clickable ancestor (max 2 niveaux)
       let clickTarget = option;
       for (let i = 0; i < 2 && clickTarget; i++) {
         if (clickTarget.tagName === 'LI' || clickTarget.getAttribute('role') === 'option' || clickTarget.getAttribute('tabindex') !== null) break;
@@ -467,10 +484,12 @@
         if (!parent || parent.tagName === 'UL' || parent.tagName === 'BODY') break;
         clickTarget = parent;
       }
+      log(`   [pickOption] clic sur tag=${clickTarget.tagName} class="${clickTarget.className.slice(0, 60)}"`, 2);
       clickTarget.click();
       await sleep(300);
       return true;
     }
+    log(`   [pickOption] ❌ aucune option trouvée pour "${target}"`, 2);
     return false;
   }
 
@@ -832,9 +851,9 @@
       log(`✅ ${label} : '${currentRaw}' -> Skip`, 1);
       return true;
     }
-    log(`✏️ ${label} : '${currentRaw}' → '${desiredValue}'`, 1);
     const isDisabled = input.classList.contains('cx-select-input--disabled') || input.readOnly || input.disabled;
     const cxContainer = input.closest('.cx-select-container');
+    log(`✏️ ${label} : '${currentRaw || '(vide)'}' → '${desiredValue}' | disabled=${isDisabled} classes="${input.className}" hasCxContainer=${!!cxContainer}`, 1);
     if (isDisabled && cxContainer) {
       cxContainer.click();
     } else {
@@ -853,6 +872,7 @@
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
     }
+    log(`⚠️ ${label} : aucune option sélectionnée pour '${desiredValue}'`, 1);
     return false;
   }
 
@@ -874,11 +894,13 @@
       log('⚠️ JP Morgan : formulaire inline éducation non apparu', 1);
       return false;
     }
+    log(`📋 fillEducationInlineForm : degree='${degree}' school='${school}' gradMonth='${gradMonth}' gradYear='${gradYear}' country='${country}'`, 1);
 
     // ── Diplôme (cx-select disabled → clic sur .cx-select-container) ───────
     if (degree) {
       const degreeInput = formEl.querySelector('input[name="contentItemId"]') ||
         document.querySelector('input[name="contentItemId"]');
+      log(`   [degree] input trouvé=${!!degreeInput} classes="${degreeInput?.className || '—'}" readOnly=${degreeInput?.readOnly} disabled=${degreeInput?.disabled}`, 2);
       await selectCxDropdownInForm('Diplome', degreeInput, degree, [degree.replace(/'/g, '’')]);
     }
 
@@ -1057,6 +1079,7 @@
     auditAndFill('LinkedIn', findBySelectors(['input[id*="siteLink" i]', 'input[aria-label*="Link 1" i]']), profile.linkedin_url || '');
 
     const gender = deriveGender(profile) || profile.gender || '';
+    log(`🔎 Gender : civility='${profile.civility || '—'}' → derivé='${deriveGender(profile)}' | profile.gender='${profile.gender || '—'}' → utilisé='${gender}'`, 1);
     if (gender) {
       await selectDropdownValueWithSelectors('Gender', ['input[name*="ORA_GENDER" i]', 'input[id*="ORA_GENDER" i]'], gender, [gender === 'Male' ? 'Male' : 'Female']);
     } else {

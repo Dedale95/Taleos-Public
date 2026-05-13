@@ -394,10 +394,13 @@
     const options = Array.from(document.querySelectorAll(
       '[role="option"], li[role="option"], .oj-listbox-result, .oj-listview-item, .cx-select__list-item--content, [class*="cx-select__list-item"]'
     ));
-    const option = options.find((el) => {
-      const text = norm(el.textContent || '');
-      return text === target || text.includes(target) || target.includes(text);
-    });
+    // Priorité 1 : correspondance exacte (évite ex. 'female'.includes('male'))
+    // Priorité 2 : l'option contient la cible (ex. 'France métropolitaine' pour 'france')
+    // Priorité 3 : la cible contient le texte de l'option (ex. option abrégée)
+    const option =
+      options.find((el) => norm(el.textContent || '') === target) ||
+      options.find((el) => norm(el.textContent || '').includes(target)) ||
+      options.find((el) => { const t = norm(el.textContent || ''); return t.length > 2 && target.includes(t); });
     if (option) {
       // Walk up to find clickable ancestor if needed
       let clickTarget = option;
@@ -915,11 +918,20 @@
     // ── Remplissage éducation ────────────────────────────────────────────────
     if (!eduContainer) {
       log('⚠️ JP Morgan section 3 : conteneur Education introuvable', 1);
-    } else if (!state.educationFilled) {
-      // Vérifier si un formulaire inline est déjà ouvert (save-btn visible)
-      const isEditOpen = !!document.querySelector('button.save-btn');
+    } else if (state.educationFilled) {
+      log('✅ JP Morgan section 3 : éducation déjà remplie -> Skip', 1);
+    } else if (state.nextSection3) {
+      // Ne plus toucher à l'éducation : Next déjà cliqué dans un run précédent
+      log('⚠️ JP Morgan section 3 : Next déjà envoyé, on ne relance pas l\'édition', 1);
+    } else {
+      // Vérifier si le formulaire inline est déjà ouvert (save-btn ET .profile-item-content--form visibles)
+      const openForm = document.querySelector('.profile-item-content--form');
+      const isEditOpen = !!openForm && !!document.querySelector('button.save-btn');
       if (isEditOpen) {
-        log('ℹ️ JP Morgan section 3 : formulaire éducation déjà ouvert -> attente', 1);
+        // Formulaire ouvert (ex. état persisté par Oracle) → remplir directement
+        log('ℹ️ JP Morgan section 3 : formulaire éducation déjà ouvert -> remplissage direct', 1);
+        const ok = await fillEducationInlineForm(degreeValue, school, gradMonth, gradYear, eduCountry, areaOfStudy);
+        if (ok) state.educationFilled = true;
       } else {
         const tiles = eduContainer.querySelectorAll('.apply-flow-profile-item-tile');
         if (tiles.length === 0) {
@@ -928,7 +940,7 @@
           if (addBtn) {
             addBtn.click();
             await sleep(500);
-            log('➕ JP Morgan : ajout d\'une entrée éducation', 1);
+            log("➕ JP Morgan : ajout d'une entree education", 1);
             const ok = await fillEducationInlineForm(degreeValue, school, gradMonth, gradYear, eduCountry, areaOfStudy);
             if (ok) state.educationFilled = true;
           }
@@ -939,16 +951,14 @@
           if (editBtn) {
             editBtn.click();
             await sleep(500);
-            log('✏️ JP Morgan : édition du diplôme existant (tile[0])', 1);
+            log('✏️ JP Morgan : edition du diplome existant (tile[0])', 1);
             const ok = await fillEducationInlineForm(degreeValue, school, gradMonth, gradYear, eduCountry, areaOfStudy);
             if (ok) state.educationFilled = true;
           } else {
-            log('⚠️ JP Morgan section 3 : bouton Edit introuvable sur la carte éducation', 1);
+            log('⚠️ JP Morgan section 3 : bouton Edit introuvable sur la carte education', 1);
           }
         }
       }
-    } else {
-      log('✅ JP Morgan section 3 : éducation déjà remplie -> Skip', 1);
     }
 
     // ── Expérience : laisser inchangé (Oracle HCM récupère le profil existant) ─

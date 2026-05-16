@@ -196,12 +196,17 @@ _CONTRACT_MAP: Dict[str, str] = {
     "permanent":    "CDI",
     "full-time":    "CDI",
     "full time":    "CDI",
+    "casual":       "CDI",   # Australie : emploi permanent sans horaires garantis
+    "graduate programme": "CDD",  # Programme diplômant à durée déterminée (12-24 mois)
+    "graduate program": "CDD",
+    "trainee":      "Stage",
     "fixed term":   "CDD",
     "contract":     "CDD",
     "temporary":    "Intérim",
     "temp ":        "Intérim",
     "internship":   "Stage",
     "intern":       "Stage",
+    "placement":    "Stage",
     "apprentice":   "Alternance",
     "part-time":    "Temps partiel",
     "part time":    "Temps partiel",
@@ -461,7 +466,7 @@ class Database:
                 )
                 ON CONFLICT(job_url) DO UPDATE SET
                     job_title        = excluded.job_title,
-                    contract_type    = excluded.contract_type,
+                    contract_type    = CASE WHEN excluded.contract_type != '' THEN excluded.contract_type ELSE jobs.contract_type END,
                     location         = excluded.location,
                     job_family       = excluded.job_family,
                     status           = 'Live',
@@ -837,9 +842,27 @@ def scrape_radancy(source: Dict, db: Database, session: requests.Session):
     to_update  = [j for j in all_jobs if j["job_url"] in existing_urls]
     logger.info(f"  🔍 {len(to_enrich)} nouvelles · {len(to_update)} mises à jour")
 
+    # contract_types actuels en DB pour les offres existantes
+    existing_contracts_radancy: Dict[str, str] = {}
+    if to_update:
+        with sqlite3.connect(db.db_path) as _conn:
+            _urls = [j["job_url"] for j in to_update]
+            ph = ",".join("?" * len(_urls))
+            for row in _conn.execute(f"SELECT job_url, contract_type FROM jobs WHERE job_url IN ({ph})", _urls):
+                existing_contracts_radancy[row[0]] = row[1] or ""
+
     for job in to_update:
         job.pop("_category", None)
         job.pop("_speciality", None)
+        # Si contract_type vide en DB → ré-enrichir depuis la page détail
+        if not job.get("contract_type") and not existing_contracts_radancy.get(job["job_url"]):
+            html = fetch_text(job["job_url"], session)
+            if html:
+                enriched = radancy_enrich_detail(html, job)
+                job = enriched
+            if not job.get("contract_type"):
+                job["contract_type"] = "CDI"
+            time.sleep(DETAIL_DELAY)
         apply_nlp(job)
         db.upsert(job)
 
@@ -1005,7 +1028,7 @@ def scrape_lever(source: Dict, db: Database, session: requests.Session):
         created_ms = item.get("createdAt", 0) or 0
         pub_date   = parse_date_ms(created_ms) if created_ms else datetime.now().strftime("%Y-%m-%d")
 
-        contract  = parse_contract(commit)
+        contract  = parse_contract(commit) or "CDI"  # Lever/NZ : commitment vide → CDI permanent
         exp_level = "0 - 2 ans" if contract == "Stage" else ""
 
         desc_plain = (item.get("descriptionPlain") or "").strip()
@@ -1202,6 +1225,9 @@ def scrape_hrmanager(source: Dict, db: Database, session: requests.Session):
         location = f"{city} - {c_norm}" if city else c_norm
 
         cat    = ((item.get("PositionCategory") or {}).get("Name") or "")
+        # PositionCategory.Name est le service (ex: "Management Consulting", "Deal Advisory")
+        # pas le type de contrat. On utilise EmploymentType si présent, sinon CDI par défaut.
+        emp_type_raw = ((item.get("EmploymentType") or {}).get("Name") or "")
         created   = parse_hrmanager_date(item.get("Created") or "")
         published = parse_hrmanager_date(item.get("Published") or "")
         pub_date  = published or created or datetime.now().strftime("%Y-%m-%d")
@@ -1216,7 +1242,12 @@ def scrape_hrmanager(source: Dict, db: Database, session: requests.Session):
                 break
 
         job_id   = job_url.rstrip("/").split("/")[-1] or str(abs(hash(job_url)))
-        contract = parse_contract(cat)
+        contract = parse_contract(emp_type_raw) if emp_type_raw else parse_contract(cat)
+        # Sécurité : si le résultat n'est pas un type connu (ex: département passé en cat),
+        # on défaut à CDI — tous les postes KPMG DK sont des CDI permanents.
+        _KNOWN_CT = {"CDI","CDD","Stage","Alternance","V.I.E.","Intérim","Temps partiel","Indépendant / Entrepreneur"}
+        if contract not in _KNOWN_CT:
+            contract = "CDI"
 
         all_jobs.append({
             "job_id":           f"DK_{job_id}",
@@ -1352,6 +1383,9 @@ def wp_enrich_detail(html: str, job: Dict) -> Dict:
                     desc_raw, "html.parser"
                 ).get_text(separator="\n", strip=True)
 
+            if not j.get("contract_type") and data.get("employmentType"):
+                j["contract_type"] = parse_contract(data["employmentType"])
+
             # Mettre à jour location depuis JSON-LD si on a une ville (même si location déjà défini)
             if data.get("jobLocation"):
                 locations = data["jobLocation"]
@@ -1438,7 +1472,24 @@ def scrape_wordpress(source: Dict, db: Database, session: requests.Session):
     to_update  = [j for j in all_jobs if j["job_url"] in existing_urls]
     logger.info(f"  🔍 {len(to_enrich)} nouvelles · {len(to_update)} mises à jour")
 
+    # Récupérer les contract_types actuels en DB pour les offres existantes
+    existing_contracts: Dict[str, str] = {}
+    if to_update:
+        with sqlite3.connect(db.db_path) as _conn:
+            _urls = [j["job_url"] for j in to_update]
+            ph = ",".join("?" * len(_urls))
+            for row in _conn.execute(f"SELECT job_url, contract_type FROM jobs WHERE job_url IN ({ph})", _urls):
+                existing_contracts[row[0]] = row[1] or ""
+
     for job in to_update:
+        # Si contract_type vide en DB et pas extrait du listing → re-enrichir la page détail
+        if not job.get("contract_type") and not existing_contracts.get(job["job_url"]):
+            html = fetch_text(job["job_url"], session)
+            if html:
+                job = wp_enrich_detail(html, job)
+            if not job.get("contract_type"):
+                job["contract_type"] = "CDI"  # tous les postes WP KPMG sont des CDI permanents
+            time.sleep(DETAIL_DELAY)
         apply_nlp(job)
         db.upsert(job)
 
@@ -1447,6 +1498,8 @@ def scrape_wordpress(source: Dict, db: Database, session: requests.Session):
         html = fetch_text(job["job_url"], session)
         if html:
             job = wp_enrich_detail(html, job)
+        if not job.get("contract_type"):
+            job["contract_type"] = "CDI"  # fallback CDI si employmentType absent du JSON-LD
         apply_nlp(job)
         db.upsert(job)
         time.sleep(DETAIL_DELAY)

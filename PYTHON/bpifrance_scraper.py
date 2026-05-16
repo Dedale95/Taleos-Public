@@ -27,6 +27,7 @@ try:
     from country_normalizer import normalize_country, get_country_from_city
     from job_family_classifier import classify_job_family
     from experience_extractor import extract_experience_level
+    from education_extractor import extract_education_level as _extract_edu_shared
 except ImportError:
     import sys
     sys.path.append(str(Path(__file__).parent))
@@ -34,6 +35,7 @@ except ImportError:
     from country_normalizer import normalize_country, get_country_from_city
     from job_family_classifier import classify_job_family
     from experience_extractor import extract_experience_level
+    from education_extractor import extract_education_level as _extract_edu_shared
 
 # ================= Logging =================
 logging.basicConfig(
@@ -569,7 +571,8 @@ async def fetch_job_detail(context: BrowserContext, job: Dict, sem: asyncio.Sema
             desc = job.get("job_description", "")
             if not job.get("job_family") and desc:
                 job["job_family"] = classify_job_family(job.get("job_title", ""), desc)
-            job["education_level"] = extract_education_level(desc)
+            # Niveau d'études : module partagé (patterns + inférence titre si description insuffisante)
+            job["education_level"] = _extract_edu_shared(desc, job.get("contract_type"), job.get("job_title"))
             job["experience_level"] = extract_experience_level(desc, job.get("contract_type"), job.get("job_title"))
 
             # Fallback: extraire localisation depuis titre/description (ex: "Chargé d'études Réunion", "Direction Outre-mer")

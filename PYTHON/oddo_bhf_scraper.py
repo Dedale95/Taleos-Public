@@ -25,6 +25,7 @@ try:
     from country_normalizer import normalize_country, get_country_from_city
     from job_family_classifier import classify_job_family
     from experience_extractor import extract_experience_level
+    from education_extractor import extract_education_level
     from oddo_bhf_job_family_mapping import map_oddo_bhf_family
 except ImportError:
     import sys
@@ -34,6 +35,7 @@ except ImportError:
     from country_normalizer import normalize_country, get_country_from_city
     from job_family_classifier import classify_job_family
     from experience_extractor import extract_experience_level
+    from education_extractor import extract_education_level
     from oddo_bhf_job_family_mapping import map_oddo_bhf_family
 
 # ================= Logging =================
@@ -517,8 +519,9 @@ async def fetch_job_detail(context: BrowserContext, job: Dict, sem: asyncio.Sema
                         desc_parts.append(section.get_text(separator="\n", strip=True))
             job_description = " ".join(desc_parts)[:25000] if desc_parts else soup.get_text(separator=" ", strip=True)[:25000]
 
-            # Expérience
+            # Expérience et niveau d'études
             experience_level = extract_experience_level(job_description, contract_type, job_title)
+            education_level  = extract_education_level(job_description, contract_type, job_title)
 
             # Date publication
             if not publication_date:
@@ -533,6 +536,7 @@ async def fetch_job_detail(context: BrowserContext, job: Dict, sem: asyncio.Sema
                 "job_family": job_family,
                 "job_description": job_description,
                 "experience_level": experience_level,
+                "education_level":  education_level,
                 "company_name": "ODDO BHF",
                 "status": "Live",
             })

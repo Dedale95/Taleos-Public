@@ -24,6 +24,7 @@ from city_normalizer import normalize_city
 from country_normalizer import normalize_country, get_country_from_city
 from job_family_classifier import classify_job_family
 from experience_extractor import extract_experience_level
+from education_extractor import extract_education_level
 
 # ================= Logging =================
 logging.basicConfig(
@@ -481,12 +482,12 @@ async def fetch_job_experience(context: BrowserContext, job: Dict, sem: asyncio.
                 full_text = soup.get_text() if soup else description_text
                 experience_level = extract_experience_level(full_text, job.get("contract_type"), job.get("job_title"))
             
-            # Education level mapping
-            education_level = None
-            if "bac + 5" in text_lower or "master" in text_lower or "école d'ingénieur" in text_lower or "école de commerce" in text_lower:
-                education_level = "Bac + 5 / M2 et plus"
-            elif "bac + 3" in text_lower or "licence" in text_lower:
-                education_level = "Bac + 3 / L3"
+            # Niveau d'études — module partagé (patterns FR + EN + inférence titre)
+            education_level = extract_education_level(
+                description_text,
+                job.get("contract_type"),
+                job.get("job_title"),
+            )
 
             # 3. Validate and clean description
             # Vérifier si c'est une vraie description d'offre d'emploi

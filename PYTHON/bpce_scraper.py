@@ -25,6 +25,7 @@ try:
     from country_normalizer import normalize_country, get_country_from_city
     from job_family_classifier import classify_job_family
     from experience_extractor import extract_experience_level
+    from education_extractor import extract_education_level as _extract_edu_shared
 except ImportError:
     import sys
     sys.path.append(str(Path(__file__).parent))
@@ -32,6 +33,7 @@ except ImportError:
     from country_normalizer import normalize_country, get_country_from_city
     from job_family_classifier import classify_job_family
     from experience_extractor import extract_experience_level
+    from education_extractor import extract_education_level as _extract_edu_shared
 
 # ================= Logging =================
 logging.basicConfig(
@@ -513,8 +515,8 @@ def transform_api_item_to_job(item: Dict) -> Dict:
     # Job family
     job_family = classify_job_family(job_title or "", job_description or "")
 
-    # Education & Experience
-    education_level = extract_education_level(job_description)
+    # Education & Experience — module partagé (patterns + inférence titre)
+    education_level = _extract_edu_shared(job_description, contract_type, job_title)
     experience_level = extract_experience_level(job_description, contract_type, job_title)
 
     # Maison (AEW, Banque Palatine, Natixis, Caisse d'Épargne, etc.)

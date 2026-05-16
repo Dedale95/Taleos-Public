@@ -31,6 +31,7 @@ try:
     from country_normalizer import normalize_country
     from job_family_classifier import classify_job_family
     from experience_extractor import extract_experience_level
+    from education_extractor import extract_education_level as _extract_edu
 except ImportError:
     import sys
     sys.path.append(str(Path(__file__).parent))
@@ -38,6 +39,7 @@ except ImportError:
     from country_normalizer import normalize_country
     from job_family_classifier import classify_job_family
     from experience_extractor import extract_experience_level
+    from education_extractor import extract_education_level as _extract_edu
 
 # ─────────────────────────── Logging ────────────────────────────
 logging.basicConfig(
@@ -738,7 +740,7 @@ async def _scrape_detail(context: BrowserContext, job_url: str,
             education = extract_education(desc_text)
             experience = extract_experience_level(desc_text, job_title=None)
 
-            return job_url, desc_text or None, education, experience
+            return job_url, desc_text or None, education, experience, None  # title unknown here
 
         except Exception as exc:
             logger.warning(f"Detail failed: {job_url} — {exc}")
@@ -769,7 +771,7 @@ async def scrape_descriptions(urls: List[str], db: Database):
         try:
             tasks = [_scrape_detail(context, url, sem) for url in urls]
             for coro in asyncio.as_completed(tasks):
-                job_url, desc, edu, exp = await coro
+                job_url, desc, edu, exp, _title = await coro
                 if desc:
                     db.upsert_description(job_url, desc, edu, exp)
                 done += 1
@@ -817,6 +819,28 @@ async def main():
     urls_without_desc = list(db.get_urls_without_description())
     if urls_without_desc:
         await scrape_descriptions(urls_without_desc, db)
+
+    # ── Phase 3 : inférence éducation depuis le titre (records existants) ───
+    # Pour les offres qui ont une description mais pas de education_level,
+    # on applique l'extracteur sur la description + le titre en fallback.
+    with sqlite3.connect(Config.DB_PATH) as conn:
+        rows = conn.execute(
+            "SELECT job_url, job_title, job_description, contract_type "
+            "FROM jobs WHERE is_valid=1 AND status='Live' "
+            "AND (education_level IS NULL OR education_level = '')"
+        ).fetchall()
+        updated = 0
+        for job_url, job_title, job_desc, ct in rows:
+            edu = _extract_edu(job_desc or "", ct or "", job_title or "")
+            if edu:
+                conn.execute(
+                    "UPDATE jobs SET education_level=?, last_updated=CURRENT_TIMESTAMP WHERE job_url=?",
+                    (edu, job_url)
+                )
+                updated += 1
+        conn.commit()
+    if updated:
+        logger.info(f"Phase 3 — {updated} education_level inférés depuis le titre/description")
 
     # ── Stats finales ──────────────────────────────────────────
     total_live = db.count_live()

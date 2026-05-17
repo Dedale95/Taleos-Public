@@ -1,940 +1,517 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extension — Taleos</title>
-
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --ink: #0a0a0f;
-            --ink-soft: #14141c;
-            --ink-mid: #1e1e2a;
-            --surface: #f5f3ef;
-            --surface2: #ede9e3;
-            --surface3: #e4dfd7;
-            --gold: #c8a96e;
-            --gold-light: #e2cfa0;
-            --gold-dim: rgba(200,169,110,0.12);
-            --gold-border: rgba(200,169,110,0.2);
-            --muted: #7a7a8a;
-            --text-body: #3a3a48;
-            --white: #ffffff;
-            --green: #22c55e;
-            --green-dim: rgba(34,197,94,0.12);
-            --orange: #f59e0b;
-            --orange-dim: rgba(245,158,11,0.12);
-            --red: #ef4444;
-            --red-dim: rgba(239,68,68,0.1);
-            --serif: 'Playfair Display', Georgia, serif;
-            --sans: 'DM Sans', system-ui, sans-serif;
-            --radius: 4px;
-            --radius-md: 8px;
-            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: var(--sans);
-            background: var(--surface);
-            color: var(--text-body);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        nav {
-            position: sticky;
-            top: 0;
-            z-index: 9999;
-            background: var(--ink);
-            border-bottom: 1px solid rgba(200,169,110,0.12);
-            padding: 0 48px;
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            height: 68px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            text-decoration: none;
-            justify-self: start;
-        }
-
-        .logo-mark {
-            width: 36px;
-            height: 36px;
-            background: var(--ink-mid);
-            border: 1.5px solid rgba(200,169,110,0.5);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .logo-mark svg { width: 20px; height: 20px; }
-
-        .logo-text {
-            font-family: var(--serif);
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--white);
-            letter-spacing: -0.01em;
-        }
-
-        .logo-text span { color: var(--gold); }
-
-        .nav-links,
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .nav-links { justify-self: center; }
-        .nav-actions { justify-self: end; }
-
-        .nav-link {
-            color: rgba(255,255,255,0.55);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 500;
-            letter-spacing: 0.03em;
-            padding: 8px 14px;
-            border-radius: var(--radius);
-            transition: color var(--transition);
-            white-space: nowrap;
-        }
-
-        .nav-link:hover { color: var(--white); }
-        .nav-link-primary { color: var(--gold) !important; }
-
-        .logout-btn {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.45);
-            font-size: 0.85rem;
-            font-weight: 500;
-            padding: 8px 14px;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-family: var(--sans);
-            transition: all var(--transition);
-        }
-
-        .logout-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
-
-        .page-top {
-            background: var(--ink);
-            padding: 48px 48px 42px;
-            border-bottom: 1px solid rgba(200,169,110,0.1);
-        }
-
-        .page-top-inner {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .page-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.68rem;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 14px;
-        }
-
-        .page-label::before {
-            content: '';
-            width: 20px;
-            height: 1px;
-            background: var(--gold);
-        }
-
-        .page-top h1 {
-            font-family: var(--serif);
-            font-size: clamp(2rem, 4vw, 3.2rem);
-            color: var(--gold-light) !important;
-            line-height: 1.1;
-            margin-bottom: 10px;
-        }
-
-        .page-top p {
-            color: rgba(255,255,255,0.72) !important;
-            max-width: 780px;
-            font-size: 0.98rem;
-        }
-
-        .main-content { flex: 1; }
-
-        .container {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 40px 48px 60px;
-        }
-
-        /* ── Auth states ── */
-        .loading-state,
-        .unauthorized-state {
-            background: var(--white);
-            border: 1px solid var(--surface2);
-            border-radius: var(--radius-md);
-            padding: 48px 28px;
-            text-align: center;
-        }
-
-        .unauthorized-state h2,
-        .loading-state h2 {
-            font-family: var(--serif);
-            color: var(--ink);
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .unauthorized-state p,
-        .loading-state p {
-            color: var(--muted);
-            max-width: 480px;
-            margin: 0 auto 24px;
-        }
-
-        .btn-primary {
-            display: inline-block;
-            background: var(--ink);
-            color: var(--white);
-            text-decoration: none;
-            padding: 12px 28px;
-            border-radius: var(--radius);
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: opacity var(--transition);
-            border: none;
-            cursor: pointer;
-            font-family: var(--sans);
-        }
-
-        .btn-primary:hover { opacity: 0.85; }
-
-        .spinner {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 3px solid rgba(200,169,110,0.2);
-            border-top-color: var(--gold);
-            margin: 0 auto 18px;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ── Main layout ── */
-        .ext-page { display: flex; flex-direction: column; gap: 24px; }
-
-        /* ── Status card ── */
-        .status-card {
-            background: var(--white);
-            border: 1px solid var(--gold-border);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-        }
-
-        .status-header {
-            padding: 24px 28px 20px;
-            border-bottom: 1px solid var(--surface2);
-            background: linear-gradient(180deg, rgba(200,169,110,0.08), rgba(200,169,110,0.02));
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .status-header h2 {
-            font-family: var(--serif);
-            font-size: 1.35rem;
-            color: var(--ink);
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
-
-        .status-badge.up-to-date {
-            background: var(--green-dim);
-            color: #15803d;
-            border: 1px solid rgba(34,197,94,0.25);
-        }
-
-        .status-badge.outdated {
-            background: var(--orange-dim);
-            color: #b45309;
-            border: 1px solid rgba(245,158,11,0.3);
-        }
-
-        .status-badge.not-installed {
-            background: var(--red-dim);
-            color: #b91c1c;
-            border: 1px solid rgba(239,68,68,0.2);
-        }
-
-        .status-badge.checking {
-            background: var(--gold-dim);
-            color: #92400e;
-            border: 1px solid var(--gold-border);
-        }
-
-        .status-body {
-            padding: 24px 28px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        .version-block { display: flex; flex-direction: column; gap: 6px; }
-
-        .version-label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--muted);
-        }
-
-        .version-number {
-            font-family: var(--serif);
-            font-size: 1.7rem;
-            color: var(--ink);
-            line-height: 1;
-        }
-
-        .version-sub {
-            font-size: 0.8rem;
-            color: var(--muted);
-        }
-
-        /* ── Info / warning strip ── */
-        .info-strip {
-            padding: 14px 28px;
-            border-top: 1px solid var(--surface2);
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .info-strip.info { color: var(--muted); background: var(--surface); }
-        .info-strip.warning { background: var(--orange-dim); color: #92400e; border-color: rgba(245,158,11,0.2); }
-        .info-strip.success { background: var(--green-dim); color: #15803d; border-color: rgba(34,197,94,0.2); }
-
-        /* ── Update / download card ── */
-        .action-card {
-            background: var(--white);
-            border: 1px solid var(--gold-border);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-        }
-
-        .action-header {
-            padding: 20px 28px 16px;
-            border-bottom: 1px solid var(--surface2);
-            background: linear-gradient(180deg, rgba(200,169,110,0.08), rgba(200,169,110,0.02));
-        }
-
-        .action-header h2 {
-            font-family: var(--serif);
-            font-size: 1.2rem;
-            color: var(--ink);
-        }
-
-        .action-body { padding: 24px 28px; }
-
-        .release-notes {
-            font-size: 0.9rem;
-            color: var(--text-body);
-            line-height: 1.6;
-            margin-bottom: 20px;
-            padding: 14px 18px;
-            background: var(--surface);
-            border-left: 3px solid var(--gold);
-            border-radius: 0 var(--radius) var(--radius) 0;
-        }
-
-        .release-meta {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.78rem;
-            color: var(--muted);
-            margin-bottom: 20px;
-        }
-
-        .btn-download {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--ink);
-            color: var(--white) !important;
-            text-decoration: none;
-            padding: 13px 28px;
-            border-radius: var(--radius);
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: opacity var(--transition);
-            border: none;
-            cursor: pointer;
-            font-family: var(--sans);
-        }
-
-        .btn-download:hover { opacity: 0.85; }
-
-        .btn-reload {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: transparent;
-            color: var(--ink);
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: var(--radius);
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: background var(--transition);
-            border: 1px solid var(--surface3);
-            cursor: pointer;
-            font-family: var(--sans);
-            margin-left: 12px;
-        }
-
-        .btn-reload:hover { background: var(--surface); }
-
-        /* ── Install steps ── */
-        .steps-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .step {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-        }
-
-        .step-num {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: var(--ink);
-            color: var(--white);
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
-        .step-text { font-size: 0.9rem; line-height: 1.55; color: var(--text-body); }
-        .step-text strong { color: var(--ink); }
-        .step-text code {
-            font-family: 'Courier New', monospace;
-            background: var(--surface2);
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.85em;
-        }
-
-        .notice {
-            margin-top: 16px;
-            padding: 12px 16px;
-            background: var(--gold-dim);
-            border: 1px solid var(--gold-border);
-            border-radius: var(--radius);
-            font-size: 0.82rem;
-            color: #78450a;
-        }
-
-        /* ── Reload confirmation ── */
-        .reload-feedback {
-            display: none;
-            font-size: 0.82rem;
-            color: #15803d;
-            margin-top: 10px;
-            gap: 6px;
-            align-items: center;
-        }
-
-        /* ── Responsive ── */
-        @media (max-width: 768px) {
-            nav { padding: 0 20px; }
-            .nav-links { display: none; }
-            .page-top { padding: 32px 20px 28px; }
-            .container { padding: 24px 20px 40px; }
-            .status-body { grid-template-columns: 1fr; gap: 16px; }
-            .status-header { flex-direction: column; align-items: flex-start; }
-            .btn-reload { margin-left: 0; margin-top: 10px; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Extension — Taleos</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --navy:   #0c1a2e;
+      --bg:     #f7f5f0;
+      --white:  #ffffff;
+      --s2:     #edeae3;
+      --blue:   oklch(52% 0.22 248);
+      --blue-d: oklch(52% 0.22 248 / 0.08);
+      --blue-b: oklch(52% 0.22 248 / 0.22);
+      --muted:  #6b7280;
+      --border: #e5e0d8;
+      --green:  #059669;
+      --green-bg: rgba(5,150,105,0.08);
+      --amber:  #d97706;
+      --amber-bg: rgba(217,119,6,0.08);
+      --red:    #dc2626;
+      --red-bg: rgba(220,38,38,0.06);
+      --serif:  'Lora', serif;
+      --sans:   'Space Grotesk', sans-serif;
+      --r:      4px;
+      --tr:     0.22s ease;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{font-family:var(--sans);background:var(--bg);color:var(--navy);min-height:100vh;display:flex;flex-direction:column;line-height:1.55;}
+
+    /* ── NAV ── */
+    nav{position:sticky;top:0;z-index:200;background:var(--navy);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07);}
+    .logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
+    .logo-text{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.05em;color:#fff;}
+    .nav-links{display:flex;gap:2px;}
+    .nav-link{font-size:13px;font-weight:500;color:rgba(255,255,255,.5);text-decoration:none;padding:6px 12px;border-radius:var(--r);transition:all var(--tr);white-space:nowrap;}
+    .nav-link:hover{color:#fff;}
+    .nav-link.active{color:oklch(65% 0.22 248);}
+    .nav-actions{display:flex;gap:8px;align-items:center;}
+    .nav-logout{background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.45);font-size:13px;font-weight:500;padding:6px 14px;border-radius:var(--r);cursor:pointer;font-family:var(--sans);transition:all var(--tr);}
+    .nav-logout:hover{color:#fff;border-color:rgba(255,255,255,.3);}
+
+    /* ── PAGE HEADER ── */
+    .page-top{background:var(--navy);padding:52px 40px 48px;border-bottom:1px solid rgba(255,255,255,.07);position:relative;overflow:hidden;}
+    .page-top::before{content:'';position:absolute;top:30%;right:-5%;width:380px;height:380px;background:radial-gradient(circle,var(--blue-d) 0%,transparent 65%);pointer-events:none;}
+    .page-top-inner{max-width:860px;margin:0 auto;position:relative;}
+    .page-top h1{font-family:var(--serif);font-size:clamp(2rem,3.5vw,2.8rem);font-weight:400;color:#fff;line-height:1.1;margin-bottom:10px;}
+    .page-top h1 em{font-style:italic;}
+    .page-top p{font-size:14.5px;color:rgba(255,255,255,.46);line-height:1.75;max-width:560px;}
+
+    /* ── MAIN ── */
+    .main{flex:1;}
+    .container{max-width:860px;margin:0 auto;padding:36px 40px 60px;}
+
+    /* States */
+    .state-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:56px 32px;text-align:center;}
+    .state-card h2{font-family:var(--serif);font-size:1.7rem;font-weight:500;color:var(--navy);margin-bottom:10px;}
+    .state-card p{color:var(--muted);max-width:440px;margin:0 auto 24px;font-size:14.5px;line-height:1.7;}
+
+    .btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;text-decoration:none;padding:13px 28px;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:var(--sans);transition:all var(--tr);}
+    .btn-primary:hover{background:#1a2d48;transform:translateY(-1px);box-shadow:0 4px 16px rgba(12,26,46,.18);}
+
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .spinner{width:36px;height:36px;border-radius:50%;border:2px solid var(--blue-d);border-top-color:var(--blue);margin:0 auto 18px;animation:spin .8s linear infinite;}
+
+    /* ── EXT PAGE ── */
+    .ext-page{display:flex;flex-direction:column;gap:18px;}
+
+    /* Status card */
+    .status-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+    .status-head{padding:22px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:var(--bg);}
+    .status-head h2{font-family:var(--serif);font-size:1.3rem;font-weight:500;color:var(--navy);}
+    .status-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.02em;white-space:nowrap;}
+    .status-badge.up-to-date{background:var(--green-bg);color:var(--green);border:1px solid rgba(5,150,105,.25);}
+    .status-badge.outdated  {background:var(--amber-bg);color:var(--amber);border:1px solid rgba(217,119,6,.25);}
+    .status-badge.not-installed{background:var(--red-bg);color:var(--red);border:1px solid rgba(220,38,38,.2);}
+    .status-badge.checking  {background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-b);}
+
+    .status-body{padding:24px 28px;display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+    .version-block{display:flex;flex-direction:column;gap:6px;}
+    .version-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+    .version-number{font-family:var(--serif);font-size:1.8rem;font-weight:500;color:var(--navy);line-height:1;}
+    .version-sub{font-size:12.5px;color:var(--muted);}
+
+    .info-strip{padding:14px 28px;border-top:1px solid var(--border);font-size:13.5px;display:flex;align-items:center;gap:10px;}
+    .info-strip.info   {color:var(--muted);background:var(--bg);}
+    .info-strip.warning{background:var(--amber-bg);color:var(--amber);}
+    .info-strip.success{background:var(--green-bg);color:var(--green);}
+    .info-strip.danger {background:var(--red-bg);color:var(--red);}
+
+    /* Action card */
+    .action-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+    .action-head{padding:20px 28px;border-bottom:1px solid var(--border);background:var(--bg);}
+    .action-head h2{font-family:var(--serif);font-size:1.2rem;font-weight:500;color:var(--navy);}
+    .action-body{padding:24px 28px;}
+
+    .release-notes{font-size:14px;color:var(--navy);line-height:1.7;margin-bottom:14px;padding:14px 18px;background:var(--blue-d);border-left:2px solid var(--blue);border-radius:0 var(--r) var(--r) 0;}
+    .release-meta{font-size:12.5px;color:var(--muted);margin-bottom:20px;}
+
+    .btn-download{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff!important;text-decoration:none;padding:13px 28px;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:var(--sans);transition:all var(--tr);}
+    .btn-download:hover{background:#1a2d48;transform:translateY(-1px);box-shadow:0 4px 16px rgba(12,26,46,.18);}
+    .btn-download svg{width:16px;height:16px;}
+
+    .btn-reload{display:inline-flex;align-items:center;gap:8px;background:var(--white);color:var(--navy);text-decoration:none;padding:12px 24px;border-radius:var(--r);font-size:14px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans);transition:all var(--tr);margin-left:10px;}
+    .btn-reload:hover{border-color:var(--navy);}
+    .btn-reload svg{width:14px;height:14px;}
+
+    .reload-feedback{display:none;font-size:13px;color:var(--green);margin-top:12px;gap:6px;align-items:center;}
+
+    /* Steps */
+    .steps-list{display:flex;flex-direction:column;gap:14px;margin-top:24px;}
+    .step{display:flex;align-items:flex-start;gap:14px;}
+    .step-num{width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-family:var(--sans);}
+    .step-text{font-size:14px;line-height:1.65;color:var(--navy);}
+    .step-text strong{font-weight:700;}
+    .step-text code{font-family:'JetBrains Mono','Courier New',monospace;background:var(--s2);padding:2px 6px;border-radius:3px;font-size:.86em;color:var(--navy);}
+
+    .notice{margin-top:16px;padding:13px 16px;background:var(--blue-d);border:1px solid var(--blue-b);border-radius:var(--r);font-size:13px;color:var(--navy);line-height:1.6;}
+    .notice strong{color:var(--blue);}
+
+    /* Up to date */
+    .uptodate{text-align:center;padding:40px 28px;}
+    .uptodate-icon{width:56px;height:56px;border-radius:50%;background:var(--green-bg);border:1px solid rgba(5,150,105,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+    .uptodate-icon svg{width:24px;height:24px;color:var(--green);}
+    .uptodate h3{font-family:var(--serif);font-size:1.4rem;font-weight:500;color:var(--navy);margin-bottom:6px;}
+    .uptodate p{color:var(--muted);font-size:14px;}
+
+    /* Footer */
+    footer{background:#070f1c;padding:28px 40px;border-top:1px solid rgba(255,255,255,.07);}
+    .footer-inner{max-width:860px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+    .footer-copy{font-size:12px;color:rgba(255,255,255,.25);}
+
+    @media(max-width:768px){
+      nav{padding:0 16px;}
+      .nav-links{display:none;}
+      .page-top{padding:40px 20px 36px;}
+      .container{padding:24px 20px 40px;}
+      .status-body{grid-template-columns:1fr;gap:16px;}
+      .status-head{flex-direction:column;align-items:flex-start;}
+      .btn-reload{margin-left:0;margin-top:10px;}
+      footer{padding:20px 16px;}
+    }
+  </style>
 </head>
 <body>
 
-<!-- ─────────────────────── NAV ─────────────────────── -->
+<!-- NAV -->
 <nav>
-    <div class="nav-container">
-        <a href="offres.html" class="logo">
-            <div class="logo-mark">
-                <svg viewBox="0 0 24 24" fill="none" stroke="rgba(200,169,110,0.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                </svg>
-            </div>
-            <span class="logo-text">Tale<span>os</span></span>
-        </a>
-
-        <div class="nav-links">
-            <a href="landing_page_finance.html?v=20260504c" class="nav-link" id="presentationLink">Présentation</a>
-            <a href="offres.html" class="nav-link">Offres</a>
-            <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
-            <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
-            <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
-            <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
-            <a href="extension-download.html" class="nav-link nav-link-primary" id="extensionDownloadLink" style="display:none">Extension</a>
-            <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
-            <a href="tarifs.html" class="nav-link">Tarifs</a>
-        </div>
-
-        <div class="nav-actions">
-            <a href="auth.html" class="nav-link" id="authLink" style="display:none">Connexion</a>
-            <a href="profile.html" class="nav-link" id="profileLink" style="display:none">Mon profil</a>
-            <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none">Déconnexion</button>
-        </div>
-    </div>
+  <a href="landing_page_finance.html?v=20260504c" class="logo">
+    <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+      <rect width="36" height="36" rx="8" fill="rgba(247,245,240,.1)" stroke="rgba(247,245,240,.18)"/>
+      <path d="M8 14H24" stroke="#f7f5f0" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M24 14L30 7" stroke="#f7f5f0" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+      <path d="M16 14V26" stroke="#f7f5f0" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <span class="logo-text">TALEOS</span>
+  </a>
+  <div class="nav-links">
+    <a href="landing_page_finance.html?v=20260504c" class="nav-link" id="presentationLink">Présentation</a>
+    <a href="offres.html" class="nav-link">Offres</a>
+    <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
+    <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
+    <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
+    <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
+    <a href="extension-download.html" class="nav-link active" id="extensionDownloadLink" style="display:none">Extension</a>
+    <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
+    <a href="tarifs.html" class="nav-link">Tarifs</a>
+  </div>
+  <div class="nav-actions">
+    <a href="auth.html" class="nav-link" id="authLink" style="display:none">Connexion</a>
+    <a href="profile.html" class="nav-link" id="profileLink" style="display:none">Mon profil</a>
+    <button class="nav-logout" id="logoutBtn" onclick="handleLogout()" style="display:none">Déconnexion</button>
+  </div>
 </nav>
 
-<!-- ─────────────────────── HERO ─────────────────────── -->
+<!-- PAGE HEADER -->
 <header class="page-top">
-    <div class="page-top-inner">
-        <div class="page-label">Extension Chrome</div>
-        <h1>Extension Taleos</h1>
-        <p>Installez ou mettez à jour l'extension pour automatiser vos candidatures directement depuis votre navigateur.</p>
-    </div>
+  <div class="page-top-inner">
+    <h1>Extension <em>Chrome</em></h1>
+    <p>Installez ou mettez à jour l'extension Taleos pour automatiser vos candidatures directement depuis votre navigateur.</p>
+  </div>
 </header>
 
-<!-- ─────────────────────── MAIN ─────────────────────── -->
-<main class="main-content">
-    <div class="container">
+<!-- MAIN -->
+<main class="main">
+  <div class="container">
 
-        <!-- Loading -->
-        <div class="loading-state" id="loadingState">
-            <div class="spinner"></div>
-            <h2>Chargement…</h2>
-            <p>Vérification de votre session en cours.</p>
-        </div>
-
-        <!-- Not logged in -->
-        <div class="unauthorized-state" id="unauthorizedState" style="display:none">
-            <h2>Accès réservé</h2>
-            <p>Connectez-vous à votre compte Taleos pour accéder à la page Extension.</p>
-            <a href="auth.html" class="btn-primary">Se connecter</a>
-        </div>
-
-        <!-- Main content (logged in) -->
-        <div class="ext-page" id="extPage" style="display:none">
-
-            <!-- ── Version status ── -->
-            <div class="status-card">
-                <div class="status-header">
-                    <h2>Statut de l'extension</h2>
-                    <span class="status-badge checking" id="statusBadge">⏳ Vérification…</span>
-                </div>
-                <div class="status-body">
-                    <div class="version-block">
-                        <div class="version-label">Dernière version disponible</div>
-                        <div class="version-number" id="latestVersion">—</div>
-                        <div class="version-sub" id="latestDate">—</div>
-                    </div>
-                    <div class="version-block">
-                        <div class="version-label">Version installée</div>
-                        <div class="version-number" id="installedVersion">—</div>
-                        <div class="version-sub" id="installedSub">Détection en cours…</div>
-                    </div>
-                </div>
-                <div class="info-strip info" id="statusStrip" style="display:none"></div>
-            </div>
-
-            <!-- ── Update / install card (hidden when up to date) ── -->
-            <div class="action-card" id="actionCard" style="display:none">
-                <div class="action-header">
-                    <h2 id="actionTitle">Télécharger l'extension</h2>
-                </div>
-                <div class="action-body">
-                    <div class="release-notes" id="releaseNotes"></div>
-                    <div class="release-meta" id="releaseMeta"></div>
-
-                    <a href="#" class="btn-download" id="downloadBtn" download>
-                        ⬇ Télécharger le ZIP
-                    </a>
-                    <button class="btn-reload" id="reloadBtn" style="display:none" onclick="triggerExtensionReload()">
-                        🔄 Recharger l'extension
-                    </button>
-                    <div class="reload-feedback" id="reloadFeedback">
-                        ✅ L'extension se recharge…
-                    </div>
-
-                    <div class="steps-list" id="stepsInstall" style="display:none">
-                        <div class="step">
-                            <div class="step-num">1</div>
-                            <div class="step-text">Téléchargez le ZIP ci-dessus et <strong>extrayez-le</strong> dans un dossier permanent de votre choix (ne le supprimez pas ensuite).</div>
-                        </div>
-                        <div class="step">
-                            <div class="step-num">2</div>
-                            <div class="step-text">Dans Chrome, tapez <code>chrome://extensions/</code> dans la barre d'adresse et appuyez sur Entrée.</div>
-                        </div>
-                        <div class="step">
-                            <div class="step-num">3</div>
-                            <div class="step-text">Activez le <strong>Mode développeur</strong> via l'interrupteur en haut à droite de la page.</div>
-                        </div>
-                        <div class="step">
-                            <div class="step-num">4</div>
-                            <div class="step-text">Cliquez sur <strong>« Charger l'extension non empaquetée »</strong>, puis sélectionnez le dossier que vous venez d'extraire.</div>
-                        </div>
-                        <div class="step">
-                            <div class="step-num">5</div>
-                            <div class="step-text">Cliquez sur l'icône <strong>puzzle 🧩</strong> à droite de la barre d'adresse Chrome, puis épinglez l'extension <strong>Taleos</strong> pour qu'elle reste visible en permanence.</div>
-                        </div>
-                        <div class="step">
-                            <div class="step-num">6</div>
-                            <div class="step-text">Cliquez sur l'icône Taleos dans la barre d'outils et <strong>connectez-vous</strong> avec votre compte Taleos pour démarrer l'automatisation.</div>
-                        </div>
-                        <div class="notice">
-                            💡 Pour les mises à jour suivantes : remplacez les fichiers du dossier par la nouvelle version extraite, puis cliquez sur <strong>🔄 Recharger l'extension</strong> ci-dessus ou utilisez le bouton « Mettre à jour » dans la popup Taleos.
-                        </div>
-                    </div>
-
-                    <div class="steps-list" id="stepsUpdate" style="display:none">
-                        <div class="step">
-                            <div class="step-num">1</div>
-                            <div class="step-text">Téléchargez le ZIP ci-dessus et <strong>extrayez son contenu</strong> en écrasant votre dossier d'extension actuel.</div>
-                        </div>
-                        <div class="step">
-                            <div class="step-num">2</div>
-                            <div class="step-text">Cliquez sur <strong>🔄 Recharger l'extension</strong> ci-dessus (ou utilisez le bouton « Mettre à jour » dans la popup Taleos).</div>
-                        </div>
-                        <div class="notice">
-                            💡 Si vous avez accès au dépôt Git : exécutez <code>update_extension.sh</code> qui effectue le <code>git pull</code> puis rechargez.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Up to date card ── -->
-            <div class="action-card" id="upToDateCard" style="display:none">
-                <div class="action-body" style="text-align:center; padding: 36px 28px;">
-                    <div style="font-size:2.5rem; margin-bottom:12px;">✅</div>
-                    <div style="font-family:var(--serif); font-size:1.3rem; color:var(--ink); margin-bottom:8px;">Vous êtes à jour</div>
-                    <div style="color:var(--muted); font-size:0.9rem;">L'extension installée correspond à la dernière version disponible.</div>
-                </div>
-            </div>
-
-        </div><!-- /ext-page -->
+    <!-- Loading -->
+    <div class="state-card" id="loadingState">
+      <div class="spinner"></div>
+      <h2>Chargement…</h2>
+      <p>Vérification de votre session en cours.</p>
     </div>
+
+    <div class="state-card" id="unauthorizedState" style="display:none">
+      <h2>Accès réservé</h2>
+      <p>Connectez-vous à votre compte Taleos pour accéder à l’onglet Extension.</p>
+      <a href="auth.html" class="btn-primary">Se connecter</a>
+    </div>
+
+    <!-- Main content (logged in) -->
+    <div class="ext-page" id="extPage" style="display:none">
+
+      <!-- ── Version status ── -->
+      <div class="status-card">
+        <div class="status-head">
+          <h2>Statut de l'extension</h2>
+          <span class="status-badge checking" id="statusBadge">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Vérification…
+          </span>
+        </div>
+        <div class="status-body">
+          <div class="version-block">
+            <div class="version-label">Dernière version disponible</div>
+            <div class="version-number" id="latestVersion">—</div>
+            <div class="version-sub" id="latestDate">—</div>
+          </div>
+          <div class="version-block">
+            <div class="version-label">Version installée</div>
+            <div class="version-number" id="installedVersion">—</div>
+            <div class="version-sub" id="installedSub">Détection en cours…</div>
+          </div>
+        </div>
+        <div class="info-strip info" id="statusStrip" style="display:none"></div>
+      </div>
+
+      <!-- ── Update / install card ── -->
+      <div class="action-card" id="actionCard" style="display:none">
+        <div class="action-head">
+          <h2 id="actionTitle">Télécharger l'extension</h2>
+        </div>
+        <div class="action-body">
+          <div class="release-notes" id="releaseNotes"></div>
+          <div class="release-meta" id="releaseMeta"></div>
+
+          <a href="#" class="btn-download" id="downloadBtn" download>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v10M4 9l4 4 4-4M2 14h12"/></svg>
+            Télécharger le ZIP
+          </a>
+          <button class="btn-reload" id="reloadBtn" style="display:none" onclick="triggerExtensionReload()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8a6 6 0 1 1-1.76-4.24M14 3v3h-3"/></svg>
+            Recharger l'extension
+          </button>
+          <div class="reload-feedback" id="reloadFeedback">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            L'extension se recharge…
+          </div>
+
+          <!-- Install steps -->
+          <div class="steps-list" id="stepsInstall" style="display:none">
+            <div class="step"><div class="step-num">1</div><div class="step-text">Téléchargez le ZIP ci-dessus et <strong>extrayez-le</strong> dans un dossier permanent de votre choix (ne le supprimez pas ensuite).</div></div>
+            <div class="step"><div class="step-num">2</div><div class="step-text">Dans Chrome, tapez <code>chrome://extensions/</code> dans la barre d'adresse et appuyez sur Entrée.</div></div>
+            <div class="step"><div class="step-num">3</div><div class="step-text">Activez le <strong>Mode développeur</strong> via l'interrupteur en haut à droite de la page.</div></div>
+            <div class="step"><div class="step-num">4</div><div class="step-text">Cliquez sur <strong>« Charger l'extension non empaquetée »</strong>, puis sélectionnez le dossier que vous venez d'extraire.</div></div>
+            <div class="step"><div class="step-num">5</div><div class="step-text">Cliquez sur l'icône <strong>puzzle</strong> à droite de la barre d'adresse Chrome, puis épinglez l'extension <strong>Taleos</strong> pour qu'elle reste visible en permanence.</div></div>
+            <div class="step"><div class="step-num">6</div><div class="step-text">Cliquez sur l'icône Taleos dans la barre d'outils et <strong>connectez-vous</strong> avec votre compte Taleos pour démarrer l'automatisation.</div></div>
+            <div class="notice"><strong>Astuce</strong> — Pour les mises à jour suivantes : remplacez les fichiers du dossier par la nouvelle version extraite, puis cliquez sur « Recharger l'extension » ci-dessus, ou utilisez le bouton « Mettre à jour » dans la popup Taleos.</div>
+          </div>
+
+          <!-- Update steps -->
+          <div class="steps-list" id="stepsUpdate" style="display:none">
+            <div class="step"><div class="step-num">1</div><div class="step-text">Téléchargez le ZIP ci-dessus et <strong>extrayez son contenu</strong> en écrasant votre dossier d'extension actuel.</div></div>
+            <div class="step"><div class="step-num">2</div><div class="step-text">Cliquez sur <strong>« Recharger l'extension »</strong> ci-dessus (ou utilisez le bouton « Mettre à jour » dans la popup Taleos).</div></div>
+            <div class="notice"><strong>Astuce développeur</strong> — Si vous avez accès au dépôt Git : exécutez <code>update_extension.sh</code> qui effectue le <code>git pull</code> puis rechargez.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Up to date ── -->
+      <div class="action-card" id="upToDateCard" style="display:none">
+        <div class="action-body">
+          <div class="uptodate">
+            <div class="uptodate-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>
+            </div>
+            <h3>Vous êtes à jour</h3>
+            <p>L'extension installée correspond à la dernière version disponible.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /ext-page -->
+  </div>
 </main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-copy">© 2026 Taleos · Made in France</div>
+  </div>
+</footer>
 
 <script>
 // ── Firebase config ──
 const firebaseConfig = {
-    apiKey: "AIzaSyBqJJHGzQgcVhEAqRIMfZKuQRhM9OhJlvg",
-    authDomain: "project-taleos.firebaseapp.com",
-    projectId: "project-taleos",
-    storageBucket: "project-taleos.firebasestorage.app",
-    messagingSenderId: "974062127016",
-    appId: "1:974062127016:web:b08b2d8f6c0cf9e5db9de9"
+  apiKey: "AIzaSyBqJJHGzQgcVhEAqRIMfZKuQRhM9OhJlvg",
+  authDomain: "project-taleos.firebaseapp.com",
+  projectId: "project-taleos",
+  storageBucket: "project-taleos.firebasestorage.app",
+  messagingSenderId: "974062127016",
+  appId: "1:974062127016:web:b08b2d8f6c0cf9e5db9de9"
 };
 firebase.initializeApp(firebaseConfig);
 
 // ── State ──
 let latestVersionData = null;
-let installedVersion  = null;   // null = not detected, '' = no extension
+let installedVersion  = null;
 let detectionDone     = false;
 
 // ── Version utils ──
-function parseVersion(v) {
-    return String(v || '').split('.').map(Number);
-}
-
+function parseVersion(v) { return String(v || '').split('.').map(Number); }
 function versionCompare(a, b) {
-    const pa = parseVersion(a), pb = parseVersion(b);
-    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-        const diff = (pa[i] || 0) - (pb[i] || 0);
-        if (diff !== 0) return diff;
-    }
-    return 0;
+  const pa = parseVersion(a), pb = parseVersion(b);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const diff = (pa[i] || 0) - (pb[i] || 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
 }
 
 // ── Extension version detection ──
 function detectInstalledVersion() {
-    return new Promise((resolve) => {
-        // 1) Check data attribute set by content script (fastest, synchronous)
-        const attrVersion = document.documentElement.getAttribute('data-taleos-injector-version');
-        if (attrVersion) { resolve(attrVersion); return; }
-
-        // 2) Fire bridge health event and wait for response
-        let done = false;
-        const timeout = setTimeout(() => {
-            if (!done) { done = true; resolve(''); }
-        }, 2500);
-
-        window.addEventListener('taleos-bridge-health-result', function handler(e) {
-            if (done) return;
-            done = true;
-            clearTimeout(timeout);
-            window.removeEventListener('taleos-bridge-health-result', handler);
-            resolve(e.detail?.version || e.detail?.versionName || '');
-        });
-
-        window.dispatchEvent(new CustomEvent('taleos-request-bridge-health'));
+  return new Promise((resolve) => {
+    const attrVersion = document.documentElement.getAttribute('data-taleos-injector-version');
+    if (attrVersion) { resolve(attrVersion); return; }
+    let done = false;
+    const timeout = setTimeout(() => { if (!done) { done = true; resolve(''); } }, 2500);
+    window.addEventListener('taleos-bridge-health-result', function handler(e) {
+      if (done) return;
+      done = true; clearTimeout(timeout);
+      window.removeEventListener('taleos-bridge-health-result', handler);
+      resolve(e.detail?.version || e.detail?.versionName || '');
     });
+    window.dispatchEvent(new CustomEvent('taleos-request-bridge-health'));
+  });
 }
 
-// ── Fetch latest version info ──
+// ── Fetch latest version ──
 async function fetchLatestVersion() {
-    const URLS = [
-        'extension-version.json',
-        'https://dedale95.github.io/Taleos-Public/HTML/extension-version.json',
-        'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/extension-version.json'
-    ];
-    for (const url of URLS) {
-        try {
-            const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
-            if (r.ok) return await r.json();
-        } catch (_) {}
-    }
-    return null;
+  const URLS = [
+    'extension-version.json',
+    'https://dedale95.github.io/Taleos-Public/HTML/extension-version.json',
+    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/extension-version.json'
+  ];
+  for (const url of URLS) {
+    try {
+      const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
+      if (r.ok) return await r.json();
+    } catch (_) {}
+  }
+  return null;
 }
 
-// ── UI rendering ──
+// ── UI ──
 function formatDate(iso) {
-    try {
-        return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-    } catch (_) { return iso || ''; }
+  try { return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  catch (_) { return iso || ''; }
 }
 
 function renderPage() {
-    if (!detectionDone || !latestVersionData) return;
+  if (!detectionDone || !latestVersionData) return;
 
-    const latest   = latestVersionData.version || '';
-    const latestVn = latestVersionData.version_name || latest;
-    const date     = latestVersionData.published_at || '';
-    const notes    = latestVersionData.release_notes || '';
-    const dlUrl    = latestVersionData.download_url || '';
+  const latest   = latestVersionData.version || '';
+  const latestVn = latestVersionData.version_name || latest;
+  const date     = latestVersionData.published_at || '';
+  const notes    = latestVersionData.release_notes || '';
+  const dlUrl    = latestVersionData.download_url || '';
 
-    // Fill version info
-    document.getElementById('latestVersion').textContent = latest;
-    document.getElementById('latestDate').textContent    = formatDate(date);
+  document.getElementById('latestVersion').textContent = latest;
+  document.getElementById('latestDate').textContent    = formatDate(date);
 
-    const badge = document.getElementById('statusBadge');
-    const strip = document.getElementById('statusStrip');
-    const actionCard   = document.getElementById('actionCard');
-    const upToDateCard = document.getElementById('upToDateCard');
+  const badge = document.getElementById('statusBadge');
+  const strip = document.getElementById('statusStrip');
+  const actionCard   = document.getElementById('actionCard');
+  const upToDateCard = document.getElementById('upToDateCard');
 
-    document.getElementById('releaseNotes').textContent = notes;
-    document.getElementById('releaseMeta').textContent  = `Version ${latestVn} — publiée le ${formatDate(date)}`;
+  document.getElementById('releaseNotes').textContent = notes;
+  document.getElementById('releaseMeta').textContent  = `Version ${latestVn} — publiée le ${formatDate(date)}`;
 
-    if (dlUrl) {
-        document.getElementById('downloadBtn').href = dlUrl;
+  if (dlUrl) document.getElementById('downloadBtn').href = dlUrl;
+  else document.getElementById('downloadBtn').style.display = 'none';
+
+  if (installedVersion) {
+    document.getElementById('installedVersion').textContent = installedVersion;
+    document.getElementById('installedSub').textContent     = 'Extension détectée';
+
+    const cmp = versionCompare(installedVersion, latest);
+    if (cmp >= 0) {
+      badge.className = 'status-badge up-to-date';
+      badge.innerHTML = `<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> À jour`;
+      strip.className = 'info-strip success';
+      strip.textContent = 'Vous utilisez la dernière version de l\'extension.';
+      strip.style.display = 'flex';
+      upToDateCard.style.display = '';
     } else {
-        document.getElementById('downloadBtn').style.display = 'none';
+      badge.className = 'status-badge outdated';
+      badge.innerHTML = `<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Mise à jour disponible`;
+      strip.className = 'info-strip warning';
+      strip.textContent = `Votre version (${installedVersion}) est antérieure à la version ${latest}.`;
+      strip.style.display = 'flex';
+      document.getElementById('actionTitle').textContent = 'Mettre à jour l\'extension';
+      document.getElementById('reloadBtn').style.display = 'inline-flex';
+      document.getElementById('stepsUpdate').style.display = '';
+      actionCard.style.display = '';
     }
-
-    if (installedVersion) {
-        document.getElementById('installedVersion').textContent = installedVersion;
-        document.getElementById('installedSub').textContent     = 'Extension détectée';
-
-        const cmp = versionCompare(installedVersion, latest);
-        if (cmp >= 0) {
-            // Up to date
-            badge.className = 'status-badge up-to-date';
-            badge.textContent = '✅ À jour';
-            strip.className = 'info-strip success';
-            strip.textContent = '✅ Vous utilisez la dernière version de l\'extension.';
-            strip.style.display = 'flex';
-            upToDateCard.style.display = '';
-        } else {
-            // Outdated
-            badge.className = 'status-badge outdated';
-            badge.textContent = '🆕 Mise à jour disponible';
-            strip.className = 'info-strip warning';
-            strip.textContent = `⚠️ Votre version (${installedVersion}) est antérieure à la version ${latest}.`;
-            strip.style.display = 'flex';
-            document.getElementById('actionTitle').textContent = 'Mettre à jour l\'extension';
-            document.getElementById('reloadBtn').style.display = 'inline-flex';
-            document.getElementById('stepsUpdate').style.display = '';
-            actionCard.style.display = '';
-        }
-    } else {
-        // Extension not installed / not detected
-        document.getElementById('installedVersion').textContent = 'Non détectée';
-        document.getElementById('installedSub').textContent     = 'Extension non installée ou inactive';
-
-        badge.className = 'status-badge not-installed';
-        badge.textContent = '❌ Non installée';
-        strip.className = 'info-strip';
-        strip.textContent = 'L\'extension Taleos ne semble pas être installée dans ce navigateur.';
-        strip.style.display = 'flex';
-        document.getElementById('actionTitle').textContent = 'Installer l\'extension';
-        document.getElementById('stepsInstall').style.display = '';
-        actionCard.style.display = '';
-    }
+  } else {
+    document.getElementById('installedVersion').textContent = 'Non détectée';
+    document.getElementById('installedSub').textContent     = 'Extension non installée ou inactive';
+    badge.className = 'status-badge not-installed';
+    badge.innerHTML = `<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Non installée`;
+    strip.className = 'info-strip danger';
+    strip.textContent = 'L\'extension Taleos ne semble pas être installée dans ce navigateur.';
+    strip.style.display = 'flex';
+    document.getElementById('actionTitle').textContent = 'Installer l\'extension';
+    document.getElementById('stepsInstall').style.display = '';
+    actionCard.style.display = '';
+  }
 }
 
-// ── Trigger extension reload via bridge ──
 function triggerExtensionReload() {
-    window.dispatchEvent(new CustomEvent('taleos-request-extension-reload'));
-    const feedback = document.getElementById('reloadFeedback');
-    feedback.style.display = 'flex';
-    setTimeout(() => { feedback.style.display = 'none'; }, 4000);
+  window.dispatchEvent(new CustomEvent('taleos-request-extension-reload'));
+  const feedback = document.getElementById('reloadFeedback');
+  feedback.style.display = 'flex';
+  setTimeout(() => { feedback.style.display = 'none'; }, 4000);
 }
 
-// ── Navigation ──
-function updateNavigationImmediate() {
-    const token = localStorage.getItem('authToken') || localStorage.getItem('userEmail');
-    const authLink             = document.getElementById('authLink');
-    const profileLink          = document.getElementById('profileLink');
-    const logoutBtn            = document.getElementById('logoutBtn');
-    const rechercheLink        = document.getElementById('rechercheLink');
-    const connexionsLink       = document.getElementById('connexionsLink');
-    const applicationsLink     = document.getElementById('applicationsLink');
-    const extensionRunsLink    = document.getElementById('extensionRunsLink');
-    const extensionDownloadLink = document.getElementById('extensionDownloadLink');
-    const draftLink            = document.getElementById('draftLink');
-    const presentationLink     = document.getElementById('presentationLink');
-
-    if (token) {
-        if (authLink) authLink.style.display = 'none';
-        if (profileLink) profileLink.style.display = 'block';
-        if (logoutBtn) logoutBtn.style.display = 'block';
-        if (rechercheLink) rechercheLink.style.display = 'inline-block';
-        if (connexionsLink) connexionsLink.style.display = 'inline-block';
-        if (applicationsLink) applicationsLink.style.display = 'inline-block';
-        if (extensionDownloadLink) extensionDownloadLink.style.display = 'inline-block';
-        if (extensionRunsLink) extensionRunsLink.style.display = 'none';
-        if (draftLink) draftLink.style.display = 'none';
-        if (presentationLink) presentationLink.style.display = 'none';
-    } else {
-        if (authLink) authLink.style.display = 'block';
-        if (profileLink) profileLink.style.display = 'none';
-        if (logoutBtn) logoutBtn.style.display = 'none';
-        if (rechercheLink) rechercheLink.style.display = 'inline-block';
-        if (connexionsLink) connexionsLink.style.display = 'none';
-        if (applicationsLink) applicationsLink.style.display = 'none';
-        if (extensionDownloadLink) extensionDownloadLink.style.display = 'none';
-        if (extensionRunsLink) extensionRunsLink.style.display = 'none';
-        if (draftLink) draftLink.style.display = 'none';
-        if (presentationLink) presentationLink.style.display = 'block';
-    }
-}
-
+// ── Nav ──
 function canViewAdminDashboard(user) {
-    const adminEmails = ['giraudet.thibault@gmail.com'];
-    return user && adminEmails.includes(user.email);
+  const adminEmails = ['giraudet.thibault@gmail.com'];
+  return user && adminEmails.includes(user.email);
 }
 
-function updateNavigation(user) {
-    const authLink             = document.getElementById('authLink');
-    const profileLink          = document.getElementById('profileLink');
-    const logoutBtn            = document.getElementById('logoutBtn');
-    const rechercheLink        = document.getElementById('rechercheLink');
-    const connexionsLink       = document.getElementById('connexionsLink');
-    const applicationsLink     = document.getElementById('applicationsLink');
-    const extensionRunsLink    = document.getElementById('extensionRunsLink');
-    const extensionDownloadLink = document.getElementById('extensionDownloadLink');
-    const draftLink            = document.getElementById('draftLink');
-    const presentationLink     = document.getElementById('presentationLink');
-
-    if (user) {
-        if (authLink) authLink.style.display = 'none';
-        if (profileLink) profileLink.style.display = 'block';
-        if (logoutBtn) logoutBtn.style.display = 'block';
-        if (rechercheLink) rechercheLink.style.display = 'inline-block';
-        if (connexionsLink) connexionsLink.style.display = 'inline-block';
-        if (applicationsLink) applicationsLink.style.display = 'inline-block';
-        if (extensionDownloadLink) extensionDownloadLink.style.display = 'inline-block';
-        if (extensionRunsLink) extensionRunsLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none';
-        if (draftLink) draftLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none';
-        if (presentationLink) presentationLink.style.display = 'none';
-    } else {
-        if (authLink) authLink.style.display = 'block';
-        if (profileLink) profileLink.style.display = 'none';
-        if (logoutBtn) logoutBtn.style.display = 'none';
-        if (rechercheLink) rechercheLink.style.display = 'inline-block';
-        if (connexionsLink) connexionsLink.style.display = 'none';
-        if (applicationsLink) applicationsLink.style.display = 'none';
-        if (extensionDownloadLink) extensionDownloadLink.style.display = 'none';
-        if (extensionRunsLink) extensionRunsLink.style.display = 'none';
-        if (draftLink) draftLink.style.display = 'none';
-        if (presentationLink) presentationLink.style.display = 'block';
-    }
+function updateNavigation(user, immediate = false) {
+  const isAuth = immediate ? !!(localStorage.getItem('authToken') || localStorage.getItem('userEmail')) : !!user;
+  const ids = [
+    'authLink',
+    'profileLink',
+    'logoutBtn',
+    'rechercheLink',
+    'connexionsLink',
+    'applicationsLink',
+    'extensionDownloadLink',
+    'extensionRunsLink',
+    'draftLink',
+    'presentationLink'
+  ];
+  const els = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
+  if (isAuth) {
+    els.authLink && (els.authLink.style.display = 'none');
+    els.profileLink && (els.profileLink.style.display = 'block');
+    els.logoutBtn && (els.logoutBtn.style.display = 'block');
+    els.rechercheLink && (els.rechercheLink.style.display = 'inline-block');
+    els.connexionsLink && (els.connexionsLink.style.display = 'inline-block');
+    els.applicationsLink && (els.applicationsLink.style.display = 'inline-block');
+    els.extensionDownloadLink && (els.extensionDownloadLink.style.display = 'inline-block');
+    els.extensionRunsLink && (els.extensionRunsLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none');
+    els.draftLink && (els.draftLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none');
+    els.presentationLink && (els.presentationLink.style.display = 'none');
+  } else {
+    els.authLink && (els.authLink.style.display = 'block');
+    els.profileLink && (els.profileLink.style.display = 'none');
+    els.logoutBtn && (els.logoutBtn.style.display = 'none');
+    els.rechercheLink && (els.rechercheLink.style.display = 'inline-block');
+    els.connexionsLink && (els.connexionsLink.style.display = 'none');
+    els.applicationsLink && (els.applicationsLink.style.display = 'none');
+    els.extensionDownloadLink && (els.extensionDownloadLink.style.display = 'none');
+    els.extensionRunsLink && (els.extensionRunsLink.style.display = 'none');
+    els.draftLink && (els.draftLink.style.display = 'none');
+    els.presentationLink && (els.presentationLink.style.display = 'block');
+  }
 }
 
 async function handleLogout() {
-    try { await firebase.auth().signOut(); } catch (_) {}
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userEmail');
-    window.location.href = 'auth.html';
+  try { await firebase.auth().signOut(); } catch (_) {}
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('userEmail');
+  window.location.href = 'auth.html';
 }
 
 // ── Init ──
-updateNavigationImmediate();
+updateNavigation(null, true);
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Fetch latest version in parallel with auth check
-    const versionPromise = fetchLatestVersion();
-    const detectionPromise = detectInstalledVersion();
+  const versionPromise = fetchLatestVersion();
+  const detectionPromise = detectInstalledVersion();
 
-    firebase.auth().onAuthStateChanged(async (user) => {
-        updateNavigation(user);
-        document.getElementById('loadingState').style.display = 'none';
+  firebase.auth().onAuthStateChanged(async (user) => {
+    updateNavigation(user);
+    document.getElementById('loadingState').style.display = 'none';
 
-        if (!user && !localStorage.getItem('authToken')) {
-            document.getElementById('unauthorizedState').style.display = '';
-            return;
-        }
+    if (!user && !localStorage.getItem('authToken')) {
+      document.getElementById('unauthorizedState').style.display = '';
+      document.getElementById('extPage').style.display = 'none';
+      return;
+    }
 
-        document.getElementById('extPage').style.display = '';
+    document.getElementById('unauthorizedState').style.display = 'none';
+    document.getElementById('extPage').style.display = '';
 
-        // Wait for both
-        [latestVersionData, installedVersion] = await Promise.all([versionPromise, detectionPromise]);
-        detectionDone = true;
-        renderPage();
-    });
+    [latestVersionData, installedVersion] = await Promise.all([versionPromise, detectionPromise]);
+    detectionDone = true;
+    renderPage();
+  });
 });
 </script>
 

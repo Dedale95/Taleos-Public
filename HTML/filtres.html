@@ -2376,7 +2376,8 @@
                         companyGroupAXAExpanded: data.companyGroupAXAExpanded === true,
                         companyGroupAllianzExpanded: data.companyGroupAllianzExpanded === true,
                         companyGroupLBPExpanded: data.companyGroupLBPExpanded === true,
-                        companyGroupKPMGExpanded: data.companyGroupKPMGExpanded === true
+                        companyGroupKPMGExpanded: data.companyGroupKPMGExpanded === true,
+                        companyGroupHSBCExpanded: data.companyGroupHSBCExpanded === true
                     };
                     companyGroupCAExpandedByAccordion[accordion.id] = accordion.companyGroupCAExpanded;
                     companyGroupBPCEExpandedByAccordion[accordion.id] = accordion.companyGroupBPCEExpanded;
@@ -2386,6 +2387,7 @@
                     companyGroupAllianzExpandedByAccordion[accordion.id] = accordion.companyGroupAllianzExpanded;
                     companyGroupLBPExpandedByAccordion[accordion.id] = accordion.companyGroupLBPExpanded;
                     companyGroupKPMGExpandedByAccordion[accordion.id] = accordion.companyGroupKPMGExpanded;
+                    companyGroupHSBCExpandedByAccordion[accordion.id] = accordion.companyGroupHSBCExpanded;
                     loadedAccordions.push(accordion);
                     console.log('📦 [loadAccordions] Accordéon chargé:', accordion.id, accordion.name);
                 });
@@ -2577,7 +2579,8 @@
                 companyGroupAXAExpanded: false,
                 companyGroupAllianzExpanded: false,
                 companyGroupLBPExpanded: false,
-                companyGroupKPMGExpanded: false
+                companyGroupKPMGExpanded: false,
+                companyGroupHSBCExpanded: false
             };
 
             // Vérifier si l'utilisateur est connecté avant de créer l'accordéon
@@ -2726,6 +2729,7 @@
         const ALLIANZ_GROUP_KEY = '__ALLIANZ_GROUP__';
         const BANQUE_POSTALE_GROUP_KEY = '__LBP_GROUP__';
         const KPMG_GROUP_KEY = '__KPMG_GROUP__';
+        const HSBC_GROUP_KEY = '__HSBC_GROUP__';
         const FAMILY_GROUPS = {
             'Contrôle et Risques': ['Risques / Contrôles permanents', 'Conformité / Sécurité financière', 'Inspection / Audit'],
             'Finance et Analyse': ['Finances / Comptabilité / Contrôle de gestion', 'Analyse financière et économique'],
@@ -2744,6 +2748,7 @@
         const companyGroupAllianzExpandedByAccordion = {};
         const companyGroupLBPExpandedByAccordion = {};
         const companyGroupKPMGExpandedByAccordion = {};
+        const companyGroupHSBCExpandedByAccordion = {};
         function getCompanyGroupCAExpanded(accordionId) {
             if (companyGroupCAExpandedByAccordion[accordionId] !== undefined) return companyGroupCAExpandedByAccordion[accordionId];
             return false;
@@ -2797,6 +2802,10 @@
             if (companyGroupKPMGExpandedByAccordion[accordionId] !== undefined) return companyGroupKPMGExpandedByAccordion[accordionId];
             return false;
         }
+        function getCompanyGroupHSBCExpanded(accordionId) {
+            if (companyGroupHSBCExpandedByAccordion[accordionId] !== undefined) return companyGroupHSBCExpandedByAccordion[accordionId];
+            return false;
+        }
         function isCreditMutuelSubsidiary(name) {
             if (!name || typeof name !== 'string') return false;
             const n = name.toLowerCase();
@@ -2846,6 +2855,15 @@
             if (!name || typeof name !== 'string') return false;
             return name.toLowerCase().trim().startsWith('kpmg');
         }
+        function isHSBCBrand(name) {
+            if (!name || typeof name !== 'string') return false;
+            const n = name.toLowerCase().trim();
+            return n === 'hsbc' ||
+                n.includes('hsbc ') ||
+                n === 'hang seng bank' ||
+                n.includes(' hang seng bank') ||
+                n.includes('hsbc innovation banking');
+        }
 
         function populateCompanyFilterAccordionWithGroup(accordionId, values, counts, disabledValues, hideDisabled, checkedValues) {
             const container = document.getElementById(`companyFilter-${accordionId}`);
@@ -2859,6 +2877,7 @@
             const prevAllianz = container.querySelector('.company-group-children[data-group="allianz"]');
             const prevLBP = container.querySelector('.company-group-children[data-group="lbp"]');
             const prevKPMG = container.querySelector('.company-group-children[data-group="kpmg"]');
+            const prevHSBC = container.querySelector('.company-group-children[data-group="hsbc"]');
             if (prevCA) companyGroupCAExpandedByAccordion[accordionId] = prevCA.classList.contains('visible');
             if (prevBPCE) companyGroupBPCEExpandedByAccordion[accordionId] = prevBPCE.classList.contains('visible');
             if (prevBNP) companyGroupBNPExpandedByAccordion[accordionId] = prevBNP.classList.contains('visible');
@@ -2867,6 +2886,7 @@
             if (prevAllianz) companyGroupAllianzExpandedByAccordion[accordionId] = prevAllianz.classList.contains('visible');
             if (prevLBP) companyGroupLBPExpandedByAccordion[accordionId] = prevLBP.classList.contains('visible');
             if (prevKPMG) companyGroupKPMGExpandedByAccordion[accordionId] = prevKPMG.classList.contains('visible');
+            if (prevHSBC) companyGroupHSBCExpandedByAccordion[accordionId] = prevHSBC.classList.contains('visible');
             const wasExpanded = getCompanyGroupCAExpanded(accordionId);
             const wasBPCEExpanded = getCompanyGroupBPCEExpanded(accordionId);
             const wasBNPExpanded = getCompanyGroupBNPExpanded(accordionId);
@@ -2875,6 +2895,7 @@
             const wasAllianzExpanded = getCompanyGroupAllianzExpanded(accordionId);
             const wasLBPExpanded = getCompanyGroupLBPExpanded(accordionId);
             const wasKPMGExpanded = getCompanyGroupKPMGExpanded(accordionId);
+            const wasHSBCExpanded = getCompanyGroupHSBCExpanded(accordionId);
             container.innerHTML = '';
 
             const caSubs = values.filter(c => isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
@@ -2885,7 +2906,8 @@
             const allianzBrands = values.filter(c => isAllianzBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const lbpBrands = values.filter(c => isBanquePostaleBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const kpmgBrands = values.filter(c => isKPMGBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
-            const others = values.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c) && !isBNPParibasBrand(c) && !isCreditMutuelSubsidiary(c) && !isAXABrand(c) && !isAllianzBrand(c) && !isBanquePostaleBrand(c) && !isKPMGBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const hsbcBrands = values.filter(c => isHSBCBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const others = values.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c) && !isBNPParibasBrand(c) && !isCreditMutuelSubsidiary(c) && !isAXABrand(c) && !isAllianzBrand(c) && !isBanquePostaleBrand(c) && !isKPMGBrand(c) && !isHSBCBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
             const renderedBpceBrands = bpceBrands.filter(c => !(hideDisabled && (counts[c] || 0) === 0));
             const bpceGroupChecked = cv.has(BPCE_GROUP_KEY) || (renderedBpceBrands.length > 0 && renderedBpceBrands.every(c => cv.has(c)));
@@ -3586,6 +3608,94 @@
                     requestAnimationFrame(() => {
                         const groupCbNew = container.querySelector(`input[value="${KPMG_GROUP_KEY}"]`);
                         const children = container.querySelector('.company-group-children[data-group="kpmg"]');
+                        const childCbs = children ? Array.from(children.querySelectorAll('input[type="checkbox"]')) : [];
+                        if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
+                    });
+                };
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    groupCb.checked = !allChecked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                container.appendChild(childrenDiv);
+            }
+
+            const hsbcGroupChecked = cv.has(HSBC_GROUP_KEY) || hsbcBrands.every(c => cv.has(c));
+            const hsbcGroupCount = hsbcBrands.reduce((s, c) => s + (counts[c] || 0), 0);
+            if (hsbcBrands.length > 0 && (!hideDisabled || hsbcGroupCount > 0 || hsbcGroupChecked)) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'company-group-header';
+                const expandSpan = document.createElement('span');
+                expandSpan.className = 'company-group-expand';
+                expandSpan.textContent = '▶';
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'company-group-children' + (wasHSBCExpanded ? ' visible' : '');
+                childrenDiv.setAttribute('data-group', 'hsbc');
+                if (wasHSBCExpanded) expandSpan.classList.add('expanded');
+                expandSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    childrenDiv.classList.toggle('visible');
+                    expandSpan.classList.toggle('expanded');
+                    const expanded = childrenDiv.classList.contains('visible');
+                    companyGroupHSBCExpandedByAccordion[accordionId] = expanded;
+                    const accordion = accordions.find(a => (a.id || '').toString() === (accordionId || '').toString());
+                    if (accordion) {
+                        accordion.companyGroupHSBCExpanded = expanded;
+                        saveAccordion(accordion);
+                    }
+                };
+                const groupLabel = document.createElement('label');
+                groupLabel.style.display = 'flex';
+                groupLabel.style.alignItems = 'center';
+                groupLabel.style.flex = '1';
+                groupLabel.style.cursor = 'pointer';
+                const groupCb = document.createElement('input');
+                groupCb.type = 'checkbox';
+                groupCb.value = HSBC_GROUP_KEY;
+                groupCb.checked = hsbcGroupChecked;
+                groupLabel.appendChild(groupCb);
+                const span = document.createElement('span');
+                span.textContent = `Groupe HSBC (${hsbcGroupCount})`;
+                groupLabel.appendChild(span);
+                groupDiv.appendChild(groupLabel);
+                groupDiv.appendChild(expandSpan);
+                container.appendChild(groupDiv);
+                const childCheckboxes = [];
+                hsbcBrands.forEach(c => {
+                    const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0) return;
+                    const disabled = disabledValues.has(c);
+                    const label = document.createElement('label');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = c;
+                    cb.setAttribute('data-hsbc-brand', '1');
+                    cb.checked = cv.has(c) || hsbcGroupChecked;
+                    cb.disabled = disabled;
+                    childCheckboxes.push(cb);
+                    cb.onchange = () => {
+                        updateFilter(accordionId, 'companies', c, cb.checked);
+                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    };
+                    label.appendChild(cb);
+                    const sp = document.createElement('span');
+                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
+                    label.appendChild(sp);
+                    if (disabled) label.classList.add('disabled');
+                    childrenDiv.appendChild(label);
+                });
+                groupCb.onchange = () => {
+                    hsbcBrands.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"][data-hsbc-brand]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                        updateFilter(accordionId, 'companies', c, groupCb.checked);
+                    });
+                    requestAnimationFrame(() => {
+                        const groupCbNew = container.querySelector(`input[value="${HSBC_GROUP_KEY}"]`);
+                        const children = container.querySelector('.company-group-children[data-group="hsbc"]');
                         const childCbs = children ? Array.from(children.querySelectorAll('input[type="checkbox"]')) : [];
                         if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
                     });

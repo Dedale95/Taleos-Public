@@ -1819,6 +1819,7 @@
                 <a href="filtres.html" class="nav-link" id="rechercheLink">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
                 <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display: none;">Suivi extension</a>
+                <a href="extension-download.html" class="nav-link" id="extensionDownloadLink" style="display: none;">Extension</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
             </div>
@@ -6918,6 +6919,7 @@
             const profileLink = document.getElementById('profileLink');
             const applicationsLink = document.getElementById('applicationsLink');
             const extensionRunsLink = document.getElementById('extensionRunsLink');
+            const extensionDownloadLink = document.getElementById('extensionDownloadLink');
             const draftLink = document.getElementById('draftLink');
             const connexionsLink = document.getElementById('connexionsLink');
             const authLink = document.getElementById('authLink');
@@ -6959,6 +6961,10 @@
                     extensionRunsLink.style.display = canViewExtensionRuns(authEmail) ? 'block' : 'none';
                     extensionRunsLink.classList.remove('nav-link-primary');
                 }
+                if (extensionDownloadLink) {
+                    extensionDownloadLink.style.display = 'block';
+                    extensionDownloadLink.classList.remove('nav-link-primary');
+                }
                 if (draftLink) {
                     draftLink.style.display = canViewExtensionRuns(authEmail) ? 'block' : 'none';
                     draftLink.classList.remove('nav-link-primary');
@@ -6986,6 +6992,10 @@
                 if (extensionRunsLink) {
                     extensionRunsLink.style.display = 'none';
                     extensionRunsLink.classList.remove('nav-link-primary');
+                }
+                if (extensionDownloadLink) {
+                    extensionDownloadLink.style.display = 'none';
+                    extensionDownloadLink.classList.remove('nav-link-primary');
                 }
                 if (draftLink) {
                     draftLink.style.display = 'none';

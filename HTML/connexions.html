@@ -736,6 +736,7 @@
             <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
             <a href="mes-candidatures.html" class="nav-link" id="navCandidatures" style="display:none">Mes candidatures</a>
             <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
+            <a href="extension-download.html" class="nav-link" id="extensionDownloadLink" style="display:none">Extension</a>
             <a href="connexions.html" class="nav-link active" id="navConnexions" style="display:none">Connexions</a>
             <a href="tarifs.html" class="nav-link">Tarifs</a>
         </div>
@@ -1111,6 +1112,7 @@
         const navProfile = document.getElementById('navProfile');
         const navCandidatures = document.getElementById('navCandidatures');
         const extensionRunsLink = document.getElementById('extensionRunsLink');
+        const extensionDownloadLink = document.getElementById('extensionDownloadLink');
         const draftLink = document.getElementById('draftLink');
         const navConnexions = document.getElementById('navConnexions');
         const btnLogout = document.getElementById('btnLogout');
@@ -1120,6 +1122,7 @@
             navProfile.style.display = 'block';
             if (navCandidatures) navCandidatures.style.display = 'block';
             if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
+            if (extensionDownloadLink) extensionDownloadLink.style.display = 'block';
             if (draftLink) draftLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
             if (presentationLink) presentationLink.style.display = 'none';
             if (navConnexions) navConnexions.style.display = 'block';
@@ -1130,6 +1133,7 @@
             navProfile.style.display = 'none';
             if (navCandidatures) navCandidatures.style.display = 'none';
             if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+            if (extensionDownloadLink) extensionDownloadLink.style.display = 'none';
             if (draftLink) draftLink.style.display = 'none';
             if (presentationLink) presentationLink.style.display = 'block';
             if (navConnexions) navConnexions.style.display = 'none';
@@ -1147,12 +1151,14 @@
             document.getElementById('btnLogout').style.display = 'block';
             const navCandidatures = document.getElementById('navCandidatures');
             const extensionRunsLink = document.getElementById('extensionRunsLink');
+            const extensionDownloadLinkImm = document.getElementById('extensionDownloadLink');
             const draftLink = document.getElementById('draftLink');
             const presentationLink = document.getElementById('presentationLink');
             const navConnexions = document.getElementById('navConnexions');
             const rechercheLink = document.getElementById('rechercheLink');
             if (navCandidatures) navCandidatures.style.display = 'block';
             if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
+            if (extensionDownloadLinkImm) extensionDownloadLinkImm.style.display = 'block';
             if (draftLink) draftLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
             if (presentationLink) presentationLink.style.display = email ? 'none' : 'block';
             if (navConnexions) navConnexions.style.display = 'block';

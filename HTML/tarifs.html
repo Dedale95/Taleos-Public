@@ -117,11 +117,11 @@
         .page-top h1 {
             font-family: var(--serif);
             font-size: clamp(2rem, 4vw, 3rem);
-            font-weight: 700; color: var(--white) !important;
+            font-weight: 700; color: var(--gold-light) !important;
             line-height: 1.12; margin-bottom: 16px;
         }
 
-        .page-top h1 em { font-style:italic; color:var(--gold-light) !important; }
+        .page-top h1 em { font-style:italic; color:var(--gold) !important; }
 
         .page-top p { font-size:0.95rem; color:rgba(255,255,255,0.72) !important; max-width:520px; margin:0 auto; }
 
@@ -416,6 +416,7 @@
             <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
             <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
             <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
+            <a href="extension-download.html" class="nav-link" id="extensionDownloadLink" style="display:none">Extension</a>
             <a href="tarifs.html" class="nav-link nav-link-primary">Tarifs</a>
         </div>
 
@@ -604,8 +605,8 @@
     if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
 
     function updateNav(user) {
-        const ids = ['authLink','profileLink','logoutBtn','applicationsLink','extensionRunsLink','connexionsLink','rechercheLink','draftLink','presentationLink'];
-        const [authLink,profileLink,logoutBtn,applicationsLink,extensionRunsLink,connexionsLink,rechercheLink,draftLink,presentationLink] = ids.map(id=>document.getElementById(id));
+        const ids = ['authLink','profileLink','logoutBtn','applicationsLink','extensionRunsLink','connexionsLink','rechercheLink','draftLink','presentationLink','extensionDownloadLink'];
+        const [authLink,profileLink,logoutBtn,applicationsLink,extensionRunsLink,connexionsLink,rechercheLink,draftLink,presentationLink,extensionDownloadLink] = ids.map(id=>document.getElementById(id));
         const email = user?.email || localStorage.getItem('userEmail') || '';
         if (user) {
             if(authLink) authLink.style.display='none';
@@ -617,6 +618,7 @@
             if(presentationLink) presentationLink.style.display = user ? 'none' : 'block';
             if(connexionsLink) connexionsLink.style.display='block';
             if(rechercheLink) rechercheLink.style.display='inline-block';
+            if(extensionDownloadLink) extensionDownloadLink.style.display='block';
         } else {
             if(authLink) authLink.style.display='block';
             if(profileLink) profileLink.style.display='none';
@@ -627,6 +629,7 @@
             if(presentationLink) presentationLink.style.display='block';
             if(connexionsLink) connexionsLink.style.display='none';
             if(rechercheLink) rechercheLink.style.display='none';
+            if(extensionDownloadLink) extensionDownloadLink.style.display='none';
         }
     }
 

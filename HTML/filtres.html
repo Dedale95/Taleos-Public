@@ -1499,6 +1499,7 @@
                 <a href="filtres.html" class="nav-link nav-link-primary" id="rechercheLink">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
                 <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
+                <a href="extension-download.html" class="nav-link" id="extensionDownloadLink" style="display:none">Extension</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
             </div>
@@ -5685,6 +5686,7 @@
             const logoutBtn = document.getElementById('logoutBtn');
             const applicationsLink = document.getElementById('applicationsLink');
             const extensionRunsLink = document.getElementById('extensionRunsLink');
+            const extensionDownloadLink = document.getElementById('extensionDownloadLink');
             const draftLink = document.getElementById('draftLink');
             const footerDraftLink = document.getElementById('footerDraftLink');
             const presentationLink = document.getElementById('presentationLink');
@@ -5707,6 +5709,7 @@
                 if (connexionsLink) connexionsLink.style.display = 'block';
                 if (applicationsLink) applicationsLink.style.display = 'block';
                 if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
+                if (extensionDownloadLink) extensionDownloadLink.style.display = 'block';
                 if (draftLink) draftLink.style.display = canViewExtensionRuns(email) ? 'block' : 'none';
                 if (footerDraftLink) footerDraftLink.style.display = canViewExtensionRuns(email) ? 'inline' : 'none';
                 if (presentationLink) presentationLink.style.display = 'none';
@@ -5719,6 +5722,7 @@
                 if (connexionsLink) connexionsLink.style.display = 'none';
                 if (applicationsLink) applicationsLink.style.display = 'none';
                 if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+                if (extensionDownloadLink) extensionDownloadLink.style.display = 'none';
                 if (draftLink) draftLink.style.display = 'none';
                 if (footerDraftLink) footerDraftLink.style.display = 'none';
                 if (presentationLink) presentationLink.style.display = 'block';
@@ -5738,6 +5742,7 @@
                 const logoutBtn = document.getElementById('logoutBtn');
                 const applicationsLink = document.getElementById('applicationsLink');
                 const extensionRunsLink = document.getElementById('extensionRunsLink');
+                const extensionDownloadLink = document.getElementById('extensionDownloadLink');
                 const draftLink = document.getElementById('draftLink');
                 const footerDraftLink = document.getElementById('footerDraftLink');
                 const connexionsLink = document.getElementById('connexionsLink');
@@ -5749,6 +5754,7 @@
                     if (logoutBtn) logoutBtn.style.display = 'block';
                     if (applicationsLink) applicationsLink.style.display = 'block';
                     if (extensionRunsLink) extensionRunsLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
+                    if (extensionDownloadLink) extensionDownloadLink.style.display = 'block';
                     if (draftLink) draftLink.style.display = canViewExtensionRuns(user.email) ? 'block' : 'none';
                     if (footerDraftLink) footerDraftLink.style.display = canViewExtensionRuns(user.email) ? 'inline' : 'none';
                     if (presentationLink) presentationLink.style.display = 'none';
@@ -5760,10 +5766,10 @@
                     if (logoutBtn) logoutBtn.style.display = 'none';
                     if (applicationsLink) applicationsLink.style.display = 'none';
                     if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+                    if (extensionDownloadLink) extensionDownloadLink.style.display = 'none';
                     if (draftLink) draftLink.style.display = 'none';
                     if (footerDraftLink) footerDraftLink.style.display = 'none';
                     if (presentationLink) presentationLink.style.display = 'block';
-                if (presentationLink) presentationLink.style.display = 'block';
                     if (connexionsLink) connexionsLink.style.display = 'none';
                     if (rechercheLink) rechercheLink.style.display = 'inline-block';
                 }

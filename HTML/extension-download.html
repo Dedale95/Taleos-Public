@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension — Taleos</title>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #0a0a0f;
+            --ink-soft: #14141c;
+            --ink-mid: #1e1e2a;
+            --surface: #f5f3ef;
+            --surface2: #ede9e3;
+            --surface3: #e4dfd7;
+            --gold: #c8a96e;
+            --gold-light: #e2cfa0;
+            --gold-dim: rgba(200,169,110,0.12);
+            --gold-border: rgba(200,169,110,0.2);
+            --muted: #7a7a8a;
+            --text-body: #3a3a48;
+            --white: #ffffff;
+            --green: #22c55e;
+            --green-dim: rgba(34,197,94,0.12);
+            --orange: #f59e0b;
+            --orange-dim: rgba(245,158,11,0.12);
+            --red: #ef4444;
+            --red-dim: rgba(239,68,68,0.1);
+            --serif: 'Playfair Display', Georgia, serif;
+            --sans: 'DM Sans', system-ui, sans-serif;
+            --radius: 4px;
+            --radius-md: 8px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--surface);
+            color: var(--text-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            background: var(--ink);
+            border-bottom: 1px solid rgba(200,169,110,0.12);
+            padding: 0 48px;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            height: 68px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            text-decoration: none;
+            justify-self: start;
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            background: var(--ink-mid);
+            border: 1.5px solid rgba(200,169,110,0.5);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-mark svg { width: 20px; height: 20px; }
+
+        .logo-text {
+            font-family: var(--serif);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.01em;
+        }
+
+        .logo-text span { color: var(--gold); }
+
+        .nav-links,
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-links { justify-self: center; }
+        .nav-actions { justify-self: end; }
+
+        .nav-link {
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            transition: color var(--transition);
+            white-space: nowrap;
+        }
+
+        .nav-link:hover { color: var(--white); }
+        .nav-link-primary { color: var(--gold) !important; }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.45);
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--sans);
+            transition: all var(--transition);
+        }
+
+        .logout-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+
+        .page-top {
+            background: var(--ink);
+            padding: 48px 48px 42px;
+            border-bottom: 1px solid rgba(200,169,110,0.1);
+        }
+
+        .page-top-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 14px;
+        }
+
+        .page-label::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--gold);
+        }
+
+        .page-top h1 {
+            font-family: var(--serif);
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            color: var(--white) !important;
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        .page-top p {
+            color: rgba(255,255,255,0.72) !important;
+            max-width: 780px;
+            font-size: 0.98rem;
+        }
+
+        .main-content { flex: 1; }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 48px 60px;
+        }
+
+        /* ── Auth states ── */
+        .loading-state,
+        .unauthorized-state {
+            background: var(--white);
+            border: 1px solid var(--surface2);
+            border-radius: var(--radius-md);
+            padding: 48px 28px;
+            text-align: center;
+        }
+
+        .unauthorized-state h2,
+        .loading-state h2 {
+            font-family: var(--serif);
+            color: var(--ink);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .unauthorized-state p,
+        .loading-state p {
+            color: var(--muted);
+            max-width: 480px;
+            margin: 0 auto 24px;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: var(--ink);
+            color: var(--white);
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: opacity var(--transition);
+            border: none;
+            cursor: pointer;
+            font-family: var(--sans);
+        }
+
+        .btn-primary:hover { opacity: 0.85; }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid rgba(200,169,110,0.2);
+            border-top-color: var(--gold);
+            margin: 0 auto 18px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Main layout ── */
+        .ext-page { display: flex; flex-direction: column; gap: 24px; }
+
+        /* ── Status card ── */
+        .status-card {
+            background: var(--white);
+            border: 1px solid var(--gold-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .status-header {
+            padding: 24px 28px 20px;
+            border-bottom: 1px solid var(--surface2);
+            background: linear-gradient(180deg, rgba(200,169,110,0.08), rgba(200,169,110,0.02));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .status-header h2 {
+            font-family: var(--serif);
+            font-size: 1.35rem;
+            color: var(--ink);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .status-badge.up-to-date {
+            background: var(--green-dim);
+            color: #15803d;
+            border: 1px solid rgba(34,197,94,0.25);
+        }
+
+        .status-badge.outdated {
+            background: var(--orange-dim);
+            color: #b45309;
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+
+        .status-badge.not-installed {
+            background: var(--red-dim);
+            color: #b91c1c;
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+
+        .status-badge.checking {
+            background: var(--gold-dim);
+            color: #92400e;
+            border: 1px solid var(--gold-border);
+        }
+
+        .status-body {
+            padding: 24px 28px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .version-block { display: flex; flex-direction: column; gap: 6px; }
+
+        .version-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .version-number {
+            font-family: var(--serif);
+            font-size: 1.7rem;
+            color: var(--ink);
+            line-height: 1;
+        }
+
+        .version-sub {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        /* ── Info / warning strip ── */
+        .info-strip {
+            padding: 14px 28px;
+            border-top: 1px solid var(--surface2);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-strip.info { color: var(--muted); background: var(--surface); }
+        .info-strip.warning { background: var(--orange-dim); color: #92400e; border-color: rgba(245,158,11,0.2); }
+        .info-strip.success { background: var(--green-dim); color: #15803d; border-color: rgba(34,197,94,0.2); }
+
+        /* ── Update / download card ── */
+        .action-card {
+            background: var(--white);
+            border: 1px solid var(--gold-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .action-header {
+            padding: 20px 28px 16px;
+            border-bottom: 1px solid var(--surface2);
+            background: linear-gradient(180deg, rgba(200,169,110,0.08), rgba(200,169,110,0.02));
+        }
+
+        .action-header h2 {
+            font-family: var(--serif);
+            font-size: 1.2rem;
+            color: var(--ink);
+        }
+
+        .action-body { padding: 24px 28px; }
+
+        .release-notes {
+            font-size: 0.9rem;
+            color: var(--text-body);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            background: var(--surface);
+            border-left: 3px solid var(--gold);
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .release-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--ink);
+            color: var(--white) !important;
+            text-decoration: none;
+            padding: 13px 28px;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: opacity var(--transition);
+            border: none;
+            cursor: pointer;
+            font-family: var(--sans);
+        }
+
+        .btn-download:hover { opacity: 0.85; }
+
+        .btn-reload {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: transparent;
+            color: var(--ink);
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background var(--transition);
+            border: 1px solid var(--surface3);
+            cursor: pointer;
+            font-family: var(--sans);
+            margin-left: 12px;
+        }
+
+        .btn-reload:hover { background: var(--surface); }
+
+        /* ── Install steps ── */
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--ink);
+            color: var(--white);
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .step-text { font-size: 0.9rem; line-height: 1.55; color: var(--text-body); }
+        .step-text strong { color: var(--ink); }
+        .step-text code {
+            font-family: 'Courier New', monospace;
+            background: var(--surface2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+        }
+
+        .notice {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: var(--gold-dim);
+            border: 1px solid var(--gold-border);
+            border-radius: var(--radius);
+            font-size: 0.82rem;
+            color: #78450a;
+        }
+
+        /* ── Reload confirmation ── */
+        .reload-feedback {
+            display: none;
+            font-size: 0.82rem;
+            color: #15803d;
+            margin-top: 10px;
+            gap: 6px;
+            align-items: center;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            .nav-links { display: none; }
+            .page-top { padding: 32px 20px 28px; }
+            .container { padding: 24px 20px 40px; }
+            .status-body { grid-template-columns: 1fr; gap: 16px; }
+            .status-header { flex-direction: column; align-items: flex-start; }
+            .btn-reload { margin-left: 0; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ─────────────────────── NAV ─────────────────────── -->
+<nav>
+    <div class="nav-container">
+        <a href="offres.html" class="logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="rgba(200,169,110,0.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+            </div>
+            <span class="logo-text">Tale<span>os</span></span>
+        </a>
+
+        <div class="nav-links">
+            <a href="landing_page_finance.html?v=20260504c" class="nav-link" id="presentationLink">Présentation</a>
+            <a href="offres.html" class="nav-link">Offres</a>
+            <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
+            <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
+            <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
+            <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
+            <a href="extension-download.html" class="nav-link nav-link-primary" id="extensionDownloadLink" style="display:none">Extension</a>
+            <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
+            <a href="tarifs.html" class="nav-link">Tarifs</a>
+        </div>
+
+        <div class="nav-actions">
+            <a href="auth.html" class="nav-link" id="authLink" style="display:none">Connexion</a>
+            <a href="profile.html" class="nav-link" id="profileLink" style="display:none">Mon profil</a>
+            <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none">Déconnexion</button>
+        </div>
+    </div>
+</nav>
+
+<!-- ─────────────────────── HERO ─────────────────────── -->
+<header class="page-top">
+    <div class="page-top-inner">
+        <div class="page-label">Extension Chrome</div>
+        <h1>Extension Taleos</h1>
+        <p>Installez ou mettez à jour l'extension pour automatiser vos candidatures directement depuis votre navigateur.</p>
+    </div>
+</header>
+
+<!-- ─────────────────────── MAIN ─────────────────────── -->
+<main class="main-content">
+    <div class="container">
+
+        <!-- Loading -->
+        <div class="loading-state" id="loadingState">
+            <div class="spinner"></div>
+            <h2>Chargement…</h2>
+            <p>Vérification de votre session en cours.</p>
+        </div>
+
+        <!-- Not logged in -->
+        <div class="unauthorized-state" id="unauthorizedState" style="display:none">
+            <h2>Accès réservé</h2>
+            <p>Connectez-vous à votre compte Taleos pour accéder à la page Extension.</p>
+            <a href="auth.html" class="btn-primary">Se connecter</a>
+        </div>
+
+        <!-- Main content (logged in) -->
+        <div class="ext-page" id="extPage" style="display:none">
+
+            <!-- ── Version status ── -->
+            <div class="status-card">
+                <div class="status-header">
+                    <h2>Statut de l'extension</h2>
+                    <span class="status-badge checking" id="statusBadge">⏳ Vérification…</span>
+                </div>
+                <div class="status-body">
+                    <div class="version-block">
+                        <div class="version-label">Dernière version disponible</div>
+                        <div class="version-number" id="latestVersion">—</div>
+                        <div class="version-sub" id="latestDate">—</div>
+                    </div>
+                    <div class="version-block">
+                        <div class="version-label">Version installée</div>
+                        <div class="version-number" id="installedVersion">—</div>
+                        <div class="version-sub" id="installedSub">Détection en cours…</div>
+                    </div>
+                </div>
+                <div class="info-strip info" id="statusStrip" style="display:none"></div>
+            </div>
+
+            <!-- ── Update / install card (hidden when up to date) ── -->
+            <div class="action-card" id="actionCard" style="display:none">
+                <div class="action-header">
+                    <h2 id="actionTitle">Télécharger l'extension</h2>
+                </div>
+                <div class="action-body">
+                    <div class="release-notes" id="releaseNotes"></div>
+                    <div class="release-meta" id="releaseMeta"></div>
+
+                    <a href="#" class="btn-download" id="downloadBtn" download>
+                        ⬇ Télécharger le ZIP
+                    </a>
+                    <button class="btn-reload" id="reloadBtn" style="display:none" onclick="triggerExtensionReload()">
+                        🔄 Recharger l'extension
+                    </button>
+                    <div class="reload-feedback" id="reloadFeedback">
+                        ✅ L'extension se recharge…
+                    </div>
+
+                    <div class="steps-list" id="stepsInstall" style="display:none">
+                        <div class="step">
+                            <div class="step-num">1</div>
+                            <div class="step-text">Téléchargez le ZIP ci-dessus et <strong>extrayez-le</strong> dans le dossier de votre choix.</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num">2</div>
+                            <div class="step-text">Ouvrez Chrome et allez sur <code>chrome://extensions</code>. Activez le <strong>Mode développeur</strong> (interrupteur en haut à droite).</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num">3</div>
+                            <div class="step-text">Cliquez sur <strong>« Charger l'extension non empaquetée »</strong> et sélectionnez le dossier extrait.</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num">4</div>
+                            <div class="step-text">L'extension Taleos apparaît dans votre barre d'outils. Connectez-vous via la popup pour démarrer.</div>
+                        </div>
+                        <div class="notice">
+                            💡 Pour les mises à jour suivantes : remplacez les fichiers du dossier, puis cliquez sur <strong>🔄 Recharger l'extension</strong> (si l'extension est déjà installée) ou utilisez le bouton « Mettre à jour » dans la popup Taleos.
+                        </div>
+                    </div>
+
+                    <div class="steps-list" id="stepsUpdate" style="display:none">
+                        <div class="step">
+                            <div class="step-num">1</div>
+                            <div class="step-text">Téléchargez le ZIP ci-dessus et <strong>extrayez son contenu</strong> en écrasant votre dossier d'extension actuel.</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num">2</div>
+                            <div class="step-text">Cliquez sur <strong>🔄 Recharger l'extension</strong> ci-dessus (ou utilisez le bouton « Mettre à jour » dans la popup Taleos).</div>
+                        </div>
+                        <div class="notice">
+                            💡 Si vous avez accès au dépôt Git : exécutez <code>update_extension.sh</code> qui effectue le <code>git pull</code> puis rechargez.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Up to date card ── -->
+            <div class="action-card" id="upToDateCard" style="display:none">
+                <div class="action-body" style="text-align:center; padding: 36px 28px;">
+                    <div style="font-size:2.5rem; margin-bottom:12px;">✅</div>
+                    <div style="font-family:var(--serif); font-size:1.3rem; color:var(--ink); margin-bottom:8px;">Vous êtes à jour</div>
+                    <div style="color:var(--muted); font-size:0.9rem;">L'extension installée correspond à la dernière version disponible.</div>
+                </div>
+            </div>
+
+        </div><!-- /ext-page -->
+    </div>
+</main>
+
+<script>
+// ── Firebase config ──
+const firebaseConfig = {
+    apiKey: "AIzaSyBqJJHGzQgcVhEAqRIMfZKuQRhM9OhJlvg",
+    authDomain: "project-taleos.firebaseapp.com",
+    projectId: "project-taleos",
+    storageBucket: "project-taleos.firebasestorage.app",
+    messagingSenderId: "974062127016",
+    appId: "1:974062127016:web:b08b2d8f6c0cf9e5db9de9"
+};
+firebase.initializeApp(firebaseConfig);
+
+// ── State ──
+let latestVersionData = null;
+let installedVersion  = null;   // null = not detected, '' = no extension
+let detectionDone     = false;
+
+// ── Version utils ──
+function parseVersion(v) {
+    return String(v || '').split('.').map(Number);
+}
+
+function versionCompare(a, b) {
+    const pa = parseVersion(a), pb = parseVersion(b);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const diff = (pa[i] || 0) - (pb[i] || 0);
+        if (diff !== 0) return diff;
+    }
+    return 0;
+}
+
+// ── Extension version detection ──
+function detectInstalledVersion() {
+    return new Promise((resolve) => {
+        // 1) Check data attribute set by content script (fastest, synchronous)
+        const attrVersion = document.documentElement.getAttribute('data-taleos-injector-version');
+        if (attrVersion) { resolve(attrVersion); return; }
+
+        // 2) Fire bridge health event and wait for response
+        let done = false;
+        const timeout = setTimeout(() => {
+            if (!done) { done = true; resolve(''); }
+        }, 2500);
+
+        window.addEventListener('taleos-bridge-health-result', function handler(e) {
+            if (done) return;
+            done = true;
+            clearTimeout(timeout);
+            window.removeEventListener('taleos-bridge-health-result', handler);
+            resolve(e.detail?.version || e.detail?.versionName || '');
+        });
+
+        window.dispatchEvent(new CustomEvent('taleos-request-bridge-health'));
+    });
+}
+
+// ── Fetch latest version info ──
+async function fetchLatestVersion() {
+    const URLS = [
+        'extension-version.json',
+        'https://dedale95.github.io/Taleos-Public/HTML/extension-version.json',
+        'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/extension-version.json'
+    ];
+    for (const url of URLS) {
+        try {
+            const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
+            if (r.ok) return await r.json();
+        } catch (_) {}
+    }
+    return null;
+}
+
+// ── UI rendering ──
+function formatDate(iso) {
+    try {
+        return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    } catch (_) { return iso || ''; }
+}
+
+function renderPage() {
+    if (!detectionDone || !latestVersionData) return;
+
+    const latest   = latestVersionData.version || '';
+    const latestVn = latestVersionData.version_name || latest;
+    const date     = latestVersionData.published_at || '';
+    const notes    = latestVersionData.release_notes || '';
+    const dlUrl    = latestVersionData.download_url || '';
+
+    // Fill version info
+    document.getElementById('latestVersion').textContent = latest;
+    document.getElementById('latestDate').textContent    = formatDate(date);
+
+    const badge = document.getElementById('statusBadge');
+    const strip = document.getElementById('statusStrip');
+    const actionCard   = document.getElementById('actionCard');
+    const upToDateCard = document.getElementById('upToDateCard');
+
+    document.getElementById('releaseNotes').textContent = notes;
+    document.getElementById('releaseMeta').textContent  = `Version ${latestVn} — publiée le ${formatDate(date)}`;
+
+    if (dlUrl) {
+        document.getElementById('downloadBtn').href = dlUrl;
+    } else {
+        document.getElementById('downloadBtn').style.display = 'none';
+    }
+
+    if (installedVersion) {
+        document.getElementById('installedVersion').textContent = installedVersion;
+        document.getElementById('installedSub').textContent     = 'Extension détectée';
+
+        const cmp = versionCompare(installedVersion, latest);
+        if (cmp >= 0) {
+            // Up to date
+            badge.className = 'status-badge up-to-date';
+            badge.textContent = '✅ À jour';
+            strip.className = 'info-strip success';
+            strip.textContent = '✅ Vous utilisez la dernière version de l\'extension.';
+            strip.style.display = 'flex';
+            upToDateCard.style.display = '';
+        } else {
+            // Outdated
+            badge.className = 'status-badge outdated';
+            badge.textContent = '🆕 Mise à jour disponible';
+            strip.className = 'info-strip warning';
+            strip.textContent = `⚠️ Votre version (${installedVersion}) est antérieure à la version ${latest}.`;
+            strip.style.display = 'flex';
+            document.getElementById('actionTitle').textContent = 'Mettre à jour l\'extension';
+            document.getElementById('reloadBtn').style.display = 'inline-flex';
+            document.getElementById('stepsUpdate').style.display = '';
+            actionCard.style.display = '';
+        }
+    } else {
+        // Extension not installed / not detected
+        document.getElementById('installedVersion').textContent = 'Non détectée';
+        document.getElementById('installedSub').textContent     = 'Extension non installée ou inactive';
+
+        badge.className = 'status-badge not-installed';
+        badge.textContent = '❌ Non installée';
+        strip.className = 'info-strip';
+        strip.textContent = 'L\'extension Taleos ne semble pas être installée dans ce navigateur.';
+        strip.style.display = 'flex';
+        document.getElementById('actionTitle').textContent = 'Installer l\'extension';
+        document.getElementById('stepsInstall').style.display = '';
+        actionCard.style.display = '';
+    }
+}
+
+// ── Trigger extension reload via bridge ──
+function triggerExtensionReload() {
+    window.dispatchEvent(new CustomEvent('taleos-request-extension-reload'));
+    const feedback = document.getElementById('reloadFeedback');
+    feedback.style.display = 'flex';
+    setTimeout(() => { feedback.style.display = 'none'; }, 4000);
+}
+
+// ── Navigation ──
+function updateNavigationImmediate() {
+    const token = localStorage.getItem('authToken') || localStorage.getItem('userEmail');
+    const authLink             = document.getElementById('authLink');
+    const profileLink          = document.getElementById('profileLink');
+    const logoutBtn            = document.getElementById('logoutBtn');
+    const rechercheLink        = document.getElementById('rechercheLink');
+    const connexionsLink       = document.getElementById('connexionsLink');
+    const applicationsLink     = document.getElementById('applicationsLink');
+    const extensionRunsLink    = document.getElementById('extensionRunsLink');
+    const extensionDownloadLink = document.getElementById('extensionDownloadLink');
+    const draftLink            = document.getElementById('draftLink');
+    const presentationLink     = document.getElementById('presentationLink');
+
+    if (token) {
+        if (authLink) authLink.style.display = 'none';
+        if (profileLink) profileLink.style.display = 'block';
+        if (logoutBtn) logoutBtn.style.display = 'block';
+        if (rechercheLink) rechercheLink.style.display = 'inline-block';
+        if (connexionsLink) connexionsLink.style.display = 'inline-block';
+        if (applicationsLink) applicationsLink.style.display = 'inline-block';
+        if (extensionDownloadLink) extensionDownloadLink.style.display = 'inline-block';
+        if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+        if (draftLink) draftLink.style.display = 'none';
+        if (presentationLink) presentationLink.style.display = 'none';
+    } else {
+        if (authLink) authLink.style.display = 'block';
+        if (profileLink) profileLink.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+        if (rechercheLink) rechercheLink.style.display = 'inline-block';
+        if (connexionsLink) connexionsLink.style.display = 'none';
+        if (applicationsLink) applicationsLink.style.display = 'none';
+        if (extensionDownloadLink) extensionDownloadLink.style.display = 'none';
+        if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+        if (draftLink) draftLink.style.display = 'none';
+        if (presentationLink) presentationLink.style.display = 'block';
+    }
+}
+
+function canViewAdminDashboard(user) {
+    const adminEmails = ['giraudet.thibault@gmail.com'];
+    return user && adminEmails.includes(user.email);
+}
+
+function updateNavigation(user) {
+    const authLink             = document.getElementById('authLink');
+    const profileLink          = document.getElementById('profileLink');
+    const logoutBtn            = document.getElementById('logoutBtn');
+    const rechercheLink        = document.getElementById('rechercheLink');
+    const connexionsLink       = document.getElementById('connexionsLink');
+    const applicationsLink     = document.getElementById('applicationsLink');
+    const extensionRunsLink    = document.getElementById('extensionRunsLink');
+    const extensionDownloadLink = document.getElementById('extensionDownloadLink');
+    const draftLink            = document.getElementById('draftLink');
+    const presentationLink     = document.getElementById('presentationLink');
+
+    if (user) {
+        if (authLink) authLink.style.display = 'none';
+        if (profileLink) profileLink.style.display = 'block';
+        if (logoutBtn) logoutBtn.style.display = 'block';
+        if (rechercheLink) rechercheLink.style.display = 'inline-block';
+        if (connexionsLink) connexionsLink.style.display = 'inline-block';
+        if (applicationsLink) applicationsLink.style.display = 'inline-block';
+        if (extensionDownloadLink) extensionDownloadLink.style.display = 'inline-block';
+        if (extensionRunsLink) extensionRunsLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none';
+        if (draftLink) draftLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none';
+        if (presentationLink) presentationLink.style.display = 'none';
+    } else {
+        if (authLink) authLink.style.display = 'block';
+        if (profileLink) profileLink.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+        if (rechercheLink) rechercheLink.style.display = 'inline-block';
+        if (connexionsLink) connexionsLink.style.display = 'none';
+        if (applicationsLink) applicationsLink.style.display = 'none';
+        if (extensionDownloadLink) extensionDownloadLink.style.display = 'none';
+        if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+        if (draftLink) draftLink.style.display = 'none';
+        if (presentationLink) presentationLink.style.display = 'block';
+    }
+}
+
+async function handleLogout() {
+    try { await firebase.auth().signOut(); } catch (_) {}
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userEmail');
+    window.location.href = 'auth.html';
+}
+
+// ── Init ──
+updateNavigationImmediate();
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Fetch latest version in parallel with auth check
+    const versionPromise = fetchLatestVersion();
+    const detectionPromise = detectInstalledVersion();
+
+    firebase.auth().onAuthStateChanged(async (user) => {
+        updateNavigation(user);
+        document.getElementById('loadingState').style.display = 'none';
+
+        if (!user && !localStorage.getItem('authToken')) {
+            document.getElementById('unauthorizedState').style.display = '';
+            return;
+        }
+
+        document.getElementById('extPage').style.display = '';
+
+        // Wait for both
+        [latestVersionData, installedVersion] = await Promise.all([versionPromise, detectionPromise]);
+        detectionDone = true;
+        renderPage();
+    });
+});
+</script>
+
+</body>
+</html>

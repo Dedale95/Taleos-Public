@@ -2505,13 +2505,56 @@
 
         const CITY_TO_COUNTRY = {
             'paris': 'France', 'lyon': 'France', 'marseille': 'France', 'lille': 'France',
+            'bordeaux': 'France', 'toulouse': 'France', 'nantes': 'France', 'strasbourg': 'France',
+            'nice': 'France', 'montpellier': 'France', 'rennes': 'France', 'grenoble': 'France',
             'bruxelles': 'Belgique', 'brussels': 'Belgique', 'zaventem': 'Belgique', 'grimbergen': 'Belgique',
+            'antwerp': 'Belgique', 'anvers': 'Belgique', 'liege': 'Belgique', 'liège': 'Belgique',
             'montreal': 'Canada', 'montréal': 'Canada', 'toronto': 'Canada', 'quebec': 'Canada', 'québec': 'Canada',
-            'londres': 'Royaume-Uni', 'london': 'Royaume-Uni', 'madrid': 'Espagne', 'barcelone': 'Espagne',
-            'lisbonne': 'Portugal', 'lisbon': 'Portugal', 'amsterdam': 'Pays-Bas', 'luxembourg': 'Luxembourg',
-            'kiev': 'Ukraine', 'kyiv': 'Ukraine', 'kharkiv': 'Ukraine', 'bogota': 'Colombie', 'medellin': 'Colombie',
+            'vancouver': 'Canada', 'calgary': 'Canada',
+            'londres': 'Royaume-Uni', 'london': 'Royaume-Uni', 'edinburgh': 'Royaume-Uni',
+            'manchester': 'Royaume-Uni', 'birmingham': 'Royaume-Uni', 'leeds': 'Royaume-Uni',
+            'madrid': 'Espagne', 'barcelone': 'Espagne', 'barcelona': 'Espagne', 'bilbao': 'Espagne',
+            'lisbonne': 'Portugal', 'lisbon': 'Portugal', 'porto': 'Portugal',
+            'amsterdam': 'Pays-Bas', 'rotterdam': 'Pays-Bas', 'la haye': 'Pays-Bas', 'the hague': 'Pays-Bas',
+            'luxembourg': 'Luxembourg',
+            'warsaw': 'Pologne', 'varsovie': 'Pologne', 'krakow': 'Pologne', 'cracovie': 'Pologne',
+            'wroclaw': 'Pologne', 'poznan': 'Pologne', 'gdansk': 'Pologne', 'lodz': 'Pologne',
+            'berlin': 'Allemagne', 'frankfurt': 'Allemagne', 'francfort': 'Allemagne', 'munich': 'Allemagne',
+            'hambourg': 'Allemagne', 'hamburg': 'Allemagne', 'düsseldorf': 'Allemagne', 'dusseldorf': 'Allemagne',
+            'cologne': 'Allemagne', 'koln': 'Allemagne', 'köln': 'Allemagne', 'stuttgart': 'Allemagne',
+            'zürich': 'Suisse', 'zurich': 'Suisse', 'genève': 'Suisse', 'geneva': 'Suisse', 'berne': 'Suisse', 'bern': 'Suisse',
+            'rome': 'Italie', 'roma': 'Italie', 'milan': 'Italie', 'milano': 'Italie', 'turin': 'Italie',
+            'vienne': 'Autriche', 'vienna': 'Autriche', 'graz': 'Autriche',
+            'prague': 'Tchéquie', 'praha': 'Tchéquie', 'brno': 'Tchéquie',
+            'budapest': 'Hongrie', 'debrecen': 'Hongrie',
+            'bucarest': 'Roumanie', 'bucharest': 'Roumanie', 'cluj': 'Roumanie',
+            'stockholm': 'Suède', 'göteborg': 'Suède', 'goteborg': 'Suède', 'malmo': 'Suède',
+            'oslo': 'Norvège', 'bergen': 'Norvège',
+            'copenhague': 'Danemark', 'copenhagen': 'Danemark',
+            'helsinki': 'Finlande',
+            'dublin': 'Irlande',
+            'athènes': 'Grèce', 'athens': 'Grèce', 'thessalonique': 'Grèce',
+            'new york': 'États-Unis', 'new-york': 'États-Unis', 'chicago': 'États-Unis',
+            'san francisco': 'États-Unis', 'los angeles': 'États-Unis', 'boston': 'États-Unis',
+            'washington': 'États-Unis', 'houston': 'États-Unis', 'dallas': 'États-Unis',
+            'toronto': 'Canada',
+            'sydney': 'Australie', 'melbourne': 'Australie', 'brisbane': 'Australie',
+            'singapour': 'Singapour', 'singapore': 'Singapour',
+            'hong kong': 'Hong Kong', 'hong-kong': 'Hong Kong', 'hongkong': 'Hong Kong',
+            'tokyo': 'Japon', 'osaka': 'Japon',
+            'dubai': 'Émirats Arabes Unis', 'dubaï': 'Émirats Arabes Unis', 'abu dhabi': 'Émirats Arabes Unis',
+            'doha': 'Qatar', 'riyadh': 'Arabie Saoudite', 'riyad': 'Arabie Saoudite',
+            'tel aviv': 'Israël', 'tel-aviv': 'Israël',
+            'Kiev': 'Ukraine', 'kyiv': 'Ukraine', 'kharkiv': 'Ukraine', 'bogota': 'Colombie', 'medellin': 'Colombie',
             'alger': 'Algérie', 'oran': 'Algérie', 'manille': 'Philippines', 'manila': 'Philippines',
-            'seoul': 'Corée du Sud', 'séoul': 'Corée du Sud'
+            'seoul': 'Corée du Sud', 'séoul': 'Corée du Sud',
+            'casablanca': 'Maroc', 'rabat': 'Maroc', 'tunis': 'Tunisie',
+            'johannesburg': 'Afrique du Sud', 'cape town': 'Afrique du Sud', 'nairobi': 'Kenya',
+            'mumbai': 'Inde', 'delhi': 'Inde', 'bangalore': 'Inde', 'chennai': 'Inde',
+            'beijing': 'Chine', 'shanghai': 'Chine', 'shenzhen': 'Chine', 'guangzhou': 'Chine',
+            'bratislava': 'Slovaquie', 'sofia': 'Bulgarie', 'zagreb': 'Croatie', 'ljubljana': 'Slovénie',
+            'vilnius': 'Lituanie', 'riga': 'Lettonie', 'tallinn': 'Estonie',
+            'reykjavik': 'Islande', 'valletta': 'Malte', 'nicosie': 'Chypre', 'nicosia': 'Chypre'
         };
 
         const COUNTRY_NORMALIZATION = {
@@ -3325,6 +3368,56 @@
                         job.cleanRegions = job.cleanRegions || [];
                         job.cleanCountries = job.cleanCountries || [];
                     }
+                    // ── Multi-location : scanner le titre pour "Ville1/Ville2/Ville3" ──────
+                    // Cas typique GS/Oracle : "..., Associate/VP, London/Paris/Warsaw"
+                    // On cherche le dernier segment après la dernière virgule ou " - " ou " – "
+                    // qui contient UNIQUEMENT des mots séparés par "/" (pas de chiffres, pas de
+                    // qualificatifs métier comme "Associate", "VP", etc.)
+                    try {
+                        const title = (job.job_title || '').trim();
+                        if (title) {
+                            // Extraire le dernier "mot/mot/mot" en fin de titre
+                            const trailingCityMatch = title.match(/,\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s\-]*)(?:\/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s\-]*))+\s*$/);
+                            if (trailingCityMatch) {
+                                // Récupérer la portion complète (tout après la dernière virgule)
+                                const lastCommaIdx = title.lastIndexOf(',');
+                                if (lastCommaIdx !== -1) {
+                                    const trailing = title.slice(lastCommaIdx + 1).trim();
+                                    // Ne traiter que si tous les segments sont des noms de villes potentiels
+                                    // (pas de chiffres, longueur raisonnable)
+                                    const segments = trailing.split('/').map(s => s.trim()).filter(Boolean);
+                                    const JOB_LEVEL_WORDS = new Set([
+                                        'associate', 'vice president', 'vp', 'analyst', 'managing director',
+                                        'director', 'executive director', 'intern', 'internship', 'stage',
+                                        'graduate', 'senior', 'junior', 'manager', 'officer', 'specialist',
+                                        'consultant', 'engineer', 'developer', 'lead', 'head', 'principal',
+                                        'trainee', 'apprentice', 'cdi', 'cdd', 'vie', 'alternance'
+                                    ]);
+                                    const looksLikeCities = segments.length >= 2 &&
+                                        segments.every(s => s.length >= 2 && s.length <= 30 && /^[A-Za-zÀ-ÿ\s\-]+$/.test(s) && !JOB_LEVEL_WORDS.has(s.toLowerCase()));
+                                    if (looksLikeCities) {
+                                        segments.forEach(cityRaw => {
+                                            const cityKey = cityRaw.toLowerCase().replace(/\s+/g, ' ').trim();
+                                            const country = CITY_TO_COUNTRY[cityKey] || CITY_TO_COUNTRY[normalizeCityForLookup(cityRaw)];
+                                            if (country && !job.cleanCountries.includes(country)) {
+                                                job.cleanCountries.push(country);
+                                                // Région par défaut pour ce pays
+                                                const region = country === 'France'
+                                                    ? (getCityRegion(cityRaw, country) || 'Autres régions françaises')
+                                                    : (normalizeCityForFilter(cityRaw, country) || '__AUTRES__' + country);
+                                                if (region && !job.cleanRegions.includes(region)) {
+                                                    job.cleanRegions.push(region);
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Erreur scan multi-location titre:', e);
+                    }
+
                     if (job.cleanCountries && job.cleanCountries.length > 0 && (!job.cleanRegions || job.cleanRegions.length === 0)) {
                         const c = job.cleanCountries[0];
                         job.cleanRegions = [c === 'France' ? 'Autres régions françaises' : '__AUTRES__' + c];

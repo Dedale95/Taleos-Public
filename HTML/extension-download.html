@@ -165,16 +165,16 @@
     </svg>
     <span class="logo-text">TALEOS</span>
   </a>
-  <div class="nav-links">
-    <a href="landing_page_finance.html?v=20260504c" class="nav-link" id="presentationLink">Présentation</a>
-    <a href="offres.html" class="nav-link">Offres</a>
+  <div class="nav-links" id="navLinks" style="visibility:hidden">
+    <a href="landing_page_finance.html?v=20260504c" class="nav-link" id="presentationLink" style="display:none">Présentation</a>
+    <a href="offres.html" class="nav-link" id="offresLink" style="display:none">Offres</a>
     <a href="offres-draft.html" class="nav-link" id="draftLink" style="display:none">Offres draft</a>
     <a href="filtres.html" class="nav-link" id="rechercheLink" style="display:none">Recherche avancée</a>
     <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display:none">Mes candidatures</a>
     <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display:none">Suivi extension</a>
     <a href="extension-download.html" class="nav-link active" id="extensionDownloadLink" style="display:none">Extension</a>
     <a href="connexions.html" class="nav-link" id="connexionsLink" style="display:none">Connexions</a>
-    <a href="tarifs.html" class="nav-link">Tarifs</a>
+    <a href="tarifs.html" class="nav-link" id="tarifsLink" style="display:none">Tarifs</a>
   </div>
   <div class="nav-actions">
     <a href="auth.html" class="nav-link" id="authLink" style="display:none">Connexion</a>
@@ -200,12 +200,6 @@
       <div class="spinner"></div>
       <h2>Chargement…</h2>
       <p>Vérification de votre session en cours.</p>
-    </div>
-
-    <div class="state-card" id="unauthorizedState" style="display:none">
-      <h2>Accès réservé</h2>
-      <p>Connectez-vous à votre compte Taleos pour accéder à l’onglet Extension.</p>
-      <a href="auth.html" class="btn-primary">Se connecter</a>
     </div>
 
     <!-- Main content (logged in) -->
@@ -444,22 +438,23 @@ function canViewAdminDashboard(user) {
 function updateNavigation(user, immediate = false) {
   const isAuth = immediate ? !!(localStorage.getItem('authToken') || localStorage.getItem('userEmail')) : !!user;
   const ids = [
-    'authLink',
-    'profileLink',
-    'logoutBtn',
-    'rechercheLink',
-    'connexionsLink',
-    'applicationsLink',
-    'extensionDownloadLink',
-    'extensionRunsLink',
-    'draftLink',
-    'presentationLink'
+    'authLink', 'profileLink', 'logoutBtn',
+    'rechercheLink', 'connexionsLink', 'applicationsLink',
+    'extensionDownloadLink', 'extensionRunsLink', 'draftLink',
+    'presentationLink', 'offresLink', 'tarifsLink'
   ];
   const els = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
+
+  // Révéler le nav dès que l'état est connu (évite le flash "non connecté")
+  const navLinks = document.getElementById('navLinks');
+  if (navLinks) navLinks.style.visibility = 'visible';
+
   if (isAuth) {
     els.authLink && (els.authLink.style.display = 'none');
     els.profileLink && (els.profileLink.style.display = 'block');
     els.logoutBtn && (els.logoutBtn.style.display = 'block');
+    els.offresLink && (els.offresLink.style.display = 'inline-block');
+    els.tarifsLink && (els.tarifsLink.style.display = 'inline-block');
     els.rechercheLink && (els.rechercheLink.style.display = 'inline-block');
     els.connexionsLink && (els.connexionsLink.style.display = 'inline-block');
     els.applicationsLink && (els.applicationsLink.style.display = 'inline-block');
@@ -468,16 +463,8 @@ function updateNavigation(user, immediate = false) {
     els.draftLink && (els.draftLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none');
     els.presentationLink && (els.presentationLink.style.display = 'none');
   } else {
-    els.authLink && (els.authLink.style.display = 'block');
-    els.profileLink && (els.profileLink.style.display = 'none');
-    els.logoutBtn && (els.logoutBtn.style.display = 'none');
-    els.rechercheLink && (els.rechercheLink.style.display = 'inline-block');
-    els.connexionsLink && (els.connexionsLink.style.display = 'none');
-    els.applicationsLink && (els.applicationsLink.style.display = 'none');
-    els.extensionDownloadLink && (els.extensionDownloadLink.style.display = 'none');
-    els.extensionRunsLink && (els.extensionRunsLink.style.display = 'none');
-    els.draftLink && (els.draftLink.style.display = 'none');
-    els.presentationLink && (els.presentationLink.style.display = 'block');
+    // Page protégée — on ne montre rien : la redirection vers auth.html suit immédiatement
+    ids.forEach(id => { if (els[id]) els[id].style.display = 'none'; });
   }
 }
 
@@ -489,8 +476,6 @@ async function handleLogout() {
 }
 
 // ── Init ──
-updateNavigation(null, true);
-
 document.addEventListener('DOMContentLoaded', async () => {
   const versionPromise = fetchLatestVersion();
   const detectionPromise = detectInstalledVersion();
@@ -500,12 +485,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('loadingState').style.display = 'none';
 
     if (!user && !localStorage.getItem('authToken')) {
-      document.getElementById('unauthorizedState').style.display = '';
-      document.getElementById('extPage').style.display = 'none';
+      window.location.href = 'auth.html';
       return;
     }
 
-    document.getElementById('unauthorizedState').style.display = 'none';
     document.getElementById('extPage').style.display = '';
 
     [latestVersionData, installedVersion] = await Promise.all([versionPromise, detectionPromise]);

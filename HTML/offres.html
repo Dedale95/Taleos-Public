@@ -3174,7 +3174,6 @@
                             else if (/alternance|alternant|apprentissage|contrat de professionnalisation|contrat d'apprentissage|contrat en alternance/i.test(cl)) consolidated = 'Alternance';
                             else if (/\bvie\b|v\.i\.e|volontariat international/i.test(cl)) consolidated = 'VIE';
                             else if (/cdd|temporary|temporaire|fixed term|zero hours|contractor|\btemp\b/i.test(cl)) consolidated = 'CDD';
-                            else if (/(graduate programme|graduate program)/i.test(cl) && /(cdi|permanent)/i.test(cFull)) consolidated = 'CDI';  // Graduate Programme (CDI) → CDI
                             else if (/graduate programme|graduate program/i.test(cl)) consolidated = 'Graduate Programme';
                             else if (/cdi|permanent|reconversion professionnelle/i.test(cl)) consolidated = 'CDI';
                             if (consolidated) job.contract_type = consolidated;
@@ -3627,14 +3626,16 @@
                 }
             });
 
-            const contractOrder = ['Stage', 'Alternance', 'VIE', 'CDD', 'CDI'];
+            const contractOrder = ['Stage', 'Alternance', 'VIE', 'CDD', 'CDI', 'Graduate Programme', 'Indépendant / Entrepreneur'];
             const sortedContracts = Array.from(sets.contracts).sort((a, b) => {
+                if (a === 'Non spécifié') return 1;
+                if (b === 'Non spécifié') return -1;
                 const indexA = contractOrder.indexOf(a);
                 const indexB = contractOrder.indexOf(b);
                 if (indexA !== -1 && indexB !== -1) return indexA - indexB;
                 if (indexA !== -1) return -1;
                 if (indexB !== -1) return 1;
-                return a.localeCompare(b);
+                return a.localeCompare(b, 'fr');
             });
 
             const experienceOrder = ['0 - 2 ans', '3 - 5 ans', '6 - 10 ans', '11 - 15 ans', '15 ans +'];
@@ -5593,14 +5594,16 @@
             });
 
             // Mettre à jour les filtres avec les options désactivées
-            const contractOrder = ['Stage', 'Alternance', 'VIE', 'CDD', 'CDI'];
+            const contractOrder = ['Stage', 'Alternance', 'VIE', 'CDD', 'CDI', 'Graduate Programme', 'Indépendant / Entrepreneur'];
             const sortedAllContracts = Array.from(allContracts).sort((a, b) => {
+                if (a === 'Non spécifié') return 1;
+                if (b === 'Non spécifié') return -1;
                 const indexA = contractOrder.indexOf(a);
                 const indexB = contractOrder.indexOf(b);
                 if (indexA !== -1 && indexB !== -1) return indexA - indexB;
                 if (indexA !== -1) return -1;
                 if (indexB !== -1) return 1;
-                return a.localeCompare(b);
+                return a.localeCompare(b, 'fr');
             });
 
             const experienceOrder = ['0 - 2 ans', '3 - 5 ans', '6 - 10 ans', '11 - 15 ans', '15 ans +'];

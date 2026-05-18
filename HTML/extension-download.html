@@ -442,9 +442,14 @@ function triggerExtensionReload() {
 }
 
 // ── Nav ──
+const ADMIN_DASHBOARD_EMAILS = new Set([
+  'thibault.giraudet@outlook.com',
+  'thibault.giraudet94@gmail.com'
+]);
+
 function canViewAdminDashboard(user) {
-  const adminEmails = ['giraudet.thibault@gmail.com'];
-  return user && adminEmails.includes(user.email);
+  const email = String(user?.email || '').trim().toLowerCase();
+  return ADMIN_DASHBOARD_EMAILS.has(email);
 }
 
 function updateNavigation(user) {

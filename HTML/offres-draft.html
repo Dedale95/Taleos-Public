@@ -2408,6 +2408,7 @@
                 <a href="filtres.html" class="nav-link" id="rechercheLink">Recherche avancée</a>
                 <a href="mes-candidatures.html" class="nav-link" id="applicationsLink" style="display: none;">Mes candidatures</a>
                 <a href="suivi-extension.html" class="nav-link" id="extensionRunsLink" style="display: none;">Suivi extension</a>
+                <a href="extension-download.html" class="nav-link" id="extensionDownloadLink" style="display: none;">Extension</a>
                 <a href="connexions.html" class="nav-link" id="connexionsLink" style="display: none;">Connexions</a>
                 <a href="tarifs.html" class="nav-link">Tarifs</a>
             </div>
@@ -7725,6 +7726,8 @@
                 if (draftLink) {
                     draftLink.style.display = canViewExtensionRuns(authEmail) ? 'block' : 'none';
                 }
+                const extensionDownloadLink = document.getElementById('extensionDownloadLink');
+                if (extensionDownloadLink) extensionDownloadLink.style.display = 'block';
                 if (presentationLink) presentationLink.style.display = 'none';
                 if (connexionsLink) {
                     connexionsLink.style.display = 'block';

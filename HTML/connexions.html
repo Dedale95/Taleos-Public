@@ -297,6 +297,12 @@
             flex-shrink: 0;
         }
 
+        .bank-logo.bank-logo-goldman {
+            padding: 2px;
+            transform: scale(1.08);
+            transform-origin: center;
+        }
+
         .bank-info h3 {
             font-family: var(--sans);
             font-size: 0.95rem;
@@ -1255,7 +1261,7 @@
         <div class="bank-module" id="bank-${bank.id}">
             <div class="bank-header" onclick="toggleBank('${bank.id}')">
                 <div class="bank-header-left">
-                    <img src="${bank.logo}" alt="${bank.name}" class="bank-logo" onerror="this.style.display='none'">
+                    <img src="${bank.logo}" alt="${bank.name}" class="bank-logo ${isGS ? 'bank-logo-goldman' : ''}" onerror="this.style.display='none'">
                     <div class="bank-info">
                         <h3>${bank.name}</h3>
                         <p>${bank.description}</p>

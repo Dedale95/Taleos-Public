@@ -2554,7 +2554,84 @@
             'beijing': 'Chine', 'shanghai': 'Chine', 'shenzhen': 'Chine', 'guangzhou': 'Chine',
             'bratislava': 'Slovaquie', 'sofia': 'Bulgarie', 'zagreb': 'Croatie', 'ljubljana': 'Slovénie',
             'vilnius': 'Lituanie', 'riga': 'Lettonie', 'tallinn': 'Estonie',
-            'reykjavik': 'Islande', 'valletta': 'Malte', 'nicosie': 'Chypre', 'nicosia': 'Chypre'
+            'reykjavik': 'Islande', 'valletta': 'Malte', 'nicosie': 'Chypre', 'nicosia': 'Chypre',
+            // Pologne (variantes sans diacritiques / orthographes alternatives)
+            'warszawa': 'Pologne', 'katowice': 'Pologne', 'wrocław': 'Pologne', 'wroclaw': 'Pologne',
+            'łódź': 'Pologne', 'lodz': 'Pologne',
+            // Allemagne (villes non encore couvertes)
+            'eschborn': 'Allemagne', 'offenbach': 'Allemagne', 'nuremberg': 'Allemagne',
+            'nürnberg': 'Allemagne', 'nuremberg': 'Allemagne', 'karlsruhe': 'Allemagne',
+            // Belgique
+            'diegem': 'Belgique', 'leuven': 'Belgique', 'louvain': 'Belgique',
+            // Espagne
+            'malaga': 'Espagne', 'málaga': 'Espagne', 'seville': 'Espagne', 'séville': 'Espagne',
+            'valence': 'Espagne', 'valencia': 'Espagne', 'saragosse': 'Espagne', 'zaragoza': 'Espagne',
+            // Suisse
+            'grand-lancy': 'Suisse', 'grand lancy': 'Suisse', 'lausanne': 'Suisse',
+            'lugano': 'Suisse', 'bâle': 'Suisse', 'basel': 'Suisse',
+            // Danemark
+            'frederiksberg': 'Danemark', 'aarhus': 'Danemark', 'odense': 'Danemark',
+            // France (villes supplémentaires)
+            'issy-les-moulineaux': 'France', 'issy les moulineaux': 'France',
+            'levallois-perret': 'France', 'levallois perret': 'France',
+            'boulogne-billancourt': 'France', 'boulogne billancourt': 'France',
+            'courbevoie': 'France', 'puteaux': 'France', 'neuilly-sur-seine': 'France',
+            'la défense': 'France', 'la defense': 'France',
+            // Vietnam
+            'ho chi minh city': 'Vietnam', 'ho chi minh': 'Vietnam',
+            'ha noi': 'Vietnam', 'hanoi': 'Vietnam', 'hanoï': 'Vietnam',
+            // Taïwan
+            'taipei': 'Taïwan', 'taipei city': 'Taïwan', '台北市': 'Taïwan',
+            // Malaisie
+            'penang': 'Malaisie', 'kuching': 'Malaisie', 'kota kinabalu': 'Malaisie',
+            'johor bahru': 'Malaisie', 'ipoh': 'Malaisie',
+            // Philippines
+            'taguig': 'Philippines', 'makati': 'Philippines', 'cebu': 'Philippines',
+            // Corée du Sud
+            'youngdeungpo-gu': 'Corée du Sud', 'busan': 'Corée du Sud',
+            // Argentine
+            'caba': 'Argentine', 'buenos aires': 'Argentine',
+            // Mexique
+            'ciudad de méxico': 'Mexique', 'ciudad de mexico': 'Mexique',
+            'monterrey': 'Mexique', 'guadalajara': 'Mexique',
+            // Uruguay
+            'montevideo': 'Uruguay',
+            // Sri Lanka
+            'colombo': 'Sri Lanka',
+            // Maurice
+            'ebene': 'Maurice', 'port louis': 'Maurice',
+            // Jordanie
+            'amman': 'Jordanie',
+            // Pakistan
+            'karachi': 'Pakistan', 'lahore': 'Pakistan', 'islamabad': 'Pakistan',
+            // Malte
+            'msida': 'Malte', 'valletta': 'Malte', 'sliema': 'Malte',
+            // Bermudes / Caïmans
+            'bermuda': 'Bermudes', 'hamilton': 'Bermudes',
+            'camana bay': 'Îles Caïmans', 'george town': 'Îles Caïmans',
+            // Macao
+            'macau': 'Macao', 'macao': 'Macao',
+            // Irlande (districts)
+            'dublin 2': 'Irlande', 'dublin 4': 'Irlande',
+            // Mexique (villes / arrondissements)
+            'ciudad de mexico': 'Mexique', 'ciudad de méxico': 'Mexique',
+            'miguel hidalgo': 'Mexique', 'cuauhtemoc': 'Mexique',
+            // Arabie Saoudite
+            'alkhobar': 'Arabie Saoudite', 'al khobar': 'Arabie Saoudite',
+            'jeddah': 'Arabie Saoudite', 'jedda': 'Arabie Saoudite',
+            // Costa Rica
+            'san jose': 'Costa Rica', 'san josé': 'Costa Rica',
+            // Venezuela
+            'caracas': 'Venezuela',
+            // Malaisie (villes supplémentaires)
+            'iskandar puteri': 'Malaisie', 'petaling jaya': 'Malaisie',
+            // Hongrie
+            'pecs': 'Hongrie', 'pécs': 'Hongrie',
+            // France (villes supplémentaires)
+            'gradignan': 'France', 'mérignac': 'France', 'merignac': 'France',
+            'bezons': 'France', 'massy': 'France', 'vélizy': 'France', 'velizy': 'France',
+            // Belgique
+            'wavre': 'Belgique', 'gand': 'Belgique', 'ghent': 'Belgique'
         };
 
         const COUNTRY_NORMALIZATION = {
@@ -2649,7 +2726,26 @@
             'algérie': 'Algérie', 'tunisie': 'Tunisie',
             'nouvelle-calédonie': 'Nouvelle-Calédonie', 'nouvelle caledonie': 'Nouvelle-Calédonie',
             'nouvelle-zélande': 'Nouvelle-Zélande', 'new zealand': 'Nouvelle-Zélande',
-            'polynésie française': 'Polynésie Française'
+            'polynésie française': 'Polynésie Française',
+            // Pays manquants dans CONTINENT_GROUPS ou avec des graphies non gérées
+            'egypte': 'Égypte', 'égypte': 'Égypte', 'egypt': 'Égypte',
+            'bangladesh': 'Bangladesh',
+            'pakistan': 'Pakistan',
+            'jordanie': 'Jordanie', 'jordan': 'Jordanie',
+            'sri lanka': 'Sri Lanka',
+            'mauritius': 'Maurice', 'maurice': 'Maurice', 'île maurice': 'Maurice', 'ile maurice': 'Maurice',
+            'uruguay': 'Uruguay',
+            'bermuda': 'Bermudes', 'bermudes': 'Bermudes',
+            'cayman islands': 'Îles Caïmans', 'îles caïmans': 'Îles Caïmans', 'iles caïmans': 'Îles Caïmans',
+            'macau': 'Macao', 'macao': 'Macao',
+            // Districhts / sous-villes utilisés comme "pays" dans les données Oracle
+            'nove mesto': 'Tchéquie',  // "Prague 1 - Nove Mesto"
+            'iceland': 'Islande', 'islande': 'Islande',
+            'venezuela': 'Venezuela', 'costa rica': 'Costa Rica',
+            'curaçao': 'Curaçao', 'curacao': 'Curaçao',
+            'serbie': 'Serbie', 'serbia': 'Serbie',
+            'albanie': 'Albanie', 'albania': 'Albanie',
+            'oman': 'Oman'
         };
 
         const ITALY_CITY_TO_REGION = {
@@ -3203,24 +3299,29 @@
                             if (familySynonyms[fLower]) job.job_family = familySynonyms[fLower];
                         }
                         
-                        // Harmonisation des niveaux d'études
+                        // Harmonisation des niveaux d'études — catégories granulaires
+                        // Ordre décroissant : les multi-valeurs (ex: "BAC+4, BAC+5") remontent au niveau le plus haut
                         if (job && job.education_level && typeof job.education_level === 'string') {
-                            const eduLower = job.education_level.toLowerCase().replace(/\s+/g, ' '); // Normaliser les espaces
-                            
-                            // Regroupement simplifié en 3 catégories
-                            if (eduLower.includes('bac + 5') || eduLower.includes('bac +5') || eduLower.includes('bac+5') ||
-                                eduLower.includes('bac + 4') || eduLower.includes('bac +4') || eduLower.includes('bac+4') ||
-                                eduLower.includes('master') || eduLower.includes('ingénieur') || 
-                                eduLower.includes('grande école') || eduLower.includes('doctorat') ||
-                                eduLower.includes('m2') || eduLower.includes('m1')) {
+                            const eduLower = job.education_level.toLowerCase().replace(/\s+/g, ' ');
+                            if (eduLower.includes('bac + 8') || eduLower.includes('bac +8') || eduLower.includes('bac+8') ||
+                                eduLower.includes('doctorat') || eduLower.includes('doctorate') || eduLower.includes('phd')) {
+                                job.education_level = 'Doctorat';
+                            } else if (eduLower.includes('bac + 5') || eduLower.includes('bac +5') || eduLower.includes('bac+5') ||
+                                       eduLower.includes('master') || eduLower.includes('ingénieur') ||
+                                       eduLower.includes('grande école') || eduLower.includes('m2')) {
                                 job.education_level = 'Bac +5';
+                            } else if (eduLower.includes('bac + 4') || eduLower.includes('bac +4') || eduLower.includes('bac+4') ||
+                                       eduLower.includes('m1')) {
+                                job.education_level = 'Bac +4';
                             } else if (eduLower.includes('bac + 3') || eduLower.includes('bac +3') || eduLower.includes('bac+3') ||
-                                       eduLower.includes('bac + 2') || eduLower.includes('bac +2') || eduLower.includes('bac+2') ||
                                        eduLower.includes('licence') || eduLower.includes('bachelor') ||
                                        eduLower.includes('bts') || eduLower.includes('dut') || eduLower.includes('l3')) {
                                 job.education_level = 'Bac +3';
-                            } else if (eduLower.includes('bac') || eduLower.includes('lycée') || 
-                                       eduLower.includes('certificat fédéral')) {
+                            } else if (eduLower.includes('bac + 2') || eduLower.includes('bac +2') || eduLower.includes('bac+2') ||
+                                       eduLower.includes('l2')) {
+                                job.education_level = 'Bac +2';
+                            } else if (eduLower.includes('bac') || eduLower.includes('lycée') ||
+                                       eduLower.includes('certificat fédéral') || eduLower.includes('inférieur')) {
                                 job.education_level = 'Bac';
                             }
                             // Sinon on garde la valeur originale
@@ -3354,12 +3455,23 @@
                                 console.warn(`Erreur lors du traitement de la location "${job.location}":`, e);
                             }
                         } else if (job && job.location && typeof job.location === 'string' && job.location.trim()) {
-                            const countryOnly = job.location.trim();
-                            if (countryOnly) {
-                                const cNorm = normalizeCountryForFilter(countryOnly) || (countryOnly.toLowerCase() === 'france' ? 'France' : countryOnly);
-                                job.cleanCountries = [cNorm];
-                                job.cleanRegions = cNorm === 'France' ? ["Autres régions françaises"] : ["__AUTRES__" + cNorm];
-                            }
+                            // Location sans " - " : peut être un nom de ville seul ou un nom de pays seul
+                            const locRaw = job.location.trim();
+                            // 1. Essayer le lookup ville en normalisant (supprimer suffixe Cedex, numéro de district…)
+                            const locForCity = locRaw.toLowerCase()
+                                .replace(/\s*cedex\b.*/gi, '')      // "Lille Cedex" → "Lille"
+                                .replace(/\s+\d+\s*$/, '')          // "Dublin 2" → "Dublin"
+                                .trim();
+                            const cityCountryLookup = CITY_TO_COUNTRY[locForCity]
+                                || CITY_TO_COUNTRY[normalizeCityForLookup(locRaw)]
+                                || CITY_TO_COUNTRY[normalizeCityForLookup(locForCity)];
+                            // 2. Sinon normalisation pays
+                            const cNorm = cityCountryLookup || normalizeCountryForFilter(locRaw) || locRaw;
+                            job.cleanCountries = [cNorm];
+                            const locRegion = cNorm === 'France'
+                                ? (getCityRegion(locRaw, 'France') || 'Autres régions françaises')
+                                : (normalizeCityForFilter(locRaw, cNorm) || '__AUTRES__' + cNorm);
+                            job.cleanRegions = [locRegion];
                         }
                     } catch (e) {
                         console.error(`Erreur critique lors du traitement du job:`, e, job);
@@ -3796,7 +3908,17 @@
                 false,
                 restoredCompanies
             );
-            populateCheckboxFilter('educationFilter', Array.from(sets.educations).sort(), new Set(), counts.educations, false, restoredFilters?.educations);
+            const educationOrder = ['Bac', 'Bac +2', 'Bac +3', 'Bac +4', 'Bac +5', 'Doctorat', 'Non spécifié'];
+            const sortedEducations = Array.from(sets.educations).sort((a, b) => {
+                const ia = educationOrder.indexOf(a), ib = educationOrder.indexOf(b);
+                if (ia !== -1 && ib !== -1) return ia - ib;
+                if (a === 'Non spécifié') return 1;
+                if (b === 'Non spécifié') return -1;
+                if (ia !== -1) return -1;
+                if (ib !== -1) return 1;
+                return a.localeCompare(b, 'fr');
+            });
+            populateCheckboxFilter('educationFilter', sortedEducations, new Set(), counts.educations, false, restoredFilters?.educations);
             
             // Appliquer les filtres restaurés après avoir créé tous les checkboxes
             const hasRestoredCompanies = (restoredFilters?.companies && restoredFilters.companies.length > 0) ||
@@ -4955,26 +5077,36 @@
                 'Belgique', 'Pays-Bas', 'Autriche', 'Monaco', 'République Tchèque', 'Tchéquie',
                 'Ukraine', 'Hongrie', 'Bulgarie', 'Bulgaria', 'Slovaquie', 'Slovakia', 'Norvège', 'Jersey', 'Turquie',
                 'Russie', 'Finlande', 'Finland', 'Danemark', 'Grèce', 'Malte', 'Malta', 'Guernesey',
-                'Croatie', 'Slovénie', 'Lituanie', 'Lettonie', 'Estonie', 'Chypre'
+                'Croatie', 'Slovénie', 'Lituanie', 'Lettonie', 'Estonie', 'Chypre', 'Islande', 'Serbie',
+                'Albanie', 'Bosnie-Herzégovine', 'Macédoine du Nord', 'Monténégro'
             ],
             'Asie': [
                 'Inde', 'Malaisie', 'Hong-Kong', 'Singapour', 'Japon', 'Chine',
                 'Corée du Sud', 'Taïwan', 'Thaïlande', 'Émirats Arabes Unis',
                 'Philippines', 'Vietnam', 'Indonésie', 'Qatar', 'Koweït',
-                'Arabie Saoudite', 'Israël', 'Laos', 'Bahreïn'
+                'Arabie Saoudite', 'Israël', 'Laos', 'Bahreïn', 'Oman',
+                'Pakistan', 'Bangladesh', 'Sri Lanka', 'Jordanie', 'Liban',
+                'Myanmar', 'Cambodge', 'Macao', 'Égypte', 'Irak', 'Kazakhstan'
             ],
             'Afrique': [
                 'Maroc', 'Côte D\'Ivoire', 'Côte d\'Ivoire', 'Tunisie', 'Cameroun', 'Gabon',
                 'RD Congo', 'République Démocratique du Congo', 'République Démocratique Du Congo',
                 'Bénin', 'Kenya', 'Algérie', 'Afrique du Sud', 'Afrique Du Sud', 'Djibouti',
-                'Nigeria', 'Sénégal', 'Ghana', 'Togo', 'Mali', 'Niger', 'Burkina Faso'
+                'Nigeria', 'Sénégal', 'Ghana', 'Togo', 'Mali', 'Niger', 'Burkina Faso',
+                'Mozambique', 'Tanzanie', 'Rwanda', 'Ethiopie', 'Maurice', 'Madagascar',
+                'Côte d\'Ivoire', 'Ouganda', 'Zambie', 'Zimbabwe'
             ],
             'Amériques': [
                 'États-Unis', 'Canada', 'Mexique', 'Colombie', 'Brésil',
-                'Argentine', 'Chili', 'Pérou', 'Bahamas', 'Panama'
+                'Argentine', 'Chili', 'Pérou', 'Bahamas', 'Panama',
+                'Uruguay', 'Bermudes', 'Îles Caïmans', 'Costa Rica', 'Guatemala',
+                'Honduras', 'Jamaïque', 'Trinité-et-Tobago', 'Bolivie', 'Paraguay',
+                'Équateur', 'Venezuela', 'Porto Rico', 'République Dominicaine', 'Curaçao',
+                'Nicaragua', 'El Salvador'
             ],
             'Océanie / Pacifique': [
-                'Australie', 'Vanuatu', 'Polynésie Française', 'Nouvelle-Zélande', 'Nouvelle-Calédonie'
+                'Australie', 'Vanuatu', 'Polynésie Française', 'Nouvelle-Zélande', 'Nouvelle-Calédonie',
+                'Papouasie-Nouvelle-Guinée', 'Fidji'
             ]
         };
 
@@ -5691,7 +5823,17 @@
                 new Set([...allFamilies].filter(f => !availableFamilies.has(f) && !selectedFamilies.includes(f))), familyCounts, true, selectedFamilies);
             populateCheckboxFilter('companyFilter', Array.from(allCompanies).sort(),
                 new Set([...allCompanies].filter(c => !availableCompanies.has(c) && !selectedCompanies.includes(c))), companyCounts, true, selectedCompanies);
-            populateCheckboxFilter('educationFilter', Array.from(allEducations).sort(),
+            const educationOrderDyn = ['Bac', 'Bac +2', 'Bac +3', 'Bac +4', 'Bac +5', 'Doctorat', 'Non spécifié'];
+            const sortedAllEducations = Array.from(allEducations).sort((a, b) => {
+                const ia = educationOrderDyn.indexOf(a), ib = educationOrderDyn.indexOf(b);
+                if (ia !== -1 && ib !== -1) return ia - ib;
+                if (a === 'Non spécifié') return 1;
+                if (b === 'Non spécifié') return -1;
+                if (ia !== -1) return -1;
+                if (ib !== -1) return 1;
+                return a.localeCompare(b, 'fr');
+            });
+            populateCheckboxFilter('educationFilter', sortedAllEducations,
                 new Set([...allEducations].filter(e => !availableEducations.has(e) && !selectedEducations.includes(e))), educationCounts, false, selectedEducations);
 
             await renderJobs();

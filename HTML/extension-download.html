@@ -325,7 +325,7 @@ let installedVersion  = null;
 let detectionDone     = false;
 
 // ── Version utils ──
-function parseVersion(v) { return String(v || '').split('.').map(Number); }
+function parseVersion(v) { return String(v || '').split('.').map(s => parseInt(s, 10) || 0); }
 function versionCompare(a, b) {
   const pa = parseVersion(a), pb = parseVersion(b);
   for (let i = 0; i < Math.max(pa.length, pb.length); i++) {

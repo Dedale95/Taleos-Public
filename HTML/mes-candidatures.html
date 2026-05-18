@@ -1611,6 +1611,9 @@
     // ─── Navigation ───
     function updateNavigationImmediate() {
         const token = localStorage.getItem('authToken') || localStorage.getItem('userEmail');
+        const storedEmail = String(localStorage.getItem('userEmail') || '').trim().toLowerCase();
+        const isAdmin = ADMIN_DASHBOARD_EMAILS.has(storedEmail);
+
         const authLink = document.getElementById('authLink');
         const profileLink = document.getElementById('profileLink');
         const logoutBtn = document.getElementById('logoutBtn');
@@ -1626,9 +1629,10 @@
             if (logoutBtn) logoutBtn.style.display = 'block';
             if (rechercheLink) rechercheLink.style.display = 'inline-block';
             if (connexionsLink) connexionsLink.style.display = 'block';
-            if (extensionRunsLink) extensionRunsLink.style.display = 'none';
+            // Liens admin : visibles immédiatement si email admin connu via localStorage
+            if (extensionRunsLink) extensionRunsLink.style.display = isAdmin ? 'inline-block' : 'none';
             if (extensionDownloadLink) extensionDownloadLink.style.display = 'inline-block';
-            if (draftLink) draftLink.style.display = 'none';
+            if (draftLink) draftLink.style.display = isAdmin ? 'inline-block' : 'none';
             if (presentationLink) presentationLink.style.display = 'none';
         } else {
             if (authLink) authLink.style.display = 'block';

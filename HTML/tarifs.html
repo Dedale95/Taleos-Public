@@ -237,6 +237,13 @@
         .feat-icon.ok    { color:#10b981; }
         .feat-icon.warn  { color:#d97706; }
         .feat-icon.cross { color:#ef4444; opacity:0.6; }
+        .feat-icon.muted { color:var(--muted); font-size:0.8rem; }
+
+        .plan-desc { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--surface3); }
+        .featured .plan-desc { color:rgba(255,255,255,0.45); border-bottom-color:rgba(255,255,255,0.1); }
+
+        .billing-toggle { padding:8px 18px; border-radius:4px; border:none; cursor:pointer; background:transparent; color:var(--muted); font-size:13px; font-weight:600; font-family:var(--sans); transition:all 0.2s; }
+        .billing-toggle.active { background:var(--ink); color:var(--white); }
 
         .plan-feature strong { font-weight:600; }
         .featured .plan-feature strong { color:var(--white); }
@@ -437,89 +444,64 @@
 <div class="main-content">
     <div class="container">
 
-        <!-- Pricing cards -->
-        <div class="pricing-plans">
-
-            <!-- Basique -->
-            <div class="pricing-card">
-                <div class="plan-name">Basique</div>
-                <div class="plan-price">10<span>€</span></div>
-                <div class="plan-period">par mois</div>
-                <div class="plan-features">
-                    <div class="plan-feature">
-                        <span class="feat-icon ok">✓</span>
-                        <span><strong>50 candidatures</strong> par mois</span>
-                    </div>
-                    <div class="plan-feature">
-                        <span class="feat-icon warn">⚠</span>
-                        <span>Limitations sur certaines institutions (sans boîte mail dédiée)</span>
-                    </div>
-                    <div class="plan-feature">
-                        <span class="feat-icon cross">✗</span>
-                        <span>Lettres de motivation non personnalisées</span>
-                    </div>
-                </div>
-                <button class="subscribe-btn dark coming-soon" disabled>S'abonner</button>
-            </div>
-
-            <!-- Intermédiaire (featured) -->
-            <div class="pricing-card featured">
-                <div class="featured-badge">Le plus populaire</div>
-                <div class="plan-name">Intermédiaire</div>
-                <div class="plan-price">25<span>€</span></div>
-                <div class="plan-period">par mois</div>
-                <div class="plan-features">
-                    <div class="plan-feature">
-                        <span class="feat-icon ok">✓</span>
-                        <span><strong>100 candidatures</strong> par mois</span>
-                    </div>
-                    <div class="plan-feature">
-                        <span class="feat-icon ok">✓</span>
-                        <span><strong>Aucune limitation</strong> sur les institutions financières</span>
-                    </div>
-                    <div class="plan-feature">
-                        <span class="feat-icon ok">✓</span>
-                        <span>Boîte mail dédiée incluse</span>
-                    </div>
-                    <div class="plan-feature">
-                        <span class="feat-icon ok">✓</span>
-                        <span><strong>30%</strong> de lettres de motivation personnalisées par IA</span>
-                    </div>
-                </div>
-                <button class="subscribe-btn gold coming-soon" disabled>S'abonner</button>
-            </div>
-
-            <!-- Pro -->
-            <div class="pricing-card">
-                <div class="plan-name">Pro</div>
-                <div class="plan-price">50<span>€</span></div>
-                <div class="plan-period">par mois</div>
-                <div class="plan-features">
-                    <div class="plan-feature">
-                        <span class="feat-icon ok">✓</span>
-                        <span><strong>200 candidatures</strong> par mois</span>
-                    </div>
-                    <div class="plan-feature">
-                        <span class="feat-icon ok">✓</span>
-                        <span><strong>Aucune limitation</strong> sur les institutions financières</span>
-                    </div>
-                    <div class="plan-feature">
-                        <span class="feat-icon ok">✓</span>
-                        <span>Boîte mail dédiée incluse</span>
-                    </div>
-                    <div class="plan-feature">
-                        <span class="feat-icon ok">✓</span>
-                        <span><strong>100%</strong> de lettres de motivation personnalisées par IA</span>
-                    </div>
-                </div>
-                <button class="subscribe-btn dark coming-soon" disabled>S'abonner</button>
+        <!-- Billing toggle -->
+        <div style="display:flex;justify-content:center;margin-bottom:36px;">
+            <div style="display:inline-flex;align-items:center;background:var(--surface2);border:1px solid var(--surface3);border-radius:6px;padding:4px 5px;gap:4px;">
+                <button id="toggleMonthly" onclick="setBilling('monthly')" class="billing-toggle active">Mensuel</button>
+                <button id="toggleYearly" onclick="setBilling('yearly')" class="billing-toggle">Annuel <span style="color:var(--gold);font-size:11px;font-weight:600;">−30%</span></button>
             </div>
         </div>
 
-        <!-- Notes -->
-        <div class="info-notes">
-            <div class="info-note"><strong>*</strong> Certaines institutions financières exigent un code de vérification par email. Une boîte mail dédiée est nécessaire pour intercepter ces codes automatiquement.</div>
-            <div class="info-note"><strong>Crédits supplémentaires</strong> disponibles avant le renouvellement mensuel.</div>
+        <!-- Pricing cards -->
+        <div class="pricing-plans">
+
+            <!-- Starter -->
+            <div class="pricing-card">
+                <div class="plan-name">Starter</div>
+                <div class="plan-price" id="priceStarter">Gratuit</div>
+                <div class="plan-period" id="periodStarter">&nbsp;</div>
+                <p class="plan-desc">Pour découvrir Taleos et tester la plateforme sans engagement.</p>
+                <div class="plan-features">
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span><strong>10 candidatures</strong> / mois</span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span>Accès aux <strong id="offerCountStarter">32 000+</strong> offres</span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span>Dashboard de suivi</span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span><strong>3 lettres IA</strong> / mois</span></div>
+                </div>
+                <button class="subscribe-btn dark coming-soon" disabled>Commencer gratuitement</button>
+            </div>
+
+            <!-- Pro (featured) -->
+            <div class="pricing-card featured">
+                <div class="featured-badge">Recommandé</div>
+                <div class="plan-name">Pro</div>
+                <div class="plan-price" id="pricePro">9<span>€</span></div>
+                <div class="plan-period" id="periodPro">par mois</div>
+                <p class="plan-desc">Pour les candidats actifs qui veulent maximiser leurs chances.</p>
+                <div class="plan-features">
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span><strong>Candidatures illimitées</strong></span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span>Lettres IA <strong>illimitées</strong> & personnalisées</span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span>Suivi multi-statuts avancé</span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span>Alertes offres en temps réel</span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span>Support email prioritaire</span></div>
+                </div>
+                <button class="subscribe-btn gold coming-soon" disabled>Essayer Pro — 14 jours gratuits</button>
+            </div>
+
+            <!-- Expert -->
+            <div class="pricing-card">
+                <div class="plan-name">Expert</div>
+                <div class="plan-price" id="priceExpert">24<span>€</span></div>
+                <div class="plan-period" id="periodExpert">par mois</div>
+                <p class="plan-desc">Pour les candidats sérieux avec plusieurs profils actifs.</p>
+                <div class="plan-features">
+                    <div class="plan-feature"><span class="feat-icon muted">→</span><span style="color:var(--muted)">Tout Pro, plus…</span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span><strong>3 profils CV</strong> distincts</span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span>Analytics & taux de réponse</span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span>Préparation entretiens par IA</span></div>
+                    <div class="plan-feature"><span class="feat-icon ok">✓</span><span>Support chat dédié</span></div>
+                </div>
+                <button class="subscribe-btn dark coming-soon" disabled>Essayer Expert</button>
+            </div>
         </div>
 
         <!-- Comparison table -->
@@ -530,41 +512,71 @@
                     <thead>
                         <tr>
                             <th>Fonctionnalité</th>
-                            <th>Basique</th>
-                            <th class="col-featured">Intermédiaire</th>
-                            <th>Pro</th>
+                            <th>Starter</th>
+                            <th class="col-featured">Pro</th>
+                            <th>Expert</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td class="feat-name">Prix mensuel</td>
-                            <td>10€</td>
-                            <td class="col-featured">25€</td>
-                            <td>50€</td>
+                            <td>Gratuit</td>
+                            <td class="col-featured">9€</td>
+                            <td>24€</td>
                         </tr>
                         <tr>
-                            <td class="feat-name">Candidatures par mois</td>
-                            <td>50</td>
-                            <td class="col-featured">100</td>
-                            <td>200</td>
+                            <td class="feat-name">Prix annuel</td>
+                            <td>—</td>
+                            <td class="col-featured">79€/an</td>
+                            <td>199€/an</td>
                         </tr>
                         <tr>
-                            <td class="feat-name">Toutes institutions financières</td>
+                            <td class="feat-name">Candidatures / mois</td>
+                            <td>10</td>
+                            <td class="col-featured"><span class="check">Illimitées</span></td>
+                            <td><span class="check">Illimitées</span></td>
+                        </tr>
+                        <tr>
+                            <td class="feat-name">Lettres IA / mois</td>
+                            <td>3</td>
+                            <td class="col-featured"><span class="check">Illimitées</span></td>
+                            <td><span class="check">Illimitées</span></td>
+                        </tr>
+                        <tr>
+                            <td class="feat-name">Personnalisation IA</td>
                             <td><span class="cross">✗</span></td>
                             <td class="col-featured"><span class="check">✓</span></td>
                             <td><span class="check">✓</span></td>
                         </tr>
                         <tr>
-                            <td class="feat-name">Boîte mail dédiée</td>
+                            <td class="feat-name">Alertes en temps réel</td>
                             <td><span class="cross">✗</span></td>
                             <td class="col-featured"><span class="check">✓</span></td>
                             <td><span class="check">✓</span></td>
                         </tr>
                         <tr>
-                            <td class="feat-name">Lettres de motivation IA</td>
+                            <td class="feat-name">Profils CV</td>
+                            <td>1</td>
+                            <td class="col-featured">1</td>
+                            <td><span class="check">3</span></td>
+                        </tr>
+                        <tr>
+                            <td class="feat-name">Analytics & réponses</td>
                             <td><span class="cross">✗</span></td>
-                            <td class="col-featured"><span class="warn">30%</span></td>
-                            <td><span class="check">100%</span></td>
+                            <td class="col-featured"><span class="cross">✗</span></td>
+                            <td><span class="check">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td class="feat-name">Préparation entretiens</td>
+                            <td><span class="cross">✗</span></td>
+                            <td class="col-featured"><span class="cross">✗</span></td>
+                            <td><span class="check">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td class="feat-name">Support</td>
+                            <td>—</td>
+                            <td class="col-featured">Email prioritaire</td>
+                            <td>Chat dédié</td>
                         </tr>
                     </tbody>
                 </table>
@@ -644,6 +656,31 @@
     function handleLogout() {
         firebase.auth().signOut().then(()=>{window.location.href='landing_page_finance.html';}).catch(console.error);
     }
+
+    // ── Billing toggle ──
+    const PRICES = { Pro: { monthly: 9, yearly: Math.round(79/12) }, Expert: { monthly: 24, yearly: Math.round(199/12) } };
+    function setBilling(mode) {
+        const yearly = mode === 'yearly';
+        document.getElementById('toggleMonthly').classList.toggle('active', !yearly);
+        document.getElementById('toggleYearly').classList.toggle('active', yearly);
+        document.getElementById('pricePro').innerHTML   = `${PRICES.Pro[mode]}<span>€</span>`;
+        document.getElementById('priceExpert').innerHTML = `${PRICES.Expert[mode]}<span>€</span>`;
+        document.getElementById('periodPro').textContent   = yearly ? 'par mois (79€/an)' : 'par mois';
+        document.getElementById('periodExpert').textContent = yearly ? 'par mois (199€/an)' : 'par mois';
+    }
+
+    // ── Compteur offres dynamique ──
+    fetch('scraped_jobs_summary.json')
+        .then(r => r.json())
+        .then(d => {
+            const n = d.total_jobs;
+            if (!n) return;
+            const rounded = Math.floor(n / 1000) * 1000;
+            const display = rounded.toLocaleString('fr-FR') + '+';
+            const el = document.getElementById('offerCountStarter');
+            if (el) el.textContent = display;
+        })
+        .catch(() => {});
 </script>
 <script src="taleos-nav.js"></script>
 </body>

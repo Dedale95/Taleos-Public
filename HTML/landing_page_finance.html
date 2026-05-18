@@ -32,7 +32,12 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useRef, createContext, useContext } = React;
+
+/* ── COMPTEUR OFFRES (dynamique) ── */
+const JobCountCtx = createContext(32000);
+function useJobCount() { return useContext(JobCountCtx); }
+function fmtCount(n) { return n.toLocaleString('fr-FR') + '+'; } // "32 000+"
 
 /* ── TOKENS ── */
 const NAVY  = '#0c1a2e';
@@ -232,6 +237,7 @@ function Nav({ onSignup }) {
 
 /* ── HERO ── */
 function Hero({ onSignup }) {
+  const jobCount = useJobCount();
   const [email, setEmail] = useState('');
   return (
     <section id="presentation" style={{ minHeight:'100vh', background:BG, display:'flex', alignItems:'center', padding:'100px 48px 60px', position:'relative', overflow:'hidden' }}>
@@ -250,7 +256,7 @@ function Hero({ onSignup }) {
             <span style={{ fontSize:13, color:MUTED, cursor:'pointer' }}>Voir une démo →</span>
           </div>
           <div style={{ display:'flex', gap:0, paddingTop:36, borderTop:`1px solid ${BORDER}` }}>
-            {[['7 000+','offres indexées'],['95%','temps économisé'],['24/7','candidatures actives']].map(([n,l],i) => (
+            {[[fmtCount(jobCount),'offres indexées'],['95%','temps économisé'],['24/7','candidatures actives']].map(([n,l],i) => (
               <div key={n} style={{ paddingRight:36, marginRight:36, borderRight: i<2 ? `1px solid ${BORDER}` : 'none' }}>
                 <div style={{ fontFamily:FH, fontSize:26, fontWeight:600, color:NAVY }}>{n}</div>
                 <div style={{ fontSize:12, color:MUTED, marginTop:4 }}>{l}</div>
@@ -540,13 +546,13 @@ function DemoSection() {
 }
 
 /* ── PROCESS ── */
-const STEPS = [
-  { n:'01', title:'Configurez votre profil', body:'Uploadez votre CV. L\'IA extrait vos compétences et configure vos préférences : poste, secteur, localisation, niveau d\'expérience.' },
-  { n:'02', title:'L\'IA trouve et postule', body:'Chaque jour, Taleos scrute 7 000+ offres, sélectionne celles qui matchent et envoie vos candidatures avec une lettre personnalisée.' },
-  { n:'03', title:'Suivez et décrochez', body:'Votre dashboard centralise tout : statuts, entretiens planifiés, relances. Vous pilotez votre recherche comme un vrai projet.' },
-];
-
 function Process() {
+  const jobCount = useJobCount();
+  const STEPS = [
+    { n:'01', title:'Configurez votre profil', body:'Uploadez votre CV. L\'IA extrait vos compétences et configure vos préférences : poste, secteur, localisation, niveau d\'expérience.' },
+    { n:'02', title:'L\'IA trouve et postule', body:`Chaque jour, Taleos scrute ${fmtCount(jobCount)} offres, sélectionne celles qui matchent et envoie vos candidatures avec une lettre personnalisée.` },
+    { n:'03', title:'Suivez et décrochez', body:'Votre dashboard centralise tout : statuts, entretiens planifiés, relances. Vous pilotez votre recherche comme un vrai projet.' },
+  ];
   const ref = useReveal();
   return (
     <section id="process" className="reveal-up" ref={ref} style={{ background:S2, padding:'100px 48px', borderTop:`1px solid ${BORDER}` }}>
@@ -569,13 +575,13 @@ function Process() {
 }
 
 /* ── PRICING ── */
-const PLANS = [
-  { name:'Starter', monthly:0, yearly:0, desc:'Pour découvrir Taleos et tester la plateforme sans engagement.', features:['10 candidatures / mois','Accès aux 7 000+ offres','Dashboard de suivi','3 lettres IA / mois'], cta:'Commencer gratuitement', accent:false },
-  { name:'Pro', monthly:9, yearly:79, desc:'Pour les candidats actifs qui veulent maximiser leurs chances.', features:['Candidatures illimitées','Lettres IA illimitées & personnalisées','Suivi multi-statuts avancé','Alertes offres en temps réel','Support email prioritaire'], cta:'Essayer Pro — 14 jours gratuits', accent:true },
-  { name:'Expert', monthly:24, yearly:199, desc:'Pour les candidats sérieux avec plusieurs profils actifs.', features:['Tout Pro, plus…','3 profils CV distincts','Analytics & taux de réponse','Préparation entretiens par IA','Support chat dédié'], cta:'Essayer Expert', accent:false },
-];
-
 function Pricing() {
+  const jobCount = useJobCount();
+  const PLANS = [
+    { name:'Starter', monthly:0, yearly:0, desc:'Pour découvrir Taleos et tester la plateforme sans engagement.', features:['10 candidatures / mois',`Accès aux ${fmtCount(jobCount)} offres`,'Dashboard de suivi','3 lettres IA / mois'], cta:'Commencer gratuitement', accent:false },
+    { name:'Pro', monthly:9, yearly:79, desc:'Pour les candidats actifs qui veulent maximiser leurs chances.', features:['Candidatures illimitées','Lettres IA illimitées & personnalisées','Suivi multi-statuts avancé','Alertes offres en temps réel','Support email prioritaire'], cta:'Essayer Pro — 14 jours gratuits', accent:true },
+    { name:'Expert', monthly:24, yearly:199, desc:'Pour les candidats sérieux avec plusieurs profils actifs.', features:['Tout Pro, plus…','3 profils CV distincts','Analytics & taux de réponse','Préparation entretiens par IA','Support chat dédié'], cta:'Essayer Expert', accent:false },
+  ];
   const [yearly, setYearly] = useState(false);
   const ref = useReveal(80);
   return (
@@ -710,19 +716,28 @@ function SignupModal({ onClose }) {
 /* ── APP ── */
 function App() {
   const [modal, setModal] = useState(false);
+  const [jobCount, setJobCount] = useState(32000);
+  useEffect(() => {
+    fetch('scraped_jobs_summary.json')
+      .then(r => r.json())
+      .then(d => { const n = d.total_jobs; if (n) setJobCount(Math.floor(n / 1000) * 1000); })
+      .catch(() => {});
+  }, []);
   return (
-    <div>
-      <Nav onSignup={() => openAuth('signup')} />
-      <Hero onSignup={() => openAuth('signup')} />
-      <TrustBand />
-      <DemoSection />
-      <Process />
-      <Pricing />
-      <FAQ />
-      <CTAFinal onSignup={() => openAuth('signup')} />
-      <Footer />
-      {modal && <SignupModal onClose={() => setModal(false)} />}
-    </div>
+    <JobCountCtx.Provider value={jobCount}>
+      <div>
+        <Nav onSignup={() => openAuth('signup')} />
+        <Hero onSignup={() => openAuth('signup')} />
+        <TrustBand />
+        <DemoSection />
+        <Process />
+        <Pricing />
+        <FAQ />
+        <CTAFinal onSignup={() => openAuth('signup')} />
+        <Footer />
+        {modal && <SignupModal onClose={() => setModal(false)} />}
+      </div>
+    </JobCountCtx.Provider>
   );
 }
 

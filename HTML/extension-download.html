@@ -435,8 +435,9 @@ function canViewAdminDashboard(user) {
   return user && adminEmails.includes(user.email);
 }
 
-function updateNavigation(user, immediate = false) {
-  const isAuth = immediate ? !!(localStorage.getItem('authToken') || localStorage.getItem('userEmail')) : !!user;
+function updateNavigation(user) {
+  // isAuth : Firebase user OU localStorage (couvre le cas où Firebase répond null mais session toujours valide)
+  const isAuth = !!(user || localStorage.getItem('authToken'));
   const ids = [
     'authLink', 'profileLink', 'logoutBtn',
     'rechercheLink', 'connexionsLink', 'applicationsLink',
@@ -445,7 +446,7 @@ function updateNavigation(user, immediate = false) {
   ];
   const els = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
 
-  // Révéler le nav dès que l'état est connu (évite le flash "non connecté")
+  // Révéler le nav dès que l'état est connu
   const navLinks = document.getElementById('navLinks');
   if (navLinks) navLinks.style.visibility = 'visible';
 
@@ -459,11 +460,12 @@ function updateNavigation(user, immediate = false) {
     els.connexionsLink && (els.connexionsLink.style.display = 'inline-block');
     els.applicationsLink && (els.applicationsLink.style.display = 'inline-block');
     els.extensionDownloadLink && (els.extensionDownloadLink.style.display = 'inline-block');
-    els.extensionRunsLink && (els.extensionRunsLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none');
-    els.draftLink && (els.draftLink.style.display = canViewAdminDashboard(user) ? 'inline-block' : 'none');
+    const adminUser = user || { email: localStorage.getItem('userEmail') || '' };
+    els.extensionRunsLink && (els.extensionRunsLink.style.display = canViewAdminDashboard(adminUser) ? 'inline-block' : 'none');
+    els.draftLink && (els.draftLink.style.display = canViewAdminDashboard(adminUser) ? 'inline-block' : 'none');
     els.presentationLink && (els.presentationLink.style.display = 'none');
   } else {
-    // Page protégée — on ne montre rien : la redirection vers auth.html suit immédiatement
+    // Non connecté → la redirection vers auth.html suit immédiatement
     ids.forEach(id => { if (els[id]) els[id].style.display = 'none'; });
   }
 }
@@ -477,6 +479,9 @@ async function handleLogout() {
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', async () => {
+  // Vérification immédiate via localStorage — révèle le nav sans attendre Firebase
+  updateNavigation(null);
+
   const versionPromise = fetchLatestVersion();
   const detectionPromise = detectInstalledVersion();
 

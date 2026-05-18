@@ -309,11 +309,11 @@ function TrustBand() {
 
 /* ── DEMO DATA ── */
 const JOBS = [
-  { id:1, co:'BNP Paribas',    domain:'bnpparibas.com',     role:'Analyste M&A — Coverage & Investment Banking', location:'Paris, France',       contract:'Stage 6 mois', exp:'Bac+5',   family:"Banque d'investissement", date:'Publié aujourd\'hui', score:97 },
-  { id:2, co:'Rothschild & Co',domain:'rothschildandco.com', role:'IBD Analyst — Mergers & Acquisitions',         location:'Paris 8e, France',     contract:'CDI',          exp:'1–3 ans', family:"Banque d'investissement", date:'Publié hier',         score:94 },
-  { id:3, co:'Deloitte',       domain:'deloitte.com',        role:'Consultant Financial Advisory — Deals',        location:'La Défense, France',   contract:'Alternance',   exp:'Bac+5',   family:'Conseil & Audit',         date:'Il y a 2 jours',     score:91 },
-  { id:4, co:'EY',             domain:'ey.com',              role:'Analyste Strategy & Transactions',             location:'Paris 6e, France',     contract:'Stage 6 mois', exp:'Bac+4/5', family:'Conseil & Audit',         date:'Il y a 3 jours',     score:88 },
-  { id:5, co:'Lazard',         domain:'lazard.com',          role:'Analyste Structured Finance',                  location:'Paris 1er, France',    contract:'CDI',          exp:'1–3 ans', family:'Marchés de capitaux',     date:'Il y a 4 jours',     score:84 },
+  { id:1, co:'BNP Paribas',    domain:'bnpparibas.com',     role:'Analyste M&A — Coverage & Investment Banking', location:'Paris, France',       contract:'Stage 6 mois', exp:'Bac+5',   edu:'Bac +5', family:"Banque d'investissement", date:"Publiée aujourd'hui", score:97 },
+  { id:2, co:'Rothschild & Co',domain:'rothschildandco.com', role:'IBD Analyst — Mergers & Acquisitions',         location:'Paris 8e, France',     contract:'CDI',          exp:'1–3 ans', edu:'Bac +5', family:"Banque d'investissement", date:'Publiée hier',         score:94 },
+  { id:3, co:'Deloitte',       domain:'deloitte.com',        role:'Consultant Financial Advisory — Deals',        location:'La Défense, France',   contract:'Alternance',   exp:'Bac+5',   edu:'Bac +5', family:'Conseil & Audit',         date:'Il y a 2 jours',     score:91 },
+  { id:4, co:'EY',             domain:'ey.com',              role:'Analyste Strategy & Transactions',             location:'Paris 6e, France',     contract:'Stage 6 mois', exp:'Bac+4/5', edu:'Bac +4', family:'Conseil & Audit',         date:'Il y a 3 jours',     score:88 },
+  { id:5, co:'Lazard',         domain:'lazard.com',          role:'Analyste Structured Finance',                  location:'Paris 1er, France',    contract:'CDI',          exp:'1–3 ans', edu:'Bac +5', family:'Marchés de capitaux',     date:'Il y a 4 jours',     score:84 },
 ];
 
 const APPS = [
@@ -337,49 +337,74 @@ Dans l'attente d'un échange, je reste disponible pour tout entretien.
 Cordialement,
 Antoine Meynier`;
 
-/* ── JOB CARD (production-like) ── */
+/* ── JOB CARD (production replica) ── */
 function JobCard({ job, selected, onSelect }) {
-  const hue = 90 + (job.score - 80) * 2;
-  const scoreC = `oklch(48% 0.18 ${hue})`;
+  const [hovered, setHovered] = useState(false);
   return (
-    <div onClick={() => onSelect(job.id)} style={{
-      background:WHITE, borderRadius:8, cursor:'pointer', transition:'all 0.15s',
-      border:`1px solid ${selected ? BLUE_B : BORDER}`,
-      borderLeft:`3px solid ${selected ? BLUE : 'transparent'}`,
-      padding:'16px 18px', display:'flex', flexDirection:'column', gap:0,
-      boxShadow: selected ? '0 4px 20px rgba(12,26,46,0.08)' : 'none',
-      position:'relative',
-    }}>
-      {/* Score chip */}
-      <div style={{ position:'absolute', top:12, right:12, padding:'3px 9px', borderRadius:20, fontSize:11, fontWeight:700, background:`${scoreC}18`, color:scoreC, border:`1px solid ${scoreC}30` }}>{job.score}%</div>
-
-      {/* Title */}
-      <div style={{ fontSize:13.5, fontWeight:700, color:NAVY, lineHeight:1.35, marginBottom:10, paddingRight:52 }}>{job.role}</div>
-
-      {/* Tags */}
-      <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:14 }}>
-        <Tag type="location">{job.location}</Tag>
-        <Tag type="contract">{job.contract}</Tag>
-        <Tag type="experience">{job.exp}</Tag>
-        <Tag type="family">{job.family}</Tag>
-      </div>
-
-      {/* Footer: logo + company + date + buttons */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:12, borderTop:`1px solid ${BORDER}`, marginTop:'auto' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:9 }}>
-          <CompanyLogo domain={job.domain} name={job.co} size={34} />
-          <div>
-            <div style={{ fontSize:12.5, fontWeight:600, color:MUTED }}>{job.co}</div>
-            <div style={{ fontSize:11, color:'#bbb' }}>{job.date}</div>
+    <div
+      onClick={() => onSelect(job.id)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: WHITE, borderRadius: 10, cursor: 'pointer',
+        border: `1px solid ${selected ? BLUE_B : hovered ? 'rgba(102,126,234,0.30)' : BORDER}`,
+        padding: '22px', display: 'flex', flexDirection: 'column',
+        boxShadow: hovered
+          ? '0 12px 40px rgba(102,126,234,0.15)'
+          : selected ? '0 4px 20px rgba(12,26,46,0.08)' : 'none',
+        transform: hovered ? 'translateY(-4px)' : 'none',
+        transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s',
+        position: 'relative', minHeight: 230,
+      }}
+    >
+      {/* ── Header: logo box + title/company + heart btn ── */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, marginBottom:12 }}>
+        <div style={{ display:'flex', alignItems:'flex-start', gap:12, flex:1, minWidth:0 }}>
+          {/* Logo box 44×44 */}
+          <div style={{ width:44, height:44, borderRadius:10, background:'#f8f7f5', border:`1px solid ${BORDER}`, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', flexShrink:0, padding:6 }}>
+            <CompanyLogoImg domain={job.domain} name={job.co} />
+          </div>
+          {/* Title + company name */}
+          <div style={{ minWidth:0, flex:1 }}>
+            <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a', lineHeight:1.32, marginBottom:4 }}>{job.role}</div>
+            <div style={{ fontSize:13.5, fontWeight:600, color:MUTED }}>{job.co}</div>
           </div>
         </div>
-        <div style={{ display:'flex', gap:6 }}>
-          <div style={{ padding:'6px 12px', fontSize:11.5, fontWeight:600, color:MUTED, border:`1px solid ${BORDER}`, borderRadius:4 }}>Voir l'offre</div>
-          {selected && <div style={{ padding:'6px 12px', fontSize:11.5, fontWeight:600, color:WHITE, background:NAVY, borderRadius:4 }}>Candidater</div>}
+        {/* Heart button (decorative) */}
+        <div style={{ width:36, height:36, borderRadius:'50%', border:`1px solid ${BORDER}`, background:WHITE, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, cursor:'default' }}
+          onClick={e => e.stopPropagation()}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* ── Tags row ── */}
+      <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:16 }}>
+        {job.location && <Tag type="location">🌍 {job.location}</Tag>}
+        {job.contract && <Tag type="contract">📄 {job.contract}</Tag>}
+        {job.exp      && <Tag type="experience">💼 {job.exp}</Tag>}
+        {job.edu      && <Tag type="education">🎓 {job.edu}</Tag>}
+        {job.family   && <Tag type="family">🎯 {job.family}</Tag>}
+      </div>
+
+      {/* ── Footer: date + buttons ── */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:14, borderTop:`1px solid ${BORDER}`, marginTop:'auto', gap:10 }}>
+        <div style={{ fontSize:12, fontWeight:500, color:'#a1a1aa', whiteSpace:'nowrap' }}>{job.date}</div>
+        <div style={{ display:'flex', gap:8, flexShrink:0 }}>
+          <div style={{ padding:'8px 14px', fontSize:12.5, fontWeight:600, color:MUTED, border:`1px solid ${BORDER}`, borderRadius:7, background:WHITE, whiteSpace:'nowrap' }}>Voir l'offre</div>
+          <div style={{ padding:'8px 14px', fontSize:12.5, fontWeight:600, color:WHITE, background:NAVY, borderRadius:7, whiteSpace:'nowrap' }}>Postuler</div>
         </div>
       </div>
     </div>
   );
+}
+
+/* Logo image (raw, no box — used inside the 44px box above) */
+function CompanyLogoImg({ domain, name }) {
+  const [err, setErr] = useState(false);
+  if (err) return <span style={{ fontSize:9, fontWeight:700, color:MUTED, textAlign:'center', lineHeight:1.2 }}>{name.split(' ').map(w=>w[0]).slice(0,2).join('')}</span>;
+  return <img src={`https://logo.clearbit.com/${domain}`} alt={name} style={{ width:'100%', height:'100%', objectFit:'contain' }} onError={() => setErr(true)} />;
 }
 
 /* ── APP CARD (candidatures) ── */

@@ -130,9 +130,14 @@ nav {
 
 .nav-link.active,
 .nav-link-primary {
-    color: var(--taleos-blue) !important;
+    color: var(--taleos-warm-accent) !important;
     background: transparent !important;
     border: none !important;
+}
+
+.nav-link.active:hover,
+.nav-link-primary:hover {
+    background: rgba(200, 169, 110, 0.1) !important;
 }
 
 .logout-btn,

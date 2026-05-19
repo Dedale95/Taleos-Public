@@ -1999,17 +1999,17 @@
                     </div>
                 </div>
 
-                <!-- Section Préférences BPCE -->
+                <!-- Section Origine & profil -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Préférences BPCE</h2>
+                        <h2>Origine &amp; profil</h2>
                         <span class="accordion-icon">▼</span>
                     </div>
                     <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont utilisées pour les candidatures au Groupe BPCE (Banque Populaire, Caisse d'Épargne, Natixis, etc.).</p>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont utilisées lors de vos candidatures pour indiquer comment vous avez découvert l'offre et retrouver votre profil en ligne.</p>
 
                         <div class="form-group">
-                            <label for="bpceApplicationSource">Origine de votre candidature (libellés Oracle / Natixis)</label>
+                            <label for="bpceApplicationSource">Origine de votre candidature</label>
                             <select id="bpceApplicationSource" name="bpceApplicationSource">
                                 <option value="">Sélectionnez...</option>
                                 <option value="Contacted by Natixis HR">Contacted by Natixis HR</option>
@@ -2699,7 +2699,7 @@
             } else {
                 section.classList.add('active');
             }
-            // Re-synchroniser immédiatement l'état visuel de la section BPCE
+            // Re-synchroniser immédiatement l'état visuel de la section Origine & profil
             applyBpceSectionState();
             applyTalentPoolsSectionState();
             applyPortalQuestionsSectionState();
@@ -3909,7 +3909,7 @@
             const bpceHasContent = !!(bpceHandicap || bpceApplicationSource || linkedinUrl);
 
             document.querySelectorAll('.accordion-header h2').forEach(header => {
-                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Préférences BPCE') {
+                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Origine & profil') {
                     const section = header.closest('.accordion-section');
                     if (section) {
                         section.classList.remove('incomplete', 'complete');

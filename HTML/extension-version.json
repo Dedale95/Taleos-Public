@@ -1,7 +1,7 @@
 {
-  "version": "1.2.57",
-  "version_name": "1.2.57-fix-bpifrance-step1-detection",
+  "version": "1.2.58",
+  "version_name": "1.2.58-fix-bpifrance-wizard-flow",
   "published_at": "2026-05-19T00:00:00Z",
-  "release_notes": "Correction détection étape 1 BPIFrance : les <input type='file'> sont toujours cachés donc isElementVisible() retournait false. Détection basée sur présence DOM plutôt que visibilité.",
+  "release_notes": "Correction flux wizard BPIFrance : l'upload CV auto-avance vers l'étape 2 sans bouton Suivant. fillApplicationForm retourne false si échec (évite appel prématuré de POSTULER). Dispatch focus/blur pour déclencher la validation des champs.",
   "download_url": ""
 }

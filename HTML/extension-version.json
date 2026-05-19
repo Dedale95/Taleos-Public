@@ -1,7 +1,7 @@
 {
-  "version": "1.2.59",
-  "version_name": "1.2.59-fix-jpmorgan-edu-stale-dom",
+  "version": "1.2.60",
+  "version_name": "1.2.60-jpmorgan-edu-form-diag",
   "published_at": "2026-05-19T00:00:00Z",
-  "release_notes": "Correction JP Morgan section 3 éducation : re-query du conteneur après suppression de tile (référence DOM périmée après re-render Oracle). MouseEvent complet sur bouton Add. Timeout formulaire inline 6s→12s.",
+  "release_notes": "JP Morgan éducation : élargissement sélecteurs findOpenEduForm + log de diagnostic DOM quand le formulaire n'apparaît pas (permet d'identifier les vraies classes Oracle HCM).",
   "download_url": ""
 }

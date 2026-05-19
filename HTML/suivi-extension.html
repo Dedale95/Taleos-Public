@@ -1332,6 +1332,7 @@
                 if (successType === 'already_applied') return 'already_applied';
                 return 'success';
             }
+            if (outcome === 'already_applied') return 'already_applied';
             if (outcome === 'failed') return 'failed';
             if (outcome === 'aborted') return 'aborted';
             if (outcome === 'timeout') return 'timeout';

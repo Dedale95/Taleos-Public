@@ -1,7 +1,7 @@
 {
-  "version": "1.2.79",
-  "version_name": "1.2.79-sg-teletravail-internet",
+  "version": "1.2.80",
+  "version_name": "1.2.80-sg-teletravail-save-continue",
   "published_at": "2026-05-19T00:00:00Z",
-  "release_notes": "Société Générale : nouvelle question télétravail 'Votre domicile se situe-t-il dans une zone disposant d'une couverture internet opérationnelle ?' → réponse automatique Oui (répondre Non bloque la candidature). Ajout du pattern de détection dans isSgScreeningQuestionsVisible et dans la guard de fillSgScreeningQuestionsFromProfile.",
+  "release_notes": "SG télétravail : fix bouton 'Sauvegarder et continuer' non cliqué. La variable filledTeletravail n'était pas initialisée ni incluse dans 'did', donc la fonction retournait false et le code ne cherchait pas le bouton de validation. Fix : ajout de filledTeletravail dans les trackers et dans le calcul de 'did'.",
   "download_url": ""
 }

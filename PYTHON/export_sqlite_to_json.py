@@ -648,17 +648,56 @@ def main():
         for job in all_jobs:
             status = job.get('status', 'Unknown')
             statuses[status] = statuses.get(status, 0) + 1
-        
+
         print("\n📊 Répartition par statut:")
         for status, count in sorted(statuses.items(), key=lambda x: x[1], reverse=True):
             print(f"   - {status}: {count} offres")
-        
+
         # Validation : le site doit afficher uniquement les offres Live
         expired_in_export = sum(1 for j in all_jobs if str(j.get('status', '')).lower().strip() != 'live')
         if expired_in_export > 0:
             print(f"\n⚠️ ATTENTION : {expired_in_export} offres expirées dans l'export site (ne devrait pas arriver)")
         else:
             print(f"\n✅ Validation : {len(all_jobs)} offres Live dans le JSON du site (0 expirées)")
+
+        # ── Export par source (un fichier JSON par banque) ─────────────────────
+        # Permet à offres.html de charger les sources en parallèle (pas de limite 100 MB).
+        SOURCE_KEYS = [
+            ("credit_agricole",   CA_DB),
+            ("societe_generale",  SG_DB),
+            ("deloitte",          DELOITTE_DB),
+            ("bnp_paribas",       BNP_DB),
+            ("bpce",              BPCE_DB),
+            ("bpifrance",         BPIFRANCE_DB),
+            ("credit_mutuel",     CREDIT_MUTUEL_DB),
+            ("oddo_bhf",          ODDO_BHF_DB),
+            ("jp_morgan",         JP_MORGAN_DB),
+            ("goldman_sachs",     GOLDMAN_SACHS_DB),
+            ("kpmg",              KPMG_DB),
+            ("axa",               AXA_DB),
+            ("hsbc",              HSBC_DB),
+            ("ey",                EY_DB),
+            ("la_banque_postale", LBP_DB),
+        ]
+        print("\n📦 Export par source (fichiers individuels)...")
+        for key, db_path in SOURCE_KEYS:
+            out_path = HTML_DIR / f"scraped_jobs_{key}.json"
+            if key == "bnp_paribas" and not bnp_db_usable:
+                existing = load_existing_json(out_path)
+                if existing:
+                    print(f"   📌 {key} : {len(existing)} offres préservées (DB absente)")
+                    continue
+                write_json(out_path, [])
+                print(f"   ⚠️  {key} : DB absente, fichier vide")
+                continue
+            if not db_has_jobs_table(db_path):
+                write_json(out_path, [])
+                print(f"   ⚠️  {key} : DB absente, fichier vide")
+                continue
+            jobs = read_from_db(db_path, key, live_only=True)
+            write_json(out_path, jobs)
+            size_kb = out_path.stat().st_size // 1024
+            print(f"   ✅ {key} : {len(jobs)} offres → scraped_jobs_{key}.json ({size_kb} KB)")
     else:
         print("❌ Aucun job à exporter !")
     

@@ -25,6 +25,7 @@ from datetime import datetime
 from country_normalizer import get_country_from_city, normalize_country
 from experience_extractor import extract_experience_level
 from credit_mutuel_company_mapping import normalize_company_name as normalize_cm_company_name
+from job_family_classifier import _classify_it_subcat, _classify_commercial_subcat
 
 # Configuration des chemins
 PYTHON_DIR = Path(__file__).parent
@@ -493,9 +494,22 @@ def read_from_db(db_path, company_name, live_only=True):
                     if 'fixed term contract' in desc.lower() or 'temporary contract' in desc.lower():
                         job['contract_type'] = 'CDD'
             
-            # Normaliser la famille de métier pour éviter la prolifération de libellés exotiques
+            # Normaliser la famille de métier pour éviter la prolifération de libellés exotiques,
+            # puis affiner en sous-catégorie IT / Commercial selon le titre
+            title_for_family = job.get('job_title') or ''
+            desc_for_family  = (job.get('job_description') or '')[:2000]
             if job.get('job_family'):
-                job['job_family'] = normalize_job_family(job['job_family'])
+                normalized_fam = normalize_job_family(job['job_family'])
+                if normalized_fam == 'IT, Digital et Data':
+                    job['job_family'] = _classify_it_subcat(title_for_family, desc_for_family)
+                elif normalized_fam == 'Commercial / Relations Clients':
+                    job['job_family'] = _classify_commercial_subcat(title_for_family, desc_for_family)
+                else:
+                    job['job_family'] = normalized_fam
+            else:
+                # Pas de famille en DB → on classifie depuis titre
+                from job_family_classifier import classify_job_family
+                job['job_family'] = classify_job_family(title_for_family, desc_for_family) or ''
 
             # Normaliser le niveau d'expérience pour rester sur 4 catégories canoniques
             if job.get('experience_level'):
@@ -518,15 +532,20 @@ def read_from_db(db_path, company_name, live_only=True):
             
             # Enrichir experience_level si vide : ré-extraction depuis description + fallback titre
             if not job.get('experience_level'):
-                combined = " ".join(filter(None, [
-                    job.get('job_description') or '',
-                    job.get('company_description') or ''
-                ]))
-                extracted = extract_experience_level(
-                    combined, job.get('contract_type'), job.get('job_title')
-                )
-                if extracted:
-                    job['experience_level'] = normalize_experience_level(extracted)
+                # Fallback spécifique : contrats indépendants/franchisés → "3 - 5 ans" par défaut
+                ct_lower = (job.get('contract_type') or '').lower()
+                if any(x in ct_lower for x in ['indépendant', 'independant', 'freelance', 'franchis', 'mandataire']):
+                    job['experience_level'] = '3 - 5 ans'
+                else:
+                    combined = " ".join(filter(None, [
+                        job.get('job_description') or '',
+                        job.get('company_description') or ''
+                    ]))
+                    extracted = extract_experience_level(
+                        combined, job.get('contract_type'), job.get('job_title')
+                    )
+                    if extracted:
+                        job['experience_level'] = normalize_experience_level(extracted)
 
             # Crédit Mutuel : consolider les filiales/caisses vers les libellés groupe attendus côté front.
             if db_path == CREDIT_MUTUEL_DB and job.get('company_name'):

@@ -3255,9 +3255,23 @@
                                 'développement durable et rse': 'Autres',
                                 'developpement durable et rse': 'Autres',
                                 'international': 'Autres',
-                                'achat': 'Autres',
+                                // "Achat" → dans Support et Pilotage (plus dans Autres)
+                                'achat': 'Achat',
                                 'administration / services généraux': 'Autres',
-                                'administration / services generaux': 'Autres'
+                                'administration / services generaux': 'Autres',
+                                // Sous-catégories IT (normalisation des libellés alternatifs)
+                                'it, digital et data': 'IT, Digital et Data',
+                                'developpement & architecture': 'Développement & Architecture',
+                                'data & intelligence artificielle': 'Data & Intelligence Artificielle',
+                                'infrastructure & cloud': 'Infrastructure & Cloud',
+                                'cybersecurite': 'Cybersécurité',
+                                'gestion de projet it': 'Gestion de Projet IT',
+                                'conseil & solutions it': 'Conseil & Solutions IT',
+                                // Sous-catégories Commercial
+                                'commercial / relations clients': 'Commercial / Relations Clients',
+                                'banque de detail & agence': 'Banque de Détail & Agence',
+                                'banque privee & patrimoine': 'Banque Privée & Patrimoine',
+                                'banque corporate & marches': 'Banque Corporate & Marchés',
                             };
                             if (familySynonyms[fLower]) job.job_family = familySynonyms[fLower];
                         }
@@ -3905,10 +3919,27 @@
         const BPCE_GROUP_KEY = '__BPCE_GROUP__';
         const BNP_PARIBAS_GROUP_KEY = '__BNP_GROUP__';
         const FAMILY_GROUPS = {
+            // IT — 6 sous-catégories + rétrocompat ancien libellé
+            'IT, Digital et Data': [
+                'Développement & Architecture',
+                'Data & Intelligence Artificielle',
+                'Cybersécurité',
+                'Infrastructure & Cloud',
+                'Gestion de Projet IT',
+                'Conseil & Solutions IT',
+                'IT, Digital et Data',   // rétrocompat offres non reclassées
+            ],
+            // Commercial — 3 sous-catégories + rétrocompat
+            'Commercial & Relations Clients': [
+                'Banque de Détail & Agence',
+                'Banque Privée & Patrimoine',
+                'Banque Corporate & Marchés',
+                'Commercial / Relations Clients',  // rétrocompat
+            ],
             'Contrôle et Risques': ['Risques / Contrôles permanents', 'Conformité / Sécurité financière', 'Inspection / Audit'],
             'Finance et Analyse': ['Finances / Comptabilité / Contrôle de gestion', 'Analyse financière et économique'],
             'Investissement et Gestion d\'Actifs': ['Financement et Investissement', "Gestion d'Actifs"],
-            'Support et Pilotage': ['Organisation / Qualité', 'Direction générale', 'Autres']
+            'Support et Pilotage': ['Organisation / Qualité', 'Gestion des opérations', 'Direction générale', 'Achat', 'Autres'],
         };
         const FAMILY_GROUP_PREFIX = '__FAMILY_GROUP__';
         function getFamilyGroupKey(label) { return FAMILY_GROUP_PREFIX + label; }

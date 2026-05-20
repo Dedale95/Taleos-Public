@@ -1,7 +1,7 @@
 {
-  "version": "1.2.81",
-  "version_name": "1.2.81-structured-error-logs",
+  "version": "1.2.82",
+  "version_name": "1.2.82-experience-family-subcategories",
   "published_at": "2026-05-20T00:00:00Z",
-  "release_notes": "JP Morgan, AXA, Goldman Sachs : ajout de reportRunLog() dans chaque filler pour envoyer les logs error/warn à Firestore via extension_run_log. suivi-extension.html : affichage des logs d'erreur par run dans un <details> collapsible, filtrés par source (banque) et niveau (error/warn uniquement).",
+  "release_notes": "Expérience : réduction de 955 → ~200 offres sans niveau (patterns allemand/espagnol/portugais, titres VP/Chef/Manager, contrats Indépendant). Famille de métier : sous-catégories IT (Cybersécurité, Data & IA, Infrastructure & Cloud, Gestion de Projet IT, Conseil & Solutions IT, Développement & Architecture) et Commercial (Banque Privée & Patrimoine, Banque Corporate & Marchés, Banque de Détail & Agence). Fix classement Cybersecurity et Ressources Humaines.",
   "download_url": ""
 }

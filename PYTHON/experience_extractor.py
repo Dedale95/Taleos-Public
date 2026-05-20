@@ -170,6 +170,32 @@ def extract_experience_level(
             return "6 - 10 ans"
         return "11 ans et plus"
     
+    # 5d4. Allemand : "X Jahre Berufserfahrung" / "X Jahre Erfahrung" / "X Jahren"
+    jahre_m = re.search(r"(\d+)\s*(?:bis\s*\d+\s*)?jahre\w*\s*(?:berufs)?erfahrung", text_lower)
+    if jahre_m:
+        y = int(jahre_m.group(1))
+        if y <= 2:  return "0 - 2 ans"
+        if y <= 5:  return "3 - 5 ans"
+        if y <= 10: return "6 - 10 ans"
+        return "11 ans et plus"
+
+    jahre_m2 = re.search(r"(\d+)\+?\s*jahre\w*\s*erfahrung", text_lower)
+    if jahre_m2:
+        y = int(jahre_m2.group(1))
+        if y <= 2:  return "0 - 2 ans"
+        if y <= 5:  return "3 - 5 ans"
+        if y <= 10: return "6 - 10 ans"
+        return "11 ans et plus"
+
+    # 5d5. Portugais / Espagnol : "X años de experiencia" / "X anos de experiência"
+    anos_m = re.search(r"(\d+)\s*a[nñ]os?\s*de\s*experi[eê]ncia", text_lower)
+    if anos_m:
+        y = int(anos_m.group(1))
+        if y <= 2:  return "0 - 2 ans"
+        if y <= 5:  return "3 - 5 ans"
+        if y <= 10: return "6 - 10 ans"
+        return "11 ans et plus"
+
     # 5e. "X years of experience" / "X+ years" (Required: 8+ years, 8+ years prior ... experience)
     # Inclut "8+ years prior compliance advisory experience" (texte entre years et experience)
     # Prendre le max si plusieurs mentions. 10+ = senior → "11 ans et plus"
@@ -218,6 +244,15 @@ def extract_experience_level(
         (r'(?:relevant|demonstrated|proven)\s+experience', "3 - 5 ans"),
         (r'early\s+career|entry\s*level', "0 - 2 ans"),
         (r'less than 2|moins de 2|moins de deux', "0 - 2 ans"),
+        # Allemand
+        (r'duales?\s+studium|duale\s+ausbildung|berufsausbildung', "0 - 2 ans"),
+        (r'berufseinstieg|einsteiger|berufseinsteiger', "0 - 2 ans"),
+        (r'mehrj[äa]hrige\s+berufserfahrung|langjährige\s+erfahrung', "6 - 10 ans"),
+        (r'fundierte\s+(?:kenntnisse|erfahrung)', "3 - 5 ans"),
+        (r'erste\s+berufserfahrung|erste\s+erfahrungen?', "0 - 2 ans"),
+        # Espagnol / Portugais
+        (r'primer\s+empleo|sin\s+experiencia|reci[eé]n\s+graduad', "0 - 2 ans"),
+        (r'experiencia\s+comprobada|experiência\s+comprovad', "3 - 5 ans"),
     ]
     for pattern, level in patterns:
         if re.search(pattern, text_lower):
@@ -254,7 +289,8 @@ def _infer_from_title(job_title: Optional[str]) -> Optional[str]:
     # ── 6 - 10 ans ────────────────────────────────────────────────────────────
     # AVP (Assistant VP) = 3-5 chez BNP/HSBC/SG, mais on traite AVANT le check VP
     if re.search(r'\bavp\b', t): return "3 - 5 ans"
-    if re.search(r'\bvice\s*president\b|\bvp\b(?:\s|[-–]|$)', t): return "6 - 10 ans"
+    # VP peut être suivi de virgule, deux-points, tiret, espace, fin de chaîne
+    if re.search(r'\bvice\s*president\b|\bvp\b(?:\s|[-–,:]|$)', t): return "6 - 10 ans"
     if re.search(r'\b(?:senior|sr\.?)\b', t): return "6 - 10 ans"
     if re.search(r'\bdirector\b|\bdirecteur\b|\bdirekteur\b|\bdirettore\b|\bdirector[a]?\b', t): return "6 - 10 ans"
     if re.search(r'\blead\b|\bleader\b|\bleitung\b', t): return "6 - 10 ans"
@@ -314,6 +350,25 @@ def _infer_from_title(job_title: Optional[str]) -> Optional[str]:
     if re.search(r'\borganisateur\b|\borganisatrice\b', t): return "3 - 5 ans"
     if re.search(r'\brecruiter\b|\brecruteur\b|\brecruteuse\b', t): return "3 - 5 ans"
     if re.search(r'\bgeneraliste?\b|\bgeneralist\b', t): return "3 - 5 ans"
+    if re.search(r'\bmandataire\b', t): return "3 - 5 ans"
+    if re.search(r'\brepresentative\b|\brepr[eé]sentant[e]?\b', t): return "3 - 5 ans"
+    if re.search(r'\breceptionist\b|\bh[ôo]tesse\b|\baccueil\b', t): return "3 - 5 ans"
+    if re.search(r'\bchef\s+de\s+mission\b', t): return "6 - 10 ans"
+    if re.search(r'\bchef\s+(?:de\s+)?(?:projet|produit|service|département|groupe)\b', t): return "6 - 10 ans"
+    if re.search(r'\brelationship\s+manager\b|\brelationship\s+banker\b', t): return "6 - 10 ans"
+    if re.search(r'\bportfolio\s+manager\b|\bfund\s+manager\b', t): return "6 - 10 ans"
+    if re.search(r'\bproduct\s+manager\b|\bproduct\s+owner\b', t): return "3 - 5 ans"
+    if re.search(r'\bprogram\s+manager\b|\bprogramme\s+manager\b', t): return "6 - 10 ans"
+    # Compétences IT sans hiérarchie : par défaut 3-5 ans
+    if re.search(r'\bengineering\s+manager\b|\btechnical\s+(?:lead|manager)\b', t): return "6 - 10 ans"
+    if re.search(r'\bdata\s+(?:scientist|engineer|analyst|manager)\b', t): return "3 - 5 ans"
+    if re.search(r'\bcloud\s+(?:architect|engineer)\b|\bsolutions?\s+architect\b', t): return "6 - 10 ans"
+    # Allemand : titres non couverts
+    if re.search(r'\bsachbearbeiter\w*\b|\bsachbearbeitung\b', t): return "3 - 5 ans"  # DE "collaborateur"
+    if re.search(r'\bauszubildende\w*\b|\bausbildung\b', t): return "0 - 2 ans"  # DE apprentissage
+    if re.search(r'\bwerkstudent\w*\b|\bpraktikant\w*\b', t): return "0 - 2 ans"  # DE étudiant/stagiaire
+    if re.search(r'\breferent\w*\b|\breferentin\b', t): return "3 - 5 ans"  # DE spécialiste
+    if re.search(r'\bfachberater\w*\b|\bkundenberater\w*\b', t): return "3 - 5 ans"  # DE conseiller
 
     # ── 0 - 2 ans ────────────────────────────────────────────────────────────
     if re.search(r'\bstage\b|\bstagiaire\b|\bstagiar[e]?\b|\btirocinio\b|\bstage[ur]\b', t): return "0 - 2 ans"

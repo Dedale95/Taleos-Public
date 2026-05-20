@@ -305,8 +305,19 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # Fichiers par source (un par banque), live slim, summary
           # scraped_jobs.json (sans underscore) volontairement exclus (trop grands, redondants)
-          git add HTML/scraped_jobs_*.json scraped_jobs_*.json \
-                  HTML/scraped_jobs_summary.json scraped_jobs_summary.json
+          # Ajouter les fichiers par source (un par banque) + summary
+          # scraped_jobs_live.json et scraped_jobs_full.json exclus (trop grands pour GitHub)
+          git add HTML/scraped_jobs_summary.json scraped_jobs_summary.json 2>/dev/null || true
+          for f in HTML/scraped_jobs_credit_agricole.json HTML/scraped_jobs_societe_generale.json \
+                   HTML/scraped_jobs_deloitte.json HTML/scraped_jobs_bnp_paribas.json \
+                   HTML/scraped_jobs_bpce.json HTML/scraped_jobs_bpifrance.json \
+                   HTML/scraped_jobs_credit_mutuel.json HTML/scraped_jobs_oddo_bhf.json \
+                   HTML/scraped_jobs_jp_morgan.json HTML/scraped_jobs_goldman_sachs.json \
+                   HTML/scraped_jobs_kpmg.json HTML/scraped_jobs_axa.json \
+                   HTML/scraped_jobs_hsbc.json HTML/scraped_jobs_ey.json \
+                   HTML/scraped_jobs_la_banque_postale.json; do
+            [ -f "$f" ] && git add "$f" 2>/dev/null || true
+          done
           git commit -m "chore: mise à jour quotidienne des offres (pipeline parallèle)"
           git pull --rebase --autostash origin main
           git push origin main

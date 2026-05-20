@@ -1,7 +1,7 @@
 {
-  "version": "1.2.80",
-  "version_name": "1.2.80-sg-teletravail-save-continue",
-  "published_at": "2026-05-19T00:00:00Z",
-  "release_notes": "SG télétravail : fix bouton 'Sauvegarder et continuer' non cliqué. La variable filledTeletravail n'était pas initialisée ni incluse dans 'did', donc la fonction retournait false et le code ne cherchait pas le bouton de validation. Fix : ajout de filledTeletravail dans les trackers et dans le calcul de 'did'.",
+  "version": "1.2.81",
+  "version_name": "1.2.81-structured-error-logs",
+  "published_at": "2026-05-20T00:00:00Z",
+  "release_notes": "JP Morgan, AXA, Goldman Sachs : ajout de reportRunLog() dans chaque filler pour envoyer les logs error/warn à Firestore via extension_run_log. suivi-extension.html : affichage des logs d'erreur par run dans un <details> collapsible, filtrés par source (banque) et niveau (error/warn uniquement).",
   "download_url": ""
 }

@@ -41,6 +41,9 @@ JP_MORGAN_DB = PYTHON_DIR / "jp_morgan_jobs.db"
 GOLDMAN_SACHS_DB = PYTHON_DIR / "goldman_sachs_jobs.db"
 AXA_DB           = PYTHON_DIR / "axa_jobs.db"
 KPMG_DB          = PYTHON_DIR / "kpmg_jobs.db"
+HSBC_DB          = PYTHON_DIR / "hsbc_jobs.db"
+EY_DB            = PYTHON_DIR / "ey_jobs.db"
+LBP_DB           = PYTHON_DIR / "la_banque_postale_jobs.db"
 
 EXPIRED_PAGE_PATTERNS = [
     "la page que vous recherchez est introuvable",
@@ -232,6 +235,9 @@ def _print_db_live_expired_snapshot(title: str):
         ("Goldman Sachs", GOLDMAN_SACHS_DB),
         ("AXA", AXA_DB),
         ("KPMG Global", KPMG_DB),
+        ("HSBC", HSBC_DB),
+        ("EY", EY_DB),
+        ("La Banque Postale", LBP_DB),
     ]:
         if not db_path.exists() or not _db_has_jobs_table(db_path):
             print(f"   {name:<22} │   ---  │    ---  │    ---  (base absente)")
@@ -273,6 +279,9 @@ def revalidate_live_offers_all_sources():
         ("Goldman Sachs", GOLDMAN_SACHS_DB),
         ("AXA", AXA_DB),
         ("KPMG Global", KPMG_DB),
+        ("HSBC", HSBC_DB),
+        ("EY", EY_DB),
+        ("La Banque Postale", LBP_DB),
     ]:
         total += revalidate_live_offers_in_db(
             db_path, name, max_urls=max_per
@@ -461,15 +470,30 @@ def merge_from_databases():
         
         try:
             conn = sqlite3.connect(db_path)
-            cursor = conn.execute("""
-                SELECT 
-                    job_id, job_title, contract_type, publication_date, location,
-                    job_family, duration, management_position, status,
-                    education_level, experience_level, training_specialization,
-                    technical_skills, behavioral_skills, tools, languages,
-                    job_description, company_name, company_description, job_url,
-                    first_seen, last_updated
-                FROM jobs 
+            # Colonnes souhaitées — certains scrapers récents n'ont pas toutes les
+            # colonnes optionnelles (ex: duration, training_specialization).
+            # On utilise PRAGMA table_info pour ne sélectionner que les colonnes
+            # existantes et remplacer les absentes par NULL.
+            WANTED_COLS = [
+                "job_id", "job_title", "contract_type", "publication_date", "location",
+                "job_family", "duration", "management_position", "status",
+                "education_level", "experience_level", "training_specialization",
+                "technical_skills", "behavioral_skills", "tools", "languages",
+                "job_description", "company_name", "company_description", "job_url",
+                "first_seen", "last_updated",
+            ]
+            existing_cols = {
+                row[1]
+                for row in conn.execute("PRAGMA table_info(jobs)").fetchall()
+            }
+            select_parts = [
+                col if col in existing_cols else f"NULL AS {col}"
+                for col in WANTED_COLS
+            ]
+            select_clause = ", ".join(select_parts)
+            cursor = conn.execute(f"""
+                SELECT {select_clause}
+                FROM jobs
                 WHERE is_valid = 1 AND status = 'Live'
             """)
             
@@ -531,6 +555,9 @@ def merge_from_databases():
         ("Goldman Sachs", GOLDMAN_SACHS_DB),
         ("AXA", AXA_DB),
         ("KPMG Global", KPMG_DB),
+        ("HSBC", HSBC_DB),
+        ("EY", EY_DB),
+        ("La Banque Postale", LBP_DB),
     ]
 
     for name, db_path in sources_info:
@@ -623,6 +650,18 @@ if __name__ == "__main__":
     if not run_script("axa_scraper.py"):
         failures.append("axa_scraper.py")
 
+    # 7f. Scraper HSBC (Eightfold AI — 1 600+ offres mondiales)
+    if not run_script("hsbc_scraper.py"):
+        failures.append("hsbc_scraper.py")
+
+    # 7g. Scraper EY (SAP SuccessFactors sitemap — 8 700+ offres mondiales)
+    if not run_script("ey_scraper.py"):
+        failures.append("ey_scraper.py")
+
+    # 7h. Scraper KPMG Global (FR+DE+IT+NL+DK+AU+NZ+US — Radancy / SmartRecruiters / Lever / HR-Manager)
+    if not run_script("kpmg_global_scraper.py"):
+        failures.append("kpmg_global_scraper.py")
+
     if failures:
         print("\n❌ Scrapers en échec:")
         for s in failures:
@@ -644,7 +683,7 @@ if __name__ == "__main__":
     print()
     print("🔄 Export JSON pour les fichiers HTML...")
     try:
-        result = subprocess.run([sys.executable, "export_sqlite_to_json.py"], 
+        result = subprocess.run([sys.executable, "export_sqlite_to_json.py"],
                               cwd=PYTHON_DIR, capture_output=True, text=True, timeout=60)
         if result.returncode == 0:
             print("✅ Export JSON terminé avec succès")
@@ -653,6 +692,21 @@ if __name__ == "__main__":
             print(f"Erreur: {result.stderr[:500]}")
     except Exception as e:
         print(f"⚠️ Erreur lors de l'export JSON: {e}")
+
+    # 10b. Régénération du résumé de couverture scraping (scraped_jobs_summary.json)
+    print()
+    print("🔄 Régénération scraped_jobs_summary.json...")
+    try:
+        summary_script = Path(__file__).parent.parent / "generate_scraping_summary.py"
+        result = subprocess.run([sys.executable, str(summary_script)],
+                              cwd=str(summary_script.parent), capture_output=True, text=True, timeout=60)
+        if result.returncode == 0:
+            print(f"✅ Summary généré : {result.stdout.strip()}")
+        else:
+            print(f"⚠️ generate_scraping_summary.py échoué (code {result.returncode})")
+            print(f"Erreur: {result.stderr[:300]}")
+    except Exception as e:
+        print(f"⚠️ Erreur generate_scraping_summary: {e}")
 
     # 11. Récapitulatif visuel Live vs Expired par entité
     print()
@@ -664,7 +718,7 @@ if __name__ == "__main__":
         total_expired = 0
         print(f"   {'Entité':<22} │ {'Live':>6} │ {'Expired':>7}")
         print("   " + "-" * 40)
-        for name, db_path in [("Crédit Agricole", CA_DB), ("Société Générale", SG_DB), ("Deloitte", DELOITTE_DB), ("BNP Paribas", BNP_DB), ("BPCE", BPCE_DB), ("Bpifrance", BPIFRANCE_DB), ("Crédit Mutuel", CREDIT_MUTUEL_DB), ("ODDO BHF", ODDO_BHF_DB), ("JP Morgan Chase", JP_MORGAN_DB), ("Goldman Sachs", GOLDMAN_SACHS_DB), ("AXA", AXA_DB), ("KPMG Global", KPMG_DB)]:
+        for name, db_path in [("Crédit Agricole", CA_DB), ("Société Générale", SG_DB), ("Deloitte", DELOITTE_DB), ("BNP Paribas", BNP_DB), ("BPCE", BPCE_DB), ("Bpifrance", BPIFRANCE_DB), ("Crédit Mutuel", CREDIT_MUTUEL_DB), ("ODDO BHF", ODDO_BHF_DB), ("JP Morgan Chase", JP_MORGAN_DB), ("Goldman Sachs", GOLDMAN_SACHS_DB), ("AXA", AXA_DB), ("KPMG Global", KPMG_DB), ("HSBC", HSBC_DB), ("EY", EY_DB), ("La Banque Postale", LBP_DB)]:
             if db_path.exists():
                 conn = sqlite3.connect(db_path)
                 row = conn.execute("""

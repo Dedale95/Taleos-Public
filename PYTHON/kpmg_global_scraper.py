@@ -617,34 +617,39 @@ def radancy_parse_listing(html: str, source: Dict) -> List[Dict]:
         if not job_id_raw:
             continue
 
-        link = card.find("a", href=True)
-        href = (link["href"] if link else "").strip()
+        # Priorité : href sur la carte elle-même (France — <a data-job-id="..." href="...">)
+        # Fallback : lien enfant (ancien format Radancy)
+        href = str(card.get("href") or "").strip()
+        if not href:
+            link = card.find("a", href=True)
+            href = str(link.get("href", "")).strip() if link else ""
         if href and not href.startswith("http"):
             href = base_url + href
         if not href:
             continue
 
-        title_el = card.find(class_=re.compile(r"\bjob[-_]list[_-]?title\b", re.I))
+        # Titre : double underscore BEM (job-list__title) ou tiret (job-list-title)
+        title_el = card.find(class_=re.compile(r"\bjob[-_]list[-_]{1,2}title\b", re.I))
         if not title_el:
             title_el = card.find(["h2", "h3"])
         title = title_el.get_text(strip=True) if title_el else ""
         if not title:
             continue
 
-        loc_el   = card.find(class_=re.compile(r"\bjob[-_]list[_-]?location\b", re.I))
+        loc_el   = card.find(class_=re.compile(r"\bjob[-_]list[-_]{1,2}location\b", re.I))
         loc_raw  = loc_el.get_text(strip=True) if loc_el else ""
         parts    = [p.strip() for p in loc_raw.split(",")]
         city     = parts[0] if parts else ""
         region   = parts[1] if len(parts) > 1 else ""
         location = f"{city} - {country}" if city else country
 
-        ct_el    = card.find(class_=re.compile(r"\bjob[-_]list[_-]?contract\b", re.I))
+        ct_el    = card.find(class_=re.compile(r"\bjob[-_]list[-_]{1,2}contract\b", re.I))
         ct_raw   = ct_el.get_text(strip=True) if ct_el else ""
 
-        cat_el   = card.find(class_=re.compile(r"\bjob[-_]list[_-]?category\b", re.I))
+        cat_el   = card.find(class_=re.compile(r"\bjob[-_]list[-_]{1,2}category\b", re.I))
         category = cat_el.get_text(strip=True) if cat_el else ""
 
-        spec_el    = card.find(class_=re.compile(r"\bjob[-_]list[_-]?speciality\b", re.I))
+        spec_el    = card.find(class_=re.compile(r"\bjob[-_]list[-_]{1,2}speciality\b", re.I))
         speciality = spec_el.get_text(strip=True) if spec_el else ""
 
         contract  = parse_contract(ct_raw)

@@ -2630,6 +2630,15 @@
             // France (villes supplémentaires)
             'gradignan': 'France', 'mérignac': 'France', 'merignac': 'France',
             'bezons': 'France', 'massy': 'France', 'vélizy': 'France', 'velizy': 'France',
+            // France (villes sans suffixe " - France" dans données scrapées)
+            'orléans': 'France', 'orleans': 'France',
+            'rouen': 'France',
+            'annecy': 'France',
+            'nancy': 'France',
+            'la chapelle sur erdre': 'France',
+            'vivier': 'France',
+            'dfi': 'France',
+            'brest / quimper / vannes': 'France', 'brest': 'France', 'quimper': 'France', 'vannes': 'France',
             // Belgique
             'wavre': 'Belgique', 'gand': 'Belgique', 'ghent': 'Belgique'
         };
@@ -3277,6 +3286,16 @@
                         // Fallback : dériver depuis le titre (stagiaire, trainee, stage)
                         if (job && !job.contract_type && /^(stagiaire|trainee|stage)\b|^stage\s|stagiaire\s|trainee\s|\bstage\b|\bstagiaire\b|\btrainee\b/i.test(titleForContract)) {
                             job.contract_type = 'Stage';
+                        }
+                        // Graduate Programme : détecter depuis le titre en plus du contrat existant
+                        if (job && /graduate programme|graduate program|\bgraduate trainee\b/i.test(titleForContract)) {
+                            if (job.contract_types) {
+                                if (!job.contract_types.includes('Graduate Programme')) job.contract_types.push('Graduate Programme');
+                            } else if (job.contract_type && job.contract_type !== 'Graduate Programme') {
+                                job.contract_types = [job.contract_type, 'Graduate Programme'];
+                            } else {
+                                job.contract_type = 'Graduate Programme';
+                            }
                         }
 
                         // Consolidation des familles de métier : regrouper les rubriques synonymes sous un libellé canonique

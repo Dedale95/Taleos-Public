@@ -25,7 +25,7 @@ from datetime import datetime
 from country_normalizer import get_country_from_city, normalize_country
 from experience_extractor import extract_experience_level
 from credit_mutuel_company_mapping import normalize_company_name as normalize_cm_company_name
-from job_family_classifier import _classify_it_subcat, _classify_commercial_subcat
+from job_family_classifier import _classify_it_subcat, _classify_commercial_subcat, classify_job_family
 
 # Configuration des chemins
 PYTHON_DIR = Path(__file__).parent
@@ -501,14 +501,32 @@ def read_from_db(db_path, company_name, live_only=True):
             if job.get('job_family'):
                 normalized_fam = normalize_job_family(job['job_family'])
                 if normalized_fam == 'IT, Digital et Data':
-                    job['job_family'] = _classify_it_subcat(title_for_family, desc_for_family)
+                    result = _classify_it_subcat(title_for_family, desc_for_family)
+                    if result == 'IT - Autres':
+                        # Score 0 → job peut être mal classé en IT en DB ; essai fresh
+                        fresh = classify_job_family(title_for_family, desc_for_family)
+                        # Si le fresh donne une famille claire autre qu'IT ou Autres → corriger
+                        if fresh not in ('IT, Digital et Data', 'IT - Autres', 'Autres', ''):
+                            job['job_family'] = fresh
+                        else:
+                            job['job_family'] = 'IT - Autres'
+                    else:
+                        job['job_family'] = result
                 elif normalized_fam == 'Commercial / Relations Clients':
-                    job['job_family'] = _classify_commercial_subcat(title_for_family, desc_for_family)
+                    result = _classify_commercial_subcat(title_for_family, desc_for_family)
+                    if result == 'Commercial - Autres':
+                        # Score 0 → essai fresh
+                        fresh = classify_job_family(title_for_family, desc_for_family)
+                        if fresh not in ('Commercial / Relations Clients', 'Commercial - Autres', 'Autres', ''):
+                            job['job_family'] = fresh
+                        else:
+                            job['job_family'] = 'Commercial - Autres'
+                    else:
+                        job['job_family'] = result
                 else:
                     job['job_family'] = normalized_fam
             else:
                 # Pas de famille en DB → on classifie depuis titre
-                from job_family_classifier import classify_job_family
                 job['job_family'] = classify_job_family(title_for_family, desc_for_family) or ''
 
             # Normaliser le niveau d'expérience pour rester sur 4 catégories canoniques

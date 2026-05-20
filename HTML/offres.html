@@ -3260,7 +3260,7 @@
                                 'administration / services généraux': 'Autres',
                                 'administration / services generaux': 'Autres',
                                 // Sous-catégories IT (normalisation des libellés alternatifs)
-                                'it, digital et data': 'IT, Digital et Data',
+                                'it, digital et data': 'IT - Autres',  // ancien libellé → IT - Autres
                                 'developpement & architecture': 'Développement & Architecture',
                                 'data & intelligence artificielle': 'Data & Intelligence Artificielle',
                                 'infrastructure & cloud': 'Infrastructure & Cloud',
@@ -3268,7 +3268,7 @@
                                 'gestion de projet it': 'Gestion de Projet IT',
                                 'conseil & solutions it': 'Conseil & Solutions IT',
                                 // Sous-catégories Commercial
-                                'commercial / relations clients': 'Commercial / Relations Clients',
+                                'commercial / relations clients': 'Commercial - Autres',  // ancien libellé
                                 'banque de detail & agence': 'Banque de Détail & Agence',
                                 'banque privee & patrimoine': 'Banque Privée & Patrimoine',
                                 'banque corporate & marches': 'Banque Corporate & Marchés',
@@ -3919,7 +3919,7 @@
         const BPCE_GROUP_KEY = '__BPCE_GROUP__';
         const BNP_PARIBAS_GROUP_KEY = '__BNP_GROUP__';
         const FAMILY_GROUPS = {
-            // IT — 6 sous-catégories + rétrocompat ancien libellé
+            // IT — 6 sous-catégories + "IT - Autres" pour jobs non reclassés
             'IT, Digital et Data': [
                 'Développement & Architecture',
                 'Data & Intelligence Artificielle',
@@ -3927,14 +3927,14 @@
                 'Infrastructure & Cloud',
                 'Gestion de Projet IT',
                 'Conseil & Solutions IT',
-                'IT, Digital et Data',   // rétrocompat offres non reclassées
+                'IT - Autres',   // jobs IT sans sous-catégorie identifiable
             ],
-            // Commercial — 3 sous-catégories + rétrocompat
+            // Commercial — 3 sous-catégories + "Commercial - Autres"
             'Commercial & Relations Clients': [
                 'Banque de Détail & Agence',
                 'Banque Privée & Patrimoine',
                 'Banque Corporate & Marchés',
-                'Commercial / Relations Clients',  // rétrocompat
+                'Commercial - Autres',  // jobs commerciaux sans sous-catégorie
             ],
             'Contrôle et Risques': ['Risques / Contrôles permanents', 'Conformité / Sécurité financière', 'Inspection / Audit'],
             'Finance et Analyse': ['Finances / Comptabilité / Contrôle de gestion', 'Analyse financière et économique'],

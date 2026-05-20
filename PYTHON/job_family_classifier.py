@@ -27,19 +27,26 @@ _IT_SUBCATEGORIES = [
     (
         "Cybersécurité",
         [
-            r'\bcyber\b', r'\bcybersecurity\b', r'\bcybersécurité\b',
+            r'\bcybers?ecurity\b', r'\bcybersécurité\b', r'\bcyber\b',
             r'\bsoc\b', r'\bsecurity\s+operat', r'\bpenetration\s+test', r'\bpentest\b',
             r'\bciso\b', r'\biam\b', r'\bidentity.*access\b', r'\bsiem\b',
             r'\bvulnerabilit', r'\bcryptograph', r'\bsécurité.*inform', r'\bsécurité.*réseau',
             r'\bsécurité.*données', r'\bsécurité.*cloud', r'\bsecops\b',
             r'\banti.*fraud\b', r'\bfraud.*detect', r'\bsécurité.*applicat',
+            r'\bforensic\b', r'\bthreat.*intel', r'\bincident.*response\b',
+            r'\bsecurity\s+engineer', r'\bsecurity\s+(?:architect|lead|director|manager|controls?|analyst)\b',
+            r'\blead\s+security\b', r'\bprincipal\s+security\b',
+            r'\boffensive.*security\b', r'\bdefensive.*security\b', r'\bblockchain.*security\b',
         ]
     ),
     (
         "Data & Intelligence Artificielle",
         [
-            r'\bdata\s+scien', r'\bdata\s+engineer', r'\bdata\s+analyst', r'\bdata\s+architect',
-            r'\bdata\s+manag', r'\bdata\s+steward', r'\bdata\s+govern',
+            r'\bdata\s+scien', r'\bdata\s+engineer', r'\bdata\s+anal', r'\bdata\s+architect',
+            r'\bdata\s+manag', r'\bdata\s+steward', r'\bdata\s+govern', r'\bdata\s+qualit',
+            r'\bdata\s+owner\b', r'\bdata\s+operat', r'\bdata\s+domain\b', r'\bdata\s+product\b',
+            r'\barchitecte.*data\b', r'\bingénieur.*données\b',
+            r'\baiml\b', r'\bapplied\s+(?:ai|ml|aiml)\b',
             r'\bmachine\s+learning\b', r'\bdeep\s+learning\b', r'\bartificial\s+intelligen',
             r'\bai\b', r'\bllm\b', r'\bmlops\b', r'\bnlp\b', r'\bcomputer\s+vision\b',
             r'\banalytics\b', r'\bbusiness\s+intelligence\b', r'\bBI\b',
@@ -52,13 +59,26 @@ _IT_SUBCATEGORIES = [
     (
         "Infrastructure & Cloud",
         [
-            r'\bcloud\b', r'\baws\b', r'\bazure\b', r'\bgcp\b', r'\bkubernetes\b', r'\bdocker\b',
+            # Cloud & plateformes
+            r'\bcloud\b', r'\baws\b', r'\bazure\b', r'\bgcp\b', r'\boci\b',
+            r'\bkubernetes\b', r'\bdocker\b', r'\bterraform\b', r'\bansible\b',
+            r'\bci[/-]?cd\b', r'\bpipeline\b', r'\bjenkins\b',
+            # Infrastructure & réseau
             r'\binfrastructure\b', r'\bnetwork\b', r'\bréseau\b', r'\bsysadmin\b',
-            r'\bsite\s+reliabilit', r'\bsre\b', r'\bdevsecops\b',
+            r'\bsite\s+reliabilit', r'\bsre\b', r'\bdevsecops\b', r'\bdevops\b',
             r'\blinux\b', r'\bunix\b', r'\bvmware\b', r'\bvirtualisat', r'\bhypervisor\b',
             r'\bplatform\s+engineer', r'\bstorage\b', r'\bbackup\b', r'\bsaas\b',
             r'\bhpc\b', r'\btelecommunicat', r'\btélécom\b',
+            # Support & exploitation
             r'\bsupport\s+(?:applicat|technique|it|n[°1-3])\b',
+            r'\bapplication\s+support\b', r'\bproduction\s+support\b',
+            r'\bexploitation\b', r'\brun\s+(?:it|applicat)\b',
+            r'\bmonitoring\b', r'\bobservabilit', r'\bincident.*manag',
+            r'\bservice\s+desk\b', r'\bhelpdesk\b',
+            r'\btechnology\s+support\b', r'\btech(?:nology)?\s+(?:support|operat|infra)\b',
+            r'\bplatform.*operat', r'\bit\s+operat',
+            # Asset management
+            r'\bitam\b', r'\bit\s+asset',
             r'\bmicroservices?\b', r'\borchestrat\b',
         ]
     ),
@@ -67,37 +87,66 @@ _IT_SUBCATEGORIES = [
         [
             r'\bproject\s+manager\b', r'\bprogram(?:me)?\s+manager\b',
             r'\bpmo\b', r'\bscrum\s+master\b', r'\bproduct\s+owner\b',
-            r'\bagile\s+coach\b', r'\bdelivery\s+manager\b', r'\btransformat.*digit',
+            r'\bagile\s+coach\b', r'\bdelivery\s+manager\b',
+            r'\bgestion\s+de\s+projet\b',  # chef de projet sans qualifier → OK dans contexte IT
+            r'\bchef\s+de\s+projet\b',
+            r'\btransformat.*digit', r'\bdigital.*transformat',
             r'\bgestion\s+de\s+projet\s+(?:it|informatiq|digital|tech)',
-            r'\bprojet.*(?:si|systèmes?\s+d\'information|erp|sap|oracle)\b',
+            r'\bprojet.*(?:si|systèmes?\s+d\'information|erp|sap|oracle|digital)\b',
+            r'\bit\s+(?:project|program|governance)\b',
+            r'\bgouvernance.*(?:it|si|tech|digital)\b',
+            r'\brisques?\s+(?:digit|si\b|systèmes?\s+d\'information)\b',
         ]
     ),
     (
         "Conseil & Solutions IT",
         [
-            r'\bconsultant.*(?:it|tech|digital|sap|oracle|erp|crm|salesforce)\b',
-            r'\b(?:sap|oracle|salesforce|servicenow|workday)\s+consultant\b',
+            # Business Analysis
+            r'\bbusiness\s+anal',
+            r'\bfront\s*[-\s]?office\s+(?:it|analyst|tech)\b',
+            # Conseil IT & Digital
+            r'\bconsultant.*(?:it|tech|digital|sap|oracle|erp|crm|salesforce|strateg|transformat)\b',
+            r'\bdigital.*consult', r'\bconseil.*(?:it|digital|si|tech)\b',
+            r'\bit\s+strateg', r'\bcio\b', r'\bcto\b',
+            # Solutions & Architectures
+            r'\b(?:sap|oracle|salesforce|servicenow|workday|dynamics)\s+(?:consultant|architect|advisor)\b',
+            r'\bdynamics\s*365\b', r'\bdynamics\b',
             r'\barchitecte.*(?:solution|enterprise|applicat|données|si)\b',
-            r'\bsolutions?\s+architect\b', r'\btechnical\s+(?:advisor|expert|specialist)\b',
+            r'\bsolutions?\s+architect\b',
+            r'\btechnical\s+(?:advisor|expert|specialist|lead)\b',
+            r'\btech\s+lead\b',
+            r'\bexpert.*(?:it|tech|digital|si)\b',
+            # Pré-vente & intégration
             r'\bpré-?vente\b', r'\bpresales\b', r'\bintégrat.*(?:système|solution|si)\b',
             r'\bmaîtrise\s+d\'ouvrage\b', r'\bmaîtrise\s+d\'oeuvre\b',
             r'\bmoa\b', r'\bmoe\b', r'\bamoa\b',
-            r'\bconseil.*digital\b', r'\bdigital.*transformat\b',
         ]
     ),
     (
         "Développement & Architecture",
         [
+            # Développeurs
             r'\bdeveloper\b', r'\bdéveloppeur\b', r'\bdeveloppeur\b', r'\bsoftware\s+engineer\b',
             r'\bfull\s*stack\b', r'\bfront.?end\b', r'\bback.?end\b',
+            # Langages
             r'\bjava\b', r'\bpython\b', r'\.net\b', r'\bc\+\+\b', r'\btypescript\b',
             r'\breact\b', r'\bangular\b', r'\bvue\.?js\b', r'\bnode\.?js\b',
             r'\bkotlin\b', r'\bswift\b', r'\bphp\b', r'\bruby\b', r'\bscala\b',
+            r'\bcobol\b', r'\bpl[\s/]?sql\b',
+            # API & architecture logicielle
             r'\bmicroservice\b', r'\bapi\b', r'\brest\s+api\b', r'\bgraphql\b',
             r'\barchitect(?:e|ure)?\s+(?:logiciel|applicat|tech|si)\b',
             r'\barchitecte\s+technique\b', r'\btechnical\s+architect\b',
+            # Bases de données
+            r'\bdba\b', r'\bdatabase\s+admin', r'\bpostgres\b', r'\bmysql\b',
+            r'\bmongodb\b', r'\bteradata\b', r'\bsql\b',
+            # QA & tests
             r'\bqa\b', r'\bquality\s+assurance\b', r'\btest\s+(?:engineer|automation|lead)\b',
             r'\bautomation\s+engineer\b', r'\bprogramm(?:eur|ing)\b', r'\bcod(?:eur|ing)\b',
+            r'\buat\b', r'\bsoftware\s+engineer',  # sans \b final pour matcher "engineering"
+            r'\bprincipal\s+architect\b', r'\blead\s+(?:architect|developer|engineer)\b',
+            r'\bengineer(?:ing)?\s+manager\b', r'\bmanager\s+of\s+software\b',
+            r'\bsr\.?\s+(?:engineer|developer|architect)\b',
         ]
     ),
 ]
@@ -109,36 +158,73 @@ _COMMERCIAL_SUBCATEGORIES = [
     (
         "Banque Privée & Patrimoine",
         [
-            r'\bprivate\s+bank', r'\bwealth\s+manag', r'\bgestion\s+de\s+(?:fortune|patrimoine)\b',
-            r'\bpatrimoine\b', r'\bconseiller.*privé\b', r'\bbanquier.*privé\b',
-            r'\bhigh\s+net\s+worth\b', r'\bhnw\b', r'\buhnw\b', r'\bvip\b',
-            r'\bgestion.*actifs.*particulier', r'\bfamily\s+office\b',
+            # Anglais
+            r'\bprivate\s+bank', r'\bwealth\s+manag', r'\bhigh\s+net\s+worth\b',
+            r'\bhnw\b', r'\buhnw\b', r'\bfamily\s+office\b',
+            r'\bwealth\s+advisor\b', r'\bprivate\s+advisor\b',
+            # Français (avec variantes accentuées)
+            r'\bgestion\s+de\s+(?:fortune|patrimoine)\b',
+            r'\bpatrimoine\b', r'\bpatrimonial',
+            r'\bgestion\s+priv[eé]\b', r'\bgestion\s+de\s+patrimoine\b',
+            r'\bconseiller.*(?:priv[eé]|patrimoni|fortune)\b',
+            r'\bbanquier.*priv[eé]',
+            r'\bcharg[eé].*affaires.*(?:patrimoin|priv[eé]|gestion\s+priv)',
+            r'\bgestionnaire.*clientèle.*patrimoni',
+            r'\bgestionnaire.*patrimoni',
+            r'\bgestion.*actifs.*particulier',
         ]
     ),
     (
         "Banque Corporate & Marchés",
         [
+            # Corporate banking
             r'\bcorporate\s+(?:bank|client|finance|cover)\b',
             r'\bcoverage\b', r'\brelationship\s+(?:manager|banker)\b',
+            r'\bgrand(?:e)?s?\s+entreprises?\b', r'\bclient(?:s)?\s+corporate\b',
+            r'\bfinancement\s+(?:corporate|entreprise|structure)\b',
+            r'\bbanquier.*entreprise\b',
+            r'\bcharg[eé].*affaires.*(?:entreprises?|corporate|pme|eti|personnes?\s+moral)',
+            r'\bdirecteur.*(?:entreprise|corporate|comptes)\b',
+            r'\bpme\s+(?:et|\/)\s*eti\b', r'\bkey\s+account\b', r'\bcompte\s+clé\b',
+            # Marchés & produits
             r'\bcapital\s+markets?\b', r'\btrade\s+finance\b',
             r'\bfixed\s+income\b', r'\bequit(?:y|ies)\s+(?:sales|research)\b',
             r'\bsales\s+(?:trader|capital|fixed|equity)\b',
-            r'\bgrand(?:e)?s?\s+entreprises?\b', r'\bclient(?:s)?\s+corporate\b',
-            r'\bfinancement\s+(?:corporate|entreprise|structure)\b',
             r'\btrésorerie\s+d\'entreprise\b', r'\bcash\s+management.*entreprise\b',
-            r'\bpme\s+(?:et|\/)\s*eti\b', r'\bcompte\s+clé\b', r'\bkey\s+account\b',
         ]
     ),
     (
         "Banque de Détail & Agence",
         [
-            r'\bconseiller.*(?:particulier|clientèle|essentiel|premium|professionnel)\b',
-            r'\bchargé.*(?:clientèle|client)\b', r'\bagent.*(?:commercial|général)\b',
+            # Conseillers
+            r'\bconseiller.*(?:particulier|clientèle|essentiel|premium|professionnel|financier)\b',
+            r'\bconseiller\s+commercial\b', r'\bassistant\s+commercial\b',
+            r'\bconseiller.*(?:pro\b|professionnel)\b',
+            r'\bconseiller.*assurance\b',
+            # Chargés de clientèle
+            r'\bcharg[eé].*(?:clientèle|client)\b',
+            r'\bcharg[eé].*affaires.*(?:particulier|essentiel)\b',
+            # Gestionnaires clientèle (très commun chez BP, CA, CM, etc.)
+            r'\bgestionnaire.*client',
+            r'\bgestionnaire.*(?:clientèle|comptes)\b',
+            r'\bdirecteur.*(?:client|clientèle)\b',
+            # Agences & réseaux
+            r'\bagent.*(?:commercial|général)\b',
             r'\bdirecteur.*agence\b', r'\bresponsable.*agence\b', r'\badjoint.*agence\b',
             r'\baccueil.*client\b', r'\bguichet\b', r'\btelleuse?\b',
-            r'\bconseiller.*pro\b', r'\bbanque.*détail\b', r'\bretail\s+bank',
-            r'\bmandataire\b', r'\bcourtier\b', r'\bassurance.*conseil\b',
-            r'\bconseiller.*assurance\b',
+            r'\bbanque.*d[eé]tail\b', r'\bretail\s+bank',
+            r'\bresponsable.*point\s+de\s+vente\b', r'\bresponsable.*pdv\b',
+            # Bankers & associates (JP Morgan style)
+            r'\bassociate\s+banker\b', r'\bprivate\s+client\s+banker\b',
+            r'\bclient\s+associate\b', r'\bclient\s+service\b',
+            r'\bbanque\s+à\s+distance\b', r'\bteleconseil\b', r'\bteleconseill',
+            # Mandataires & courtiers
+            r'\bmandataire\b', r'\bcourtier\b',
+            r'\bassurance.*conseil\b',
+            # Développement commercial général
+            r'\bdéveloppement\s+commercial\b', r'\bportefeuille.*client\b',
+            r'\bcharg[eé].*accueil\b', r'\bsatisfaction.*client\b',
+            r'\breclamation.*client\b', r'\brelation.*client\b',
         ]
     ),
 ]
@@ -244,7 +330,8 @@ JOB_FAMILIES = {
     ],
 
     "Inspection / Audit": [
-        r'\baudit\b', r'\binspection\b', r'\binspecteur\b', r'\bauditor\b',
+        r'\baudit(?:eur|or|ing)?\b', r'\baudit\b',  # "auditeur" ne matchait pas \baudit\b
+        r'\binspection\b', r'\binspecteur\b',
         r'\binternal.*audit\b', r'\baudit.*interne\b', r'\bcontrôle.*qualité\b',
     ],
 
@@ -280,10 +367,11 @@ def _score_subcat(text: str, title: str, patterns: list) -> int:
 
 
 def _classify_it_subcat(job_title: str, job_description: str = "") -> str:
-    """Retourne la sous-catégorie IT la plus appropriée."""
+    """Retourne la sous-catégorie IT la plus appropriée.
+    Retourne 'IT - Autres' si aucun pattern ne matche (fallback distinct du parent)."""
     text = (job_description or "")[:3000]
     title = job_title or ""
-    best_cat, best_score = "IT, Digital et Data", 0
+    best_cat, best_score = "IT - Autres", 0
     for cat, patterns in _IT_SUBCATEGORIES:
         s = _score_subcat(text, title, patterns)
         if s > best_score:
@@ -292,10 +380,11 @@ def _classify_it_subcat(job_title: str, job_description: str = "") -> str:
 
 
 def _classify_commercial_subcat(job_title: str, job_description: str = "") -> str:
-    """Retourne la sous-catégorie Commercial la plus appropriée."""
+    """Retourne la sous-catégorie Commercial la plus appropriée.
+    Retourne 'Commercial - Autres' si aucun pattern ne matche."""
     text = (job_description or "")[:3000]
     title = job_title or ""
-    best_cat, best_score = "Commercial / Relations Clients", 0
+    best_cat, best_score = "Commercial - Autres", 0
     for cat, patterns in _COMMERCIAL_SUBCATEGORIES:
         s = _score_subcat(text, title, patterns)
         if s > best_score:

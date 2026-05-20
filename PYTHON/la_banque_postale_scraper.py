@@ -453,6 +453,18 @@ def parse_detail_page(html: str, base_job: Dict) -> Dict:
     # ── Pays ─────────────────────────────────────────────────
     job.setdefault("country", "France")
 
+    # ── Localisation par défaut ───────────────────────────────
+    # La Banque Postale ne recrute qu'en France. Si la ville n'a pas pu
+    # être extraite de la liste ni de la page détail, on se replie sur
+    # "France" pour éviter que l'offre tombe dans "Non spécifié".
+    if not job.get("location"):
+        region = job.get("region", "")
+        if region and region.lower() not in ("", "france"):
+            # La sidebar a fourni une région (ex: "Île-de-France") : on l'utilise
+            job["location"] = f"{region} - France"
+        else:
+            job["location"] = "France"
+
     return job
 
 

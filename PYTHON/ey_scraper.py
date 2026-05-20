@@ -143,7 +143,8 @@ _CITY_COUNTRY_MAP = {
     "gurugram": "Inde", "gurgaon": "Inde",
     "bengaluru": "Inde", "bangalore": "Inde",
     "hyderabad": "Inde", "pune": "Inde", "noida": "Inde",
-    "ahmedabad": "Inde", "chennai": "Inde",
+    "ahmedabad": "Inde", "chennai": "Inde", "kolkata": "Inde",
+    "new delhi": "Inde", "bombay": "Inde", "kochi": "Inde",
     "são paulo": "Brésil", "sao paulo": "Brésil",
     "rio de janeiro": "Brésil", "curitiba": "Brésil",
     "bogotá": "Colombie", "bogota": "Colombie",
@@ -156,27 +157,52 @@ _CITY_COUNTRY_MAP = {
     "düsseldorf": "Allemagne", "dusseldorf": "Allemagne",
     "frankfurt": "Allemagne", "münchen": "Allemagne", "munich": "Allemagne",
     "hamburg": "Allemagne", "berlin": "Allemagne", "cologne": "Allemagne",
-    "köln": "Allemagne", "stuttgart": "Allemagne",
+    "köln": "Allemagne", "stuttgart": "Allemagne", "eschborn": "Allemagne",
     "zürich": "Suisse", "zurich": "Suisse", "geneva": "Suisse", "genève": "Suisse",
-    "warsaw": "Pologne", "warsaw": "Pologne", "kraków": "Pologne",
-    "prague": "République Tchèque", "bratislava": "Slovaquie",
+    "lausanne": "Suisse", "basel": "Suisse",
+    "warsaw": "Pologne", "kraków": "Pologne", "katowice": "Pologne",
+    "wroclaw": "Pologne", "wrocław": "Pologne", "poznan": "Pologne",
+    "prague": "Tchéquie", "bratislava": "Slovaquie",
     "bucharest": "Roumanie", "budapest": "Hongrie",
     "sofia": "Bulgarie", "zagreb": "Croatie",
     "istanbul": "Turquie", "ankara": "Turquie",
     "tel aviv": "Israël",
     "johannesburg": "Afrique du Sud", "cape town": "Afrique du Sud",
-    "nairobi": "Kenya", "lagos": "Nigeria",
-    "manila": "Philippines", "jakarta": "Indonésie",
+    "nairobi": "Kenya", "lagos": "Nigeria", "accra": "Ghana",
+    "casablanca": "Maroc", "tunis": "Tunisie", "alger": "Algérie",
+    "manila": "Philippines", "taguig": "Philippines", "makati": "Philippines",
+    "jakarta": "Indonésie",
     "kuala lumpur": "Malaisie", "bangkok": "Thaïlande",
     "ho chi minh": "Vietnam", "hanoi": "Vietnam",
     "seoul": "Corée du Sud", "tokyo": "Japon", "osaka": "Japon",
     "taipei": "Taïwan",
     "shanghai": "Chine", "beijing": "Chine", "shenzhen": "Chine",
     "guangzhou": "Chine", "chengdu": "Chine",
-    "hong kong": "Hong Kong",
+    "hong kong": "Hong-Kong", "macau": "Macao", "macao": "Macao",
     "auckland": "Nouvelle-Zélande", "wellington": "Nouvelle-Zélande",
     "melbourne": "Australie", "sydney": "Australie", "brisbane": "Australie",
     "perth": "Australie", "canberra": "Australie",
+    # Philippines districts
+    "youngdeungpo": "Corée du Sud", "youngdeungpo-gu": "Corée du Sud",
+    # Amérique Latine
+    "ciudad de mexico": "Mexique", "monterrey": "Mexique",
+    "panama": "Panama", "bogota": "Colombie",
+    "santiago de chile": "Chili",
+    # Autres
+    "amsterdam": "Pays-Bas", "rotterdam": "Pays-Bas",
+    "brussels": "Belgique", "bruxelles": "Belgique",
+    "london": "Royaume-Uni", "manchester": "Royaume-Uni", "edinburgh": "Royaume-Uni",
+    "dublin": "Irlande",
+    "oslo": "Norvège", "stockholm": "Suède", "helsinki": "Finlande",
+    "copenhagen": "Danemark", "vienna": "Autriche",
+    "rome": "Italie", "milan": "Italie", "madrid": "Espagne", "barcelona": "Espagne",
+    "lisbon": "Portugal", "athens": "Grèce",
+    "singapore": "Singapour",
+    "karachi": "Pakistan", "lahore": "Pakistan", "islamabad": "Pakistan",
+    "colombo": "Sri Lanka",
+    "amman": "Jordanie", "beirut": "Liban",
+    "doha": "Qatar", "kuwait city": "Koweït", "manama": "Bahreïn",
+    "moscow": "Russie", "kyiv": "Ukraine",
 }
 
 # Codes de bureau EY internes parfois collés à la ville dans og:desc (ex: "São Paulo JK")
@@ -189,6 +215,31 @@ def _country_from_postal(og_desc: str) -> str:
         if pattern.search(og_desc or ""):
             return country
     return ""
+
+
+def _city_country_from_text(text: str) -> Tuple[str, str]:
+    """
+    Tente d'extraire (city_norm, country_norm) depuis les N premiers mots de `text`.
+    Teste des combinaisons de 1, 2, 3 mots contre _CITY_COUNTRY_MAP et city_normalizer.
+    Retourne ("", "") si aucun match.
+    """
+    if not text:
+        return "", ""
+    words = text.strip().split()
+    for n in range(min(3, len(words)), 0, -1):
+        candidate = " ".join(words[:n])
+        candidate_low = candidate.lower()
+        # Table directe
+        country = _CITY_COUNTRY_MAP.get(candidate_low, "")
+        if not country:
+            # city_normalizer
+            cn = normalize_city(candidate)
+            cg = get_country_from_city(cn) or get_country_from_city(candidate_low)
+            country = normalize_country(cg or "") or ""
+        if country:
+            city_norm = normalize_city(candidate) or candidate.title()
+            return city_norm, country
+    return "", ""
 
 
 def parse_location(og_title: str, og_desc: str) -> Tuple[str, str, str]:
@@ -204,6 +255,13 @@ def parse_location(og_title: str, og_desc: str) -> Tuple[str, str, str]:
         city_raw = pre.strip()
 
     if not city_raw:
+        # Fallback : og_title commence parfois par la ville (pattern EY : "Bengaluru Risk Consulting…")
+        # Ou tenter depuis le début de og_desc si og_title absent
+        for src in (og_title or "", og_desc or ""):
+            city_try, country_try = _city_country_from_text(src)
+            if country_try:
+                display = f"{city_try} - {country_try}"
+                return display, country_try, city_try
         return "", "", ""
 
     # Retire les codes de bureau EY internes (ex: " JK", " GDS")

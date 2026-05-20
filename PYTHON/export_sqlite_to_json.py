@@ -298,6 +298,26 @@ def normalize_experience_level(raw_exp: str) -> str:
 
     return raw_exp.strip()
 
+def _infer_location_from_title(title: str) -> str:
+    """
+    Tente d'extraire une localisation depuis les 1-3 premiers mots d'un titre.
+    Utilisé comme fallback pour EY (certains titres commencent par la ville :
+    "Bengaluru Risk Consulting…", "Taguig GDS TS…", "Perth Senior Consultant…").
+    Retourne "Ville - Pays" ou "" si aucune correspondance.
+    """
+    if not title:
+        return ""
+    words = title.strip().split()
+    for n in range(min(3, len(words)), 0, -1):
+        candidate = " ".join(words[:n])
+        country = get_country_from_city(candidate)
+        if not country:
+            country = get_country_from_city(candidate.lower())
+        if country:
+            return f"{candidate} - {normalize_country(country)}"
+    return ""
+
+
 def fix_location(loc):
     """Corrige les locations incorrectes (ex: Tunis - France → Tunis - Tunisie, N/A - Luxembourg → Luxembourg).
     Normalise toujours le pays en sortie (ex: France, Royaume-Uni) pour cohérence site/filtres."""
@@ -439,6 +459,20 @@ def read_from_db(db_path, company_name, live_only=True):
             # Corriger les locations incorrectes (ex: Tunis - France → Tunis - Tunisie)
             if job.get('location'):
                 job['location'] = fix_location(job['location'])
+
+            # Fallback localisation pour sources qui laissent location vide
+            if not (job.get('location') or '').strip():
+                cn = str(job.get('company_name') or '').lower()
+                title = job.get('job_title') or ''
+                if 'banque postale' in cn:
+                    # LBP = 100% France ; on met au moins "France" pour que l'offre
+                    # ne tombe pas dans "Non spécifié / Autres"
+                    job['location'] = 'France'
+                elif cn == 'ey':
+                    # EY : certains titres commencent par la ville (Bengaluru, Taguig, Perth…)
+                    inferred = _infer_location_from_title(title)
+                    if inferred:
+                        job['location'] = inferred
 
             # Normaliser le type de contrat (filet de sécurité)
             if job.get('contract_type'):

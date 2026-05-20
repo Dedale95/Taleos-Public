@@ -1355,7 +1355,6 @@
         }
 
         function buildSearchHaystack(run) {
-            const recentLogs = Array.isArray(run.recentLogs) ? run.recentLogs.map((entry) => entry.message || '').join(' ') : '';
             return [
                 run.userEmail,
                 run.userId,
@@ -1367,8 +1366,7 @@
                 run.extensionVersionName,
                 run.successMessage,
                 run.failureMessage,
-                run.failureType,
-                recentLogs
+                run.failureType
             ].join(' ').toLowerCase();
         }
 
@@ -1879,7 +1877,6 @@
             empty.style.display = 'none';
             tbody.innerHTML = filteredRuns.map((run) => {
                 const outcome = formatRunOutcome(run);
-                const recentLogs = Array.isArray(run.recentLogs) ? run.recentLogs.slice(-6) : [];
                 const detailParts = [];
                 if (Number(run.durationSeconds || 0) > 0) detailParts.push(`Durée ${escapeHtml(String(run.durationSeconds))}s`);
                 if (run.successType) detailParts.push(`Succès ${escapeHtml(run.successType)}`);
@@ -1909,12 +1906,6 @@
                         <td class="col-result"><span class="run-status ${outcome.css}">${outcome.icon} ${outcome.label}</span></td>
                         <td class="run-detail">
                             ${detailParts.length ? detailParts.map((part) => `<div class="run-detail-line">${part}</div>`).join('') : '<span class="run-meta">—</span>'}
-                            ${recentLogs.length ? `
-                                <details class="run-logs">
-                                    <summary>Logs récents</summary>
-                                    <div class="run-logs-body">${recentLogs.map((entry) => `${escapeHtml(formatCompactDate(entry.ts))} · ${escapeHtml(entry.source || 'extension')} · ${escapeHtml(entry.message || '')}`).join('\n')}</div>
-                                </details>
-                            ` : ''}
                         </td>
                         <td class="col-action">
                             <button class="run-action-btn" data-run-id="${runKey}" data-archive="${run.archived ? '0' : '1'}">

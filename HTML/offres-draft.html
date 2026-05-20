@@ -3497,12 +3497,6 @@
                 console.warn('⚠️ Fichier ouvert via file:// - Les requêtes fetch peuvent être bloquées. Utilisez un serveur local.');
             }
 
-            const SOURCES = [
-                'credit_agricole', 'societe_generale', 'deloitte', 'bnp_paribas',
-                'bpce', 'bpifrance', 'credit_mutuel', 'oddo_bhf', 'jp_morgan',
-                'goldman_sachs', 'kpmg', 'axa', 'hsbc', 'ey', 'la_banque_postale'
-            ];
-
             const BASE_CANDIDATES = isInHTMLFolder
                 ? ['', 'https://dedale95.github.io/Taleos-Public/HTML', 'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML']
                 : ['HTML', '', 'https://dedale95.github.io/Taleos-Public/HTML', 'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML'];
@@ -3532,31 +3526,67 @@
                 if (probe) { baseUrl = candidate; break; }
             }
 
+            // Tableau live partagé — alimenté au fur et à mesure par les fetches
+            const streamedJobs = [];
+            let allSourcesDone = false;
             let data = null;
 
             if (baseUrl !== null) {
+                // Sources triées du + petit au + grand → premier rendu rapide
+                const SOURCES_STREAMING = [
+                    'bpifrance',         // ~444 KB
+                    'oddo_bhf',          // ~474 KB
+                    'kpmg',              // ~697 KB
+                    'la_banque_postale', // ~721 KB
+                    'deloitte',          // ~953 KB
+                    'bnp_paribas',       // ~0 KB
+                    'societe_generale',  // ~1.5 MB
+                    'axa',               // ~2.2 MB
+                    'credit_mutuel',     // ~2.3 MB
+                    'credit_agricole',   // ~2.8 MB
+                    'bpce',              // ~3.5 MB
+                    'goldman_sachs',     // ~3.8 MB
+                    'hsbc',              // ~4.1 MB
+                    'jp_morgan',         // ~6.2 MB
+                    'ey',                // ~22 MB ← toujours en dernier
+                ];
+
                 if (container) {
-                    container.innerHTML = `<div class="no-results"><h3>⏳ Chargement en cours...</h3><p id="loadingProgress">0 / ${SOURCES.length} sources chargées...</p></div>`;
+                    container.innerHTML = `<div class="no-results"><h3>⏳ Chargement en cours...</h3><p id="loadingProgress">0 / ${SOURCES_STREAMING.length} sources chargées...</p></div>`;
                 }
-                let loaded = 0;
+                let loadedSources = 0;
                 const updateProgress = () => {
-                    loaded++;
+                    loadedSources++;
                     const el = document.getElementById('loadingProgress');
-                    if (el) el.textContent = `${loaded} / ${SOURCES.length} sources chargées...`;
+                    if (el) el.textContent = `${loadedSources} / ${SOURCES_STREAMING.length} sources chargées...`;
                 };
 
-                const results = await Promise.all(SOURCES.map(async key => {
+                let resolveFirstData;
+                const firstDataPromise = new Promise(r => { resolveFirstData = r; });
+                let firstDataSignaled = false;
+
+                const allSourcesPromise = Promise.all(SOURCES_STREAMING.map(async key => {
                     const url = buildUrl(baseUrl, `scraped_jobs_${key}.json`);
                     const jobs = await tryFetch(url, 60000);
                     updateProgress();
-                    if (!jobs) console.warn(`⚠️ Source non disponible : ${key}`);
-                    return jobs;
+                    if (Array.isArray(jobs) && jobs.length > 0) {
+                        const live = jobs.filter(j => j && String(j.status || '').toLowerCase().trim() === 'live');
+                        streamedJobs.push(...live);
+                        if (!firstDataSignaled && streamedJobs.length > 0) {
+                            firstDataSignaled = true;
+                            resolveFirstData();
+                        }
+                    } else if (!jobs) {
+                        console.warn(`⚠️ Source non disponible : ${key}`);
+                    }
                 }));
+                allSourcesPromise.then(() => { allSourcesDone = true; });
 
-                const merged = results.flatMap(r => Array.isArray(r) ? r : []);
-                if (merged.length > 0) {
-                    data = merged;
-                    console.log(`✅ ${merged.length} offres chargées depuis ${SOURCES.length} sources en parallèle`);
+                await Promise.race([firstDataPromise, new Promise(r => setTimeout(r, 10000))]);
+
+                if (streamedJobs.length > 0) {
+                    data = streamedJobs;
+                    console.log(`✅ Premier lot : ${streamedJobs.length} offres (streaming en cours)`);
                 }
             }
 
@@ -3602,10 +3632,13 @@
                 throw new Error('Impossible de charger les offres depuis aucune source');
             }
 
-            const beforeLiveFilter = data.length;
-            data = data.filter(job => job && String(job.status || '').toLowerCase().trim() === 'live');
-            if (beforeLiveFilter > data.length) {
-                console.log(`📋 ${beforeLiveFilter - data.length} offres non-live exclues → ${data.length} offres live`);
+            // Filtrage live déjà appliqué en streaming ; uniquement pour le fallback monolithique
+            if (data && data !== streamedJobs) {
+                const beforeLiveFilter = data.length;
+                data = data.filter(job => job && String(job.status || '').toLowerCase().trim() === 'live');
+                if (beforeLiveFilter > data.length) {
+                    console.log(`📋 ${beforeLiveFilter - data.length} offres non-live exclues → ${data.length} offres live`);
+                }
             }
             
             try {
@@ -3619,7 +3652,7 @@
                     return;
                 }
 
-                console.log(`📊 ${data.length} offres à traiter (affichage progressif)`);
+                console.log(`📊 ${data.length} offres disponibles (streaming${allSourcesDone ? ' complet' : ' en cours'})`);
                 const jobsContainer = document.getElementById('jobsContainer');
                 const totalCount = data.length;
 
@@ -3930,7 +3963,8 @@
                 renderCustomSections();
                 console.log(`✅ Premier affichage : ${allJobs.length} offres (total ${totalCount})`);
 
-                if (firstEnd >= totalCount) {
+                if (firstEnd >= data.length && allSourcesDone) {
+                    document.getElementById('totalJobs') && (document.getElementById('totalJobs').textContent = data.length);
                     return;
                 }
 
@@ -3938,7 +3972,7 @@
                 const banner = document.createElement('div');
                 banner.id = 'backgroundLoadBanner';
                 banner.style.cssText = 'position:sticky;top:0;z-index:10;background:linear-gradient(135deg,#6b4ce6 0%,#8b5cf6 100%);color:#fff;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:0.9rem;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
-                banner.innerHTML = '<span class="banner-spinner" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;"></span><span class="banner-text">Chargement des offres en arrière-plan : ' + firstEnd + ' / ' + totalCount + '</span>';
+                banner.innerHTML = '<span class="banner-spinner" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;"></span><span class="banner-text">Chargement des offres en arrière-plan : ' + firstEnd + ' / ' + data.length + (allSourcesDone ? '' : '+') + '</span>';
                 const container = document.getElementById('jobsContainer');
                 if (container && container.firstChild) {
                     container.insertBefore(banner, container.firstChild);
@@ -3947,14 +3981,23 @@
                 }
 
                 (async function runBackgroundLoad() {
-                    for (let start = firstEnd; start < totalCount; start += BACKGROUND_BATCH) {
+                    let cursor = firstEnd;
+                    while (cursor < data.length || !allSourcesDone) {
                         await new Promise(r => setTimeout(r, 0));
-                        const end = Math.min(start + BACKGROUND_BATCH, totalCount);
-                        for (let i = start; i < end; i++) {
+                        if (cursor >= data.length) {
+                            if (!allSourcesDone) await new Promise(r => setTimeout(r, 100));
+                            continue;
+                        }
+                        const end = Math.min(cursor + BACKGROUND_BATCH, data.length);
+                        for (let i = cursor; i < end; i++) {
                             pushProcessed(data[i], i);
                         }
+                        cursor = end;
                         const textEl = banner.querySelector('.banner-text');
-                        if (textEl) textEl.textContent = 'Chargement des offres en arrière-plan : ' + allJobs.length + ' / ' + totalCount;
+                        if (textEl) {
+                            const suffix = allSourcesDone ? ' / ' + data.length : '+';
+                            textEl.textContent = 'Chargement des offres en arrière-plan : ' + allJobs.length + suffix;
+                        }
                     }
                     banner.remove();
                     syncFavoriteJobsWithDataset();

@@ -2022,10 +2022,10 @@
             try {
                 const cacheBust = `v=${Date.now()}`;
                 const isInHTMLFolder = window.location.href.includes('/HTML/');
-                const SOURCES = [
-                    'credit_agricole', 'societe_generale', 'deloitte', 'bnp_paribas',
-                    'bpce', 'bpifrance', 'credit_mutuel', 'oddo_bhf', 'jp_morgan',
-                    'goldman_sachs', 'kpmg', 'axa', 'hsbc', 'ey', 'la_banque_postale'
+                const SOURCES_STREAMING = [
+                    'bpifrance', 'oddo_bhf', 'goldman_sachs', 'hsbc', 'jp_morgan',
+                    'credit_mutuel', 'credit_agricole', 'la_banque_postale', 'kpmg',
+                    'societe_generale', 'axa', 'deloitte', 'bnp_paribas', 'bpce', 'ey'
                 ];
                 const BASE_CANDIDATES = isInHTMLFolder
                     ? ['', 'https://dedale95.github.io/Taleos-Public/HTML', 'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML']
@@ -2038,22 +2038,10 @@
                 }
                 let baseUrl = null;
                 for (const c of BASE_CANDIDATES) { const p = await tryFetch(buildUrl(c, 'scraped_jobs_summary.json'), 5000); if (p) { baseUrl = c; break; } }
-                let rawData = [];
-                if (baseUrl !== null) {
-                    const results = await Promise.all(SOURCES.map(key => tryFetch(buildUrl(baseUrl, `scraped_jobs_${key}.json`), 60000)));
-                    rawData = results.flatMap(r => Array.isArray(r) ? r : []);
-                }
-                if (!rawData.length) {
-                    const fallbacks = isInHTMLFolder
-                        ? ['scraped_jobs_live.json', 'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json']
-                        : ['HTML/scraped_jobs_live.json', 'scraped_jobs_live.json', 'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json'];
-                    for (const p of fallbacks) { const r = await tryFetch(`${p}?v=${cacheBust}`, 60000); if (r?.length) { rawData = r; break; } }
-                }
-                if (!rawData.length) { console.error('❌ Impossible de charger les offres'); return; }
+                const streamedRaw = [];
+                let allSourcesDone = false;
                 const statusLive = (s) => String(s || '').toLowerCase().trim() === 'live';
-                const liveData = rawData.filter(job => job && statusLive(job.status));
-                console.log(`📊 ${liveData.length} offres live depuis ${SOURCES.length} sources`);
-                allJobs = liveData.map(job => {
+                const processJobFn = (job) => {
                                     // Nettoyage et consolidation des noms d'entreprises (Groupe Crédit Mutuel)
                                     if (job && job.company_name && typeof job.company_name === 'string') {
                                         job.company_name = job.company_name.replace(/\s*\([A-Z&]+\)\s*$/g, '').trim();
@@ -2274,7 +2262,44 @@
                                     }
                                     
                         return job;
-                });
+                };
+                if (baseUrl !== null) {
+                    let resolveFirstData;
+                    const firstDataPromise = new Promise(r => { resolveFirstData = r; });
+                    let firstDataSignaled = false;
+                    const allSourcesPromise = Promise.all(SOURCES_STREAMING.map(async key => {
+                        const jobs = await tryFetch(buildUrl(baseUrl, `scraped_jobs_${key}.json`), 60000);
+                        if (Array.isArray(jobs) && jobs.length > 0) {
+                            streamedRaw.push(...jobs);
+                            if (!firstDataSignaled) { firstDataSignaled = true; resolveFirstData(); }
+                        } else if (!jobs) {
+                            console.warn(`⚠️ Source non disponible : ${key}`);
+                        }
+                    }));
+                    allSourcesPromise.then(() => { allSourcesDone = true; });
+                    await Promise.race([firstDataPromise, new Promise(r => setTimeout(r, 10000))]);
+                    if (streamedRaw.length > 0) {
+                        allJobs = streamedRaw.filter(job => job && statusLive(job.status)).map(processJobFn);
+                        console.log(`📊 Première vague : ${allJobs.length} offres live`);
+                        allSourcesPromise.then(() => {
+                            const fullLive = streamedRaw.filter(job => job && statusLive(job.status));
+                            console.log(`✅ ${fullLive.length} offres live au total`);
+                            allJobs = fullLive.map(processJobFn);
+                            renderAccordions();
+                        });
+                        return;
+                    }
+                }
+                // Fallback : aucune source individuelle disponible, essayer le fichier combiné
+                const fallbacks = isInHTMLFolder
+                    ? ['scraped_jobs_live.json', 'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json']
+                    : ['HTML/scraped_jobs_live.json', 'scraped_jobs_live.json', 'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json'];
+                let rawData = [];
+                for (const p of fallbacks) { const r = await tryFetch(`${p}?v=${cacheBust}`, 60000); if (r?.length) { rawData = r; break; } }
+                if (!rawData.length) { console.error('❌ Impossible de charger les offres'); return; }
+                const liveData = rawData.filter(job => job && statusLive(job.status));
+                console.log(`📊 ${liveData.length} offres live depuis fallback`);
+                allJobs = liveData.map(processJobFn);
                 console.log(`✅ ${allJobs.length} offres traitées`);
             } catch (error) {
                 console.error('Erreur lors du chargement des offres:', error);

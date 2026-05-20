@@ -39,6 +39,9 @@ on:
           - goldman_sachs
           - axa
           - kpmg
+          - ey
+          - hsbc
+          - la_banque_postale
 
 jobs:
   scrape:
@@ -123,6 +126,24 @@ jobs:
             script: kpmg_global_scraper.py
             db_file: kpmg_jobs.db
             timeout_minutes: 90
+            playwright_browser: ""
+          - name: EY
+            key: ey
+            script: ey_scraper.py
+            db_file: ey_jobs.db
+            timeout_minutes: 120
+            playwright_browser: ""
+          - name: HSBC
+            key: hsbc
+            script: hsbc_scraper.py
+            db_file: hsbc_jobs.db
+            timeout_minutes: 90
+            playwright_browser: ""
+          - name: La Banque Postale
+            key: la_banque_postale
+            script: la_banque_postale_scraper.py
+            db_file: la_banque_postale_jobs.db
+            timeout_minutes: 30
             playwright_browser: ""
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

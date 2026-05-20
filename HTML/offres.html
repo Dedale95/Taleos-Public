@@ -3014,197 +3014,135 @@
          * Charge les données depuis le fichier JSON (exporté depuis SQLite)
          */
         async function loadJobs() {
-            // Afficher un message de chargement
             const container = document.getElementById('jobsContainer');
             if (container) {
-                container.innerHTML = '<div class="no-results"><h3>⏳ Chargement des offres...</h3><p>Veuillez patienter pendant le chargement des données (2301 offres, ~7.2MB).</p><p style="margin-top: 10px; font-size: 0.9rem; color: #666;">⏱️ Cela peut prendre 10-30 secondes selon votre connexion...</p></div>';
+                container.innerHTML = '<div class="no-results"><h3>⏳ Chargement des offres...</h3><p>Connexion aux sources en cours...</p></div>';
             }
-            
-            // Vérifier si on est en mode file:// (fichier ouvert directement)
+
             const isFileProtocol = window.location.protocol === 'file:';
+            const currentHref = window.location.href;
+            const isInHTMLFolder = currentHref.includes('/HTML/');
+            const cacheBust = `v=${Date.now()}`;
+
             if (isFileProtocol) {
                 console.warn('⚠️ Fichier ouvert via file:// - Les requêtes fetch peuvent être bloquées. Utilisez un serveur local.');
             }
-            
-            // Essayer plusieurs chemins possibles pour le fichier JSON
-            // PRIORITÉ : scraped_jobs_live.json (uniquement offres Live, pas les expirées)
-            // On n'affiche jamais les offres expirées
-            const currentPath = window.location.pathname;
-            const currentHref = window.location.href;
-            const isInHTMLFolder = currentPath.includes('/HTML/') || currentPath.includes('HTML/') || 
-                                   currentHref.includes('/HTML/') || currentHref.includes('HTML/');
-            
-            // Construire les chemins selon l'emplacement du fichier HTML.
-            // On privilégie toujours les fichiers publiés sur GitHub Pages et les chemins relatifs,
-            // car raw.githubusercontent.com peut rester bloqué sur un ancien snapshot pendant plusieurs minutes.
-            const cacheBust = `v=${Date.now()}`;
-            const withCacheBust = (path) => {
-                if (!path || path.startsWith('file:')) return path;
-                return path.includes('?') ? `${path}&${cacheBust}` : `${path}?${cacheBust}`;
+
+            // 15 fichiers par source — chargés en parallèle (pas de limite 100 MB)
+            const SOURCES = [
+                'credit_agricole', 'societe_generale', 'deloitte', 'bnp_paribas',
+                'bpce', 'bpifrance', 'credit_mutuel', 'oddo_bhf', 'jp_morgan',
+                'goldman_sachs', 'kpmg', 'axa', 'hsbc', 'ey', 'la_banque_postale'
+            ];
+
+            // Bases URL à tester dans l'ordre de préférence
+            const BASE_CANDIDATES = isInHTMLFolder
+                ? ['', 'https://dedale95.github.io/Taleos-Public/HTML', 'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML']
+                : ['HTML', '', 'https://dedale95.github.io/Taleos-Public/HTML', 'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML'];
+
+            const buildUrl = (base, file) => {
+                const raw = base ? `${base}/${file}` : file;
+                return raw.includes('?') ? `${raw}&${cacheBust}` : `${raw}?${cacheBust}`;
             };
-            let possiblePaths;
-            if (isFileProtocol) {
-                possiblePaths = [
-                    'scraped_jobs_live.json',
-                    './scraped_jobs_live.json',
-                    'HTML/scraped_jobs_live.json',
-                    './HTML/scraped_jobs_live.json',
-                    'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json',
-                    'https://dedale95.github.io/Taleos-Public/scraped_jobs_live.json',
-                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json',
-                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/scraped_jobs_live.json'
-                ];
-            } else {
-                possiblePaths = [
-                    'scraped_jobs_live.json',
-                    './scraped_jobs_live.json',
-                    'HTML/scraped_jobs_live.json',
-                    './HTML/scraped_jobs_live.json',
-                    'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json',
-                    'https://dedale95.github.io/Taleos-Public/scraped_jobs_live.json',
-                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json',
-                    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/scraped_jobs_live.json'
-                ];
-            }
-            
-            let data = null;
-            let loadedPath = null;
-            let lastError = null;
-            
-            for (const rawPath of possiblePaths) {
+
+            async function tryFetch(url, timeoutMs = 30000) {
+                const ctrl = new AbortController();
+                const t = setTimeout(() => ctrl.abort(), timeoutMs);
                 try {
-                    const path = withCacheBust(rawPath);
-                    console.log(`🔄 Tentative de chargement depuis : ${path}`);
-                    
-                    // Créer un AbortController pour timeout (30 secondes)
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 30000);
-                    
-                    try {
-                        const response = await fetch(path, { 
-                            signal: controller.signal,
-                            headers: {
-                                'Accept': 'application/json',
-                                'Cache-Control': 'no-cache'
-                            }
-                        });
-                        
-                        clearTimeout(timeoutId);
-                        
-                        if (response.ok) {
-                            try {
-                                // Le fichier est volumineux (7.5MB), afficher un message de progression
-                                const jobsContainer = document.getElementById('jobsContainer');
-                                if (jobsContainer && path.includes('github')) {
-                                    jobsContainer.innerHTML = '<div class="no-results"><h3>⏳ Téléchargement en cours...</h3><p>Chargement depuis GitHub (7.2MB, 2301 offres), veuillez patienter...</p><p style="margin-top: 10px; font-size: 0.9rem; color: #666;">Cela peut prendre 10-30 secondes selon votre connexion.</p></div>';
-                                }
-                                
-                                console.log(`📥 Téléchargement du JSON depuis ${path}...`);
-                                const jsonText = await response.text();
-                                console.log(`📦 JSON téléchargé (${(jsonText.length / 1024 / 1024).toFixed(2)}MB), parsing en cours...`);
-                                
-                                try {
-                                    data = JSON.parse(jsonText);
-                                    console.log(`✅ JSON parsé avec succès : ${Array.isArray(data) ? 'tableau' : 'objet'}`);
-                                    
-                                    if (data && Array.isArray(data) && data.length > 0) {
-                                        const beforeCount = data.length;
-                                        const statusLive = (s) => String(s || '').toLowerCase().trim() === 'live';
-                                        data = data.filter(job => job && statusLive(job.status));
-                                        if (beforeCount > data.length) {
-                                            console.log(`📋 Filtrage : ${beforeCount - data.length} offres expirées exclues → ${data.length} offres live`);
-                                        }
-                                        loadedPath = path;
-                                        console.log(`✅ Fichier JSON chargé depuis : ${path} (${data.length} offres live)`);
-                                        break;
-                                    } else {
-                                        console.warn(`⚠️ Fichier JSON vide ou invalide pour : ${path}`, {
-                                            isArray: Array.isArray(data),
-                                            length: data ? data.length : 0,
-                                            type: typeof data
-                                        });
-                                    }
-                                } catch (parseError) {
-                                    console.error(`⚠️ Erreur de parsing JSON pour ${path}:`, parseError);
-                                    console.error(`Premiers caractères du JSON:`, jsonText.substring(0, 500));
-                                }
-                            } catch (parseError) {
-                                console.error(`⚠️ Erreur lors du traitement de ${path}:`, parseError);
-                            }
-                        } else {
-                            console.log(`⚠️ Réponse non OK (${response.status}) pour : ${path}`);
-                        }
-                    } catch (fetchError) {
-                        clearTimeout(timeoutId);
-                        if (fetchError.name === 'AbortError') {
-                            console.log(`⏱️ Timeout (30s) pour : ${path}`);
-                            lastError = new Error('Timeout: Le fichier est trop volumineux ou la connexion est lente');
-                        } else {
-                            throw fetchError;
-                        }
-                    }
-                } catch (error) {
-                    lastError = error;
-                    // Ne pas afficher les erreurs CORS pour file:// car c'est attendu
-                    if (!isFileProtocol || (!error.message.includes('CORS') && !error.message.includes('Failed to fetch'))) {
-                        console.log(`⚠️ Erreur lors du chargement depuis ${path}:`, error.message);
+                    const resp = await fetch(url, { signal: ctrl.signal, headers: { 'Cache-Control': 'no-cache' } });
+                    clearTimeout(t);
+                    if (!resp.ok) return null;
+                    return await resp.json();
+                } catch {
+                    clearTimeout(t);
+                    return null;
+                }
+            }
+
+            // Détection de la base URL fonctionnelle via scraped_jobs_summary.json (fichier léger)
+            let baseUrl = null;
+            for (const candidate of BASE_CANDIDATES) {
+                const probe = await tryFetch(buildUrl(candidate, 'scraped_jobs_summary.json'), 5000);
+                if (probe) { baseUrl = candidate; break; }
+            }
+
+            let data = null;
+
+            if (baseUrl !== null) {
+                // Chargement parallèle de toutes les sources
+                if (container) {
+                    container.innerHTML = `<div class="no-results"><h3>⏳ Chargement en cours...</h3><p id="loadingProgress">0 / ${SOURCES.length} sources chargées...</p></div>`;
+                }
+                let loaded = 0;
+                const updateProgress = () => {
+                    loaded++;
+                    const el = document.getElementById('loadingProgress');
+                    if (el) el.textContent = `${loaded} / ${SOURCES.length} sources chargées...`;
+                };
+
+                const results = await Promise.all(SOURCES.map(async key => {
+                    const url = buildUrl(baseUrl, `scraped_jobs_${key}.json`);
+                    const jobs = await tryFetch(url, 60000);
+                    updateProgress();
+                    if (!jobs) console.warn(`⚠️ Source non disponible : ${key}`);
+                    return jobs;
+                }));
+
+                const merged = results.flatMap(r => Array.isArray(r) ? r : []);
+                if (merged.length > 0) {
+                    data = merged;
+                    console.log(`✅ ${merged.length} offres chargées depuis ${SOURCES.length} sources en parallèle`);
+                }
+            }
+
+            // Fallback sur le fichier monolithique (rétrocompatibilité / dev local)
+            if (!data) {
+                console.warn('⚠️ Fichiers par source non disponibles — fallback sur scraped_jobs_live.json');
+                const fallbackPaths = isInHTMLFolder
+                    ? ['scraped_jobs_live.json', 'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json', 'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json']
+                    : ['HTML/scraped_jobs_live.json', 'scraped_jobs_live.json', 'https://dedale95.github.io/Taleos-Public/HTML/scraped_jobs_live.json', 'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json'];
+                for (const path of fallbackPaths) {
+                    const result = await tryFetch(path.includes('?') ? path : `${path}?${cacheBust}`, 60000);
+                    if (result && Array.isArray(result) && result.length > 0) {
+                        data = result;
+                        console.log(`✅ Fallback : ${data.length} offres depuis ${path}`);
+                        break;
                     }
                 }
             }
-            
+
             if (!data) {
-                console.error('❌ Impossible de charger le fichier JSON depuis aucun des chemins testés');
-                const container = document.getElementById('jobsContainer');
-                if (container) {
-                    // Message d'erreur adapté selon le protocole
-                    let errorMessage = '';
-                    if (isFileProtocol) {
-                        errorMessage = `
-                            <div class="no-results">
-                                <h3>😕 Erreur de chargement</h3>
-                                <p><strong>Le fichier est ouvert via file://</strong></p>
-                                <p>Les navigateurs bloquent les requêtes vers les fichiers locaux pour des raisons de sécurité CORS.</p>
-                                <p style="margin-top: 20px;"><strong>Solution : Utilisez un serveur local</strong></p>
-                                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 0.9rem; text-align: left;">
-                                    <p style="margin: 10px 0; font-weight: bold;">Méthode 1 : Script automatique (recommandé)</p>
-                                    <p style="margin: 10px 0;">Dans un terminal, exécutez :</p>
-                                    <p style="margin: 10px 0; padding-left: 20px;">./start_server.sh</p>
-                                    <p style="margin: 20px 0 10px 0; font-weight: bold;">Méthode 2 : Commande manuelle</p>
-                                    <p style="margin: 10px 0;">Dans un terminal, exécutez :</p>
-                                    <p style="margin: 10px 0; padding-left: 20px;"><code>cd HTML</code></p>
-                                    <p style="margin: 10px 0; padding-left: 20px;"><code>python3 -m http.server 8000</code></p>
-                                    <p style="margin: 20px 0 10px 0;">Puis ouvrez dans votre navigateur :</p>
-                                    <p style="margin: 10px 0; padding-left: 20px;"><a href="http://localhost:8000/offres.html" target="_blank" class="theme-inline-link">http://localhost:8000/offres.html</a></p>
-                                </div>
-                                <p style="margin-top: 20px; font-size: 0.9rem; color: #666;">
-                                    <strong>Alternative :</strong> Les données sont également disponibles sur GitHub : 
-                                    <a href="https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/scraped_jobs_live.json" target="_blank" class="theme-inline-link">
-                                        GitHub Raw
-                                    </a>
-                                </p>
+                console.error('❌ Impossible de charger les offres depuis aucune source');
+                const c = document.getElementById('jobsContainer');
+                if (c) {
+                    c.innerHTML = isFileProtocol ? `
+                        <div class="no-results">
+                            <h3>😕 Erreur de chargement</h3>
+                            <p><strong>Le fichier est ouvert via file://</strong></p>
+                            <p>Les navigateurs bloquent les requêtes vers les fichiers locaux pour des raisons de sécurité CORS.</p>
+                            <p style="margin-top: 20px;"><strong>Solution : Utilisez un serveur local</strong></p>
+                            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 0.9rem; text-align: left;">
+                                <p style="margin: 10px 0; font-weight: bold;">Méthode 1 : Script automatique (recommandé)</p>
+                                <p style="margin: 10px 0; padding-left: 20px;">./start_server.sh</p>
+                                <p style="margin: 20px 0 10px 0; font-weight: bold;">Méthode 2 : Commande manuelle</p>
+                                <p style="margin: 10px 0; padding-left: 20px;"><code>cd HTML && python3 -m http.server 8000</code></p>
+                                <p style="margin: 10px 0; padding-left: 20px;"><a href="http://localhost:8000/offres.html" target="_blank" class="theme-inline-link">http://localhost:8000/offres.html</a></p>
                             </div>
-                        `;
-                    } else {
-                        errorMessage = `
-                            <div class="no-results">
-                                <h3>😕 Erreur</h3>
-                                <p>Impossible de charger les offres.</p>
-                                <p><strong>Note :</strong> Assurez-vous d'avoir exécuté <code>export_sqlite_to_json.py</code> pour générer le fichier JSON depuis les bases SQLite.</p>
-                                <details style="margin-top: 20px; text-align: left;">
-                                    <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">Chemins testés :</summary>
-                                    <ul style="margin-left: 20px; margin-top: 10px;">
-                                        ${possiblePaths.map(p => `<li>${p}</li>`).join('')}
-                                    </ul>
-                                </details>
-                                <p style="margin-top: 20px; font-size: 0.9rem; color: #666;">
-                                    Si vous venez de mettre à jour le fichier sur GitHub, attendez quelques minutes que GitHub Pages se mette à jour.
-                                </p>
-                            </div>
-                        `;
-                    }
-                    container.innerHTML = errorMessage;
+                        </div>` : `
+                        <div class="no-results">
+                            <h3>😕 Erreur de chargement</h3>
+                            <p>Impossible de charger les offres d'emploi.</p>
+                            <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">Vérifiez votre connexion ou réessayez dans quelques minutes.</p>
+                        </div>`;
                 }
-                throw new Error(`Impossible de charger le fichier JSON depuis aucun des chemins : ${possiblePaths.join(', ')}`);
+                throw new Error('Impossible de charger les offres depuis aucune source');
+            }
+
+            // Filtrer les offres Live uniquement (filet de sécurité)
+            const beforeLiveFilter = data.length;
+            data = data.filter(job => job && String(job.status || '').toLowerCase().trim() === 'live');
+            if (beforeLiveFilter > data.length) {
+                console.log(`📋 ${beforeLiveFilter - data.length} offres non-live exclues → ${data.length} offres live`);
             }
             
             try {

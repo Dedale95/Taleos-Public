@@ -1,6 +1,6 @@
 {
-  "version": "1.2.92",
-  "version_name": "1.2.92-ca-test-tab-close-fix",
+  "version": "1.2.93",
+  "version_name": "1.2.93-region-only-filter-regression-fix",
   "published_at": "2026-05-21T00:00:00Z",
-  "release_notes": "Fix : l'onglet test de connexion Crédit Agricole n'était pas fermé après le test. Causes : (1) closeConnectionTestTabs() ne faisait pas de query URL pour CA (comme pour Allianz) — ajout du pattern défensif ; (2) le wait post-fill passe de 8s à 12s pour laisser le temps au redirect AJAX de CA ; (3) timeout du bridge connexions.html passe de 15s à 40s pour le test de connexion ; (4) taleosTabId transmis au background via chrome.tabs.getCurrent() dans l'injecteur."
+  "release_notes": "Fix régression v1.2.89 : cocher uniquement une région (ex. Île-de-France) sans pays faisait disparaître toutes les autres régions du panel de filtres. Cause : getJobsMatchingOtherFilters('region') avec selectedCountries=[] → matchLocation=false partout (région exclue + pas de pays). Fix : skipLocation devient true quand excludeFilterType==='region' ET !selectedCountries.length (même logique que pour 'country'). Le bug Timisoara/cross-continent reste corrigé."
 }

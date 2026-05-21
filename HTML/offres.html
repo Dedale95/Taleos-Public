@@ -5811,7 +5811,10 @@
                     });
 
                     // OR logic localisation : exclure tout le filtre localisation pour le calcul des comptes pays
-                    const skipLocation = excludeFilterType === 'country';
+                    // skipLocation aussi quand on calcule les régions dispos sans filtre pays :
+                    // sinon "région seule cochée" → matchLocation=false partout → toutes régions disparaissent
+                    const skipLocation = excludeFilterType === 'country' ||
+                        (excludeFilterType === 'region' && !selectedCountries.length);
                     const jc = job.cleanCountries && job.cleanCountries.length ? job.cleanCountries : null;
                     const jHasLocationFilter = selectedCountries.length > 0 || selectedRegions.length > 0;
                     const matchLocation = skipLocation || !jHasLocationFilter ||

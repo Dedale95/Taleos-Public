@@ -5481,8 +5481,10 @@
                         }
                     }
 
-                    const allRegionsChecked = regionsForCountry.length === 0 || regionsForCountry.every(r => checkedRegions.has(r));
-                    if (checkedCountries.has(country) || (regionsForCountry.length > 0 && allRegionsChecked)) {
+                    // Seul checkedCountries détermine si le pays est coché.
+                    // L'ancienne condition allRegionsChecked causait un bug : si toutes les régions d'un pays
+                    // se trouvaient dans checkedRegions (via un autre continent), le pays se cochait incorrectement.
+                    if (checkedCountries.has(country)) {
                         countryCb.checked = true;
                     }
 

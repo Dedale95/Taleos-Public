@@ -4242,8 +4242,8 @@
                         }
                     }
 
-                    const allRegionsChecked = regionsForCountry.length === 0 || regionsForCountry.every(r => cvRegions.has(r));
-                    if (cvCountries.has(country) || (regionsForCountry.length > 0 && allRegionsChecked)) {
+                    // Seul cvCountries détermine si le pays est coché (allRegionsChecked causait un bug cross-continent).
+                    if (cvCountries.has(country)) {
                         countryCb.checked = true;
                     }
 
@@ -4266,12 +4266,8 @@
                     const disabled = disabledValues.has(c);
                     return !skipped && !disabled;
                 });
-                const allCountriesOrRegionsChecked = requiredCountries.length > 0 && requiredCountries.every(c => {
-                    const regs = countryToRegions && countryToRegions[c] ? Array.from(countryToRegions[c]) : [];
-                    const countryChecked = cvCountries.has(c);
-                    const allRegionsChecked = regs.length > 0 ? regs.every(r => cvRegions.has(r)) : false;
-                    return countryChecked || allRegionsChecked;
-                });
+                // Seul cvCountries détermine si les pays sont cochés pour le continent.
+                const allCountriesOrRegionsChecked = requiredCountries.length > 0 && requiredCountries.every(c => cvCountries.has(c));
                 // Aussi cocher le continent si ≥80% des pays sont cochés (nouveau pays apparu après
                 // chargement partiel pas encore dans l'état restauré)
                 const selectedFromCont = requiredCountries.filter(c => cvCountries.has(c));

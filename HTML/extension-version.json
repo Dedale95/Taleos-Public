@@ -1,6 +1,6 @@
 {
-  "version": "1.2.89",
-  "version_name": "1.2.89-continent-deselect-18jobs-fix",
+  "version": "1.2.90",
+  "version_name": "1.2.90-country-cb-cross-continent-fix",
   "published_at": "2026-05-21T00:00:00Z",
-  "release_notes": "Fix bug 18 offres restantes après décocher Europe (double correction) : (1) CB region namespacing — cb.checked = checkedCountries.has(country) && checkedRegions.has(region) pour que les CBs de régions partagées (Timisoara/Reading/Stamford) ne se cochent pas dans un continent non-sélectionné ; (2) Filter logic — le match par région seule est désactivé quand des pays sont sélectionnés (!selectedCountries.length guard), évitant que des jobs Inde/Timisoara matchent via la région ajoutée par Roumanie. Bonus : le compte Europe passe de 14220 à 14212 (correct). Fix 3 : Île-de-France ne s'affiche plus sous Royaume-Uni."
+  "release_notes": "Fix racine du bug 'N offres restantes après décocher un continent' (affectait Europe, Asie, Non spécifié) : le CB de pays d'un continent non-sélectionné se cochait incorrectement via allRegionsChecked — si toutes les régions d'un pays (ex. Roumanie/Timisoara) se trouvaient dans checkedRegions d'un autre continent (ex. Asie/Inde/Timisoara), countryCb.checked devenait true. Correction : suppression de la condition allRegionsChecked, seul checkedCountries.has(country) détermine le CB pays. Appliqué sur offres.html, offres-draft.html, filtres.html. Inclus : fix region CB namespacing, filter logic guard, Île-de-France sous Royaume-Uni."
 }

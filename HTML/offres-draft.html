@@ -5937,8 +5937,8 @@
                         }
                     }
 
-                    const allRegionsChecked = regionsForCountry.length === 0 || regionsForCountry.every(r => checkedRegions.has(r));
-                    if (checkedCountries.has(country) || (regionsForCountry.length > 0 && allRegionsChecked)) {
+                    // Seul checkedCountries détermine si le pays est coché (allRegionsChecked causait un bug cross-continent).
+                    if (checkedCountries.has(country)) {
                         countryCb.checked = true;
                     }
 

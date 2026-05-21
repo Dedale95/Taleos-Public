@@ -4016,7 +4016,7 @@
                 'Arabie Saoudite', 'Israël', 'Laos', 'Bahreïn', 'Oman',
                 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Jordanie', 'Liban',
                 'Myanmar', 'Cambodge', 'Macao', 'Égypte', 'Irak', 'Kazakhstan',
-                'Azerbaïdjan', 'Ouzbékistan', 'Népal'
+                'Ouzbékistan', 'Népal'
             ],
             'Afrique': [
                 'Maroc', 'Côte D\'Ivoire', 'Côte d\'Ivoire', 'Tunisie', 'Cameroun', 'Gabon',
@@ -4118,7 +4118,7 @@
                     e.preventDefault();
                     e.stopPropagation();
                     const childCbs = allCheckboxesIn(contChildren);
-                    const allChecked = childCbs.length > 0 && childCbs.every(cb => cb.checked);
+                    const allChecked = contCb.checked || (childCbs.length > 0 && childCbs.every(cb => cb.checked));
                     contCb.checked = !allChecked;
                     contCb.dispatchEvent(new Event('change', { bubbles: true }));
                 });
@@ -4259,7 +4259,13 @@
                     const allRegionsChecked = regs.length > 0 ? regs.every(r => cvRegions.has(r)) : false;
                     return countryChecked || allRegionsChecked;
                 });
-                if (allCountriesOrRegionsChecked) {
+                // Aussi cocher le continent si ≥80% des pays sont cochés (nouveau pays apparu après
+                // chargement partiel pas encore dans l'état restauré)
+                const selectedFromCont = requiredCountries.filter(c => cvCountries.has(c));
+                const essentiallyAllCheckedCont = !allCountriesOrRegionsChecked && requiredCountries.length > 0 &&
+                    selectedFromCont.length > 0 &&
+                    selectedFromCont.length >= Math.ceil(requiredCountries.length * 0.8);
+                if (allCountriesOrRegionsChecked || essentiallyAllCheckedCont) {
                     contCb.checked = true;
                 }
 

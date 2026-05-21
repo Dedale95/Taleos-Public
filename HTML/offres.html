@@ -5227,7 +5227,7 @@
                 'Arabie Saoudite', 'Israël', 'Laos', 'Bahreïn', 'Oman',
                 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Jordanie', 'Liban',
                 'Myanmar', 'Cambodge', 'Macao', 'Égypte', 'Irak', 'Kazakhstan',
-                'Azerbaïdjan', 'Ouzbékistan', 'Népal'
+                'Ouzbékistan', 'Népal'
             ],
             'Afrique': [
                 'Maroc', 'Côte D\'Ivoire', 'Côte d\'Ivoire', 'Tunisie', 'Cameroun', 'Gabon',
@@ -5339,10 +5339,12 @@
                     if (e.target === contExpand || contExpand.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
-                    // Seules les cases "pays" déterminent l'état coché/décoché du continent
-                    // (les cases région peuvent apparaître décochées après un reload partiel sans fausser la détection)
+                    // Seules les cases "pays" déterminent l'état coché/décoché du continent.
+                    // On considère aussi contCb.checked : si le continent a été marqué "tout sélectionné"
+                    // lors du rendu (y compris le cas où un nouveau pays est apparu après chargement
+                    // partiel et n'est pas encore coché individuellement), un clic doit désélectionner.
                     const childCountryCbs = allCheckboxesIn(contChildren).filter(cb => cb.getAttribute('data-location-type') === 'country');
-                    const allChecked = childCountryCbs.length > 0 && childCountryCbs.every(cb => cb.checked);
+                    const allChecked = contCb.checked || (childCountryCbs.length > 0 && childCountryCbs.every(cb => cb.checked));
                     contCb.checked = !allChecked;
                     contCb.dispatchEvent(new Event('change', { bubbles: true }));
                 });
@@ -5488,9 +5490,17 @@
                     const disabled = disabledValues.has(c);
                     return !skipped && !disabled;
                 });
-                // Le continent est coché ssi tous ses pays sont cochés (les régions ne comptent pas)
-                const allCountriesChecked = requiredCountries.length > 0 && requiredCountries.every(c => checkedCountries.has(c));
-                if (allCountriesChecked) {
+                // Le continent est coché ssi tous ses pays sont cochés (les régions ne comptent pas).
+                // On considère aussi "tout coché" si ≥80% des pays sont cochés : cela couvre le cas
+                // où un nouveau pays apparaît après chargement partiel (ex. Azerbaïdjan via Baku)
+                // sans être dans l'état restauré, évitant que le 2e clic sur le continent re-sélectionne
+                // au lieu de désélectionner.
+                const selectedFromContinent = requiredCountries.filter(c => checkedCountries.has(c));
+                const allCountriesChecked = requiredCountries.length > 0 && selectedFromContinent.length === requiredCountries.length;
+                const essentiallyAllChecked = !allCountriesChecked && requiredCountries.length > 0 &&
+                    selectedFromContinent.length > 0 &&
+                    selectedFromContinent.length >= Math.ceil(requiredCountries.length * 0.8);
+                if (allCountriesChecked || essentiallyAllChecked) {
                     contCb.checked = true;
                 }
 

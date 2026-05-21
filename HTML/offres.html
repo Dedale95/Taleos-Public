@@ -2508,6 +2508,16 @@
         };
 
         const CITY_TO_COUNTRY = {
+            // Noms de régions françaises → protège contre "Île-de-France - Royaume-Uni" et variantes
+            'île-de-france': 'France', 'ile-de-france': 'France', 'ile de france': 'France',
+            'auvergne-rhône-alpes': 'France', 'auvergne-rhone-alpes': 'France', 'auvergne rhone alpes': 'France',
+            'hauts-de-france': 'France', 'hauts de france': 'France',
+            'grand est': 'France', 'nouvelle-aquitaine': 'France', 'nouvelle aquitaine': 'France',
+            'occitanie': 'France', 'bretagne': 'France', 'normandie': 'France',
+            'pays de la loire': 'France', 'centre-val de loire': 'France', 'centre val de loire': 'France',
+            'bourgogne-franche-comté': 'France', 'bourgogne-franche-comte': 'France',
+            "provence-alpes-côte d'azur": 'France', "provence-alpes-cote d'azur": 'France', 'paca': 'France',
+            'corse': 'France',
             'paris': 'France', 'lyon': 'France', 'marseille': 'France', 'lille': 'France',
             'bordeaux': 'France', 'toulouse': 'France', 'nantes': 'France', 'strasbourg': 'France',
             'nice': 'France', 'montpellier': 'France', 'rennes': 'France', 'grenoble': 'France',
@@ -5434,7 +5444,7 @@
                             cb.type = 'checkbox';
                             cb.value = region;
                             cb.setAttribute('data-location-type', 'region');
-                            cb.checked = checkedRegions.has(region);
+                            cb.checked = checkedCountries.has(country) && checkedRegions.has(region);
                             cb.onchange = () => {
                                 countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
                                 // contCb reflète l'état des cases PAYS uniquement
@@ -5456,7 +5466,7 @@
                             cb.type = 'checkbox';
                             cb.value = otherKey;
                             cb.setAttribute('data-location-type', 'region');
-                            cb.checked = checkedRegions.has(otherKey);
+                            cb.checked = checkedCountries.has(country) && checkedRegions.has(otherKey);
                             cb.onchange = () => {
                                 countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
                                 // contCb reflète l'état des cases PAYS uniquement
@@ -5754,13 +5764,14 @@
                     return title.includes(keyword) || desc.includes(keyword) || jobId.includes(keyword);
                 });
                 const jobCountry = job.cleanCountries && job.cleanCountries.length ? job.cleanCountries : null;
-                // OR logic : un job matche si son PAYS est sélectionné OU si sa RÉGION est sélectionnée
-                // (évite d'exclure les jobs sans région quand un continent est coché)
+                // OR logic : un job matche si son PAYS est sélectionné OU (si aucun pays sélectionné) sa RÉGION est sélectionnée.
+                // Si des pays sont sélectionnés (ex: continent Europe), le match par région seule est désactivé :
+                // évite que des jobs Inde/Timisoara matchent via la région "Timisoara" ajoutée par Roumanie.
                 const hasLocationFilter = selectedCountries.length > 0 || selectedRegions.length > 0;
                 const matchLocation = !hasLocationFilter ||
                     (selectedCountries.includes('Non spécifié') && !jobCountry) ||
                     (jobCountry && jobCountry.some(c => selectedCountries.includes(c))) ||
-                    (job.cleanRegions && job.cleanRegions.some(r => selectedRegions.includes(r)));
+                    (!selectedCountries.length && job.cleanRegions && job.cleanRegions.some(r => selectedRegions.includes(r)));
                 const jobContractTypes = job.contract_types || (job.contract_type ? [String(job.contract_type).trim()] : []);
                 const matchContract = !selectedContracts.length ||
                     (selectedContracts.includes('Non spécifié') && !job.contract_type) ||
@@ -5803,7 +5814,7 @@
                     const matchLocation = skipLocation || !jHasLocationFilter ||
                         (selectedCountries.includes('Non spécifié') && !jc) ||
                         (jc && jc.some(c => selectedCountries.includes(c))) ||
-                        (excludeFilterType !== 'region' && job.cleanRegions && job.cleanRegions.some(r => selectedRegions.includes(r)));
+                        (excludeFilterType !== 'region' && !selectedCountries.length && job.cleanRegions && job.cleanRegions.some(r => selectedRegions.includes(r)));
                     const jctTypes = job.contract_types || (job.contract_type ? [String(job.contract_type).trim()] : []);
                     const matchContract = excludeFilterType === 'contract' || !selectedContracts.length ||
                         (selectedContracts.includes('Non spécifié') && !job.contract_type) ||

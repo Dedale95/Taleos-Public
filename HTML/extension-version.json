@@ -1,6 +1,6 @@
 {
-  "version": "1.2.86",
-  "version_name": "1.2.86-continent-toggle-fix",
+  "version": "1.2.87",
+  "version_name": "1.2.87-continent-list-overflow",
   "published_at": "2026-05-21T00:00:00Z",
-  "release_notes": "Fix toggle continent (2e clic sur Asie restait sur 1041 offres / Singapour + Azerbaïdjan encore cochés) : (1) Azerbaïdjan retiré du groupe Asie (était en double dans Europe ET Asie créant deux cases à cocher) ; (2) handler de clic continent : allChecked = contCb.checked || tous les pays cochés — si le continent était marqué 'tout sélectionné' lors du rendu, un clic suffit à tout décocher ; (3) rendu populateCountryFilterWithContinents : contCb.checked = true si ≥80% des pays du continent sont cochés, couvre le cas où un nouveau pays apparu après chargement partiel (ex. Azerbaïdjan via Baku) n'est pas dans l'état restauré et fausse le calcul allChecked."
+  "release_notes": "Fix liste continent tronquée : .company-group-children[data-group^='continent-'].visible passe de max-height 800px à 4000px — Europe avec 35+ pays était coupée à environ 25 entrées. Les listes pays individuelles (régions) conservent max-height 800px."
 }

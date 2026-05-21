@@ -689,6 +689,10 @@
             max-height: 800px;
             margin-bottom: 8px;
         }
+        /* Les enfants d'un continent peuvent contenir 30+ pays — max-height plus grande */
+        .company-group-children[data-group^="continent-"].visible {
+            max-height: 4000px;
+        }
         /* Aligner visuellement toutes les lignes entreprise (groupes + simples) */
         .company-filter-other {
             display: flex;

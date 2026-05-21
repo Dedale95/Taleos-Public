@@ -5244,8 +5244,10 @@
                     if (e.target === contExpand || contExpand.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
-                    const childCbs = allCheckboxesIn(contChildren);
-                    const allChecked = childCbs.length > 0 && childCbs.every(cb => cb.checked);
+                    // Seules les cases "pays" déterminent l'état coché/décoché du continent
+                    // (les cases région peuvent apparaître décochées après un reload partiel sans fausser la détection)
+                    const childCountryCbs = allCheckboxesIn(contChildren).filter(cb => cb.getAttribute('data-location-type') === 'country');
+                    const allChecked = childCountryCbs.length > 0 && childCountryCbs.every(cb => cb.checked);
                     contCb.checked = !allChecked;
                     contCb.dispatchEvent(new Event('change', { bubbles: true }));
                 });
@@ -5303,7 +5305,8 @@
                     countryCb.onchange = () => {
                         const on = countryCb.checked;
                         allCheckboxesIn(countryChildren).forEach(cb => { cb.checked = on; });
-                        contCb.checked = allCheckboxesIn(contChildren).every(cb => cb.checked);
+                        // contCb reflète l'état des cases PAYS (pas des régions)
+                        contCb.checked = allCheckboxesIn(contChildren).filter(cb => cb.getAttribute('data-location-type') === 'country').every(cb => cb.checked);
                         triggerUpdate();
                     };
 
@@ -5333,7 +5336,8 @@
                             cb.checked = checkedRegions.has(region);
                             cb.onchange = () => {
                                 countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
-                                contCb.checked = allCheckboxesIn(contChildren).every(cb2 => cb2.checked);
+                                // contCb reflète l'état des cases PAYS uniquement
+                                contCb.checked = allCheckboxesIn(contChildren).filter(cb2 => cb2.getAttribute('data-location-type') === 'country').every(cb2 => cb2.checked);
                                 triggerUpdate();
                             };
                             labelEl.appendChild(cb);
@@ -5354,7 +5358,8 @@
                             cb.checked = checkedRegions.has(otherKey);
                             cb.onchange = () => {
                                 countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
-                                contCb.checked = allCheckboxesIn(contChildren).every(cb2 => cb2.checked);
+                                // contCb reflète l'état des cases PAYS uniquement
+                                contCb.checked = allCheckboxesIn(contChildren).filter(cb2 => cb2.getAttribute('data-location-type') === 'country').every(cb2 => cb2.checked);
                                 triggerUpdate();
                             };
                             labelEl.appendChild(cb);
@@ -5388,13 +5393,9 @@
                     const disabled = disabledValues.has(c);
                     return !skipped && !disabled;
                 });
-                const allCountriesOrRegionsChecked = requiredCountries.length > 0 && requiredCountries.every(c => {
-                    const regs = countryToRegions && countryToRegions[c] ? Array.from(countryToRegions[c]) : [];
-                    const countryChecked = checkedCountries.has(c);
-                    const allRegionsChecked = regs.length > 0 ? regs.every(r => checkedRegions.has(r)) : false;
-                    return countryChecked || allRegionsChecked;
-                });
-                if (allCountriesOrRegionsChecked) {
+                // Le continent est coché ssi tous ses pays sont cochés (les régions ne comptent pas)
+                const allCountriesChecked = requiredCountries.length > 0 && requiredCountries.every(c => checkedCountries.has(c));
+                if (allCountriesChecked) {
                     contCb.checked = true;
                 }
 
@@ -5644,10 +5645,12 @@
                     return title.includes(keyword) || desc.includes(keyword) || jobId.includes(keyword);
                 });
                 const jobCountry = job.cleanCountries && job.cleanCountries.length ? job.cleanCountries : null;
-                const matchCountry = !selectedCountries.length ||
+                // OR logic : un job matche si son PAYS est sélectionné OU si sa RÉGION est sélectionnée
+                // (évite d'exclure les jobs sans région quand un continent est coché)
+                const hasLocationFilter = selectedCountries.length > 0 || selectedRegions.length > 0;
+                const matchLocation = !hasLocationFilter ||
                     (selectedCountries.includes('Non spécifié') && !jobCountry) ||
-                    (jobCountry && jobCountry.some(c => selectedCountries.includes(c)));
-                const matchRegion = !selectedRegions.length ||
+                    (jobCountry && jobCountry.some(c => selectedCountries.includes(c))) ||
                     (job.cleanRegions && job.cleanRegions.some(r => selectedRegions.includes(r)));
                 const jobContractTypes = job.contract_types || (job.contract_type ? [String(job.contract_type).trim()] : []);
                 const matchContract = !selectedContracts.length ||
@@ -5663,7 +5666,7 @@
                     (selectedEducations.includes('Non spécifié') && !jobEdu);
                 const matchFavorites = !showFavoritesOnly || favoriteJobs.has(job.job_id);
 
-                return matchSearch && matchCountry && matchRegion && matchContract &&
+                return matchSearch && matchLocation && matchContract &&
                     matchExperience && matchFamily && matchCompany && matchEducation && matchFavorites;
             });
 
@@ -5684,14 +5687,14 @@
                         return title.includes(kw) || desc.includes(kw) || jobId.includes(kw);
                     });
 
-                    // Pour les comptages pays : exclure pays ET région (cocher Europe coche pays + régions enfants)
-                    const skipLocationForCountryCounts = excludeFilterType === 'country';
+                    // OR logic localisation : exclure tout le filtre localisation pour le calcul des comptes pays
+                    const skipLocation = excludeFilterType === 'country';
                     const jc = job.cleanCountries && job.cleanCountries.length ? job.cleanCountries : null;
-                    const matchCountry = skipLocationForCountryCounts || !selectedCountries.length ||
+                    const jHasLocationFilter = selectedCountries.length > 0 || selectedRegions.length > 0;
+                    const matchLocation = skipLocation || !jHasLocationFilter ||
                         (selectedCountries.includes('Non spécifié') && !jc) ||
-                        (jc && jc.some(c => selectedCountries.includes(c)));
-                    const matchRegion = skipLocationForCountryCounts || excludeFilterType === 'region' || !selectedRegions.length ||
-                        (job.cleanRegions && job.cleanRegions.some(r => selectedRegions.includes(r)));
+                        (jc && jc.some(c => selectedCountries.includes(c))) ||
+                        (excludeFilterType !== 'region' && job.cleanRegions && job.cleanRegions.some(r => selectedRegions.includes(r)));
                     const jctTypes = job.contract_types || (job.contract_type ? [String(job.contract_type).trim()] : []);
                     const matchContract = excludeFilterType === 'contract' || !selectedContracts.length ||
                         (selectedContracts.includes('Non spécifié') && !job.contract_type) ||
@@ -5705,7 +5708,7 @@
                     const matchEducation = excludeFilterType === 'education' || !selectedEducations.length || selectedEducations.includes(jed) ||
                         (selectedEducations.includes('Non spécifié') && !jed);
 
-                    return matchSearch && matchCountry && matchRegion && matchContract &&
+                    return matchSearch && matchLocation && matchContract &&
                         matchExperience && matchFamily && matchCompany && matchEducation;
                 });
             };

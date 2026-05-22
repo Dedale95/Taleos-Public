@@ -5445,7 +5445,7 @@
                             cb.type = 'checkbox';
                             cb.value = region;
                             cb.setAttribute('data-location-type', 'region');
-                            cb.checked = checkedCountries.has(country) && checkedRegions.has(region);
+                            cb.checked = checkedRegions.has(region);
                             cb.onchange = () => {
                                 countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
                                 // contCb reflète l'état des cases PAYS uniquement
@@ -5467,7 +5467,7 @@
                             cb.type = 'checkbox';
                             cb.value = otherKey;
                             cb.setAttribute('data-location-type', 'region');
-                            cb.checked = checkedCountries.has(country) && checkedRegions.has(otherKey);
+                            cb.checked = checkedRegions.has(otherKey);
                             cb.onchange = () => {
                                 countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
                                 // contCb reflète l'état des cases PAYS uniquement

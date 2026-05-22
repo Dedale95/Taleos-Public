@@ -4306,6 +4306,11 @@
                         counts.countries[c] = (counts.countries[c] || 0) + 1;
                         if (!countryToRegions[c]) countryToRegions[c] = new Set();
                         if (job.cleanRegions) job.cleanRegions.forEach(r => {
+                            const rLow = r.toLowerCase().trim();
+                            const regionCountry = CITY_TO_COUNTRY[rLow] || CITY_TO_COUNTRY[normalizeCityForLookup(r)];
+                            if (regionCountry && regionCountry !== c) return;
+                            if (r.startsWith('__AUTRES__') && r !== `__AUTRES__${c}`) return;
+                            if (r === 'Autres régions françaises' && c !== 'France') return;
                             countryToRegions[c].add(r);
                         });
                     });
@@ -6390,7 +6395,14 @@
             allJobs.forEach(job => {
                 if (job.cleanCountries && job.cleanRegions) job.cleanCountries.forEach(c => {
                     if (!countryToRegionsUpdate[c]) countryToRegionsUpdate[c] = new Set();
-                    job.cleanRegions.forEach(r => countryToRegionsUpdate[c].add(r));
+                    job.cleanRegions.forEach(r => {
+                        const rLow = r.toLowerCase().trim();
+                        const regionCountry = CITY_TO_COUNTRY[rLow] || CITY_TO_COUNTRY[normalizeCityForLookup(r)];
+                        if (regionCountry && regionCountry !== c) return;
+                        if (r.startsWith('__AUTRES__') && r !== `__AUTRES__${c}`) return;
+                        if (r === 'Autres régions françaises' && c !== 'France') return;
+                        countryToRegionsUpdate[c].add(r);
+                    });
                 });
             });
             const restoredLocationUpdate = { countries: selectedCountries, regions: selectedRegions };

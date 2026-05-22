@@ -1,6 +1,6 @@
 {
-  "version": "1.2.99",
-  "version_name": "1.2.99-filtres-region-fix",
+  "version": "1.2.100",
+  "version_name": "1.2.100-countryToRegions-cross-contamination-fix",
   "published_at": "2026-05-22T00:00:00Z",
-  "release_notes": "Fix filtre Pays & Régions dans filtres.html (recherche avancée) : (1) Région cochée sans pays → re-render la décochait immédiatement (cb.checked = cvCountries.has(country) && cvRegions.has(region) = false). Fix : noCountrySelected = cvCountries.size===0, cb.checked = cvRegions.has(region) && (cvCountries.has(country) || noCountrySelected). (2) Contamination croisée régions entre pays (même fix v1.2.98). (3) Continent click anyChecked (même fix v1.2.97 : allChecked → anyChecked pour décocher partiellement coché)."
+  "release_notes": "Fix London/Warsaw affichés sous France dans le filtre Pays & Régions. Cause : construction countryToRegions en produit croisé pays×régions pour les jobs multi-localisation (ex: titre 'Analyst, Paris/London/Warsaw' → cleanCountries=['France','Royaume-Uni','Pologne'], cleanRegions=['Île-de-France','London','Warsaw']). Fix : lors du build countryToRegions, vérifier via CITY_TO_COUNTRY si la région appartient à un autre pays → skip. Aussi : skip __AUTRES__X pour pays ≠ X, skip 'Autres régions françaises' hors France. Appliqué dans offres.html (×2), offres-draft.html (×2), filtres.html (×1)."
 }

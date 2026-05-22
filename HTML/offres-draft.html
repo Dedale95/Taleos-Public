@@ -5815,8 +5815,8 @@
                     e.preventDefault();
                     e.stopPropagation();
                     const childCountryCbs = allCheckboxesIn(contChildren).filter(cb => cb.getAttribute('data-location-type') === 'country');
-                    const allChecked = contCb.checked || (childCountryCbs.length > 0 && childCountryCbs.every(cb => cb.checked));
-                    contCb.checked = !allChecked;
+                    const anyChecked = contCb.checked || childCountryCbs.some(cb => cb.checked);
+                    contCb.checked = !anyChecked;
                     contCb.dispatchEvent(new Event('change', { bubbles: true }));
                 });
 
@@ -5878,6 +5878,16 @@
                         triggerUpdate();
                     };
 
+                    countryHeader.addEventListener('click', (e) => {
+                        if (e.target === countryExpand || countryExpand.contains(e.target)) return;
+                        if (countryCb.disabled) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const anyChecked = countryCb.checked || (hasRegions && allCheckboxesIn(countryChildren).some(cb => cb.checked));
+                        countryCb.checked = !anyChecked;
+                        countryCb.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+
                     countryExpand.onclick = (e) => {
                         e.stopPropagation();
                         countryChildren.classList.toggle('visible');
@@ -5903,8 +5913,8 @@
                             cb.setAttribute('data-location-type', 'region');
                             cb.checked = checkedRegions.has(region);
                             cb.onchange = () => {
-                                countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
-                                // contCb reflète l'état des cases PAYS uniquement
+                                const anyRegionChecked = allCheckboxesIn(countryChildren).some(cb2 => cb2.checked);
+                                if (!anyRegionChecked) countryCb.checked = false;
                                 contCb.checked = allCheckboxesIn(contChildren).filter(cb2 => cb2.getAttribute('data-location-type') === 'country').every(cb2 => cb2.checked);
                                 triggerUpdate();
                             };
@@ -5925,8 +5935,8 @@
                             cb.setAttribute('data-location-type', 'region');
                             cb.checked = checkedRegions.has(otherKey);
                             cb.onchange = () => {
-                                countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
-                                // contCb reflète l'état des cases PAYS uniquement
+                                const anyRegionChecked = allCheckboxesIn(countryChildren).some(cb2 => cb2.checked);
+                                if (!anyRegionChecked) countryCb.checked = false;
                                 contCb.checked = allCheckboxesIn(contChildren).filter(cb2 => cb2.getAttribute('data-location-type') === 'country').every(cb2 => cb2.checked);
                                 triggerUpdate();
                             };

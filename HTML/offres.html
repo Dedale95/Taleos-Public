@@ -5354,13 +5354,13 @@
                     if (e.target === contExpand || contExpand.contains(e.target)) return;
                     e.preventDefault();
                     e.stopPropagation();
-                    // Seules les cases "pays" déterminent l'état coché/décoché du continent.
-                    // On considère aussi contCb.checked : si le continent a été marqué "tout sélectionné"
-                    // lors du rendu (y compris le cas où un nouveau pays est apparu après chargement
-                    // partiel et n'est pas encore coché individuellement), un clic doit désélectionner.
+                    // "anyChecked" : si AU MOINS UN pays/région est coché → décocher tout.
+                    // Évite le double-clic : quand Europe est partiellement cochée (contCb=false
+                    // mais certains pays encore cochés), l'ancienne logique "allChecked" re-cochait
+                    // tout au lieu de tout décocher.
                     const childCountryCbs = allCheckboxesIn(contChildren).filter(cb => cb.getAttribute('data-location-type') === 'country');
-                    const allChecked = contCb.checked || (childCountryCbs.length > 0 && childCountryCbs.every(cb => cb.checked));
-                    contCb.checked = !allChecked;
+                    const anyChecked = contCb.checked || childCountryCbs.some(cb => cb.checked);
+                    contCb.checked = !anyChecked;
                     contCb.dispatchEvent(new Event('change', { bubbles: true }));
                 });
 
@@ -5422,6 +5422,19 @@
                         triggerUpdate();
                     };
 
+                    // Click handler sur le header pays : même logique "anyChecked" que le continent.
+                    // Sans ça, quand une région est décochée (countryCb passe à false), cliquer
+                    // sur le label pays toggle false→true (re-coche tout) au lieu de tout décocher.
+                    countryHeader.addEventListener('click', (e) => {
+                        if (e.target === countryExpand || countryExpand.contains(e.target)) return;
+                        if (countryCb.disabled) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const anyChecked = countryCb.checked || (hasRegions && allCheckboxesIn(countryChildren).some(cb => cb.checked));
+                        countryCb.checked = !anyChecked;
+                        countryCb.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+
                     countryExpand.onclick = (e) => {
                         e.stopPropagation();
                         countryChildren.classList.toggle('visible');
@@ -5447,7 +5460,12 @@
                             cb.setAttribute('data-location-type', 'region');
                             cb.checked = checkedRegions.has(region);
                             cb.onchange = () => {
-                                countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
+                                // Ne décocher le pays que si AUCUNE région n'est plus cochée.
+                                // Évite que décocher une région (ex: Île-de-France) décoche France →
+                                // matchLocation bascule de country-level à region-level → les offres
+                                // sans région spécifique disparaissent ("quelques offres restantes").
+                                const anyRegionChecked = allCheckboxesIn(countryChildren).some(cb2 => cb2.checked);
+                                if (!anyRegionChecked) countryCb.checked = false;
                                 // contCb reflète l'état des cases PAYS uniquement
                                 contCb.checked = allCheckboxesIn(contChildren).filter(cb2 => cb2.getAttribute('data-location-type') === 'country').every(cb2 => cb2.checked);
                                 triggerUpdate();
@@ -5469,7 +5487,8 @@
                             cb.setAttribute('data-location-type', 'region');
                             cb.checked = checkedRegions.has(otherKey);
                             cb.onchange = () => {
-                                countryCb.checked = allCheckboxesIn(countryChildren).every(cb2 => cb2.checked);
+                                const anyRegionChecked = allCheckboxesIn(countryChildren).some(cb2 => cb2.checked);
+                                if (!anyRegionChecked) countryCb.checked = false;
                                 // contCb reflète l'état des cases PAYS uniquement
                                 contCb.checked = allCheckboxesIn(contChildren).filter(cb2 => cb2.getAttribute('data-location-type') === 'country').every(cb2 => cb2.checked);
                                 triggerUpdate();

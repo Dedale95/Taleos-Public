@@ -5832,6 +5832,7 @@
                 contGroupDiv.appendChild(contExpand);
                 container.appendChild(contGroupDiv);
 
+                const noCountrySelected = checkedCountries.size === 0;
                 countries.forEach(country => {
                     const countryCnt = counts[country] || 0;
                     if (hideDisabled && countryCnt === 0 && !checkedCountries.has(country)) return;
@@ -5911,7 +5912,7 @@
                             cb.type = 'checkbox';
                             cb.value = region;
                             cb.setAttribute('data-location-type', 'region');
-                            cb.checked = checkedRegions.has(region);
+                            cb.checked = checkedRegions.has(region) && (checkedCountries.has(country) || noCountrySelected);
                             cb.onchange = () => {
                                 const anyRegionChecked = allCheckboxesIn(countryChildren).some(cb2 => cb2.checked);
                                 if (!anyRegionChecked) countryCb.checked = false;
@@ -5933,7 +5934,7 @@
                             cb.type = 'checkbox';
                             cb.value = otherKey;
                             cb.setAttribute('data-location-type', 'region');
-                            cb.checked = checkedRegions.has(otherKey);
+                            cb.checked = checkedRegions.has(otherKey) && (checkedCountries.has(country) || noCountrySelected);
                             cb.onchange = () => {
                                 const anyRegionChecked = allCheckboxesIn(countryChildren).some(cb2 => cb2.checked);
                                 if (!anyRegionChecked) countryCb.checked = false;

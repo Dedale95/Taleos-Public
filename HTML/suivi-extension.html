@@ -449,6 +449,7 @@
         }
         .scraping-alert-error { background: rgba(239,68,68,0.10); color: #b91c1c; }
         .scraping-alert-warn  { background: rgba(245,158,11,0.10); color: #b45309; }
+        .scraping-alert-info  { background: rgba(59,130,246,0.08); color: #1d4ed8; }
 
         /* Lignes avec alerte remontées visuellement */
         .row-has-alert td:first-child { border-left: 3px solid transparent; }
@@ -1266,6 +1267,9 @@
 
             const freshness = summary.freshness_by_group || {};
             const now = Date.now();
+            // Âge du dernier run pipeline (generated_at du summary)
+            const pipelineRanMs = summary.generated_at ? new Date(summary.generated_at).getTime() : null;
+            const pipelineAgeHours = pipelineRanMs ? Math.round((now - pipelineRanMs) / 3600000) : null;
 
             const trackedBanks = SCRAPING_COVERAGE_FALLBACK_BANKS.map((bank) => {
                 const name = bank.name;
@@ -1295,7 +1299,12 @@
                     alert = { type: 'warn', msg: `Couverture faible : ${coveragePct}% (${taleosCount}/${siteCount}) — scraper incomplet ?` };
                 } else if (ageHours !== null && ageHours > 48) {
                     const days = Math.round(ageHours / 24);
-                    alert = { type: 'warn', msg: `Données non rafraîchies depuis ${days} jour${days > 1 ? 's' : ''} — vérifier le pipeline` };
+                    if (pipelineAgeHours !== null && pipelineAgeHours < 48) {
+                        // Pipeline OK — pas de nouvelles offres depuis X jours, mais données validées aujourd'hui
+                        alert = { type: 'info', msg: `Aucune nouvelle offre depuis ${days} jour${days > 1 ? 's' : ''} — pipeline OK (dernier run il y a ${pipelineAgeHours}h)` };
+                    } else {
+                        alert = { type: 'warn', msg: `Données non rafraîchies depuis ${days} jour${days > 1 ? 's' : ''} — vérifier le pipeline` };
+                    }
                 }
 
                 return {
@@ -1565,8 +1574,9 @@
                 // Alerte
                 let alertHtml = '';
                 if (bank.alert) {
-                    const alertClass = bank.alert.type === 'error' ? 'scraping-alert-error' : 'scraping-alert-warn';
-                    alertHtml = `<div class="scraping-alert ${alertClass}">⚠️ ${escapeHtml(bank.alert.msg)}</div>`;
+                    const alertClass = bank.alert.type === 'error' ? 'scraping-alert-error' : bank.alert.type === 'info' ? 'scraping-alert-info' : 'scraping-alert-warn';
+                    const alertIcon = bank.alert.type === 'error' ? '🔴' : bank.alert.type === 'info' ? 'ℹ️' : '⚠️';
+                    alertHtml = `<div class="scraping-alert ${alertClass}">${alertIcon} ${escapeHtml(bank.alert.msg)}</div>`;
                 }
 
                 const statusIcon = bank.alert?.type === 'error' ? '🔴' : bank.alert?.type === 'warn' ? '🟡' : '🟢';

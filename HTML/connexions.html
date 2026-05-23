@@ -945,6 +945,7 @@
         { id: 'allianz',         name: 'Groupe Allianz',     url: 'https://career5.successfactors.eu/career?company=AZGROUPPROD&site=&lang=en_GB&login_ns=login&loginFlowRequired=true&showLogOutMsg=true&brandUrl=&_s.crb=vGbBbLMSiPxDaedOIn8tTt8WApNMjWQcgDbELe1OyzA%253d', logo: 'images/logos/allianz.svg', description: 'Site carrière du Groupe Allianz' },
         { id: 'jp_morgan',       name: 'J.P. Morgan',        url: 'https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/my-profile', logo: 'images/logos/jp_morgan.png', description: 'Site carrière de J.P. Morgan' },
         { id: 'goldman_sachs',   name: 'Goldman Sachs',      url: 'https://higher.gs.com',                 logo: 'images/logos/goldman_sachs.png',    description: 'Site carrière de Goldman Sachs' },
+        { id: 'la_banque_postale', name: 'La Banque Postale', url: 'https://www.labanquepostale.com/candidats/offres-d-emploi.html', logo: 'images/logos/banque_postale.svg', description: 'Site carrière de La Banque Postale' },
         { id: 'societe_generale',name: 'Société Générale',   url: 'https://careers.societegenerale.com',   logo: 'images/logos/societe_generale.png', description: 'Site carrière de la Société Générale' },
         { id: 'deloitte',        name: 'Deloitte',           url: 'https://jobs2.deloitte.com',            logo: 'images/logos/deloitte.png',         description: 'Site carrière de Deloitte' }
     ];
@@ -1256,6 +1257,9 @@
         const isBPCE = bank.id === 'bpce';
         const isJPM = bank.id === 'jp_morgan';
         const isGS = bank.id === 'goldman_sachs';
+        const isLBP = bank.id === 'la_banque_postale';
+        // Banques email-only (pas de mot de passe, enregistrement direct Firebase)
+        const isEmailOnly = isBPCE || isJPM || isGS || isLBP;
 
         return `
         <div class="bank-module" id="bank-${bank.id}">
@@ -1287,17 +1291,18 @@
                         </div>
                     ` : `
                         <p class="connect-desc">
-                            Connectez votre compte <strong>${isBPCE ? 'du Groupe BPCE' : bank.name}</strong> pour postuler automatiquement aux offres.
-                            ${isSG ? '<br><span class="form-note">ℹ️ Société Générale utilise un identifiant (sans @) plutôt qu\'un email.</span>' : ''}
-                            ${isJPM ? '<br><span class="form-note">ℹ️ J.P. Morgan fonctionne avec un code envoyé par email au moment de la candidature, aucun mot de passe n’est demandé ici.</span>' : ''}
-                            ${isGS ? '<br><span class="form-note">ℹ️ Goldman Sachs envoie un lien de connexion par email au moment de la candidature, aucun mot de passe n’est demandé ici.</span>' : ''}
+                            Connectez votre compte <strong>${isBPCE ? ‘du Groupe BPCE’ : bank.name}</strong> pour postuler automatiquement aux offres.
+                            ${isSG ? ‘<br><span class="form-note">ℹ️ Société Générale utilise un identifiant (sans @) plutôt qu\’un email.</span>’ : ‘’}
+                            ${isJPM ? ‘<br><span class="form-note">ℹ️ J.P. Morgan fonctionne avec un code envoyé par email au moment de la candidature, aucun mot de passe n’est demandé ici.</span>’ : ‘’}
+                            ${isGS ? ‘<br><span class="form-note">ℹ️ Goldman Sachs envoie un lien de connexion par email au moment de la candidature, aucun mot de passe n’est demandé ici.</span>’ : ‘’}
+                            ${isLBP ? ‘<br><span class="form-note">ℹ️ La Banque Postale utilise le formulaire Lumesse/TalentLink. Seul votre email est nécessaire, aucun mot de passe.</span>’ : ‘’}
                         </p>
-                        <form onsubmit="testConnection('${bank.id}', document.getElementById('${isSG ? 'identifier' : 'email'}-${bank.id}').value, ${(isBPCE || isJPM || isGS) ? "''" : `document.getElementById('password-${bank.id}').value`}, event); return false;">
+                        <form onsubmit="testConnection(‘${bank.id}’, document.getElementById(‘${isSG ? ‘identifier’ : ‘email’}-${bank.id}’).value, ${isEmailOnly ? "’’" : `document.getElementById(‘password-${bank.id}’).value`}, event); return false;">
                             <div class="form-group">
-                                <label for="${isSG ? 'identifier' : 'email'}-${bank.id}">${isSG ? 'Identifiant' : 'Email'}</label>
-                                <input type="${isSG ? 'text' : 'email'}" id="${isSG ? 'identifier' : 'email'}-${bank.id}" placeholder="${isSG ? 'Votre identifiant (sans @)' : 'votre.email@exemple.com'}" required>
+                                <label for="${isSG ? ‘identifier’ : ‘email’}-${bank.id}">${isSG ? ‘Identifiant’ : ‘Email’}</label>
+                                <input type="${isSG ? ‘text’ : ‘email’}" id="${isSG ? ‘identifier’ : ‘email’}-${bank.id}" placeholder="${isSG ? ‘Votre identifiant (sans @)’ : ‘votre.email@exemple.com’}" required>
                             </div>
-                            ${(isBPCE || isJPM || isGS) ? '' : `
+                            ${isEmailOnly ? ‘’ : `
                             <div class="form-group">
                                 <label for="password-${bank.id}">Mot de passe</label>
                                 <div class="password-input-wrapper">
@@ -1368,8 +1373,10 @@
         const isBPCE = bankId === 'bpce';
         const isJPM = bankId === 'jp_morgan';
         const isGS = bankId === 'goldman_sachs';
+        const isLBP = bankId === 'la_banque_postale';
+        const isEmailOnly = isBPCE || isJPM || isGS || isLBP;
         const emailInput = document.getElementById(`${isSG?'identifier':'email'}-${bankId}`);
-        const passwordInput = (isBPCE || isJPM || isGS) ? null : document.getElementById(`password-${bankId}`);
+        const passwordInput = isEmailOnly ? null : document.getElementById(`password-${bankId}`);
         const emailValue = emailInput?.value?.trim() || email;
         const passwordValue = passwordInput?.value || password;
         const firebaseUserId = currentUser?.uid || auth?.currentUser?.uid || localStorage.getItem('authToken') || '';
@@ -1384,33 +1391,35 @@
             if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
             return;
         }
-        if (!(isBPCE || isJPM || isGS) && !passwordValue) {
+        if (!isEmailOnly && !passwordValue) {
             if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML='❌ Mot de passe manquant. Renseignez votre mot de passe avant de lancer le test.'; }
             if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
             return;
         }
 
-        if (isJPM || isGS) {
-            const bankLabel = isJPM ? 'J.P. Morgan' : 'Goldman Sachs';
+        if (isJPM || isGS || isLBP) {
+            const bankLabel = isJPM ? ‘J.P. Morgan’ : isGS ? ‘Goldman Sachs’ : ‘La Banque Postale’;
             const otpNote = isJPM
-                ? 'Le code OTP sera demandé pendant la candidature J.P. Morgan.'
-                : 'Le lien de connexion sera envoyé à cet email lors de la candidature Goldman Sachs.';
+                ? ‘Le code OTP sera demandé pendant la candidature J.P. Morgan.’
+                : isGS
+                ? ‘Le lien de connexion sera envoyé à cet email lors de la candidature Goldman Sachs.’
+                : ‘Cet email sera utilisé pour remplir automatiquement les formulaires La Banque Postale.’;
             try {
-                if (statusDiv) { statusDiv.className='connection-status show info'; statusDiv.innerHTML=`⏳ Enregistrement de l’email ${bankLabel}...`; }
+                if (statusDiv) { statusDiv.className=’connection-status show info’; statusDiv.innerHTML=`⏳ Enregistrement de l’email ${bankLabel}...`; }
                 await saveDirectCareerConnection(bankId, bank.name, emailValue);
                 userConnections[bankId] = { email: emailValue, connected: true, connectedAt: new Date().toISOString() };
-                if (statusDiv) { statusDiv.className='connection-status show success'; statusDiv.innerHTML=`✅ <strong>Email enregistré.</strong> ${otpNote}`; }
-                if (btn) btn.style.display = 'none';
+                if (statusDiv) { statusDiv.className=’connection-status show success’; statusDiv.innerHTML=`✅ <strong>Email enregistré.</strong> ${otpNote}`; }
+                if (btn) btn.style.display = ‘none’;
                 setTimeout(() => {
                     updateBankCard(bankId);
                     const mod = document.getElementById(`bank-${bankId}`);
-                    if (mod) mod.classList.add('expanded');
+                    if (mod) mod.classList.add(‘expanded’);
                 }, 600);
                 return;
             } catch (error) {
                 console.error(`Erreur enregistrement ${bankLabel}:`, error);
-                if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML=`❌ Impossible d’enregistrer l’email ${bankLabel} dans Firebase.`; }
-                if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
+                if (statusDiv) { statusDiv.className=’connection-status show error’; statusDiv.innerHTML=`❌ Impossible d’enregistrer l’email ${bankLabel} dans Firebase.`; }
+                if (btn) { btn.disabled=false; btn.innerHTML=’🔗 Lier mon compte’; }
                 return;
             }
         }

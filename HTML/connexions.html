@@ -1518,7 +1518,7 @@
             currentUser = user;
             await loadUserConnections();
             if (GMAIL_INTEGRATION_ENABLED) { await handleGmailRedirectResult(); await refreshGmailStatus(true); }
-            await refreshOutlookStatus(true);
+            refreshOutlookStatus(true); // fire-and-forget — ne bloque pas le chargement de la page
         } else {
             if (GMAIL_INTEGRATION_ENABLED) setGmailUiState({connected:false});
             setOutlookUiState({connected:false});

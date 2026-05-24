@@ -1266,6 +1266,10 @@
             if (!summary || !summary.counts_by_group) return null;
 
             const freshness = summary.freshness_by_group || {};
+            // sources_verified_at : date de traitement de la base SQLite (mtime du fichier DB)
+            // Présent si les bases locales étaient disponibles lors de la génération du summary.
+            // Sur le CI, cela correspond à quand l'artifact DB a été téléchargé (= aujourd'hui).
+            const sourcesVerifiedAt = summary.sources_verified_at || {};
             const now = Date.now();
             // Âge du dernier run pipeline (generated_at du summary)
             const pipelineRanMs = summary.generated_at ? new Date(summary.generated_at).getTime() : null;
@@ -1281,10 +1285,19 @@
                 // offres manquantes (négatif = on scrappe plus que le site n'affiche)
                 const missingCount = hasSiteCount ? siteCount - taleosCount : null;
 
-                // Fraîcheur : date de la dernière offre mise à jour pour ce groupe
+                // Fraîcheur des données : date de la dernière offre ajoutée/mise à jour
                 const lastUpdatedIso = freshness[name] || null;
                 const lastUpdatedMs = lastUpdatedIso ? new Date(lastUpdatedIso).getTime() : null;
                 const ageHours = lastUpdatedMs ? Math.round((now - lastUpdatedMs) / 3600000) : null;
+
+                // Vérification de la source : quand la base a-t-elle été traitée par le pipeline ?
+                // Sur le CI, = date de téléchargement de l'artifact (aujourd'hui si le scraper a tourné)
+                const verifiedAtIso = sourcesVerifiedAt[name] || null;
+                const verifiedAtMs = verifiedAtIso ? new Date(verifiedAtIso).getTime() : null;
+                const verifiedAgeHours = verifiedAtMs ? Math.round((now - verifiedAtMs) / 3600000) : null;
+                // Source vérifiée récemment = DB traitée < 48h, OU pipeline < 48h (fallback si pas de DB)
+                const sourceVerifiedRecently = (verifiedAgeHours !== null && verifiedAgeHours < 48)
+                    || (pipelineAgeHours !== null && pipelineAgeHours < 48);
 
                 // Détection des anomalies — par ordre de gravité
                 let alert = null;
@@ -1299,9 +1312,12 @@
                     alert = { type: 'warn', msg: `Couverture faible : ${coveragePct}% (${taleosCount}/${siteCount}) — scraper incomplet ?` };
                 } else if (ageHours !== null && ageHours > 48) {
                     const days = Math.round(ageHours / 24);
-                    if (pipelineAgeHours !== null && pipelineAgeHours < 48) {
-                        // Pipeline OK — pas de nouvelles offres depuis X jours, mais données validées aujourd'hui
-                        alert = { type: 'info', msg: `Aucune nouvelle offre depuis ${days} jour${days > 1 ? 's' : ''} — pipeline OK (dernier run il y a ${pipelineAgeHours}h)` };
+                    if (sourceVerifiedRecently) {
+                        // Source vérifiée récemment — pas de nouvelles offres mais données à jour
+                        const verifiedLabel = verifiedAgeHours !== null
+                            ? `base vérifiée il y a ${verifiedAgeHours}h`
+                            : `pipeline OK il y a ${pipelineAgeHours}h`;
+                        alert = { type: 'info', msg: `Aucune nouvelle offre depuis ${days} jour${days > 1 ? 's' : ''} — ${verifiedLabel}` };
                     } else {
                         alert = { type: 'warn', msg: `Données non rafraîchies depuis ${days} jour${days > 1 ? 's' : ''} — vérifier le pipeline` };
                     }
@@ -1318,6 +1334,8 @@
                     sourceLabel: bank.sourceLabel,
                     lastUpdatedIso,
                     ageHours,
+                    verifiedAgeHours,
+                    sourceVerifiedRecently,
                     alert,
                     status: alert?.type === 'error' ? 'error' : (alert?.type === 'warn' ? 'warn' : (hasSiteCount ? 'ok' : 'error')),
                     error: hasSiteCount ? null : 'Total site carrière non branché'
@@ -1554,6 +1572,11 @@
             const totalMissing = Math.max(Number(snapshot.totals?.siteCount || 0) - Number(snapshot.totals?.taleosCount || 0), 0);
             coverageDelta.textContent = `${formatCount(totalMissing)} offres manquantes à rattraper`;
 
+            // Âge du dernier run pipeline (generated_at = quand le summary a été généré par le CI)
+            const pipelineRanMs = snapshot.generatedAt ? new Date(snapshot.generatedAt).getTime() : null;
+            const pipelineAgeHours = pipelineRanMs ? Math.round((Date.now() - pipelineRanMs) / 3600000) : null;
+            const pipelineRanRecently = pipelineAgeHours !== null && pipelineAgeHours < 48;
+
             tbody.innerHTML = snapshot.banks.map((bank) => {
                 const tone = getCoverageTone(bank.coveragePct, bank.status);
                 const siteCountText = bank.status === 'error' ? 'Indisponible' : formatCount(bank.siteCount);
@@ -1562,12 +1585,37 @@
                 const width = Number.isFinite(Number(bank.coveragePct)) ? Math.max(3, Math.min(100, Number(bank.coveragePct))) : 3;
 
                 // Fraîcheur
+                // Priorité : verifiedAgeHours (mtime DB) > pipelineAgeHours (generated_at) > ageHours (last_updated job)
+                // Si la base a été traitée récemment (< 48h), les données sont considérées à jour
+                // même si aucune offre nouvelle n'a été ajoutée (last_updated des jobs inchangé).
                 let freshnessHtml = '';
-                if (bank.ageHours !== null) {
-                    const ageLabel = bank.ageHours < 24
-                        ? `il y a ${bank.ageHours}h`
-                        : `il y a ${Math.round(bank.ageHours / 24)}j`;
-                    const freshnessClass = bank.ageHours > 48 ? 'freshness-stale' : 'freshness-ok';
+                if (bank.ageHours !== null || bank.verifiedAgeHours !== null) {
+                    let ageLabel, freshnessClass;
+                    if (bank.ageHours !== null && bank.ageHours <= 48) {
+                        // Nouvelles offres < 2 jours
+                        ageLabel = bank.ageHours < 24
+                            ? `il y a ${bank.ageHours}h`
+                            : `il y a ${Math.round(bank.ageHours / 24)}j`;
+                        freshnessClass = 'freshness-ok';
+                    } else if (bank.verifiedAgeHours !== null && bank.verifiedAgeHours < 48) {
+                        // Base traitée récemment (artifact CI téléchargé aujourd'hui)
+                        ageLabel = bank.verifiedAgeHours < 1
+                            ? 'vérifié < 1h'
+                            : `vérifié il y a ${bank.verifiedAgeHours}h`;
+                        freshnessClass = 'freshness-ok';
+                    } else if (pipelineRanRecently) {
+                        // Fallback : pipeline CI récent mais pas de DB connue
+                        ageLabel = pipelineAgeHours < 1
+                            ? 'vérifié < 1h'
+                            : `vérifié il y a ${pipelineAgeHours}h`;
+                        freshnessClass = 'freshness-ok';
+                    } else {
+                        // Pipeline absent ou stale → alerte orange
+                        ageLabel = bank.ageHours !== null
+                            ? `il y a ${Math.round(bank.ageHours / 24)}j`
+                            : `base non vérifiée`;
+                        freshnessClass = 'freshness-stale';
+                    }
                     freshnessHtml = `<div class="scraping-freshness ${freshnessClass}">🕐 MàJ ${ageLabel}</div>`;
                 }
 

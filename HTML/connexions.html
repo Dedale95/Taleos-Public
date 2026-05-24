@@ -1334,6 +1334,7 @@
 
     async function saveDirectCareerConnection(bankId, bankName, email) {
         if (!currentUser) throw new Error('Session Taleos introuvable.');
+        try { await db.enableNetwork(); } catch(e) {}
         const docRef = db.collection('profiles').doc(currentUser.uid).collection('career_connections').doc(bankId);
         await docRef.set({
             bankId,
@@ -1485,6 +1486,7 @@
         if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner dark"></span> Suppression...'; }
         let statusDiv = document.getElementById(`status-${bankId}`);
         if (statusDiv) { statusDiv.className='connection-status show info'; statusDiv.innerHTML='⏳ Suppression en cours...'; }
+        try { await db.enableNetwork(); } catch(e) {}
         try {
             const docRef = db.collection('profiles').doc(currentUser.uid).collection('career_connections').doc(bankId);
             const docSnap = await docRef.get();
@@ -1517,6 +1519,9 @@
         if (user) {
             currentUser = user;
             await loadUserConnections();
+            // Ferme la connexion WebSocket persistante de Firestore pour arrêter le spinner du navigateur.
+            // Les écritures ultérieures (saveDirectCareerConnection, performDisconnect) rouvrent le réseau via enableNetwork().
+            try { await db.disableNetwork(); } catch(e) {}
             if (GMAIL_INTEGRATION_ENABLED) { await handleGmailRedirectResult(); await refreshGmailStatus(true); }
             refreshOutlookStatus(true); // fire-and-forget — ne bloque pas le chargement de la page
         } else {

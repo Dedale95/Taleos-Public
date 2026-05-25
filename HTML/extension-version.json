@@ -1,6 +1,6 @@
 {
-  "version": "1.2.109",
-  "version_name": "1.2.109-hsbc-connexions-login-flow",
+  "version": "1.2.110",
+  "version_name": "1.2.110-hsbc-login-then-offer",
   "published_at": "2026-05-25T00:00:00Z",
-  "release_notes": "HSBC Connexions : ajout de HSBC dans la page Connexions (connexions.html + CONNECTION_TEST_URLS + connection-test-runner.js) avec URL de test SF career2. Filler : ajout du cas Login page (login_ns=login) qui remplit automatiquement email+mot de passe depuis career_connections/hsbc si configuré ; correction de isSFForm pour exclure les pages de connexion ; numérotation des cas 1/2/3."
+  "release_notes": "HSBC : nouveau flux quand des identifiants sont configurés dans Connexions. Background.js ouvre maintenant la page Sign In SF (CONNECTION_TEST_URLS.hsbc) au lieu d'Eightfold quand profile.auth_email est renseigné. Filler handleLoginPage : après connexion réussie → navigate vers entry.offerUrl (Eightfold) → le filler reprend sur la page offre et clique Apply automatiquement. Détection d'erreur de connexion (errorMsg_1/uiErrorMsg) avec banner d'erreur explicite."
 }

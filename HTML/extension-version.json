@@ -1,6 +1,6 @@
 {
-  "version": "1.2.105",
-  "version_name": "1.2.105-hsbc-fix-automation",
+  "version": "1.2.106",
+  "version_name": "1.2.106-hsbc-fix-bankid-detection",
   "published_at": "2026-05-25T00:00:00Z",
-  "release_notes": "Fix critique HSBC : ajout de 'hsbc' dans BANK_SCRIPT_MAP de background.js. Sans cette entrée, hasBankAutomation('hsbc') retournait false et l'extension se contentait d'ouvrir l'URL directement sans déclencher l'automatisation (le bloc routeAs==='hsbc' n'était jamais atteint). Avec le fix, le clic sur Postuler depuis Taleos déclenche correctement : stockage taleos_pending_hsbc, ouverture de l'onglet Eightfold, injection des content scripts blueprint + filler."
+  "release_notes": "Fix détection bankId HSBC : ajout de 'hsbc' dans getBankIdFromUrl() et getBankIdFromCompanyName() de taleos-injector.js, et dans normalizeSite() de background.js. Sans ces entrées, bankId restait null pour les offres HSBC (portal.careers.hsbc.com / hsbcholdin), ce qui empêchait le stockage correct du pending et le tracking. Désormais bankId='hsbc' est correctement détecté dès le clic sur Postuler depuis Taleos."
 }

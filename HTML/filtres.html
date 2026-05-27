@@ -2036,7 +2036,30 @@
             'quito': 'Équateur', 'guayaquil': 'Équateur', 'managua': 'Nicaragua',
             'oranjestad': 'Aruba', 'baghdad': 'Irak', 'bagdad': 'Irak',
             'beirut': 'Liban', 'beyrouth': 'Liban',
-            'lubumbashi': 'RD Congo', 'kinshasa': 'RD Congo'
+            'lubumbashi': 'RD Congo', 'kinshasa': 'RD Congo',
+            'tirana': 'Albanie', 'tirane': 'Albanie', 'sarajevo': 'Bosnie-Herzégovine',
+            'suva': 'Fidji', 'nadi': 'Fidji', 'port moresby': 'Papouasie-Nouvelle-Guinée',
+            'pohnpei': 'Micronésie', 'palikir': 'Micronésie',
+            'port of spain': 'Trinité-et-Tobago', 'port-of-spain': 'Trinité-et-Tobago',
+            'harare': 'Zimbabwe', 'bulawayo': 'Zimbabwe',
+            'andorra la vella': 'Andorre', 'andorra-la-vella': 'Andorre',
+            'stavanger': 'Norvège', 'ulsteinvik': 'Norvège', 'tromsø': 'Norvège', 'tromso': 'Norvège',
+            'karlstad': 'Suède', 'kalmar': 'Suède', 'sønderborg': 'Danemark', 'sonderborg': 'Danemark',
+            'pamplona': 'Espagne', 'heilbronn': 'Allemagne',
+            'palma de mallorca': 'Espagne', 'palma': 'Espagne',
+            'haifa': 'Israël', 'haïfa': 'Israël',
+            'durban': 'Afrique du Sud', 'pretoria': 'Afrique du Sud',
+            'mexico city': 'Mexique', 'ballarat': 'Australie',
+            'waterford': 'Irlande', 'sint-denijs-westrem': 'Belgique', 'tournai': 'Belgique',
+            'zilina': 'Slovaquie', 'žilina': 'Slovaquie',
+            'rezekne': 'Lettonie', 'rēzekne': 'Lettonie',
+            'rzeszow': 'Pologne', 'rzeszów': 'Pologne',
+            'cali': 'Colombie', 'girardot': 'Colombie',
+            'patras': 'Grèce', 'thessaloniki': 'Grèce',
+            'klagenfurt': 'Autriche', 'brno': 'Tchéquie',
+            'kaohsiung city': 'Taïwan', '桃園市': 'Taïwan',
+            'verona': 'Italie', 'vérone': 'Italie',
+            'lille cedex': 'France', 'lille-cedex': 'France'
         };
 
         const COUNTRY_NORMALIZATION = {
@@ -2110,9 +2133,16 @@
             'república democrática do congo': 'RD Congo',
             'bahreïn': 'Bahreïn', 'bahrain': 'Bahreïn',
             'myanmar': 'Myanmar', 'birmanie': 'Myanmar',
+            'republika demokratyczna konga': 'RD Congo', 'república democrática do congo': 'RD Congo',
+            'bosnie': 'Bosnie-Herzégovine', 'bosnie-herzegovine': 'Bosnie-Herzégovine',
+            'fidji': 'Fidji', 'fiji': 'Fidji', 'zimbabwe': 'Zimbabwe',
+            'andorre': 'Andorre', 'andorra': 'Andorre',
+            'micronésie': 'Micronésie', 'micronesia': 'Micronésie',
+            'papua new guinea': 'Papouasie-Nouvelle-Guinée',
+            'trinidad and tobago': 'Trinité-et-Tobago',
             'turquie': 'Turquie', 'turkey': 'Turquie',
             'roumanie': 'Roumanie', 'romania': 'Roumanie',
-            'danemark': 'Danemark', 'denmark': 'Danemark',
+            'danemark': 'Danemark', 'denmark': 'Danemark', 'danmark': 'Danemark',
             'grèce': 'Grèce', 'grece': 'Grèce', 'greece': 'Grèce',
             'malta': 'Malte', 'malte': 'Malte',
             'au': 'Australie', 'gb': 'Royaume-Uni', 'de': 'Allemagne', 'fr': 'France',
@@ -2179,7 +2209,10 @@
             if (!c) return c;
             const t = c.trim().toLowerCase();
             if (t === 'france') return 'France';
-            return COUNTRY_NORMALIZATION[t] || c.trim();
+            return COUNTRY_NORMALIZATION[t]
+                || CITY_TO_COUNTRY[t]
+                || CITY_TO_COUNTRY[normalizeCityForLookup(c)]
+                || c.trim();
         }
 
         function normalizeCityForFilter(city, country) {
@@ -4022,7 +4055,7 @@
                 'Russie', 'Finlande', 'Finland', 'Danemark', 'Grèce', 'Malte', 'Malta', 'Guernesey',
                 'Croatie', 'Slovénie', 'Lituanie', 'Lettonie', 'Estonie', 'Chypre', 'Islande', 'Serbie',
                 'Albanie', 'Bosnie-Herzégovine', 'Macédoine du Nord', 'Monténégro',
-                'Moldavie', 'Géorgie', 'Azerbaïdjan', 'Biélorussie', 'Kosovo'
+                'Moldavie', 'Géorgie', 'Azerbaïdjan', 'Biélorussie', 'Kosovo', 'Andorre'
             ],
             'Asie': [
                 'Inde', 'Malaisie', 'Hong-Kong', 'Singapour', 'Japon', 'Chine',
@@ -4051,7 +4084,7 @@
             ],
             'Océanie / Pacifique': [
                 'Australie', 'Vanuatu', 'Polynésie Française', 'Nouvelle-Zélande', 'Nouvelle-Calédonie',
-                'Papouasie-Nouvelle-Guinée', 'Fidji'
+                'Papouasie-Nouvelle-Guinée', 'Fidji', 'Micronésie'
             ]
         };
 

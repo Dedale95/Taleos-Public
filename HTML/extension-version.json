@@ -1,7 +1,7 @@
 {
-  "version": "1.2.124",
-  "version_name": "1.2.124-hsbc-watch-new-tab",
-  "published_at": "2026-05-27T18:27:22Z",
-  "release_notes": "HSBC fix Apply Eightfold : abandon de l'interception window.open (clic programmatique non considéré geste utilisateur). Nouvelle approche : background.js surveille onCreated (tabId) + onUpdated (URL) pendant 15s après le clic. Quand le nouvel onglet SF est confirmé, il ferme l'onglet Eightfold, efface le guard filler et ré-injecte le filler dans le bon onglet.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.124.zip"
+  "version": "1.2.125",
+  "version_name": "1.2.125-hsbc-user-click-apply",
+  "published_at": "2026-05-27T19:03:47Z",
+  "release_notes": "HSBC Apply Eightfold : event.isTrusted non falsifiable depuis un content script → abandon du clic programmatique. Le filler fait tout l'automatique (login SF, navigation vers l'offre), puis met le bouton 'Postulez maintenant' en évidence (pulsation blanche) et demande à l'utilisateur de cliquer une fois. Après ce clic, background.js détecte le nouvel onglet SF, ferme l'onglet Eightfold et ré-injecte le filler pour remplir le formulaire.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.125.zip"
 }

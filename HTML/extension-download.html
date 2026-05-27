@@ -121,11 +121,7 @@
     .btn-download:hover{background:#1a2d48;transform:translateY(-1px);box-shadow:0 4px 16px rgba(12,26,46,.18);}
     .btn-download svg{width:16px;height:16px;}
 
-    .btn-reload{display:inline-flex;align-items:center;gap:8px;background:var(--white);color:var(--navy);text-decoration:none;padding:12px 24px;border-radius:var(--r);font-size:14px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:var(--sans);transition:all var(--tr);margin-left:10px;}
-    .btn-reload:hover{border-color:var(--navy);}
-    .btn-reload svg{width:14px;height:14px;}
 
-    .reload-feedback{display:none;font-size:13px;color:var(--green);margin-top:12px;gap:6px;align-items:center;}
 
     /* Steps */
     .steps-list{display:flex;flex-direction:column;gap:14px;margin-top:24px;}
@@ -157,7 +153,6 @@
       .container{padding:24px 20px 40px;}
       .status-body{grid-template-columns:1fr;gap:16px;}
       .status-head{flex-direction:column;align-items:flex-start;}
-      .btn-reload{margin-left:0;margin-top:10px;}
       footer{padding:20px 16px;}
     }
   </style>
@@ -254,15 +249,6 @@
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v10M4 9l4 4 4-4M2 14h12"/></svg>
             Télécharger le ZIP
           </a>
-          <button class="btn-reload" id="reloadBtn" style="display:none" onclick="triggerExtensionReload()">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8a6 6 0 1 1-1.76-4.24M14 3v3h-3"/></svg>
-            Recharger l'extension
-          </button>
-          <div class="reload-feedback" id="reloadFeedback">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            L'extension se recharge…
-          </div>
-
           <!-- Install steps -->
           <div class="steps-list" id="stepsInstall" style="display:none">
             <div class="step"><div class="step-num">1</div><div class="step-text">Téléchargez le ZIP ci-dessus et <strong>extrayez-le</strong> dans un dossier permanent de votre choix (ne le supprimez pas ensuite).</div></div>
@@ -271,14 +257,13 @@
             <div class="step"><div class="step-num">4</div><div class="step-text">Cliquez sur <strong>« Charger l'extension non empaquetée »</strong>, puis sélectionnez le dossier que vous venez d'extraire.</div></div>
             <div class="step"><div class="step-num">5</div><div class="step-text">Cliquez sur l'icône <strong>puzzle</strong> à droite de la barre d'adresse Chrome, puis épinglez l'extension <strong>Taleos</strong> pour qu'elle reste visible en permanence.</div></div>
             <div class="step"><div class="step-num">6</div><div class="step-text">Cliquez sur l'icône Taleos dans la barre d'outils et <strong>connectez-vous</strong> avec votre compte Taleos pour démarrer l'automatisation.</div></div>
-            <div class="notice"><strong>Astuce</strong> — Pour les mises à jour suivantes : remplacez les fichiers du dossier par la nouvelle version extraite, puis cliquez sur « Recharger l'extension » ci-dessus, ou utilisez le bouton « Mettre à jour » dans la popup Taleos.</div>
+            <div class="notice"><strong>Mises à jour futures</strong> — Extrayez le nouveau ZIP en écrasant le dossier, puis rechargez l'extension via <code>chrome://extensions/</code>.</div>
           </div>
 
           <!-- Update steps -->
           <div class="steps-list" id="stepsUpdate" style="display:none">
-            <div class="step"><div class="step-num">1</div><div class="step-text">Téléchargez le ZIP ci-dessus et <strong>extrayez son contenu</strong> en écrasant votre dossier d'extension actuel.</div></div>
-            <div class="step"><div class="step-num">2</div><div class="step-text">Cliquez sur <strong>« Recharger l'extension »</strong> ci-dessus (ou utilisez le bouton « Mettre à jour » dans la popup Taleos).</div></div>
-            <div class="notice"><strong>Astuce développeur</strong> — Si vous avez accès au dépôt Git : exécutez <code>update_extension.sh</code> qui effectue le <code>git pull</code> puis rechargez.</div>
+            <div class="step"><div class="step-num">1</div><div class="step-text">Téléchargez le ZIP ci-dessus et <strong>extrayez son contenu en écrasant</strong> votre dossier d'extension actuel.</div></div>
+            <div class="step"><div class="step-num">2</div><div class="step-text">Dans Chrome, ouvrez <code>chrome://extensions/</code>, trouvez l'extension <strong>Taleos</strong> et cliquez sur l'icône <strong>⟳ (Recharger)</strong> de sa carte.</div></div>
           </div>
         </div>
       </div>
@@ -416,7 +401,6 @@ function renderPage() {
       strip.textContent = `Votre version (${installedVersion}) est antérieure à la version ${latest}.`;
       strip.style.display = 'flex';
       document.getElementById('actionTitle').textContent = 'Mettre à jour l\'extension';
-      document.getElementById('reloadBtn').style.display = 'inline-flex';
       document.getElementById('stepsUpdate').style.display = '';
       actionCard.style.display = '';
     }
@@ -432,13 +416,6 @@ function renderPage() {
     document.getElementById('stepsInstall').style.display = '';
     actionCard.style.display = '';
   }
-}
-
-function triggerExtensionReload() {
-  window.dispatchEvent(new CustomEvent('taleos-request-extension-reload'));
-  const feedback = document.getElementById('reloadFeedback');
-  feedback.style.display = 'flex';
-  setTimeout(() => { feedback.style.display = 'none'; }, 4000);
 }
 
 // ── Nav ──

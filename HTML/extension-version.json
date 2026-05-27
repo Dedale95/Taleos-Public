@@ -1,7 +1,7 @@
 {
-  "version": "1.2.121",
-  "version_name": "1.2.121-hsbc-flow-fixes",
-  "published_at": "2026-05-27T13:35:43Z",
-  "release_notes": "HSBC 3 correctifs : (1) 2e clic Postuler sans effet — le pending orphelin (onglet fermé) bloquait la file d'attente, nettoyer avant de relancer ; (2) SF form pas rempli après Apply Eightfold — le guard __TALEOS_HSBC_FILLER_RUNNING__ empêchait la ré-injection programmatique (tabId stale au 1er run), désormais effacé avant ré-injection ; (3) /portalcareer ajouté à la détection isSFForm, fillApplicationForm continue même si fbclc_userName absent (utilisateur déjà connecté).",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.121.zip"
+  "version": "1.2.122",
+  "version_name": "1.2.122-hsbc-intercept-window-open",
+  "published_at": "2026-05-27T14:22:55Z",
+  "release_notes": "HSBC fix bouton Postulez maintenant : Eightfold appelle window.open() pour ouvrir SF dans un popup — le bloqueur de popups empêchait l'ouverture. Désormais window.open est intercepté avant le clic pour capturer l'URL SF et naviguer dans le même onglet au lieu d'ouvrir un popup.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.122.zip"
 }

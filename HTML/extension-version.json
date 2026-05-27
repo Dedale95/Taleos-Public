@@ -1,7 +1,7 @@
 {
-  "version": "1.2.122",
-  "version_name": "1.2.122-hsbc-intercept-window-open",
-  "published_at": "2026-05-27T14:22:55Z",
-  "release_notes": "HSBC fix bouton Postulez maintenant : Eightfold appelle window.open() pour ouvrir SF dans un popup — le bloqueur de popups empêchait l'ouverture. Désormais window.open est intercepté avant le clic pour capturer l'URL SF et naviguer dans le même onglet au lieu d'ouvrir un popup.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.122.zip"
+  "version": "1.2.123",
+  "version_name": "1.2.123-hsbc-apply-url-intercept",
+  "published_at": "2026-05-27T15:38:10Z",
+  "release_notes": "HSBC fix bouton Apply Eightfold : 3 niveaux d'interception. (1) Recherche URL SF dans le DOM/scripts/globals sans cliquer. (2) Patch window.open avant le clic pour capturer l'URL et naviguer dans le même onglet, couvre aussi le pattern about:blank via fakeWin.location. (3) Fallback : background.js surveille l'ouverture d'un nouvel onglet SF via onCreated, ferme l'onglet Eightfold et met à jour le tabId du pending.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.123.zip"
 }

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.120",
-  "version_name": "1.2.120-hsbc-login-page-detection-fix",
-  "published_at": "2026-05-27T12:50:15Z",
-  "release_notes": "HSBC fix détection page login : l'URL career?loginFlowRequired=true n'était pas reconnue comme page Sign In (seule login_ns=login était détectée). Le filler tombait en Cas 2 (formulaire candidature) et échouait sur fbclc_userName. Correction : isLoginPage vérifie aussi loginFlowRequired=true. Amélioration des sélecteurs email pour couvrir le formulaire 'Career Opportunities: Sign In'.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.120.zip"
+  "version": "1.2.121",
+  "version_name": "1.2.121-hsbc-flow-fixes",
+  "published_at": "2026-05-27T13:35:43Z",
+  "release_notes": "HSBC 3 correctifs : (1) 2e clic Postuler sans effet — le pending orphelin (onglet fermé) bloquait la file d'attente, nettoyer avant de relancer ; (2) SF form pas rempli après Apply Eightfold — le guard __TALEOS_HSBC_FILLER_RUNNING__ empêchait la ré-injection programmatique (tabId stale au 1er run), désormais effacé avant ré-injection ; (3) /portalcareer ajouté à la détection isSFForm, fillApplicationForm continue même si fbclc_userName absent (utilisateur déjà connecté).",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.121.zip"
 }

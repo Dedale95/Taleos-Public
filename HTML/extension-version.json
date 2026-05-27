@@ -1,7 +1,7 @@
 {
-  "version": "1.2.123",
-  "version_name": "1.2.123-hsbc-apply-url-intercept",
-  "published_at": "2026-05-27T15:38:10Z",
-  "release_notes": "HSBC fix bouton Apply Eightfold : 3 niveaux d'interception. (1) Recherche URL SF dans le DOM/scripts/globals sans cliquer. (2) Patch window.open avant le clic pour capturer l'URL et naviguer dans le même onglet, couvre aussi le pattern about:blank via fakeWin.location. (3) Fallback : background.js surveille l'ouverture d'un nouvel onglet SF via onCreated, ferme l'onglet Eightfold et met à jour le tabId du pending.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.123.zip"
+  "version": "1.2.124",
+  "version_name": "1.2.124-hsbc-watch-new-tab",
+  "published_at": "2026-05-27T18:27:22Z",
+  "release_notes": "HSBC fix Apply Eightfold : abandon de l'interception window.open (clic programmatique non considéré geste utilisateur). Nouvelle approche : background.js surveille onCreated (tabId) + onUpdated (URL) pendant 15s après le clic. Quand le nouvel onglet SF est confirmé, il ferme l'onglet Eightfold, efface le guard filler et ré-injecte le filler dans le bon onglet.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.124.zip"
 }

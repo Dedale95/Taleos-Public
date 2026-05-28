@@ -1,7 +1,7 @@
 {
-  "version": "1.2.128",
-  "version_name": "1.2.128-hsbc-apply-button-fix",
-  "published_at": "2026-05-28T05:22:43Z",
-  "release_notes": "HSBC apply.careers.hsbc.com — deux bugs corrigés : 1) suppression de la stratégie URL ID erronée (1360785157 n'est pas le career_job_req_id SF, causait une redirection vers la page générique), 2) regex bouton /postule/i couvre désormais 'Postulez maintenant' en plus de 'Postuler'. Nouveau: sélecteur data-test-id='apply-button' prioritaire + interception window.open() pour capter l'URL SF et naviguer dans le même onglet.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.128.zip"
+  "version": "1.2.129",
+  "version_name": "1.2.129-hsbc-portalcareer-fix",
+  "published_at": "2026-05-28T06:06:50Z",
+  "release_notes": "HSBC root fix : URL de candidature incorrecte. career_ns=job_listing redirige vers apply.careers.hsbc.com — la bonne URL est portalcareer?career_ns=job_application. Nouvelles stratégies dans handleEightfoldOffer : 1) React fiber du bouton Apply pour extraire l'URL exacte avec _s.crb, 2) chercher l'URL portalcareer complète dans les scripts inline, 3) ats_job_id → portalcareer?career_ns=job_application (pas job_listing). Suppression de la redirection via la page listing SF.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.129.zip"
 }

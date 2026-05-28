@@ -1,7 +1,7 @@
 {
-  "version": "1.2.132",
-  "version_name": "1.2.132-hsbc-form-fr-profile-questions",
-  "published_at": "2026-05-28T07:28:03Z",
-  "release_notes": "HSBC formulaire fr_FR : correction des valeurs picklist (Non/Oui/Mâle/Femelle au lieu de No/Yes/Male/Female). Nouvelles questions HSBC dans le profil (famille HSBC, ancien employé/contractor + Employee ID, droit au travail, auditeurs externes). Lecture depuis Firebase avec défauts sensés. Logging comparatif Firebase vs formulaire. selectPicklistMulti() essaie plusieurs variantes texte pour robustesse.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.132.zip"
+  "version": "1.2.133",
+  "version_name": "1.2.133-hsbc-family-details-gender-fix",
+  "published_at": "2026-05-28T07:38:25Z",
+  "release_notes": "Profile HSBC : ajout champ détails famille conditonnel (textarea visible si 'Oui'), correction attribut for du label famille, ajout onchange. Filler : findPicklistInputByLabel() en fallback sur chaque picklist (robustesse si IDs numériques SF changent), normalisation espaces insécables dans selectPicklistMulti, candidates genre étendus (Mâle/Male/Homme, Femelle/Female/Femme), remplissage conditionnel textarea détails famille et champ Employee ID, logs Firebase→Formulaire améliorés.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.133.zip"
 }

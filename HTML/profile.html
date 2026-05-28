@@ -2011,11 +2011,20 @@
                         </p>
 
                         <div class="form-group">
-                            <label for="hsbcFormerEmployee">Avez-vous de la famille qui travaille dans le groupe HSBC ?</label>
-                            <select id="hsbcFamilyAtHsbc" name="hsbc_family_at_hsbc">
+                            <label for="hsbcFamilyAtHsbc">Avez-vous de la famille qui travaille dans le groupe HSBC ?</label>
+                            <select id="hsbcFamilyAtHsbc" name="hsbc_family_at_hsbc" onchange="toggleHsbcFamilyDetails(this.value)">
                                 <option value="Non">Non</option>
                                 <option value="Oui">Oui</option>
                             </select>
+                        </div>
+
+                        <div id="hsbcFamilyDetailsSection" style="display: none; margin-top: 4px; margin-bottom: 16px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+                            <div class="form-group">
+                                <label for="hsbcFamilyDetails">Détails du membre de votre famille chez HSBC</label>
+                                <textarea id="hsbcFamilyDetails" name="hsbc_family_details" rows="3"
+                                    placeholder="Nom, emplacement, titre du poste, département…"></textarea>
+                                <small style="color: #666;">Si vous avez un membre de votre famille qui travaille pour le groupe HSBC, veuillez fournir son nom et des informations supplémentaires telles que l'emplacement, le titre du poste, le département, etc.</small>
+                            </div>
                         </div>
 
                         <div class="form-group" style="margin-top: 16px;">
@@ -2635,6 +2644,16 @@
                 if (sel) sel.value = '';
             }
             applyBpceSectionState();
+        }
+
+        function toggleHsbcFamilyDetails(value) {
+            const section = document.getElementById('hsbcFamilyDetailsSection');
+            if (!section) return;
+            section.style.display = (value === 'Oui') ? 'block' : 'none';
+            if (value !== 'Oui') {
+                const el = document.getElementById('hsbcFamilyDetails');
+                if (el) el.value = '';
+            }
         }
 
         function toggleHsbcEmployeeId(value) {
@@ -3625,7 +3644,12 @@
         // Fonction pour charger les informations HSBC
         function loadHsbcInfo(profile) {
             const familyEl = document.getElementById('hsbcFamilyAtHsbc');
-            if (familyEl && profile.hsbc_family_at_hsbc) familyEl.value = profile.hsbc_family_at_hsbc;
+            if (familyEl && profile.hsbc_family_at_hsbc) {
+                familyEl.value = profile.hsbc_family_at_hsbc;
+                toggleHsbcFamilyDetails(profile.hsbc_family_at_hsbc);
+            }
+            const familyDetailsEl = document.getElementById('hsbcFamilyDetails');
+            if (familyDetailsEl && profile.hsbc_family_details) familyDetailsEl.value = profile.hsbc_family_details;
 
             const formerEl = document.getElementById('hsbcFormerEmployee');
             if (formerEl && profile.hsbc_former_employee) {
@@ -4396,6 +4420,7 @@
                 gs_disability: deriveGlobalDisabilityFromSharedField(document.getElementById('sgHandicap')?.value || ''),
                 // HSBC — Questions spécifiques
                 hsbc_family_at_hsbc: document.getElementById('hsbcFamilyAtHsbc')?.value || 'Non',
+                hsbc_family_details: document.getElementById('hsbcFamilyDetails')?.value || '',
                 hsbc_former_employee: document.getElementById('hsbcFormerEmployee')?.value || 'Non',
                 hsbc_employee_id: document.getElementById('hsbcEmployeeId')?.value || '',
                 hsbc_work_right: document.getElementById('hsbcWorkRight')?.value || 'Oui',

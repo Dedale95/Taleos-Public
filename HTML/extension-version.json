@@ -1,7 +1,7 @@
 {
-  "version": "1.2.129",
-  "version_name": "1.2.129-hsbc-portalcareer-fix",
-  "published_at": "2026-05-28T06:06:50Z",
-  "release_notes": "HSBC root fix : URL de candidature incorrecte. career_ns=job_listing redirige vers apply.careers.hsbc.com — la bonne URL est portalcareer?career_ns=job_application. Nouvelles stratégies dans handleEightfoldOffer : 1) React fiber du bouton Apply pour extraire l'URL exacte avec _s.crb, 2) chercher l'URL portalcareer complète dans les scripts inline, 3) ats_job_id → portalcareer?career_ns=job_application (pas job_listing). Suppression de la redirection via la page listing SF.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.129.zip"
+  "version": "1.2.130",
+  "version_name": "1.2.130-hsbc-mainworld-open-intercept",
+  "published_at": "2026-05-28T06:18:24Z",
+  "release_notes": "HSBC : interception window.open dans le MAIN world. Le filler tourne dans l'isolated world Chrome — patcher window.open depuis l'isolated world n'affecte pas le MAIN world où Eightfold s'exécute. Fix : injection d'un <script> dans le MAIN world qui remplace window.open avant le clic sur le bouton. Les deux mondes partagent le DOM — l'URL capturée (avec _s.crb) est stockée dans document.documentElement.dataset et lue depuis l'isolated world pour naviguer dans le même onglet.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.130.zip"
 }

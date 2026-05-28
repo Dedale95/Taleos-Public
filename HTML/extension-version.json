@@ -1,7 +1,7 @@
 {
-  "version": "1.2.127",
-  "version_name": "1.2.127-hsbc-apply-page",
-  "published_at": "2026-05-27T19:51:53Z",
-  "release_notes": "HSBC fix page intermédiaire apply.careers.hsbc.com : ajout du script content sur ce domaine + handler dédié. Stratégie : 1) chercher ats_job_id dans la page, 2) extraire l'ID numérique du path URL et tenter directement l'URL SF, 3) naviguer via le href du bouton POSTULER, 4) fallback clic programmatique.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.127.zip"
+  "version": "1.2.128",
+  "version_name": "1.2.128-hsbc-apply-button-fix",
+  "published_at": "2026-05-28T05:22:43Z",
+  "release_notes": "HSBC apply.careers.hsbc.com — deux bugs corrigés : 1) suppression de la stratégie URL ID erronée (1360785157 n'est pas le career_job_req_id SF, causait une redirection vers la page générique), 2) regex bouton /postule/i couvre désormais 'Postulez maintenant' en plus de 'Postuler'. Nouveau: sélecteur data-test-id='apply-button' prioritaire + interception window.open() pour capter l'URL SF et naviguer dans le même onglet.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.128.zip"
 }

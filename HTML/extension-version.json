@@ -1,7 +1,7 @@
 {
-  "version": "1.2.135",
-  "version_name": "1.2.135-hsbc-cv-direct-inject",
-  "published_at": "2026-05-28T08:43:40Z",
-  "release_notes": "HSBC CV : injection directe dans input[name=fileData1] sans clic bouton crayon. Toujours rechargé depuis Firebase à chaque candidature.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.135.zip"
+  "version": "1.2.136",
+  "version_name": "1.2.136-hsbc-cv-keep-firebase-name",
+  "published_at": "2026-05-28T08:46:54Z",
+  "release_notes": "HSBC CV : suppression du fallback cv.pdf — nom exact Firebase préservé.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.136.zip"
 }

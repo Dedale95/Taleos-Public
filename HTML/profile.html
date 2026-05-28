@@ -1999,6 +1999,59 @@
                     </div>
                 </div>
 
+                <!-- Section HSBC — Questions récurrentes -->
+                <div class="form-section accordion-section" style="margin-top: 12px;">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2>🏦 HSBC — Questions spécifiques</h2>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">
+                            Ces réponses sont utilisées automatiquement lors du remplissage du formulaire de candidature HSBC.
+                        </p>
+
+                        <div class="form-group">
+                            <label for="hsbcFormerEmployee">Avez-vous de la famille qui travaille dans le groupe HSBC ?</label>
+                            <select id="hsbcFamilyAtHsbc" name="hsbc_family_at_hsbc">
+                                <option value="Non">Non</option>
+                                <option value="Oui">Oui</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label for="hsbcFormerEmployee">Êtes-vous un(e) ancien(ne) employé(e) ou êtes-vous actuellement engagé(e) en tant que contractor, consultant(e) ou prestataire de service HSBC ?</label>
+                            <select id="hsbcFormerEmployee" name="hsbc_former_employee" onchange="toggleHsbcEmployeeId(this.value)">
+                                <option value="Non">Non</option>
+                                <option value="Oui">Oui</option>
+                            </select>
+                        </div>
+
+                        <div id="hsbcEmployeeIdSection" style="display: none; margin-top: 16px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+                            <div class="form-group">
+                                <label for="hsbcEmployeeId">Votre Employee ID HSBC</label>
+                                <input type="text" id="hsbcEmployeeId" name="hsbc_employee_id" placeholder="Ex. 12345678">
+                                <small style="color: #666;">Renseignez votre identifiant employé si vous êtes ou avez été employé(e) / contractor chez HSBC.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label for="hsbcWorkRight">Avez-vous le droit de travailler dans le pays où l'offre est publiée ?</label>
+                            <select id="hsbcWorkRight" name="hsbc_work_right">
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label for="hsbcAuditorsEmployee">Êtes-vous actuellement employé(e) par les auditeurs externes du groupe HSBC ?</label>
+                            <select id="hsbcAuditorsEmployee" name="hsbc_auditors_employee">
+                                <option value="Non">Non</option>
+                                <option value="Oui">Oui</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Section Origine & profil -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -2584,6 +2637,16 @@
             applyBpceSectionState();
         }
 
+        function toggleHsbcEmployeeId(value) {
+            const section = document.getElementById('hsbcEmployeeIdSection');
+            if (!section) return;
+            section.style.display = (value === 'Oui') ? 'block' : 'none';
+            if (value !== 'Oui') {
+                const el = document.getElementById('hsbcEmployeeId');
+                if (el) el.value = '';
+            }
+        }
+
         function toggleDeloitteDetails(value) {
             const section = document.getElementById('deloitteDetailsSection');
             if (!section) return;
@@ -3046,6 +3109,7 @@
                         loadJpMorganInfo(profile);
                         loadSgScreeningInfo(profile);
                         loadGoldmanSachsInfo(profile);
+                        loadHsbcInfo(profile);
 
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
@@ -3110,6 +3174,7 @@
                         loadJpMorganInfo(profile);
                         loadSgScreeningInfo(profile);
                         loadGoldmanSachsInfo(profile);
+                        loadHsbcInfo(profile);
 
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
@@ -3555,6 +3620,26 @@
                 if (emailInput && profile.deloitte_old_email) emailInput.value = profile.deloitte_old_email;
                 if (countrySelect && profile.deloitte_country) countrySelect.value = profile.deloitte_country;
             }
+        }
+
+        // Fonction pour charger les informations HSBC
+        function loadHsbcInfo(profile) {
+            const familyEl = document.getElementById('hsbcFamilyAtHsbc');
+            if (familyEl && profile.hsbc_family_at_hsbc) familyEl.value = profile.hsbc_family_at_hsbc;
+
+            const formerEl = document.getElementById('hsbcFormerEmployee');
+            if (formerEl && profile.hsbc_former_employee) {
+                formerEl.value = profile.hsbc_former_employee;
+                toggleHsbcEmployeeId(profile.hsbc_former_employee);
+            }
+            const empIdEl = document.getElementById('hsbcEmployeeId');
+            if (empIdEl && profile.hsbc_employee_id) empIdEl.value = profile.hsbc_employee_id;
+
+            const workRightEl = document.getElementById('hsbcWorkRight');
+            if (workRightEl && profile.hsbc_work_right) workRightEl.value = profile.hsbc_work_right;
+
+            const auditorsEl = document.getElementById('hsbcAuditorsEmployee');
+            if (auditorsEl && profile.hsbc_auditors_employee) auditorsEl.value = profile.hsbc_auditors_employee;
         }
 
         // Fonction pour charger et afficher les informations d'un fichier existant
@@ -4309,6 +4394,12 @@
                         .filter(v => v !== '');
                 })(),
                 gs_disability: deriveGlobalDisabilityFromSharedField(document.getElementById('sgHandicap')?.value || ''),
+                // HSBC — Questions spécifiques
+                hsbc_family_at_hsbc: document.getElementById('hsbcFamilyAtHsbc')?.value || 'Non',
+                hsbc_former_employee: document.getElementById('hsbcFormerEmployee')?.value || 'Non',
+                hsbc_employee_id: document.getElementById('hsbcEmployeeId')?.value || '',
+                hsbc_work_right: document.getElementById('hsbcWorkRight')?.value || 'Oui',
+                hsbc_auditors_employee: document.getElementById('hsbcAuditorsEmployee')?.value || 'Non',
                 email: userEmail || '',
                 updated_at: new Date().toISOString(),
                 created_at: null // Sera défini lors de la première création

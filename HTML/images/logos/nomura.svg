@@ -1,40 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 400">
   <!--
-    Nomura Holdings — geometric mark
-    Deux chevrons symétriques qui se rejoignent au bas-centre (270,400).
-    Chaque chevron a une encoche triangulaire coupée dans sa partie basse.
+    Nomura Holdings — geometric mark "M"
+    Deux chevrons dont les jambes intérieures SE CROISENT en (270,235),
+    formant une masse centrale solide et un V central qui se referme.
+    Chaque chevron a une encoche triangulaire dans sa partie basse.
     Couleur : Nomura red #B50C1E
   -->
 
   <!-- Chevron gauche :
-       apex  (135, 0)
-       jambe extérieure gauche → (0, 400)
-       jambe extérieure droite → (270, 400)
-       encoche basse : (95,400)→(135,255)→(175,400)
+       apex (135, 0)
+       jambe extérieure : → (0, 400)
+       encoche basse : (95,400)→(135,250)→(175,400)
+       jambe intérieure (croise le chevron droit) : → (365, 400)
   -->
-  <path fill="#B50C1E" d="
-    M 135,0
-    L 0,400
-    L 95,400
-    L 135,255
-    L 175,400
-    L 270,400
-    Z
-  "/>
+  <path fill="#B50C1E" d="M 135,0 L 0,400 L 95,400 L 135,250 L 175,400 L 365,400 Z"/>
 
-  <!-- Chevron droit (symétrique) :
-       apex  (405, 0)
-       jambe extérieure gauche → (270, 400)
-       jambe extérieure droite → (540, 400)
-       encoche basse : (365,400)→(405,255)→(445,400)
+  <!-- Chevron droit (symétrique / x=270) :
+       apex (405, 0)
+       jambe intérieure (croise le chevron gauche) : → (175, 400)
+       encoche basse : (365,400)→(405,250)→(445,400)
+       jambe extérieure : → (540, 400)
   -->
-  <path fill="#B50C1E" d="
-    M 405,0
-    L 270,400
-    L 365,400
-    L 405,255
-    L 445,400
-    L 540,400
-    Z
-  "/>
+  <path fill="#B50C1E" d="M 405,0 L 175,400 L 365,400 L 405,250 L 445,400 L 540,400 Z"/>
 </svg>

@@ -1,41 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 400">
   <!--
     Nomura Holdings — geometric mark
-    Couleur rouge officielle : #B50C1E
-    Tracé d'après le logo original (deux formes en chevron qui se chevauchent)
+    Deux chevrons symétriques qui se rejoignent au bas-centre (270,400).
+    Chaque chevron a une encoche triangulaire coupée dans sa partie basse.
+    Couleur : Nomura red #B50C1E
+  -->
+
+  <!-- Chevron gauche :
+       apex  (135, 0)
+       jambe extérieure gauche → (0, 400)
+       jambe extérieure droite → (270, 400)
+       encoche basse : (95,400)→(135,255)→(175,400)
   -->
   <path fill="#B50C1E" d="
-    M 0 400
-    L 135 0
-    L 270 400
-    L 215 400
-    L 135 95
-    L 55 400
+    M 135,0
+    L 0,400
+    L 95,400
+    L 135,255
+    L 175,400
+    L 270,400
     Z
   "/>
-  <!-- Découpe intérieure forme gauche -->
-  <path fill="white" d="
-    M 135 285
-    L 168 400
-    L 102 400
-    Z
-  "/>
-  <!-- Forme droite (M / chevron droit) -->
+
+  <!-- Chevron droit (symétrique) :
+       apex  (405, 0)
+       jambe extérieure gauche → (270, 400)
+       jambe extérieure droite → (540, 400)
+       encoche basse : (365,400)→(405,255)→(445,400)
+  -->
   <path fill="#B50C1E" d="
-    M 200 0
-    L 405 0
-    L 540 400
-    L 484 400
-    L 405 95
-    L 270 400
-    L 215 400
-    Z
-  "/>
-  <!-- Découpe intérieure forme droite -->
-  <path fill="white" d="
-    M 405 285
-    L 438 400
-    L 372 400
+    M 405,0
+    L 270,400
+    L 365,400
+    L 405,255
+    L 445,400
+    L 540,400
     Z
   "/>
 </svg>

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.149",
-  "version_name": "1.2.149-nomura-debug",
-  "published_at": "2026-05-29T21:09:53Z",
-  "release_notes": "Nomura debug : log pré-guard dans le filler (visible même si déjà en cours), logs handleApply dans background.js (bankId/routeAs/url). Fix fetchProfile : Nomura exclu de requiresCareerCredentials (le filler gère lui-même la connexion). Bump 1.2.149.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.149.zip"
+  "version": "1.2.150",
+  "version_name": "1.2.150-connection-missing-popup",
+  "published_at": "2026-05-29T21:18:08Z",
+  "release_notes": "Popup bloquant 'Connexion [Banque] manquante' quand les identifiants ne sont pas configurés dans la page Connexions — s'applique à toutes les banques. Aucun onglet de candidature ne s'ouvre dans ce cas. Revert exclusion Nomura de requiresCareerCredentials. Bump 1.2.150.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.150.zip"
 }

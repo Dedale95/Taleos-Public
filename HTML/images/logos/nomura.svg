@@ -1,25 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 400">
   <!--
-    Nomura Holdings — geometric mark "M"
-    Deux chevrons dont les jambes intérieures SE CROISENT en (270,235),
-    formant une masse centrale solide et un V central qui se referme.
-    Chaque chevron a une encoche triangulaire dans sa partie basse.
-    Couleur : Nomura red #B50C1E
+    Nomura Holdings — geometric "M" mark
+    Two chevrons whose FILLED AREAS overlap significantly in the center.
+    Left chevron : peak (180,0), outer-left to (0,400), notch (120→180→240,400), inner arm to (400,400)
+    Right chevron: peak (360,0), inner arm from (140,400), notch (300→360→420,400), outer-right to (540,400)
+    Inner legs cross at (270, 164) — creating solid center mass below that point.
+    Notch apex at y=200 (just below crossing), notch base 120px wide on each chevron.
+    Color: Nomura red #B50C1E
   -->
-
-  <!-- Chevron gauche :
-       apex (135, 0)
-       jambe extérieure : → (0, 400)
-       encoche basse : (95,400)→(135,250)→(175,400)
-       jambe intérieure (croise le chevron droit) : → (365, 400)
-  -->
-  <path fill="#B50C1E" d="M 135,0 L 0,400 L 95,400 L 135,250 L 175,400 L 365,400 Z"/>
-
-  <!-- Chevron droit (symétrique / x=270) :
-       apex (405, 0)
-       jambe intérieure (croise le chevron gauche) : → (175, 400)
-       encoche basse : (365,400)→(405,250)→(445,400)
-       jambe extérieure : → (540, 400)
-  -->
-  <path fill="#B50C1E" d="M 405,0 L 175,400 L 365,400 L 405,250 L 445,400 L 540,400 Z"/>
+  <path fill="#B50C1E" d="M 180,0 L 0,400 L 120,400 L 180,200 L 240,400 L 400,400 Z"/>
+  <path fill="#B50C1E" d="M 360,0 L 140,400 L 300,400 L 360,200 L 420,400 L 540,400 Z"/>
 </svg>

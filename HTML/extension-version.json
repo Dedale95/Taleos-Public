@@ -1,7 +1,7 @@
 {
-  "version": "1.2.155",
-  "version_name": "1.2.155-nomura-alert-lm-slot",
-  "published_at": "2026-05-29T22:36:10Z",
-  "release_notes": "Fix Nomura : (1) Popup 'page expired' supprimé automatiquement — nouvel intercepteur window.alert() en world MAIN (document_start) sur careers.nomura.com. (2) LM dans le bon slot : findAttachButton utilise le tri numérique JUIC comme fallback principal (SF rend toujours CV en premier, LM en second) ; on attend que les 2 boutons soient dans le DOM avant l'upload. (3) Routing : les pages careers.nomura.com/talentcommunity/apply/* sont ignorées par le filler (redirection intermédiaire, pas une page à traiter). Bump 1.2.155.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.155.zip"
+  "version": "1.2.156",
+  "version_name": "1.2.156-nomura-lm-remove-speed",
+  "published_at": "2026-05-29T22:47:17Z",
+  "release_notes": "Fix Nomura : (1) LM dans slot occupé — findAttachButton cherche maintenant addAttachments ET removeAttachments (slot occupé d'une session précédente = bouton poubelle). uploadFile supprime le fichier existant avant de re-uploader. (2) Vitesse — Apply now trouvé avec poll 80ms (au lieu de 250ms), sleep post-clic réduit à 400ms, signInLink à 3s. Bump 1.2.156.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.156.zip"
 }

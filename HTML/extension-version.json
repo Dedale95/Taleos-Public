@@ -1,7 +1,7 @@
 {
-  "version": "1.2.136",
-  "version_name": "1.2.136-hsbc-cv-keep-firebase-name",
-  "published_at": "2026-05-28T08:46:54Z",
-  "release_notes": "HSBC CV : suppression du fallback cv.pdf — nom exact Firebase préservé.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.136.zip"
+  "version": "1.2.137",
+  "version_name": "1.2.137-hsbc-already-applied-detect",
+  "published_at": "2026-05-29T10:04:55Z",
+  "release_notes": "HSBC : détection deja postulé FR/EN → candidature_already_applied → mise à jour tuile + fermeture onglet.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.137.zip"
 }

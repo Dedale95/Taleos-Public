@@ -1988,38 +1988,7 @@
                             </select>
                         </div>
 
-                        <div id="deloitteDetailsSection" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                            <div class="form-group">
-                                <label for="deloitteOldOffice">Votre ancien bureau</label>
-                                <input type="text" id="deloitteOldOffice" name="deloitteOldOffice" placeholder="Ex. Paris, Lyon...">
-                            </div>
-                            <div class="form-group">
-                                <label for="deloitteOldEmail">Votre ancienne adresse email</label>
-                                <input type="email" id="deloitteOldEmail" name="deloitteOldEmail" placeholder="exemple@deloitte.com">
-                            </div>
-                            <div class="form-group">
-                                <label for="deloitteCountry">Pays</label>
-                                <select id="deloitteCountry" name="deloitteCountry">
-                                    <option value="">Sélectionnez un pays...</option>
-                                    <!-- Options générées par JS -->
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section HSBC — Questions récurrentes -->
-                <div class="form-section accordion-section" style="margin-top: 12px;">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>🏦 HSBC — Questions spécifiques</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">
-                            Ces réponses sont utilisées automatiquement lors du remplissage du formulaire de candidature HSBC.
-                        </p>
-
-                        <div class="form-group">
+                        <div class="form-group" style="margin-top: 16px;">
                             <label for="hsbcFamilyAtHsbc">Avez-vous de la famille qui travaille dans le groupe HSBC ?</label>
                             <select id="hsbcFamilyAtHsbc" name="hsbc_family_at_hsbc" onchange="toggleHsbcFamilyDetails(this.value)">
                                 <option value="Non">Non</option>
@@ -2053,19 +2022,29 @@
                         </div>
 
                         <div class="form-group" style="margin-top: 16px;">
-                            <label for="hsbcWorkRight">Avez-vous le droit de travailler dans le pays où l'offre est publiée ?</label>
-                            <select id="hsbcWorkRight" name="hsbc_work_right">
-                                <option value="Oui">Oui</option>
-                                <option value="Non">Non</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group" style="margin-top: 16px;">
                             <label for="hsbcAuditorsEmployee">Êtes-vous actuellement employé(e) par les auditeurs externes du groupe HSBC ?</label>
                             <select id="hsbcAuditorsEmployee" name="hsbc_auditors_employee">
                                 <option value="Non">Non</option>
                                 <option value="Oui">Oui</option>
                             </select>
+                        </div>
+
+                        <div id="deloitteDetailsSection" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                            <div class="form-group">
+                                <label for="deloitteOldOffice">Votre ancien bureau</label>
+                                <input type="text" id="deloitteOldOffice" name="deloitteOldOffice" placeholder="Ex. Paris, Lyon...">
+                            </div>
+                            <div class="form-group">
+                                <label for="deloitteOldEmail">Votre ancienne adresse email</label>
+                                <input type="email" id="deloitteOldEmail" name="deloitteOldEmail" placeholder="exemple@deloitte.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="deloitteCountry">Pays</label>
+                                <select id="deloitteCountry" name="deloitteCountry">
+                                    <option value="">Sélectionnez un pays...</option>
+                                    <!-- Options générées par JS -->
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3705,9 +3684,6 @@
             const empIdEl = document.getElementById('hsbcEmployeeId');
             if (empIdEl && profile.hsbc_employee_id) empIdEl.value = profile.hsbc_employee_id;
 
-            const workRightEl = document.getElementById('hsbcWorkRight');
-            if (workRightEl && profile.hsbc_work_right) workRightEl.value = profile.hsbc_work_right;
-
             const auditorsEl = document.getElementById('hsbcAuditorsEmployee');
             if (auditorsEl && profile.hsbc_auditors_employee) auditorsEl.value = profile.hsbc_auditors_employee;
         }
@@ -4481,7 +4457,6 @@
                 hsbc_family_details: document.getElementById('hsbcFamilyDetails')?.value || '',
                 hsbc_former_employee: document.getElementById('hsbcFormerEmployee')?.value || 'Non',
                 hsbc_employee_id: document.getElementById('hsbcEmployeeId')?.value || '',
-                hsbc_work_right: document.getElementById('hsbcWorkRight')?.value || 'Oui',
                 hsbc_auditors_employee: document.getElementById('hsbcAuditorsEmployee')?.value || 'Non',
                 // Nomura — Questions spécifiques
                 nomura_worked_before: document.getElementById('nomuraWorkedBefore')?.value || '',

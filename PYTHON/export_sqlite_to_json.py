@@ -51,6 +51,7 @@ EY_DB            = PYTHON_DIR / "ey_jobs.db"
 LBP_DB           = PYTHON_DIR / "la_banque_postale_jobs.db"
 NOMURA_DB        = PYTHON_DIR / "nomura_jobs.db"
 MUFG_DB          = PYTHON_DIR / "mufg_jobs.db"
+MIZUHO_DB        = PYTHON_DIR / "mizuho_jobs.db"
 
 
 def write_json(path: Path, data, pretty: bool = False):
@@ -846,6 +847,87 @@ def read_mufg_from_db() -> list[dict]:
     return jobs
 
 
+def read_mizuho_from_db() -> list[dict]:
+    """
+    Lit la base Mizuho et transforme chaque offre vers le schéma standard du site.
+    Le scraper Mizuho stocke déjà les champs en français canonique :
+      city, country, region, contract_type, experience_level, job_family → réutilisés directement.
+    Toutes les offres Mizuho sont considérées Live.
+    """
+    if not MIZUHO_DB.exists():
+        print(f"⚠️ Base Mizuho manquante : {MIZUHO_DB}")
+        return []
+    try:
+        conn = sqlite3.connect(MIZUHO_DB)
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("SELECT * FROM jobs ORDER BY posted_date DESC").fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"   ❌ Erreur lecture Mizuho DB : {e}")
+        return []
+
+    def _loc(city, country, region):
+        parts = [p for p in [city, country] if p and p not in ('Non spécifié', '')]
+        return ', '.join(parts) if parts else (region or '')
+
+    jobs = []
+    for row in rows:
+        r = dict(row)
+
+        location = _loc(r.get('city', ''), r.get('country', ''), r.get('region', ''))
+
+        # Niveau d'expérience — déjà canonique depuis le scraper
+        exp_level = r.get('experience_level', '') or ''
+        if exp_level in ('Non spécifié', ''):
+            exp_level = ''
+
+        # Famille métier — déjà canonique
+        job_family = r.get('job_family', '') or ''
+        if not job_family or job_family == 'Autres':
+            fresh = classify_job_family(r.get('job_title', ''))
+            if fresh and fresh not in ('Autres', ''):
+                job_family = fresh
+
+        # Type de contrat — détecter FTC dans le titre (priorité sur la DB)
+        title_for_ct = r.get('job_title', '') or ''
+        if re.search(r'\bFTC\b|\bFixed[\s-]Term\b', title_for_ct, re.IGNORECASE):
+            mizuho_ct = 'CDD'
+        else:
+            mizuho_ct = normalize_contract_type(r.get('contract_type') or '')
+
+        # Date de publication
+        pub_date = (r.get('posted_date') or r.get('scraped_at') or '')[:10]
+
+        job = {
+            "job_id":                 f"mizuho_{r['job_id']}",
+            "job_title":              r.get('job_title') or '',
+            "contract_type":          mizuho_ct,
+            "publication_date":       pub_date,
+            "location":               location,
+            "job_family":             job_family,
+            "duration":               None,
+            "management_position":    None,
+            "status":                 "Live",
+            "education_level":        r.get('education_level') or '',
+            "experience_level":       exp_level,
+            "training_specialization":None,
+            "technical_skills":       None,
+            "behavioral_skills":      None,
+            "tools":                  None,
+            "languages":              None,
+            "job_description":        (r.get('description') or '')[:2000],
+            "company_name":           "Mizuho",
+            "job_url":                r.get('offer_url') or '',
+            "candidate_type":         r.get('candidate_type') or 'Experienced',
+            "source":                 r.get('source') or 'mizuho',
+            "country":                r.get('country') or '',
+            "region":                 r.get('region') or '',
+        }
+        jobs.append(job)
+
+    return jobs
+
+
 def main():
     print("=" * 80)
     print("🔄 EXPORT DES DONNÉES SQLITE VERS JSON")
@@ -950,6 +1032,15 @@ def main():
     else:
         print(f"   ⚠️ Aucune offre MUFG trouvée")
 
+    # ── Mizuho (schéma spécifique) ────────────────────────────────
+    print(f"📁 Lecture de Mizuho depuis {MIZUHO_DB.name}...")
+    mizuho_jobs = read_mizuho_from_db()
+    if mizuho_jobs:
+        all_jobs.extend(mizuho_jobs)
+        print(f"   ✅ {len(mizuho_jobs)} offres Mizuho lues")
+    else:
+        print(f"   ⚠️ Aucune offre Mizuho trouvée")
+
     # Ajouter les offres BNP préservées si la base était absente
     if bnp_jobs_preserved:
         all_jobs.extend(bnp_jobs_preserved)
@@ -982,6 +1073,7 @@ def main():
         # Nomura + MUFG — toutes les offres (pas de distinction Live/Expired)
         all_jobs_full.extend(nomura_jobs)
         all_jobs_full.extend(mufg_jobs)
+        all_jobs_full.extend(mizuho_jobs)
         OUTPUT_JSON_FULL = HTML_DIR / "scraped_jobs_full.json"
         if all_jobs_full:
             slim_jobs_full = [slim_full_job(job) for job in all_jobs_full]
@@ -1048,6 +1140,12 @@ def main():
         write_json(mufg_out, mufg_jobs)
         size_kb = mufg_out.stat().st_size // 1024
         print(f"   ✅ mufg : {len(mufg_jobs)} offres → scraped_jobs_mufg.json ({size_kb} KB)")
+
+        # Mizuho — export individuel
+        mizuho_out = HTML_DIR / "scraped_jobs_mizuho.json"
+        write_json(mizuho_out, mizuho_jobs)
+        size_kb = mizuho_out.stat().st_size // 1024
+        print(f"   ✅ mizuho : {len(mizuho_jobs)} offres → scraped_jobs_mizuho.json ({size_kb} KB)")
 
         for key, db_path in SOURCE_KEYS:
             out_path = HTML_DIR / f"scraped_jobs_{key}.json"

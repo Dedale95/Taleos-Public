@@ -1,7 +1,7 @@
 {
-  "version": "1.2.145",
-  "version_name": "1.2.145-nomura-candidature",
-  "published_at": "2026-05-29T17:43:48Z",
-  "release_notes": "Mapping de candidature Nomura complet : remplissage automatique du formulaire SAP SuccessFactors (career4.successfactors.com) — prénom, nom, téléphone (indicatif+numéro), adresse, ville, code postal, pays, CV, LM, devise, attentes salariales, préavis (mois→semaines), déjà travaillé chez Nomura. Nouveaux champs profil : nomura_worked_before, nomura_currency, nomura_salary_expectations. Listener onUpdated pour ré-injection sur chaque page SF Nomura.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.145.zip"
+  "version": "1.2.146",
+  "version_name": "1.2.146-nomura-fix-injection",
+  "published_at": "2026-05-29T20:08:57Z",
+  "release_notes": "Fix injection Nomura : ajout d'un listener one-shot dans le bloc de routage pour garantir l'exécution du filler même sans manifest content script (compatibilité ancienne version). Correction normalizeSite, pendingKeyForBank et orphan-cleanup pour Nomura. Intégration devise/salaire commun (salary_currency / salary_expectations).",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.146.zip"
 }

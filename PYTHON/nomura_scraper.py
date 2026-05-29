@@ -217,7 +217,7 @@ LEVEL_PATTERNS: list[tuple[str, str]] = [
 
 # Contract type — SF experienced (defaults CDI, détection CDD/Intérim/Stage)
 CONTRACT_EXPERIENCED_PATTERNS: list[tuple[str, str]] = [
-    (r"\bcontract(?:or|ed)?\b|\bfixed[\s-]term\b|\btemporary\b|\binterim\b|\bCDD\b",
+    (r"\bcontract(?:or|ed)?\b|\bfixed[\s-]term\b|\btemporary\b|\binterim\b|\bCDD\b|\bFTC\b",
      "CDD"),
     (r"\bintern(?:ship)?\b|\bstagiaire\b|\boff[\s-]cycle\b|\bsummer\s+analyst\b",
      "Stage"),

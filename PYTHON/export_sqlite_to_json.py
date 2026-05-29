@@ -50,6 +50,7 @@ HSBC_DB          = PYTHON_DIR / "hsbc_jobs.db"
 EY_DB            = PYTHON_DIR / "ey_jobs.db"
 LBP_DB           = PYTHON_DIR / "la_banque_postale_jobs.db"
 NOMURA_DB        = PYTHON_DIR / "nomura_jobs.db"
+MUFG_DB          = PYTHON_DIR / "mufg_jobs.db"
 
 
 def write_json(path: Path, data, pretty: bool = False):
@@ -242,7 +243,10 @@ def normalize_contract_type(raw_contract: str) -> str:
         return "VIE"
 
     # CDD (Contractor / Temp / Fixed term = intérim / CDD)
+    # "ftc" = Fixed Term Contract (abréviation courante dans les titres anglophones)
     if any(x in norm or x in norm_clean for x in ["cdd", "temporary", "temporaire", "fixed term", "zero hours", "contractor", "temp"]):
+        return "CDD"
+    if re.search(r'\bftc\b', norm):
         return "CDD"
 
     # Graduate Programme (CDI) → CDI (le contrat sous-jacent est CDI)
@@ -703,13 +707,20 @@ def read_nomura_from_db() -> list[dict]:
             if extracted:
                 exp_level = normalize_experience_level(extracted)
 
+        # ── Type de contrat — détecter FTC dans le titre (priorité sur la DB) ──
+        title_for_ct = r.get('job_title', '') or ''
+        if re.search(r'\bFTC\b|\bFixed[\s-]Term\b', title_for_ct, re.IGNORECASE):
+            nomura_ct = 'CDD'
+        else:
+            nomura_ct = normalize_contract_type(r.get('contract_type') or '')
+
         # ── Date de publication ──
         pub_date = (r.get('posted_date') or r.get('scraped_at') or '')[:10]
 
         job = {
             "job_id":                 f"nomura_{r['job_id']}",
             "job_title":              r.get('job_title') or '',
-            "contract_type":          normalize_contract_type(r.get('contract_type') or ''),
+            "contract_type":          nomura_ct,
             "publication_date":       pub_date,
             "location":               location,
             "job_family":             job_family,
@@ -724,7 +735,104 @@ def read_nomura_from_db() -> list[dict]:
             "tools":                  None,
             "languages":              None,
             "job_description":        (r.get('description') or '')[:2000],
-            "company_name":           r.get('entity') or 'Nomura',
+            "company_name":           "Nomura",  # Toutes les entités (Greentech, Instinet…) regroupées sous "Nomura"
+            "company_description":    None,
+            "job_url":                r.get('offer_url') or '',
+            "first_seen":             r.get('scraped_at') or '',
+            "last_updated":           r.get('scraped_at') or '',
+            # Champs supplémentaires utiles pour les filtres
+            "candidate_type":         r.get('candidate_type') or '',
+            "region":                 r.get('region') or '',
+        }
+        jobs.append(job)
+
+    return jobs
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MUFG — schéma spécifique (city/country/region, offer_url, description…)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def read_mufg_from_db() -> list[dict]:
+    """
+    Lit la base MUFG et transforme chaque offre vers le schéma standard du site.
+    Le scraper MUFG stocke déjà les champs en français canonique :
+      - experience_level : "0 - 2 ans", "3 - 5 ans", etc.
+      - job_family       : libellés français canoniques
+      - contract_type    : CDI / CDD / Stage
+    Toutes les offres MUFG sont considérées Live.
+    """
+    if not MUFG_DB.exists():
+        print(f"⚠️ Base MUFG manquante : {MUFG_DB}")
+        return []
+    try:
+        conn = sqlite3.connect(MUFG_DB)
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("""
+            SELECT job_id, source, candidate_type, entity,
+                   job_title, job_family, city, country, region,
+                   contract_type, experience_level, education_level,
+                   description, offer_url, posted_date, scraped_at
+            FROM jobs
+            ORDER BY scraped_at DESC
+        """).fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"   ❌ Erreur lecture MUFG DB : {e}")
+        return []
+
+    jobs = []
+    for row in rows:
+        r = dict(row)
+
+        # ── Localisation ──
+        location = _nomura_map_location(r.get('city', ''), r.get('country', ''), r.get('region', ''))
+
+        # ── Niveau d'expérience (déjà en format canonique depuis le scraper) ──
+        exp_level = r.get('experience_level', '') or ''
+        if exp_level == 'Non spécifié':
+            exp_level = ''
+        if exp_level and not re.match(r'^\d', exp_level):
+            # Sécurité : normaliser si format inattendu
+            exp_level = normalize_experience_level(exp_level)
+
+        # ── Famille métier (déjà canonique) ──
+        job_family = r.get('job_family', '') or ''
+        if not job_family or job_family == 'Autres':
+            # Fallback classifieur depuis le titre
+            fresh = classify_job_family(r.get('job_title', ''))
+            if fresh and fresh not in ('Autres', ''):
+                job_family = fresh
+
+        # ── Type de contrat — détecter FTC dans le titre (priorité sur la DB) ──
+        title_for_ct = r.get('job_title', '') or ''
+        if re.search(r'\bFTC\b|\bFixed[\s-]Term\b', title_for_ct, re.IGNORECASE):
+            mufg_ct = 'CDD'
+        else:
+            mufg_ct = normalize_contract_type(r.get('contract_type') or '')
+
+        # ── Date de publication ──
+        pub_date = (r.get('posted_date') or r.get('scraped_at') or '')[:10]
+
+        job = {
+            "job_id":                 f"mufg_{r['job_id']}",
+            "job_title":              r.get('job_title') or '',
+            "contract_type":          mufg_ct,
+            "publication_date":       pub_date,
+            "location":               location,
+            "job_family":             job_family,
+            "duration":               None,
+            "management_position":    None,
+            "status":                 "Live",
+            "education_level":        r.get('education_level') or '',
+            "experience_level":       exp_level,
+            "training_specialization":None,
+            "technical_skills":       None,
+            "behavioral_skills":      None,
+            "tools":                  None,
+            "languages":              None,
+            "job_description":        (r.get('description') or '')[:2000],
+            "company_name":           "MUFG",
             "company_description":    None,
             "job_url":                r.get('offer_url') or '',
             "first_seen":             r.get('scraped_at') or '',
@@ -833,6 +941,15 @@ def main():
     else:
         print(f"   ⚠️ Aucune offre Nomura trouvée")
 
+    # ── MUFG (schéma spécifique) ──────────────────────────────────
+    print(f"📁 Lecture de MUFG depuis {MUFG_DB.name}...")
+    mufg_jobs = read_mufg_from_db()
+    if mufg_jobs:
+        all_jobs.extend(mufg_jobs)
+        print(f"   ✅ {len(mufg_jobs)} offres MUFG lues")
+    else:
+        print(f"   ⚠️ Aucune offre MUFG trouvée")
+
     # Ajouter les offres BNP préservées si la base était absente
     if bnp_jobs_preserved:
         all_jobs.extend(bnp_jobs_preserved)
@@ -862,8 +979,9 @@ def main():
                 all_jobs_full.extend(full)
         if bnp_jobs_preserved and not bnp_db_usable:
             all_jobs_full.extend(bnp_jobs_preserved)
-        # Nomura — toutes les offres (pas de distinction Live/Expired)
+        # Nomura + MUFG — toutes les offres (pas de distinction Live/Expired)
         all_jobs_full.extend(nomura_jobs)
+        all_jobs_full.extend(mufg_jobs)
         OUTPUT_JSON_FULL = HTML_DIR / "scraped_jobs_full.json"
         if all_jobs_full:
             slim_jobs_full = [slim_full_job(job) for job in all_jobs_full]
@@ -924,6 +1042,12 @@ def main():
         write_json(nomura_out, nomura_jobs)
         size_kb = nomura_out.stat().st_size // 1024
         print(f"   ✅ nomura : {len(nomura_jobs)} offres → scraped_jobs_nomura.json ({size_kb} KB)")
+
+        # MUFG — export individuel depuis fonction dédiée
+        mufg_out = HTML_DIR / "scraped_jobs_mufg.json"
+        write_json(mufg_out, mufg_jobs)
+        size_kb = mufg_out.stat().st_size // 1024
+        print(f"   ✅ mufg : {len(mufg_jobs)} offres → scraped_jobs_mufg.json ({size_kb} KB)")
 
         for key, db_path in SOURCE_KEYS:
             out_path = HTML_DIR / f"scraped_jobs_{key}.json"

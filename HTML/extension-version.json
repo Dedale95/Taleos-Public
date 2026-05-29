@@ -1,7 +1,7 @@
 {
-  "version": "1.2.146",
-  "version_name": "1.2.146-nomura-fix-injection",
-  "published_at": "2026-05-29T20:08:57Z",
-  "release_notes": "Fix injection Nomura : ajout d'un listener one-shot dans le bloc de routage pour garantir l'exécution du filler même sans manifest content script (compatibilité ancienne version). Correction normalizeSite, pendingKeyForBank et orphan-cleanup pour Nomura. Intégration devise/salaire commun (salary_currency / salary_expectations).",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.146.zip"
+  "version": "1.2.147",
+  "version_name": "1.2.147-nomura-fix-bankid",
+  "published_at": "2026-05-29T20:36:44Z",
+  "release_notes": "Fix critique Nomura : getBankIdFromUrl et getBankIdFromCompanyName dans taleos-injector.js ne reconnaissaient pas Nomura (career4.successfactors.com + nomurahold), ce qui empêchait le routage vers l'automatisation. Ajout de la détection Nomura/Instinet dans les deux fonctions.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.147.zip"
 }

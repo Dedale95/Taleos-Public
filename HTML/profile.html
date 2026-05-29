@@ -1562,8 +1562,176 @@
 
                     <div class="form-group">
                         <label for="salaryExpectations">Prétentions salariales <span style="color:#888;font-weight:400;font-size:0.85em">(facultatif)</span></label>
-                        <input type="text" id="salaryExpectations" name="salaryExpectations" placeholder="Ex. 70000 EUR brut annuel, 65k€, 4200€ net/mois…">
-                        <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">Champ libre réutilisé par les formulaires qui demandent vos attentes salariales.</small>
+                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                            <div style="flex: 0 0 220px;">
+                                <select id="salaryCurrency" name="salaryCurrency" style="width: 100%;">
+                                    <option value="">Devise…</option>
+                                    <option value="AED">AED — Dirham des Émirats arabes unis</option>
+                                    <option value="AFN">AFN — Afghani afghan</option>
+                                    <option value="ALL">ALL — Lek albanais</option>
+                                    <option value="AMD">AMD — Dram arménien</option>
+                                    <option value="ANG">ANG — Florin des Antilles néerlandaises</option>
+                                    <option value="AOA">AOA — Kwanza angolais</option>
+                                    <option value="ARS">ARS — Peso argentin</option>
+                                    <option value="AUD">AUD — Dollar australien</option>
+                                    <option value="AWG">AWG — Florin arubais</option>
+                                    <option value="AZN">AZN — Manat azerbaïdjanais</option>
+                                    <option value="BAM">BAM — Mark convertible (Bosnie-Herzégovine)</option>
+                                    <option value="BBD">BBD — Dollar de la Barbade</option>
+                                    <option value="BDT">BDT — Taka bangladais</option>
+                                    <option value="BGN">BGN — Lev bulgare</option>
+                                    <option value="BHD">BHD — Dinar bahreïni</option>
+                                    <option value="BIF">BIF — Franc burundais</option>
+                                    <option value="BMD">BMD — Dollar des Bermudes</option>
+                                    <option value="BND">BND — Dollar brunéien</option>
+                                    <option value="BOB">BOB — Boliviano bolivien</option>
+                                    <option value="BRL">BRL — Réal brésilien</option>
+                                    <option value="BSD">BSD — Dollar des Bahamas</option>
+                                    <option value="BTN">BTN — Ngultrum bhoutanais</option>
+                                    <option value="BWP">BWP — Pula botswanais</option>
+                                    <option value="BYR">BYR — Rouble biélorusse</option>
+                                    <option value="BZD">BZD — Dollar bélizien</option>
+                                    <option value="CAD">CAD — Dollar canadien</option>
+                                    <option value="CDF">CDF — Franc congolais</option>
+                                    <option value="CHF">CHF — Franc suisse</option>
+                                    <option value="CLP">CLP — Peso chilien</option>
+                                    <option value="CNY">CNY — Yuan renminbi (Chine)</option>
+                                    <option value="COP">COP — Peso colombien</option>
+                                    <option value="CRC">CRC — Colón costaricain</option>
+                                    <option value="CUP">CUP — Peso cubain</option>
+                                    <option value="CVE">CVE — Escudo cap-verdien</option>
+                                    <option value="CZK">CZK — Couronne tchèque</option>
+                                    <option value="DJF">DJF — Franc djiboutien</option>
+                                    <option value="DKK">DKK — Couronne danoise</option>
+                                    <option value="DOP">DOP — Peso dominicain</option>
+                                    <option value="DZD">DZD — Dinar algérien</option>
+                                    <option value="EEK">EEK — Couronne estonienne</option>
+                                    <option value="EGP">EGP — Livre égyptienne</option>
+                                    <option value="ERN">ERN — Nakfa érythréen</option>
+                                    <option value="ETB">ETB — Birr éthiopien</option>
+                                    <option value="EUR">EUR — Euro</option>
+                                    <option value="FJD">FJD — Dollar fidjien</option>
+                                    <option value="FKP">FKP — Livre des Îles Falkland</option>
+                                    <option value="GBP">GBP — Livre sterling (Royaume-Uni)</option>
+                                    <option value="GEL">GEL — Lari géorgien</option>
+                                    <option value="GHS">GHS — Cedi ghanéen</option>
+                                    <option value="GIP">GIP — Livre de Gibraltar</option>
+                                    <option value="GMD">GMD — Dalasi gambien</option>
+                                    <option value="GNF">GNF — Franc guinéen</option>
+                                    <option value="GTQ">GTQ — Quetzal guatémaltèque</option>
+                                    <option value="GWP">GWP — Peso de Guinée-Bissau</option>
+                                    <option value="GYD">GYD — Dollar guyanais</option>
+                                    <option value="HKD">HKD — Dollar de Hong Kong</option>
+                                    <option value="HNL">HNL — Lempira hondurien</option>
+                                    <option value="HRK">HRK — Kuna croate</option>
+                                    <option value="HTG">HTG — Gourde haïtienne</option>
+                                    <option value="HUF">HUF — Forint hongrois</option>
+                                    <option value="IDR">IDR — Roupie indonésienne</option>
+                                    <option value="ILS">ILS — Nouveau shekel israélien</option>
+                                    <option value="INR">INR — Roupie indienne</option>
+                                    <option value="IQD">IQD — Dinar irakien</option>
+                                    <option value="IRR">IRR — Rial iranien</option>
+                                    <option value="ISK">ISK — Couronne islandaise</option>
+                                    <option value="JMD">JMD — Dollar jamaïcain</option>
+                                    <option value="JOD">JOD — Dinar jordanien</option>
+                                    <option value="JPY">JPY — Yen japonais</option>
+                                    <option value="KES">KES — Shilling kényan</option>
+                                    <option value="KGS">KGS — Som kirghiz</option>
+                                    <option value="KHR">KHR — Riel cambodgien</option>
+                                    <option value="KMF">KMF — Franc comorien</option>
+                                    <option value="KPW">KPW — Won nord-coréen</option>
+                                    <option value="KRW">KRW — Won sud-coréen</option>
+                                    <option value="KWD">KWD — Dinar koweïtien</option>
+                                    <option value="KYD">KYD — Dollar des Îles Caïmans</option>
+                                    <option value="KZT">KZT — Tenge kazakh</option>
+                                    <option value="LAK">LAK — Kip laotien</option>
+                                    <option value="LBP">LBP — Livre libanaise</option>
+                                    <option value="LKR">LKR — Roupie sri-lankaise</option>
+                                    <option value="LRD">LRD — Dollar libérien</option>
+                                    <option value="LSL">LSL — Loti lesothan</option>
+                                    <option value="LTL">LTL — Litas lituanien</option>
+                                    <option value="LVL">LVL — Lats letton</option>
+                                    <option value="LYD">LYD — Dinar libyen</option>
+                                    <option value="MAD">MAD — Dirham marocain</option>
+                                    <option value="MDL">MDL — Leu moldave</option>
+                                    <option value="MGA">MGA — Ariary malgache</option>
+                                    <option value="MKD">MKD — Denar macédonien</option>
+                                    <option value="MMK">MMK — Kyat birman</option>
+                                    <option value="MNT">MNT — Tögrög mongol</option>
+                                    <option value="MOP">MOP — Pataca macanaise</option>
+                                    <option value="MUR">MUR — Roupie mauricienne</option>
+                                    <option value="MVR">MVR — Rufiyaa maldivienne</option>
+                                    <option value="MWK">MWK — Kwacha malawien</option>
+                                    <option value="MXN">MXN — Peso mexicain</option>
+                                    <option value="MYR">MYR — Ringgit malaisien</option>
+                                    <option value="MZN">MZN — Metical mozambicain</option>
+                                    <option value="NAD">NAD — Dollar namibien</option>
+                                    <option value="NGN">NGN — Naira nigérian</option>
+                                    <option value="NIO">NIO — Córdoba nicaraguayen</option>
+                                    <option value="NOK">NOK — Couronne norvégienne</option>
+                                    <option value="NPR">NPR — Roupie népalaise</option>
+                                    <option value="NZD">NZD — Dollar néo-zélandais</option>
+                                    <option value="OMR">OMR — Rial omanais</option>
+                                    <option value="PAB">PAB — Balboa panaméen</option>
+                                    <option value="PEN">PEN — Sol péruvien</option>
+                                    <option value="PGK">PGK — Kina (Papouasie-Nouvelle-Guinée)</option>
+                                    <option value="PHP">PHP — Peso philippin</option>
+                                    <option value="PKR">PKR — Roupie pakistanaise</option>
+                                    <option value="PLN">PLN — Zloty polonais</option>
+                                    <option value="PYG">PYG — Guaraní paraguayen</option>
+                                    <option value="QAR">QAR — Riyal du Qatar</option>
+                                    <option value="RON">RON — Leu roumain</option>
+                                    <option value="RSD">RSD — Dinar serbe</option>
+                                    <option value="RUB">RUB — Rouble russe</option>
+                                    <option value="RWF">RWF — Franc rwandais</option>
+                                    <option value="SAR">SAR — Riyal saoudien</option>
+                                    <option value="SBD">SBD — Dollar des Îles Salomon</option>
+                                    <option value="SCR">SCR — Roupie seychelloise</option>
+                                    <option value="SDG">SDG — Livre soudanaise</option>
+                                    <option value="SEK">SEK — Couronne suédoise</option>
+                                    <option value="SGD">SGD — Dollar de Singapour</option>
+                                    <option value="SHP">SHP — Livre de Sainte-Hélène</option>
+                                    <option value="SLL">SLL — Leone sierra-léonais</option>
+                                    <option value="SOS">SOS — Shilling somalien</option>
+                                    <option value="SRD">SRD — Dollar surinamais</option>
+                                    <option value="STD">STD — Dobra (São Tomé-et-Príncipe)</option>
+                                    <option value="SVC">SVC — Colón salvadorien</option>
+                                    <option value="SYP">SYP — Livre syrienne</option>
+                                    <option value="SZL">SZL — Lilangeni swatinien</option>
+                                    <option value="THB">THB — Baht thaïlandais</option>
+                                    <option value="TJS">TJS — Somoni tadjik</option>
+                                    <option value="TMT">TMT — Manat turkmène</option>
+                                    <option value="TND">TND — Dinar tunisien</option>
+                                    <option value="TOP">TOP — Paʻanga tongien</option>
+                                    <option value="TRY">TRY — Livre turque</option>
+                                    <option value="TTD">TTD — Dollar de Trinité-et-Tobago</option>
+                                    <option value="TWD">TWD — Nouveau dollar taïwanais</option>
+                                    <option value="TZS">TZS — Shilling tanzanien</option>
+                                    <option value="UAH">UAH — Hryvnia ukrainienne</option>
+                                    <option value="UGX">UGX — Shilling ougandais</option>
+                                    <option value="USD">USD — Dollar américain</option>
+                                    <option value="UYU">UYU — Peso uruguayen</option>
+                                    <option value="UZS">UZS — Sum ouzbek</option>
+                                    <option value="VEF">VEF — Bolívar vénézuélien</option>
+                                    <option value="VND">VND — Dong vietnamien</option>
+                                    <option value="VUV">VUV — Vatu vanuatais</option>
+                                    <option value="WST">WST — Tālā samoan</option>
+                                    <option value="XAF">XAF — Franc CFA d'Afrique centrale</option>
+                                    <option value="XCD">XCD — Dollar des Caraïbes orientales</option>
+                                    <option value="XOF">XOF — Franc CFA d'Afrique de l'Ouest</option>
+                                    <option value="XPF">XPF — Franc CFP (Pacifique)</option>
+                                    <option value="YER">YER — Rial yéménite</option>
+                                    <option value="ZAR">ZAR — Rand sud-africain</option>
+                                    <option value="ZMK">ZMK — Kwacha zambien</option>
+                                    <option value="ZWL">ZWL — Dollar zimbabwéen</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <input type="number" id="salaryExpectations" name="salaryExpectations"
+                                    placeholder="Ex. 70000" min="0" step="1000" style="width: 100%;">
+                            </div>
+                        </div>
+                        <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">Montant brut annuel. Réutilisé par les formulaires qui demandent vos attentes salariales (Nomura, etc.).</small>
                     </div>
                 </div>
                 </div>
@@ -2045,41 +2213,6 @@
                                     <!-- Options générées par JS -->
                                 </select>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section Nomura — Questions spécifiques -->
-                <div class="form-section accordion-section" style="margin-top: 12px;">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>🏦 Nomura — Questions spécifiques</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">
-                            Ces réponses sont utilisées automatiquement lors du remplissage du formulaire de candidature Nomura.
-                        </p>
-
-                        <div class="form-group">
-                            <label for="nomuraCurrency">Devise pour les attentes salariales</label>
-                            <select id="nomuraCurrency" name="nomuraCurrency">
-                                <option value="">Sélectionnez...</option>
-                                <option value="EUR">EUR — Euro</option>
-                                <option value="USD">USD — Dollar américain</option>
-                                <option value="GBP">GBP — Livre sterling</option>
-                                <option value="JPY">JPY — Yen japonais</option>
-                                <option value="SGD">SGD — Dollar de Singapour</option>
-                                <option value="HKD">HKD — Dollar de Hong Kong</option>
-                                <option value="AUD">AUD — Dollar australien</option>
-                                <option value="CHF">CHF — Franc suisse</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group" style="margin-top: 16px;">
-                            <label for="nomuraSalaryExpectations">Attentes salariales Nomura (montant uniquement, sans devise)</label>
-                            <input type="number" id="nomuraSalaryExpectations" name="nomuraSalaryExpectations"
-                                placeholder="Ex. 75000" min="0" step="1000">
-                            <small style="color: #666;">Entrez uniquement le montant numérique. La devise est sélectionnée séparément ci-dessus.</small>
                         </div>
                     </div>
                 </div>
@@ -3350,6 +3483,8 @@
                 }, 100);
             }
 
+            const salaryCurrencyInput = document.getElementById('salaryCurrency');
+            if (salaryCurrencyInput && profile.salary_currency) salaryCurrencyInput.value = profile.salary_currency;
             const salaryExpectationsInput = document.getElementById('salaryExpectations');
             if (salaryExpectationsInput && profile.salary_expectations) {
                 salaryExpectationsInput.value = profile.salary_expectations;
@@ -3692,12 +3827,6 @@
         function loadNomuraInfo(profile) {
             const workedEl = document.getElementById('nomuraWorkedBefore');
             if (workedEl && profile.nomura_worked_before) workedEl.value = profile.nomura_worked_before;
-
-            const currencyEl = document.getElementById('nomuraCurrency');
-            if (currencyEl && profile.nomura_currency) currencyEl.value = profile.nomura_currency;
-
-            const salaryEl = document.getElementById('nomuraSalaryExpectations');
-            if (salaryEl && profile.nomura_salary_expectations) salaryEl.value = profile.nomura_salary_expectations;
         }
 
         // Fonction pour charger et afficher les informations d'un fichier existant
@@ -4400,6 +4529,7 @@
                 contract_type: document.getElementById('contractType').value,
                 available_from: availableFrom, // Format jj/mm/yyyy
                 available_from_raw: availableFromRaw || (availableFromInput ? availableFromInput.value : ''), // Format YYYY-MM-DD pour le stockage
+                salary_currency: document.getElementById('salaryCurrency')?.value || '',
                 salary_expectations: document.getElementById('salaryExpectations')?.value?.trim() || '',
                 continents: selectedContinents, // Array des continents sélectionnés
                 preferred_countries: selectedCountries, // Array des pays sélectionnés
@@ -4460,8 +4590,6 @@
                 hsbc_auditors_employee: document.getElementById('hsbcAuditorsEmployee')?.value || 'Non',
                 // Nomura — Questions spécifiques
                 nomura_worked_before: document.getElementById('nomuraWorkedBefore')?.value || '',
-                nomura_currency: document.getElementById('nomuraCurrency')?.value || '',
-                nomura_salary_expectations: document.getElementById('nomuraSalaryExpectations')?.value || '',
                 email: userEmail || '',
                 updated_at: new Date().toISOString(),
                 created_at: null // Sera défini lors de la première création

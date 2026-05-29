@@ -1,7 +1,7 @@
 {
-  "version": "1.2.141",
-  "version_name": "1.2.141-injector-successtype",
-  "published_at": "2026-05-29T10:40:20Z",
-  "release_notes": "Fix : successType et successMessage manquants dans le CustomEvent taleos-extension-candidature-success — la tuile ne se mettait pas à jour en cas de 'déjà postulé'.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.141.zip"
+  "version": "1.2.142",
+  "version_name": "1.2.142-hsbc-jobid-fix",
+  "published_at": "2026-05-29T10:48:25Z",
+  "release_notes": "Fix critique HSBC : jobId était vide dans candidature_already_applied et candidature_success. Le background stocke jobId/offerUrl/jobTitle dans profile.__jobId etc. — le filler lisait profile.jobId (sans __) qui était toujours vide, empêchant la mise à jour des tuiles et l'enregistrement Firestore.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.142.zip"
 }

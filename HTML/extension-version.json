@@ -1,7 +1,7 @@
 {
-  "version": "1.2.151",
-  "version_name": "1.2.151-fix-missing-credentials-propagation",
-  "published_at": "2026-05-29T21:44:11Z",
-  "release_notes": "Fix critique : sendResponse dans le handler taleos_apply ne retransmettait pas missingCredentials/bankId au content script — le popup 'Connexion manquante' n'apparaissait jamais. Bump 1.2.151.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.151.zip"
+  "version": "1.2.152",
+  "version_name": "1.2.152-nomura-fix-init-listener",
+  "published_at": "2026-05-29T21:50:01Z",
+  "release_notes": "Fix injection Nomura : le listener one-shot ne prenait pas le paramètre tab et se détruisait dès le premier status:complete (même sur une page de redirect), empêchant l'injection sur career4.successfactors.com. Remplacé par un listener persistant qui attend career4+nomurahold avant d'injecter (timeout 3 min). Bump 1.2.152.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.152.zip"
 }

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.152",
-  "version_name": "1.2.152-nomura-fix-init-listener",
-  "published_at": "2026-05-29T21:50:01Z",
-  "release_notes": "Fix injection Nomura : le listener one-shot ne prenait pas le paramètre tab et se détruisait dès le premier status:complete (même sur une page de redirect), empêchant l'injection sur career4.successfactors.com. Remplacé par un listener persistant qui attend career4+nomurahold avant d'injecter (timeout 3 min). Bump 1.2.152.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.152.zip"
+  "version": "1.2.153",
+  "version_name": "1.2.153-nomura-full-fix",
+  "published_at": "2026-05-29T22:11:25Z",
+  "release_notes": "Nomura full fix : (1) careers.nomura.com ajouté au manifest — le filler s'injecte directement sur la page offre et clique 'Apply now' automatiquement. (2) Guard (__TALEOS_NOMURA_FILLER_RUNNING__) déplacé après vérification de la session en attente — évite le blocage sur les pages sans session. (3) URL routing étendu à careers.nomura.com (isListingPage). (4) Listeners persistent et one-shot vérifient le guard avant injection (plus de reset) — élimine la triple injection sur career4. (5) Fix téléphone : suppression du 0 initial quand l'indicatif pays est déjà renseigné (+33 + 0758... → +33758...). (6) Fix label LM : dérivation de l'ID de base depuis attachBtnSelector pour lire le bon _attachDownloadLabelLink (CV vs LM). Bump 1.2.153.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.153.zip"
 }

@@ -1979,6 +1979,15 @@
                             </select>
                         </div>
 
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label for="nomuraWorkedBefore">Avez-vous déjà travaillé pour Nomura ?</label>
+                            <select id="nomuraWorkedBefore" name="nomuraWorkedBefore">
+                                <option value="">Sélectionnez...</option>
+                                <option value="No">Non</option>
+                                <option value="Yes">Oui</option>
+                            </select>
+                        </div>
+
                         <div id="deloitteDetailsSection" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
                             <div class="form-group">
                                 <label for="deloitteOldOffice">Votre ancien bureau</label>
@@ -2057,6 +2066,41 @@
                                 <option value="Non">Non</option>
                                 <option value="Oui">Oui</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Nomura — Questions spécifiques -->
+                <div class="form-section accordion-section" style="margin-top: 12px;">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2>🏦 Nomura — Questions spécifiques</h2>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">
+                            Ces réponses sont utilisées automatiquement lors du remplissage du formulaire de candidature Nomura.
+                        </p>
+
+                        <div class="form-group">
+                            <label for="nomuraCurrency">Devise pour les attentes salariales</label>
+                            <select id="nomuraCurrency" name="nomuraCurrency">
+                                <option value="">Sélectionnez...</option>
+                                <option value="EUR">EUR — Euro</option>
+                                <option value="USD">USD — Dollar américain</option>
+                                <option value="GBP">GBP — Livre sterling</option>
+                                <option value="JPY">JPY — Yen japonais</option>
+                                <option value="SGD">SGD — Dollar de Singapour</option>
+                                <option value="HKD">HKD — Dollar de Hong Kong</option>
+                                <option value="AUD">AUD — Dollar australien</option>
+                                <option value="CHF">CHF — Franc suisse</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label for="nomuraSalaryExpectations">Attentes salariales Nomura (montant uniquement, sans devise)</label>
+                            <input type="number" id="nomuraSalaryExpectations" name="nomuraSalaryExpectations"
+                                placeholder="Ex. 75000" min="0" step="1000">
+                            <small style="color: #666;">Entrez uniquement le montant numérique. La devise est sélectionnée séparément ci-dessus.</small>
                         </div>
                     </div>
                 </div>
@@ -3129,6 +3173,7 @@
                         loadSgScreeningInfo(profile);
                         loadGoldmanSachsInfo(profile);
                         loadHsbcInfo(profile);
+                        loadNomuraInfo(profile);
 
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
@@ -3194,6 +3239,7 @@
                         loadSgScreeningInfo(profile);
                         loadGoldmanSachsInfo(profile);
                         loadHsbcInfo(profile);
+                        loadNomuraInfo(profile);
 
                         // Charger les fichiers existants (CV et lettre de motivation)
                         loadFileInfo('cv', profile);
@@ -3664,6 +3710,18 @@
 
             const auditorsEl = document.getElementById('hsbcAuditorsEmployee');
             if (auditorsEl && profile.hsbc_auditors_employee) auditorsEl.value = profile.hsbc_auditors_employee;
+        }
+
+        // Fonction pour charger les informations Nomura
+        function loadNomuraInfo(profile) {
+            const workedEl = document.getElementById('nomuraWorkedBefore');
+            if (workedEl && profile.nomura_worked_before) workedEl.value = profile.nomura_worked_before;
+
+            const currencyEl = document.getElementById('nomuraCurrency');
+            if (currencyEl && profile.nomura_currency) currencyEl.value = profile.nomura_currency;
+
+            const salaryEl = document.getElementById('nomuraSalaryExpectations');
+            if (salaryEl && profile.nomura_salary_expectations) salaryEl.value = profile.nomura_salary_expectations;
         }
 
         // Fonction pour charger et afficher les informations d'un fichier existant
@@ -4425,6 +4483,10 @@
                 hsbc_employee_id: document.getElementById('hsbcEmployeeId')?.value || '',
                 hsbc_work_right: document.getElementById('hsbcWorkRight')?.value || 'Oui',
                 hsbc_auditors_employee: document.getElementById('hsbcAuditorsEmployee')?.value || 'Non',
+                // Nomura — Questions spécifiques
+                nomura_worked_before: document.getElementById('nomuraWorkedBefore')?.value || '',
+                nomura_currency: document.getElementById('nomuraCurrency')?.value || '',
+                nomura_salary_expectations: document.getElementById('nomuraSalaryExpectations')?.value || '',
                 email: userEmail || '',
                 updated_at: new Date().toISOString(),
                 created_at: null // Sera défini lors de la première création

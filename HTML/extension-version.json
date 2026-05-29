@@ -1,7 +1,7 @@
 {
-  "version": "1.2.144",
-  "version_name": "1.2.144-nomura-connexions",
-  "published_at": "2026-05-29T16:20:21Z",
-  "release_notes": "Ajout de Nomura dans l'onglet Connexions : test de connexion SAP SuccessFactors (career4.successfactors.com), gestion déconnexion automatique si session active, détection succès/échec. Correction du logo SVG Nomura (géométrie M avec vraie superposition des formes).",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.144.zip"
+  "version": "1.2.145",
+  "version_name": "1.2.145-nomura-candidature",
+  "published_at": "2026-05-29T17:43:48Z",
+  "release_notes": "Mapping de candidature Nomura complet : remplissage automatique du formulaire SAP SuccessFactors (career4.successfactors.com) — prénom, nom, téléphone (indicatif+numéro), adresse, ville, code postal, pays, CV, LM, devise, attentes salariales, préavis (mois→semaines), déjà travaillé chez Nomura. Nouveaux champs profil : nomura_worked_before, nomura_currency, nomura_salary_expectations. Listener onUpdated pour ré-injection sur chaque page SF Nomura.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.145.zip"
 }

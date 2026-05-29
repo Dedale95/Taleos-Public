@@ -49,6 +49,7 @@ AXA_DB           = PYTHON_DIR / "axa_jobs.db"
 HSBC_DB          = PYTHON_DIR / "hsbc_jobs.db"
 EY_DB            = PYTHON_DIR / "ey_jobs.db"
 LBP_DB           = PYTHON_DIR / "la_banque_postale_jobs.db"
+NOMURA_DB        = PYTHON_DIR / "nomura_jobs.db"
 
 
 def write_json(path: Path, data, pretty: bool = False):
@@ -584,6 +585,159 @@ def read_from_db(db_path, company_name, live_only=True):
         print(f"   ❌ Erreur lors de la lecture de {db_path}: {e}")
         return []
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Nomura — schéma spécifique (city/country/region, offer_url, description…)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Mapping grades Nomura → tranches d'expérience canoniques du site
+_NOMURA_LEVEL_TO_YEARS: dict[str, str] = {
+    "intern / stage":       "0 - 2 ans",
+    "analyst":              "0 - 2 ans",
+    "senior analyst":       "3 - 5 ans",
+    "associate":            "3 - 5 ans",
+    "senior associate":     "6 - 10 ans",
+    "associate director":   "6 - 10 ans",
+    "vice president":       "6 - 10 ans",
+    "senior vice president":"11 ans et plus",
+    "director":             "11 ans et plus",
+    "executive director":   "11 ans et plus",
+    "managing director":    "11 ans et plus",
+}
+
+# Mapping familles métier Nomura (anglais) → libellés canoniques français
+_NOMURA_FAMILY_MAP: dict[str, str] = {
+    "global markets":          "Marchés financiers / Sales & Trading",
+    "investment banking":      "Financement et Investissement",
+    "asset management":        "Gestion d'Actifs",
+    "investment management":   "Gestion d'Actifs",
+    "technology":              "IT, Digital et Data",
+    "risk management":         "Risques / Contrôles permanents",
+    "compliance":              "Conformité / Sécurité financière",
+    "legal":                   "Juridique",
+    "finance":                 "Finances / Comptabilité / Contrôle de gestion",
+    "operations":              "Gestion des opérations",
+    "human resources":         "Ressources Humaines",
+    "internal audit":          "Inspection / Audit",
+    "research":                "Analyse financière / Recherche",
+    "corporate strategy":      "Direction générale",
+}
+
+
+def _nomura_map_location(city: str, country: str, region: str) -> str:
+    """Construit la chaîne location 'Ville - Pays' au format site."""
+    ns = "Non spécifié"
+    if city and city != ns and country and country != ns:
+        return f"{city} - {country}"
+    if country and country != ns:
+        return country
+    if region and region != ns:
+        return region
+    return ""
+
+
+def _nomura_map_experience(raw_level: str) -> str:
+    """Convertit les grades Nomura en tranches d'années canoniques."""
+    if not raw_level or raw_level == "Non spécifié":
+        return ""
+    # Déjà au format "X - Y ans"
+    if re.match(r'^\d', raw_level):
+        return normalize_experience_level(raw_level)
+    return _NOMURA_LEVEL_TO_YEARS.get(raw_level.strip().lower(), "")
+
+
+def _nomura_map_family(division: str, job_family: str, job_title: str) -> str:
+    """Mappe la famille métier Nomura vers les libellés canoniques français."""
+    # Chercher d'abord dans le mapping explicite
+    for key, val in _NOMURA_FAMILY_MAP.items():
+        if key in (division or '').lower() or key in (job_family or '').lower():
+            return val
+    # Fallback : classifier depuis titre + division
+    result = classify_job_family(f"{job_title} {division or ''}")
+    return result or "Autres"
+
+
+def read_nomura_from_db() -> list[dict]:
+    """
+    Lit la base Nomura et transforme chaque offre vers le schéma standard du site.
+    Toutes les offres Nomura sont considérées Live (pas de colonne status).
+    """
+    if not NOMURA_DB.exists():
+        print(f"⚠️ Base Nomura manquante : {NOMURA_DB}")
+        return []
+    try:
+        conn = sqlite3.connect(NOMURA_DB)
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("""
+            SELECT job_id, source, candidate_type, entity, job_title,
+                   division, job_family, city, country, region,
+                   contract_type, experience_level, education_level,
+                   description, offer_url, posted_date, scraped_at
+            FROM jobs
+            ORDER BY scraped_at DESC
+        """).fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"   ❌ Erreur lecture Nomura DB : {e}")
+        return []
+
+    jobs = []
+    for row in rows:
+        r = dict(row)
+        # ── Localisation ──
+        location = _nomura_map_location(r.get('city', ''), r.get('country', ''), r.get('region', ''))
+
+        # ── Famille métier ──
+        job_family = _nomura_map_family(
+            r.get('division', ''), r.get('job_family', ''), r.get('job_title', '')
+        )
+
+        # ── Niveau d'expérience ──
+        exp_level = _nomura_map_experience(r.get('experience_level', ''))
+        if not exp_level:
+            # Fallback via description
+            extracted = extract_experience_level(
+                (r.get('description') or '')[:2000],
+                r.get('contract_type'),
+                r.get('job_title'),
+            )
+            if extracted:
+                exp_level = normalize_experience_level(extracted)
+
+        # ── Date de publication ──
+        pub_date = (r.get('posted_date') or r.get('scraped_at') or '')[:10]
+
+        job = {
+            "job_id":                 f"nomura_{r['job_id']}",
+            "job_title":              r.get('job_title') or '',
+            "contract_type":          normalize_contract_type(r.get('contract_type') or ''),
+            "publication_date":       pub_date,
+            "location":               location,
+            "job_family":             job_family,
+            "duration":               None,
+            "management_position":    None,
+            "status":                 "Live",
+            "education_level":        r.get('education_level') or '',
+            "experience_level":       exp_level,
+            "training_specialization":None,
+            "technical_skills":       None,
+            "behavioral_skills":      None,
+            "tools":                  None,
+            "languages":              None,
+            "job_description":        (r.get('description') or '')[:2000],
+            "company_name":           r.get('entity') or 'Nomura',
+            "company_description":    None,
+            "job_url":                r.get('offer_url') or '',
+            "first_seen":             r.get('scraped_at') or '',
+            "last_updated":           r.get('scraped_at') or '',
+            # Champs supplémentaires utiles pour les filtres
+            "candidate_type":         r.get('candidate_type') or '',
+            "region":                 r.get('region') or '',
+        }
+        jobs.append(job)
+
+    return jobs
+
+
 def main():
     print("=" * 80)
     print("🔄 EXPORT DES DONNÉES SQLITE VERS JSON")
@@ -614,6 +768,8 @@ def main():
         ("EY",           EY_DB),
         ("La Banque Postale", LBP_DB),
     ]
+    # Nomura utilise un schéma différent — lecture via fonction dédiée
+    NOMURA_SPECIAL = True
 
     # Mode strict pour éviter d'exporter des données BNP obsolètes en cas d'échec scraper/base manquante.
     require_bnp_db = (os.environ.get("TALEOS_REQUIRE_BNP_DB", "").strip() == "1")
@@ -661,13 +817,22 @@ def main():
     for name, db_path in sources_info:
         print(f"📁 Lecture de {name} depuis {db_path.name}...")
         jobs = read_from_db(db_path, name, live_only=True)
-        
+
         if jobs:
             all_jobs.extend(jobs)
             print(f"   ✅ {len(jobs)} offres Live lues")
         else:
             print(f"   ⚠️ Aucune offre trouvée dans {db_path.name}")
-    
+
+    # ── Nomura (schéma spécifique) ────────────────────────────────
+    print(f"📁 Lecture de Nomura depuis {NOMURA_DB.name}...")
+    nomura_jobs = read_nomura_from_db()
+    if nomura_jobs:
+        all_jobs.extend(nomura_jobs)
+        print(f"   ✅ {len(nomura_jobs)} offres Nomura lues")
+    else:
+        print(f"   ⚠️ Aucune offre Nomura trouvée")
+
     # Ajouter les offres BNP préservées si la base était absente
     if bnp_jobs_preserved:
         all_jobs.extend(bnp_jobs_preserved)
@@ -697,6 +862,8 @@ def main():
                 all_jobs_full.extend(full)
         if bnp_jobs_preserved and not bnp_db_usable:
             all_jobs_full.extend(bnp_jobs_preserved)
+        # Nomura — toutes les offres (pas de distinction Live/Expired)
+        all_jobs_full.extend(nomura_jobs)
         OUTPUT_JSON_FULL = HTML_DIR / "scraped_jobs_full.json"
         if all_jobs_full:
             slim_jobs_full = [slim_full_job(job) for job in all_jobs_full]
@@ -751,6 +918,13 @@ def main():
             ("la_banque_postale", LBP_DB),
         ]
         print("\n📦 Export par source (fichiers individuels)...")
+
+        # Nomura — export individuel depuis fonction dédiée
+        nomura_out = HTML_DIR / "scraped_jobs_nomura.json"
+        write_json(nomura_out, nomura_jobs)
+        size_kb = nomura_out.stat().st_size // 1024
+        print(f"   ✅ nomura : {len(nomura_jobs)} offres → scraped_jobs_nomura.json ({size_kb} KB)")
+
         for key, db_path in SOURCE_KEYS:
             out_path = HTML_DIR / f"scraped_jobs_{key}.json"
             if key == "bnp_paribas" and not bnp_db_usable:

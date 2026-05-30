@@ -1,7 +1,7 @@
 {
-  "version": "1.2.160",
-  "version_name": "1.2.160-nomura-signin-visible-wait",
-  "published_at": "2026-05-30T08:26:30Z",
-  "release_notes": "Fix Nomura connexion : (1) emailInput et pwdInput attendus VISIBLES (offsetParent !== null) avant remplissage — évite le remplissage avant ouverture du modal. (2) Bouton Sign In attendu VISIBLE et texte non vide (JUIC initialisé) avant clic — évite le clic sur un bouton fantôme. (3) Succès détecté par disparition du bouton Sign In (modal fermée) et non plus par #username.offsetParent — évite le faux positif immédiat. (4) Timeout 15s avec activateTab() si pas de réponse.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.160.zip"
+  "version": "1.2.161",
+  "version_name": "1.2.161-nomura-delete-confirm-popup",
+  "published_at": "2026-05-30T08:28:59Z",
+  "release_notes": "Fix Nomura suppression PJ : le clic sur la poubelle (removeAttachments) affiche un popup de confirmation SF « Are you sure you want to delete this file? ». Le filler attend maintenant ce popup (waitFor 5s sur button.globalPrimaryButton texte OK visible) et clique OK via dispatchEvent(MouseEvent) avant d'attendre que le slot redevienne addAttachments. Timeout addAttachments porté à 8s.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.161.zip"
 }

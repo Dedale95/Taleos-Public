@@ -1,7 +1,7 @@
 {
-  "version": "1.2.164",
-  "version_name": "1.2.164-nomura-di-fix",
-  "published_at": "2026-05-30T11:05:09Z",
-  "release_notes": "Fix filler Nomura : (1) Questions Diversité & Inclusion non remplies — findPicklistInputByLabel étendu pour couvrir les layouts table/tr de la section D&I (SF EEO). Ajout du champ Handicap/condition long terme (gs_disability). (2) Fix LM : si la lettre de motivation est déjà présente avec le même nom, skip au lieu de supprimer puis re-uploader (ce qui échouait en boucle).",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.164.zip"
+  "version": "1.2.165",
+  "version_name": "1.2.165-workday-locale-fr",
+  "published_at": "2026-05-30T11:35:06Z",
+  "release_notes": "Fix langue Workday : les offres MUFG (et autres sites myworkdayjobs.com) s'ouvraient en japonais. Ajout de normalizeWorkdayLocale() dans l'injector pour forcer fr-FR sur toutes les URLs myworkdayjobs.com. Même correction dans les scrapers MUFG et Mizuho + mise à jour des 670 URLs déjà en base.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.165.zip"
 }

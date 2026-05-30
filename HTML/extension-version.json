@@ -1,7 +1,7 @@
 {
-  "version": "1.2.162",
-  "version_name": "1.2.162-nomura-upload-after-delete",
-  "published_at": "2026-05-30T09:18:15Z",
-  "release_notes": "Fix Nomura upload LM après suppression : après clic OK sur le popup de confirmation, SF peut recréer le nœud DOM du bouton avec un nouvel ID. Le waitFor cherche maintenant par ID original (priorité 1) ET via findAttachButton(cvOrLm) par label aria (priorité 2). Timeout porté à 12s. uploadFile reçoit cvOrLm en 5ème paramètre.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.162.zip"
+  "version": "1.2.163",
+  "version_name": "1.2.163-nomura-queue-fix",
+  "published_at": "2026-05-30T10:41:16Z",
+  "release_notes": "Fix enchaînement candidatures Nomura : quand l'utilisateur clique Postuler sur une 2e offre Nomura pendant la 1ère, la 2e restait bloquée dans la queue indéfiniment. Cause : clearPendingStateForBank n'avait pas de cas Nomura (taleos_pending_nomura/taleos_nomura_tab_id non nettoyés à la fin de la candidature). Fix : ajout de Nomura dans clearPendingStateForBank + dans chrome.tabs.onRemoved avec appel dequeueAndStartNext.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.163.zip"
 }

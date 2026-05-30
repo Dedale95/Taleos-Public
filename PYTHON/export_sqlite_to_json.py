@@ -53,6 +53,7 @@ NOMURA_DB        = PYTHON_DIR / "nomura_jobs.db"
 MUFG_DB          = PYTHON_DIR / "mufg_jobs.db"
 MIZUHO_DB        = PYTHON_DIR / "mizuho_jobs.db"
 BOFA_DB          = PYTHON_DIR / "bank_of_america_jobs.db"
+CITI_DB          = PYTHON_DIR / "citi_jobs.db"
 
 
 def write_json(path: Path, data, pretty: bool = False):
@@ -1127,6 +1128,94 @@ def read_bank_of_america_from_db() -> list[dict]:
     return jobs
 
 
+def read_citi_from_db() -> list[dict]:
+    """
+    Lit la base Citi et transforme chaque offre vers le schéma standard.
+    Le scraper Citi stocke déjà les champs en français canonique.
+    Toutes les offres sont considérées Live.
+    """
+    if not CITI_DB.exists():
+        print(f"⚠️ Base Citi manquante : {CITI_DB}")
+        return []
+    try:
+        conn = sqlite3.connect(CITI_DB)
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            "SELECT * FROM jobs WHERE status='Live' ORDER BY date_posted DESC"
+        ).fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"   ❌ Erreur lecture Citi DB : {e}")
+        return []
+
+    jobs = []
+    for row in rows:
+        r = dict(row)
+
+        # Location : "City - Country"
+        city = r.get('city') or ''
+        country = r.get('country') or ''
+        location_parts = [p for p in [city, country] if p and p not in ('Non spécifié', '')]
+        location = ' - '.join(location_parts) if location_parts else (r.get('location') or '')
+
+        # Famille métier — déjà canonique depuis le scraper, mais on vérifie
+        raw_family = r.get('job_family') or ''
+        title_for_fam = r.get('title') or ''
+        desc_for_fam = (r.get('description') or '')[:2000]
+        job_family = normalize_external_family(raw_family, title_for_fam, desc_for_fam)
+
+        # Niveau d'expérience — déjà canonique
+        exp_level = r.get('experience_level') or ''
+        if exp_level in ('Non spécifié', ''):
+            exp_level = ''
+
+        # Type de contrat → normaliser vers Stage/CDD/CDI
+        raw_ct = r.get('contract_type') or ''
+        raw_ct_lower = raw_ct.lower()
+        if 'stage' in raw_ct_lower or 'apprentissage' in raw_ct_lower or 'stagiaire' in raw_ct_lower or 'alternant' in raw_ct_lower:
+            contract = 'Stage'
+        elif 'alternance' in raw_ct_lower:
+            contract = 'Alternance'
+        elif raw_ct in ('CDI / Temps Plein', 'Temps Partiel', 'CDI'):
+            contract = 'CDI'
+        elif raw_ct in ('CDD / Contrat',):
+            contract = 'CDD'
+        else:
+            contract = normalize_contract_type(raw_ct) or 'CDI'
+
+        # Date de publication
+        pub_date = (r.get('date_posted') or r.get('scraped_at') or '')[:10]
+
+        job = {
+            "job_id":                 r['id'],
+            "job_title":              r.get('title') or '',
+            "contract_type":          contract,
+            "publication_date":       pub_date,
+            "location":               location,
+            "job_family":             job_family,
+            "duration":               None,
+            "management_position":    None,
+            "status":                 "Live",
+            "education_level":        '',
+            "experience_level":       exp_level,
+            "training_specialization":None,
+            "technical_skills":       None,
+            "behavioral_skills":      None,
+            "tools":                  None,
+            "languages":              None,
+            "job_description":        (r.get('description') or '')[:2000],
+            "company_name":           "Citi",
+            "job_url":                r.get('url') or '',
+            "candidate_type":         'Experienced',
+            "source":                 'citi',
+            "country":                country,
+            "region":                 r.get('region') or '',
+        }
+        jobs.append(job)
+
+    return jobs
+
+
 def main():
     print("=" * 80)
     print("🔄 EXPORT DES DONNÉES SQLITE VERS JSON")
@@ -1249,6 +1338,15 @@ def main():
     else:
         print(f"   ⚠️ Aucune offre Bank of America trouvée")
 
+    # ── Citi (schéma spécifique) ──────────────────────────────────
+    print(f"📁 Lecture de Citi depuis {CITI_DB.name}...")
+    citi_jobs = read_citi_from_db()
+    if citi_jobs:
+        all_jobs.extend(citi_jobs)
+        print(f"   ✅ {len(citi_jobs)} offres Citi lues")
+    else:
+        print(f"   ⚠️ Aucune offre Citi trouvée")
+
     # Ajouter les offres BNP préservées si la base était absente
     if bnp_jobs_preserved:
         all_jobs.extend(bnp_jobs_preserved)
@@ -1278,11 +1376,12 @@ def main():
                 all_jobs_full.extend(full)
         if bnp_jobs_preserved and not bnp_db_usable:
             all_jobs_full.extend(bnp_jobs_preserved)
-        # Nomura + MUFG + Mizuho + BofA — toutes les offres (pas de distinction Live/Expired)
+        # Nomura + MUFG + Mizuho + BofA + Citi — toutes les offres (pas de distinction Live/Expired)
         all_jobs_full.extend(nomura_jobs)
         all_jobs_full.extend(mufg_jobs)
         all_jobs_full.extend(mizuho_jobs)
         all_jobs_full.extend(bofa_jobs)
+        all_jobs_full.extend(citi_jobs)
         OUTPUT_JSON_FULL = HTML_DIR / "scraped_jobs_full.json"
         if all_jobs_full:
             slim_jobs_full = [slim_full_job(job) for job in all_jobs_full]
@@ -1361,6 +1460,12 @@ def main():
         if safe_write_json(bofa_out, bofa_jobs):
             size_kb = bofa_out.stat().st_size // 1024
             print(f"   ✅ bank_of_america : {len(bofa_jobs)} offres → scraped_jobs_bank_of_america.json ({size_kb} KB)")
+
+        # Citi — export individuel
+        citi_out = HTML_DIR / "scraped_jobs_citi.json"
+        if safe_write_json(citi_out, citi_jobs):
+            size_kb = citi_out.stat().st_size // 1024
+            print(f"   ✅ citi : {len(citi_jobs)} offres → scraped_jobs_citi.json ({size_kb} KB)")
 
         for key, db_path in SOURCE_KEYS:
             out_path = HTML_DIR / f"scraped_jobs_{key}.json"

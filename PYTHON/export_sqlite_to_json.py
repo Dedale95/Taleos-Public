@@ -883,8 +883,9 @@ def read_mizuho_from_db() -> list[dict]:
         return []
 
     def _loc(city, country, region):
+        # Format "Ville - Pays" attendu par offres.html (parser " - ")
         parts = [p for p in [city, country] if p and p not in ('Non spécifié', '')]
-        return ', '.join(parts) if parts else (region or '')
+        return ' - '.join(parts) if parts else (region or '')
 
     jobs = []
     for row in rows:

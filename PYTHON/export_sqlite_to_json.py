@@ -388,43 +388,109 @@ def normalize_contract_type(raw_contract: str) -> str:
 
 def normalize_experience_level(raw_exp: str) -> str:
     """
-    Normalise les niveaux d'expérience pour n'exposer que :
+    Normalise les niveaux d'expérience pour n'exposer que 4 catégories canoniques :
     - '0 - 2 ans'
     - '3 - 5 ans'
     - '6 - 10 ans'
     - '11 ans et plus'
-    Les libellés composés type 'Etudiant, Jeune diplômé, Junior, Confirmé' sont mappés.
+    Gère : libellés textuels (Junior, Confirmé, Senior…), formats parenthétiques
+    ("Confirmé (5-7 ans)", "Junior (0-3 ans)"…), plages non canoniques ("1 - 2 ans"),
+    et labels spécifiques aux scrapers Taleos (Citi, Nomura, MUFG…).
+
+    RÈGLE : ne jamais laisser passer un libellé non canonique — toujours retourner
+    l'une des 4 valeurs ci-dessus (ou chaîne vide si vraiment inconnu).
     """
     if not raw_exp:
         return raw_exp
 
-    norm = _normalize_text(raw_exp)
+    s   = str(raw_exp).strip()
+    norm = _normalize_text(s)
 
-    # Mappages directs
-    if "0 - 2 ans" in raw_exp:
+    # ── 1. Mappages directs des 4 valeurs canoniques ──────────────────────────
+    if "0 - 2 ans" in s:
         return "0 - 2 ans"
-    if "3 - 5 ans" in raw_exp:
+    if "3 - 5 ans" in s:
         return "3 - 5 ans"
-    if "6 - 10 ans" in raw_exp:
+    if "6 - 10 ans" in s:
         return "6 - 10 ans"
-    if "11 ans et plus" in raw_exp or "11 ans" in raw_exp or "plus de 10 ans" in norm:
+    if "11 ans et plus" in s or "11 ans" in s or "plus de 10 ans" in norm:
         return "11 ans et plus"
 
-    # Libellés textuels (Étudiant / Jeune diplômé / Junior / Confirmé / Senior / Expert...)
-    # On découpe sur virgules
+    # ── 2. Libellés textuels — priorité sur les plages numériques ─────────────
+    # Quand le label textuel (Confirmé, Senior…) est présent il prime sur la plage
+    # numérique, car la plage peut être ambiguë (ex: "Confirmé (5-7 ans)" → 6-10 ans
+    # plutôt que 3-5 ans déduit de la borne inférieure 5).
     tokens = [t.strip() for t in re.split(r"[,/]", norm) if t.strip()]
-    # Hiérarchie : Expert/Senior/Confirmé > Junior > Etudiant
-    if any(t in ("expert", "senior") for t in tokens):
+    norm_lower = norm.lower()
+
+    # Labels spécifiques Taleos (scrapers Citi, Nomura, MUFG…)
+    _TALEOS_LABELS: dict[str, str] = {
+        "stagiaire":              "0 - 2 ans",
+        "intern / stage":         "0 - 2 ans",
+        "analyst/associe":        "0 - 2 ans",
+        "analyst":                "0 - 2 ans",
+        "associate":              "0 - 2 ans",
+        "senior analyst":         "3 - 5 ans",
+        "manager/associe senior": "3 - 5 ans",
+        "senior associate":       "6 - 10 ans",
+        "associate director":     "6 - 10 ans",
+        "vice president":         "6 - 10 ans",
+        "svp/director":           "11 ans et plus",
+        "director":               "11 ans et plus",
+        "managing director":      "11 ans et plus",
+        "senior vice president":  "11 ans et plus",
+        "executive director":     "11 ans et plus",
+    }
+    for key, val in _TALEOS_LABELS.items():
+        if key in norm_lower:
+            return val
+
+    # Hiérarchie générique : Expert > Senior isolé > Confirmé > Intermédiaire > Junior > Étudiant
+    if any(t in ("expert",) for t in tokens):
         return "11 ans et plus"
-    if "confirme" in tokens or "confirmé" in norm:
-        # Confirmé sans autre précision → 6-10 ans
+    if "confirme" in tokens or "confirme" in norm_lower:
         return "6 - 10 ans"
-    if "junior" in tokens:
+    if "intermediaire" in tokens or "intermediaire" in norm_lower:
+        return "3 - 5 ans"
+    if "junior" in tokens or "junior" in norm_lower:
         return "0 - 2 ans"
-    if "etudiant" in tokens or "etudiant" in norm or "jeune diplome" in norm:
+    if "etudiant" in tokens or "etudiant" in norm_lower or "jeune diplome" in norm_lower:
         return "0 - 2 ans"
 
-    return raw_exp.strip()
+    # ── 3. Borne unique avec "+" ou "ans et plus" ("10+ ans", "12 ans +") ─────
+    _plus_match = re.search(r'(\d+)\s*\+\s*ans?|(\d+)\s*ans?\s*(?:et plus|\+)', s, re.I)
+    if _plus_match:
+        val = int((_plus_match.group(1) or _plus_match.group(2)))
+        if val >= 10:
+            return "11 ans et plus"
+        if val >= 6:
+            return "6 - 10 ans"
+        if val >= 3:
+            return "3 - 5 ans"
+        return "0 - 2 ans"
+
+    # ── 4. Plages numériques non canoniques ("1 - 2 ans", "0-3 ans"…) ─────────
+    #    On extrait la borne inférieure pour décider du bucket.
+    _range_match = re.search(r'(\d+)\s*[-–à]\s*(\d+)\s*ans?', s, re.I)
+    if _range_match:
+        lo, hi = int(_range_match.group(1)), int(_range_match.group(2))
+        if hi <= 2:
+            return "0 - 2 ans"
+        if lo <= 2:
+            return "0 - 2 ans"
+        if lo <= 5:
+            return "3 - 5 ans"
+        if lo <= 10:
+            return "6 - 10 ans"
+        return "11 ans et plus"
+
+    # "senior" isolé (sans plage) → 11 ans et plus
+    if "senior" in tokens:
+        return "11 ans et plus"
+
+    # ── 5. Dernier recours : renvoyer vide (affiché "Non spécifié") ──────────
+    #    Ne jamais laisser passer un libellé non canonique dans les filtres.
+    return ""
 
 def _infer_location_from_title(title: str) -> str:
     """
@@ -605,18 +671,44 @@ def read_from_db(db_path, company_name, live_only=True):
             # Normaliser le type de contrat (filet de sécurité)
             if job.get('contract_type'):
                 job['contract_type'] = normalize_contract_type(job['contract_type'])
-            # Alternant / stagiaire → match Stage ET Alternance
-            combined_ct = f"{(job.get('contract_type') or '')} {(job.get('job_title') or '')}".lower()
-            if ('alternant' in combined_ct or 'alternance' in combined_ct) and ('stagiaire' in combined_ct or 'stage' in combined_ct):
+
+            # ── Override depuis le titre : le titre prime TOUJOURS sur la DB ──────
+            # Détecte "Stage – ...", "Alternance – ...", "Stagiaire ...", etc.
+            # Évite qu'un contrat_type mal renseigné (ex: CDD) masque le vrai type.
+            _title_lower = (job.get('job_title') or '').lower()
+            _stage_in_title = (
+                _title_lower.startswith('stage ')
+                or _title_lower.startswith('stage –')
+                or _title_lower.startswith('stage -')
+                or re.search(r'\bstagiaire\b', _title_lower) is not None
+                or re.search(r'\btrainee\b', _title_lower) is not None
+                or re.search(r'\binternship\b', _title_lower) is not None
+                or ' – stage ' in _title_lower
+                or ' - stage ' in _title_lower
+            )
+            _alternance_in_title = (
+                _title_lower.startswith('alternance ')
+                or _title_lower.startswith('alternance –')
+                or _title_lower.startswith('alternance -')
+                or re.search(r'\balternant\b', _title_lower) is not None
+                or re.search(r'\bapprentissage\b', _title_lower) is not None
+                or ' – alternance ' in _title_lower
+                or ' - alternance ' in _title_lower
+            )
+            if _stage_in_title and _alternance_in_title:
                 job['contract_types'] = ['Stage', 'Alternance']
-                job['contract_type'] = 'Stage, Alternance'
-            elif not job.get('contract_type'):
-                # Fallback : dériver depuis le titre (stagiaire, trainee, stage) ou la description
-                title_lower = (job.get('job_title') or '').lower()
-                if ('stagiaire' in title_lower or 'trainee' in title_lower or
-                    title_lower.startswith('stage ') or ' stage ' in title_lower):
-                    job['contract_type'] = 'Stage'
-                else:
+                job['contract_type']  = 'Stage, Alternance'
+            elif _stage_in_title:
+                job['contract_type'] = 'Stage'
+            elif _alternance_in_title:
+                job['contract_type'] = 'Alternance'
+            else:
+                # Fallback : détection combinée contrat + titre pour "Alternant/Stagiaire – …"
+                _combined_ct = f"{(job.get('contract_type') or '')} {_title_lower}"
+                if ('alternant' in _combined_ct or 'alternance' in _combined_ct) and ('stagiaire' in _combined_ct or 'stage' in _combined_ct):
+                    job['contract_types'] = ['Stage', 'Alternance']
+                    job['contract_type']  = 'Stage, Alternance'
+                elif not job.get('contract_type'):
                     desc = (job.get('job_description') or '')[:2000]
                     if 'fixed term contract' in desc.lower() or 'temporary contract' in desc.lower():
                         job['contract_type'] = 'CDD'
@@ -659,6 +751,10 @@ def read_from_db(db_path, company_name, live_only=True):
             # Normaliser le niveau d'expérience pour rester sur 4 catégories canoniques
             if job.get('experience_level'):
                 job['experience_level'] = normalize_experience_level(job['experience_level'])
+
+            # Stage / Alternance → expérience toujours 0-2 ans (jamais 6-10 ans pour un stage)
+            if job.get('contract_type') in ('Stage', 'Alternance', 'Stage, Alternance'):
+                job['experience_level'] = '0 - 2 ans'
             
             # Convertir les JSON strings en listes pour technical_skills et behavioral_skills
             for col in ['technical_skills', 'behavioral_skills']:
@@ -1350,7 +1446,42 @@ def main():
     # Ajouter les offres BNP préservées si la base était absente
     if bnp_jobs_preserved:
         all_jobs.extend(bnp_jobs_preserved)
-    
+
+    # ── Passe de normalisation finale (s'applique à TOUTES les sources) ────────
+    # Certaines sources (offres BNP préservées depuis JSON, etc.) passent en dehors
+    # du pipeline `read_from_db`. Cette passe garantit des valeurs canoniques pour
+    # contract_type et experience_level sur l'ensemble du jeu de données.
+    for job in all_jobs:
+        # 1. Override contract_type depuis le titre (Stage/Alternance prime sur la DB)
+        _t = (job.get('job_title') or '').lower()
+        _stage = (
+            _t.startswith('stage ') or _t.startswith('stage –') or _t.startswith('stage -')
+            or bool(re.search(r'\bstagiaire\b', _t))
+            or bool(re.search(r'\btrainee\b', _t))
+            or bool(re.search(r'\binternship\b', _t))
+            or ' – stage ' in _t or ' - stage ' in _t
+        )
+        _alt = (
+            _t.startswith('alternance ') or _t.startswith('alternance –') or _t.startswith('alternance -')
+            or bool(re.search(r'\balternant\b', _t))
+            or bool(re.search(r'\bapprentissage\b', _t))
+            or ' – alternance ' in _t or ' - alternance ' in _t
+        )
+        if _stage and _alt:
+            job['contract_type'] = 'Stage, Alternance'
+        elif _stage:
+            job['contract_type'] = 'Stage'
+        elif _alt:
+            job['contract_type'] = 'Alternance'
+
+        # 2. Normaliser experience_level vers les 4 catégories canoniques
+        if job.get('experience_level'):
+            job['experience_level'] = normalize_experience_level(job['experience_level'])
+
+        # 3. Stage / Alternance → expérience forcée à 0-2 ans
+        if job.get('contract_type') in ('Stage', 'Alternance', 'Stage, Alternance'):
+            job['experience_level'] = '0 - 2 ans'
+
     if all_jobs:
         # Sauvegarder en JSON (version complète)
         write_json(OUTPUT_JSON, all_jobs, pretty=False)
@@ -1469,13 +1600,49 @@ def main():
 
         for key, db_path in SOURCE_KEYS:
             out_path = HTML_DIR / f"scraped_jobs_{key}.json"
-            if key == "bnp_paribas" and not bnp_db_usable:
-                existing = load_existing_json(out_path)
-                if existing:
-                    print(f"   📌 {key} : {len(existing)} offres préservées (DB absente)")
+            if key == "bnp_paribas":
+                # La DB BNP peut être absente OU présente mais vide.
+                # Dans les deux cas, si le fichier de streaming existe déjà, on applique
+                # la passe de normalisation sur son contenu et on le réécrit.
+                existing_bnp = load_existing_json(out_path)
+                bnp_from_db  = []
+                if bnp_db_usable:
+                    bnp_from_db = read_from_db(db_path, key, live_only=True)
+                source_bnp = bnp_from_db or bnp_jobs_preserved or existing_bnp
+                if not source_bnp:
+                    write_json(out_path, [])
+                    print(f"   ⚠️  bnp_paribas : DB vide/absente, fichier vide")
                     continue
-                write_json(out_path, [])
-                print(f"   ⚠️  {key} : DB absente, fichier vide")
+                # Appliquer la passe de normalisation (contrat depuis titre + expérience)
+                for _job in source_bnp:
+                    _t = (_job.get('job_title') or '').lower()
+                    _s = (
+                        _t.startswith('stage ') or _t.startswith('stage –') or _t.startswith('stage -')
+                        or bool(re.search(r'\bstagiaire\b', _t))
+                        or bool(re.search(r'\btrainee\b', _t))
+                        or bool(re.search(r'\binternship\b', _t))
+                        or ' – stage ' in _t or ' - stage ' in _t
+                    )
+                    _a = (
+                        _t.startswith('alternance ') or _t.startswith('alternance –') or _t.startswith('alternance -')
+                        or bool(re.search(r'\balternant\b', _t))
+                        or bool(re.search(r'\bapprentissage\b', _t))
+                        or ' – alternance ' in _t or ' - alternance ' in _t
+                    )
+                    if _s and _a:
+                        _job['contract_type'] = 'Stage, Alternance'
+                    elif _s:
+                        _job['contract_type'] = 'Stage'
+                    elif _a:
+                        _job['contract_type'] = 'Alternance'
+                    if _job.get('experience_level'):
+                        _job['experience_level'] = normalize_experience_level(_job['experience_level'])
+                    if _job.get('contract_type') in ('Stage', 'Alternance', 'Stage, Alternance'):
+                        _job['experience_level'] = '0 - 2 ans'
+                label = 'DB' if bnp_from_db else ('préservées' if bnp_jobs_preserved else 'normalisées depuis fichier')
+                write_json(out_path, source_bnp)
+                size_kb = out_path.stat().st_size // 1024
+                print(f"   ✅ bnp_paribas : {len(source_bnp)} offres {label} → scraped_jobs_bnp_paribas.json ({size_kb} KB)")
                 continue
             if not db_has_jobs_table(db_path):
                 safe_write_json(out_path, [])

@@ -740,11 +740,28 @@ async def _scrape_detail(context: BrowserContext, job_url: str,
             education = extract_education(desc_text)
             experience = extract_experience_level(desc_text, job_title=None)
 
+            # ── Détection "offre expirée" côté page de détail ──────────────────
+            # JP Morgan affiche parfois "This job is no longer available" alors que
+            # l'URL est encore présente dans l'API. On renvoie un signal spécial
+            # pour que scrape_descriptions() marque l'offre Expired en DB.
+            page_text_lower = desc_text.lower() if desc_text else ""
+            html_lower = html.lower() if html else ""
+            _JOB_EXPIRED_SIGNALS = [
+                "this job is no longer available",
+                "ce poste n'est plus disponible",
+                "this position is no longer available",
+                "this requisition is no longer active",
+                "job posting has expired",
+            ]
+            if any(sig in page_text_lower or sig in html_lower for sig in _JOB_EXPIRED_SIGNALS):
+                logger.info(f"  → Offre expirée détectée (page de détail) : {job_url}")
+                return job_url, None, None, None, "__EXPIRED__"
+
             return job_url, desc_text or None, education, experience, None  # title unknown here
 
         except Exception as exc:
             logger.warning(f"Detail failed: {job_url} — {exc}")
-            return job_url, None, None, None
+            return job_url, None, None, None, None
         finally:
             await page.close()
 
@@ -761,6 +778,7 @@ async def scrape_descriptions(urls: List[str], db: Database):
     logger.info(f"Phase 2 — Scraping des descriptions ({len(urls)} offres)...")
     sem = asyncio.Semaphore(CONCURRENCY)
     done = 0
+    expired_count = 0
 
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=Config.HEADLESS)
@@ -771,8 +789,18 @@ async def scrape_descriptions(urls: List[str], db: Database):
         try:
             tasks = [_scrape_detail(context, url, sem) for url in urls]
             for coro in asyncio.as_completed(tasks):
-                job_url, desc, edu, exp, _title = await coro
-                if desc:
+                result = await coro
+                job_url = result[0]
+                desc    = result[1] if len(result) > 1 else None
+                edu     = result[2] if len(result) > 2 else None
+                exp     = result[3] if len(result) > 3 else None
+                signal  = result[4] if len(result) > 4 else None
+
+                if signal == "__EXPIRED__":
+                    # Offre signalée "no longer available" sur sa page de détail
+                    db.mark_expired({job_url})
+                    expired_count += 1
+                elif desc:
                     db.upsert_description(job_url, desc, edu, exp)
                 done += 1
                 if done % 50 == 0:
@@ -780,6 +808,8 @@ async def scrape_descriptions(urls: List[str], db: Database):
         finally:
             await browser.close()
 
+    if expired_count:
+        logger.info(f"  → {expired_count} offres marquées Expired (page de détail)")
     logger.info(f"Phase 2 terminée — {done} descriptions traitées")
 
 

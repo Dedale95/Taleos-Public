@@ -62,6 +62,22 @@ def write_json(path: Path, data, pretty: bool = False):
             json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
 
 
+def safe_write_json(path: Path, data, pretty: bool = False) -> bool:
+    """Écrit le JSON sauf si le résultat est vide ET que le fichier existant contient des données.
+    Protège contre l'écrasement par [] lors d'une panne de scraping ou d'une DB absente.
+    Retourne True si le fichier a été écrit, False s'il a été préservé."""
+    if not data:
+        existing = load_existing_json(path)
+        if existing:
+            print(
+                f"   🛡️  PROTECTION : {path.name} conservé "
+                f"({len(existing)} offres existantes) — résultat vide ignoré"
+            )
+            return False
+    write_json(path, data, pretty)
+    return True
+
+
 def load_existing_json(path: Path):
     if not path.exists():
         return []
@@ -1131,21 +1147,21 @@ def main():
 
         # Nomura — export individuel depuis fonction dédiée
         nomura_out = HTML_DIR / "scraped_jobs_nomura.json"
-        write_json(nomura_out, nomura_jobs)
-        size_kb = nomura_out.stat().st_size // 1024
-        print(f"   ✅ nomura : {len(nomura_jobs)} offres → scraped_jobs_nomura.json ({size_kb} KB)")
+        if safe_write_json(nomura_out, nomura_jobs):
+            size_kb = nomura_out.stat().st_size // 1024
+            print(f"   ✅ nomura : {len(nomura_jobs)} offres → scraped_jobs_nomura.json ({size_kb} KB)")
 
         # MUFG — export individuel depuis fonction dédiée
         mufg_out = HTML_DIR / "scraped_jobs_mufg.json"
-        write_json(mufg_out, mufg_jobs)
-        size_kb = mufg_out.stat().st_size // 1024
-        print(f"   ✅ mufg : {len(mufg_jobs)} offres → scraped_jobs_mufg.json ({size_kb} KB)")
+        if safe_write_json(mufg_out, mufg_jobs):
+            size_kb = mufg_out.stat().st_size // 1024
+            print(f"   ✅ mufg : {len(mufg_jobs)} offres → scraped_jobs_mufg.json ({size_kb} KB)")
 
         # Mizuho — export individuel
         mizuho_out = HTML_DIR / "scraped_jobs_mizuho.json"
-        write_json(mizuho_out, mizuho_jobs)
-        size_kb = mizuho_out.stat().st_size // 1024
-        print(f"   ✅ mizuho : {len(mizuho_jobs)} offres → scraped_jobs_mizuho.json ({size_kb} KB)")
+        if safe_write_json(mizuho_out, mizuho_jobs):
+            size_kb = mizuho_out.stat().st_size // 1024
+            print(f"   ✅ mizuho : {len(mizuho_jobs)} offres → scraped_jobs_mizuho.json ({size_kb} KB)")
 
         for key, db_path in SOURCE_KEYS:
             out_path = HTML_DIR / f"scraped_jobs_{key}.json"
@@ -1158,13 +1174,13 @@ def main():
                 print(f"   ⚠️  {key} : DB absente, fichier vide")
                 continue
             if not db_has_jobs_table(db_path):
-                write_json(out_path, [])
-                print(f"   ⚠️  {key} : DB absente, fichier vide")
+                safe_write_json(out_path, [])
+                print(f"   ⚠️  {key} : DB absente")
                 continue
             jobs = read_from_db(db_path, key, live_only=True)
-            write_json(out_path, jobs)
-            size_kb = out_path.stat().st_size // 1024
-            print(f"   ✅ {key} : {len(jobs)} offres → scraped_jobs_{key}.json ({size_kb} KB)")
+            if safe_write_json(out_path, jobs):
+                size_kb = out_path.stat().st_size // 1024
+                print(f"   ✅ {key} : {len(jobs)} offres → scraped_jobs_{key}.json ({size_kb} KB)")
     else:
         print("❌ Aucun job à exporter !")
     

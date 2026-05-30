@@ -1526,7 +1526,9 @@
             'jp_morgan':'images/logos/jp_morgan.png','jpmorgan':'images/logos/jp_morgan.png',
             'jpmorgan_chase':'images/logos/jp_morgan.png',
             'hsbc':'images/logos/hsbc.svg',
-            'nomura':'images/logos/nomura.svg'
+            'nomura':'images/logos/nomura.svg',
+            'bank_of_america':'images/logos/bank_of_america.svg',
+            'bank of america':'images/logos/bank_of_america.svg'
         };
         for (const [key, path] of Object.entries(logoMap)) {
             if (normalized.includes(key) || normalized === key) return path;
@@ -1793,6 +1795,7 @@
         if (n.includes('oddo')) return 'ODDO BHF';
         if (n.includes('deloitte')) return 'Deloitte';
         if (n.includes('nomura')) return 'Nomura';
+        if (n.includes('bank of america') || n.includes('bank_of_america') || n.includes('bofa') || n.includes('merrill')) return 'Bank of America';
         if (n.includes('goldman sachs') || n.includes('goldman_sachs')) return 'Goldman Sachs';
         if (n.includes('jp morgan') || n.includes('jpmorgan') || n.includes('j.p. morgan')) return 'JP Morgan Chase';
         if (n.includes('hsbc')) return 'HSBC';

@@ -52,6 +52,7 @@ LBP_DB           = PYTHON_DIR / "la_banque_postale_jobs.db"
 NOMURA_DB        = PYTHON_DIR / "nomura_jobs.db"
 MUFG_DB          = PYTHON_DIR / "mufg_jobs.db"
 MIZUHO_DB        = PYTHON_DIR / "mizuho_jobs.db"
+BOFA_DB          = PYTHON_DIR / "bank_of_america_jobs.db"
 
 
 def write_json(path: Path, data, pretty: bool = False):
@@ -945,6 +946,86 @@ def read_mizuho_from_db() -> list[dict]:
     return jobs
 
 
+def read_bank_of_america_from_db() -> list[dict]:
+    """
+    Lit la base Bank of America et transforme chaque offre vers le schéma standard.
+    Le scraper BofA stocke déjà les champs en français canonique.
+    Toutes les offres sont considérées Live.
+    """
+    if not BOFA_DB.exists():
+        print(f"⚠️ Base Bank of America manquante : {BOFA_DB}")
+        return []
+    try:
+        conn = sqlite3.connect(BOFA_DB)
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("SELECT * FROM jobs ORDER BY posted_date DESC").fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"   ❌ Erreur lecture Bank of America DB : {e}")
+        return []
+
+    def _loc(city, country, region):
+        parts = [p for p in [city, country] if p and p not in ('Non spécifié', '')]
+        return ' - '.join(parts) if parts else (region or '')
+
+    jobs = []
+    for row in rows:
+        r = dict(row)
+
+        location = _loc(r.get('city', ''), r.get('country', ''), r.get('region', ''))
+
+        # Famille métier — déjà canonique depuis le scraper
+        job_family = r.get('job_family', '') or ''
+        if not job_family or job_family == 'Autres':
+            fresh = classify_job_family(r.get('job_title', ''))
+            if fresh and fresh not in ('Autres', ''):
+                job_family = fresh
+
+        # Niveau d'expérience — déjà canonique
+        exp_level = r.get('experience_level', '') or ''
+        if exp_level in ('Non spécifié', ''):
+            exp_level = ''
+
+        # Type de contrat
+        title_for_ct = r.get('job_title', '') or ''
+        if re.search(r'\bFTC\b|\bFixed[\s-]Term\b', title_for_ct, re.IGNORECASE):
+            bofa_ct = 'CDD'
+        else:
+            bofa_ct = normalize_contract_type(r.get('contract_type') or '')
+
+        # Date de publication
+        pub_date = (r.get('posted_date') or r.get('scraped_at') or '')[:10]
+
+        job = {
+            "job_id":                 r['job_id'],
+            "job_title":              r.get('job_title') or '',
+            "contract_type":          bofa_ct,
+            "publication_date":       pub_date,
+            "location":               location,
+            "job_family":             job_family,
+            "duration":               None,
+            "management_position":    None,
+            "status":                 "Live",
+            "education_level":        r.get('education_level') or '',
+            "experience_level":       exp_level,
+            "training_specialization":None,
+            "technical_skills":       None,
+            "behavioral_skills":      None,
+            "tools":                  None,
+            "languages":              None,
+            "job_description":        (r.get('description') or '')[:2000],
+            "company_name":           "Bank of America",
+            "job_url":                r.get('offer_url') or '',
+            "candidate_type":         r.get('candidate_type') or 'Experienced',
+            "source":                 r.get('source') or 'bank_of_america',
+            "country":                r.get('country') or '',
+            "region":                 r.get('region') or '',
+        }
+        jobs.append(job)
+
+    return jobs
+
+
 def main():
     print("=" * 80)
     print("🔄 EXPORT DES DONNÉES SQLITE VERS JSON")
@@ -1058,6 +1139,15 @@ def main():
     else:
         print(f"   ⚠️ Aucune offre Mizuho trouvée")
 
+    # ── Bank of America (schéma spécifique) ───────────────────────
+    print(f"📁 Lecture de Bank of America depuis {BOFA_DB.name}...")
+    bofa_jobs = read_bank_of_america_from_db()
+    if bofa_jobs:
+        all_jobs.extend(bofa_jobs)
+        print(f"   ✅ {len(bofa_jobs)} offres Bank of America lues")
+    else:
+        print(f"   ⚠️ Aucune offre Bank of America trouvée")
+
     # Ajouter les offres BNP préservées si la base était absente
     if bnp_jobs_preserved:
         all_jobs.extend(bnp_jobs_preserved)
@@ -1087,10 +1177,11 @@ def main():
                 all_jobs_full.extend(full)
         if bnp_jobs_preserved and not bnp_db_usable:
             all_jobs_full.extend(bnp_jobs_preserved)
-        # Nomura + MUFG — toutes les offres (pas de distinction Live/Expired)
+        # Nomura + MUFG + Mizuho + BofA — toutes les offres (pas de distinction Live/Expired)
         all_jobs_full.extend(nomura_jobs)
         all_jobs_full.extend(mufg_jobs)
         all_jobs_full.extend(mizuho_jobs)
+        all_jobs_full.extend(bofa_jobs)
         OUTPUT_JSON_FULL = HTML_DIR / "scraped_jobs_full.json"
         if all_jobs_full:
             slim_jobs_full = [slim_full_job(job) for job in all_jobs_full]
@@ -1163,6 +1254,12 @@ def main():
         if safe_write_json(mizuho_out, mizuho_jobs):
             size_kb = mizuho_out.stat().st_size // 1024
             print(f"   ✅ mizuho : {len(mizuho_jobs)} offres → scraped_jobs_mizuho.json ({size_kb} KB)")
+
+        # Bank of America — export individuel
+        bofa_out = HTML_DIR / "scraped_jobs_bank_of_america.json"
+        if safe_write_json(bofa_out, bofa_jobs):
+            size_kb = bofa_out.stat().st_size // 1024
+            print(f"   ✅ bank_of_america : {len(bofa_jobs)} offres → scraped_jobs_bank_of_america.json ({size_kb} KB)")
 
         for key, db_path in SOURCE_KEYS:
             out_path = HTML_DIR / f"scraped_jobs_{key}.json"

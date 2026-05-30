@@ -2519,10 +2519,10 @@
                                 <label for="nomuraGender">Avec quel genre vous identifiez-vous le plus ?</label>
                                 <select id="nomuraGender" name="nomura_gender">
                                     <option value="">Sélectionnez…</option>
-                                    <option value="Man">Homme (Man)</option>
-                                    <option value="Non-binary">Non-binaire (Non-binary)</option>
-                                    <option value="Prefer Not to say">Je préfère ne pas répondre (Prefer Not to say)</option>
-                                    <option value="Woman">Femme (Woman)</option>
+                                    <option value="Man">Homme</option>
+                                    <option value="Non-binary">Non-binaire</option>
+                                    <option value="Prefer Not to say">Je préfère ne pas répondre</option>
+                                    <option value="Woman">Femme</option>
                                 </select>
                             </div>
 
@@ -2530,21 +2530,21 @@
                                 <label for="nomuraTrans">Vous identifiez-vous comme une personne Trans* ?</label>
                                 <select id="nomuraTrans" name="nomura_trans">
                                     <option value="">Sélectionnez…</option>
-                                    <option value="No">Non (No)</option>
-                                    <option value="Yes">Oui (Yes)</option>
+                                    <option value="No">Non</option>
+                                    <option value="Yes">Oui</option>
                                     <option value="Prefer not to say">Je préfère ne pas répondre</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
-                                <label for="nomuraEthnicGroup">Groupe ethnique (classification UK Nomura)</label>
+                                <label for="nomuraEthnicGroup">Groupe ethnique (classification UK)</label>
                                 <select id="nomuraEthnicGroup" name="nomura_ethnic_group" onchange="updateNomuraEthnicSubgroup(this.value)">
                                     <option value="">Sélectionnez…</option>
-                                    <option value="Asian">Asiatique (Asian)</option>
-                                    <option value="Black African/Black Caribbean/Black British">Noir·e africain·e / caribéen·ne / britannique</option>
-                                    <option value="Multi-ethnic">Pluriethnique (Multi-ethnic)</option>
-                                    <option value="White">Blanc·he (White)</option>
-                                    <option value="Other ethnic group">Autre groupe ethnique (Other ethnic group)</option>
+                                    <option value="Asian">Asiatique</option>
+                                    <option value="Black African/Black Caribbean/Black British">Noir·e — africain·e / caribéen·ne / britannique</option>
+                                    <option value="Multi-ethnic">Pluriethnique</option>
+                                    <option value="White">Blanc·he</option>
+                                    <option value="Other ethnic group">Autre groupe ethnique</option>
                                     <option value="Prefer not to say">Je préfère ne pas répondre</option>
                                 </select>
                             </div>
@@ -2566,48 +2566,48 @@
                                 <label for="nomuraReligion">Religion ou croyance</label>
                                 <select id="nomuraReligion" name="nomura_religion">
                                     <option value="">Sélectionnez…</option>
-                                    <option value="Buddhist">Bouddhiste (Buddhist)</option>
-                                    <option value="Christian">Chrétien·ne (Christian)</option>
-                                    <option value="Hindu">Hindou·e (Hindu)</option>
-                                    <option value="Jewish">Juif·ve (Jewish)</option>
-                                    <option value="Muslim">Musulman·e (Muslim)</option>
+                                    <option value="Buddhist">Bouddhiste</option>
+                                    <option value="Christian">Chrétien·ne</option>
+                                    <option value="Hindu">Hindou·e</option>
+                                    <option value="Jewish">Juif·ve</option>
+                                    <option value="Muslim">Musulman·e</option>
                                     <option value="Shinto">Shinto</option>
                                     <option value="Sikh">Sikh</option>
-                                    <option value="No religion or belief">Sans religion ni croyance (No religion or belief)</option>
-                                    <option value="Other">Autre (Other)</option>
+                                    <option value="No religion or belief">Sans religion ni croyance</option>
+                                    <option value="Other">Autre</option>
                                     <option value="Prefer not to say">Je préfère ne pas répondre</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
-                                <label for="nomuraSexualOrientation">Orientation sexuelle (options Nomura)</label>
+                                <label for="nomuraSexualOrientation">Orientation sexuelle</label>
                                 <select id="nomuraSexualOrientation" name="nomura_sexual_orientation">
                                     <option value="">Sélectionnez…</option>
-                                    <option value="Bi-sexual">Bisexuel·le (Bi-sexual)</option>
-                                    <option value="Gay Man">Gay (Gay Man)</option>
-                                    <option value="Gay Woman/Lesbian">Lesbienne (Gay Woman/Lesbian)</option>
-                                    <option value="Heterosexual/Straight">Hétérosexuel·le (Heterosexual/Straight)</option>
-                                    <option value="Other preferred description">Autre description préférée</option>
+                                    <option value="Bi-sexual">Bisexuel·le</option>
+                                    <option value="Gay Man">Gay</option>
+                                    <option value="Gay Woman/Lesbian">Lesbienne</option>
+                                    <option value="Heterosexual/Straight">Hétérosexuel·le</option>
+                                    <option value="Other preferred description">Autre</option>
                                     <option value="Prefer not to say">Je préfère ne pas répondre</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
                                 <label>Détails du handicap (si vous en avez sélectionné un)</label>
-                                <small style="color:#9ca3af;display:block;margin-bottom:10px;">Cochez tout ce qui s'applique. Uniquement utilisé si le formulaire Nomura pose la question "If you answered yes…"</small>
+                                <small style="color:#9ca3af;display:block;margin-bottom:10px;">Cochez tout ce qui s'applique. Ces détails sont utilisés uniquement si le formulaire Nomura vous pose la question correspondante.</small>
                                 <div class="inline-checkbox-grid">
-                                    <label><input type="checkbox" class="nomura-disability-detail" value="Dyslexia"> Dyslexia</label>
-                                    <label><input type="checkbox" class="nomura-disability-detail" value="Hearing impairment"> Hearing impairment</label>
-                                    <label><input type="checkbox" class="nomura-disability-detail" value="Long term health condition (such as diabetes, epilepsy,heart condition, multiple sclerosis)"> Long term health condition</label>
-                                    <label><input type="checkbox" class="nomura-disability-detail" value="Mental health condition"> Mental health condition</label>
-                                    <label><input type="checkbox" class="nomura-disability-detail" value="Mobility impairment"> Mobility impairment</label>
-                                    <label><input type="checkbox" class="nomura-disability-detail" value="Musculoskeletal (including back, neck and shoulder condition)"> Musculoskeletal</label>
-                                    <label><input type="checkbox" class="nomura-disability-detail" value="Other neurodiverse condition"> Other neurodiverse condition</label>
-                                    <label><input type="checkbox" class="nomura-disability-detail" value="Speech impairment"> Speech impairment</label>
-                                    <label><input type="checkbox" class="nomura-disability-detail" value="Visual impairment"> Visual impairment</label>
-                                    <label><input type="checkbox" class="nomura-disability-detail" value="Prefer not to say"> Prefer not to say</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Dyslexia"> Dyslexie</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Hearing impairment"> Déficience auditive</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Long term health condition (such as diabetes, epilepsy,heart condition, multiple sclerosis)"> Maladie chronique</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Mental health condition"> Trouble de santé mentale</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Mobility impairment"> Déficience motrice</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Musculoskeletal (including back, neck and shoulder condition)"> Musculo-squelettique</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Other neurodiverse condition"> Autre condition neurodiversifiée</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Speech impairment"> Trouble de la parole</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Visual impairment"> Déficience visuelle</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Prefer not to say"> Je préfère ne pas répondre</label>
                                 </div>
-                                <input type="text" id="nomuraDisabilityOther" name="nomura_disability_other" placeholder="Précisez si 'Other (write below)'…">
+                                <input type="text" id="nomuraDisabilityOther" name="nomura_disability_other" placeholder="Précisez si nécessaire…">
                             </div>
 
                             <div class="form-group">
@@ -2630,10 +2630,10 @@
                                 <label for="nomuraFreeSchoolMeals">Si vous avez terminé l'école après 1980, étiez-vous éligible aux repas scolaires gratuits ?</label>
                                 <select id="nomuraFreeSchoolMeals" name="nomura_free_school_meals">
                                     <option value="">Sélectionnez…</option>
-                                    <option value="Yes">Oui (Yes)</option>
-                                    <option value="No">Non (No)</option>
+                                    <option value="Yes">Oui</option>
+                                    <option value="No">Non</option>
                                     <option value="Not applicable (finished school before 1980 or went to school overseas)">Non applicable (école avant 1980 ou à l'étranger)</option>
-                                    <option value="I don't know">Je ne sais pas (I don't know)</option>
+                                    <option value="I don't know">Je ne sais pas</option>
                                     <option value="I prefer not to say">Je préfère ne pas répondre</option>
                                 </select>
                             </div>
@@ -2642,10 +2642,10 @@
                                 <label for="nomuraSchoolType">Quel type d'école avez-vous fréquenté entre 11 et 16 ans ?</label>
                                 <select id="nomuraSchoolType" name="nomura_school_type">
                                     <option value="">Sélectionnez…</option>
-                                    <option value="A state-run or state-funded school">École publique (A state-run or state-funded school)</option>
-                                    <option value="Independent or fee-paying school">École privée (Independent or fee-paying school)</option>
+                                    <option value="A state-run or state-funded school">École publique</option>
+                                    <option value="Independent or fee-paying school">École privée</option>
                                     <option value="Independent or fee-paying school, where I received a means tested bursary covering 90% or more of the total cost of attending throughout my time there">École privée avec bourse ≥ 90% du coût total</option>
-                                    <option value="Attended school outside the UK">Scolarité hors Royaume-Uni (Attended school outside the UK)</option>
+                                    <option value="Attended school outside the UK">Scolarité hors Royaume-Uni</option>
                                     <option value="I prefer not to say">Je préfère ne pas répondre</option>
                                 </select>
                             </div>
@@ -2654,8 +2654,8 @@
                                 <label for="nomuraPrimaryCarer">Êtes-vous l'aidant·e principal·e d'un enfant de moins de 18 ans ?</label>
                                 <select id="nomuraPrimaryCarer" name="nomura_primary_carer">
                                     <option value="">Sélectionnez…</option>
-                                    <option value="No">Non (No)</option>
-                                    <option value="Yes">Oui (Yes)</option>
+                                    <option value="No">Non</option>
+                                    <option value="Yes">Oui</option>
                                     <option value="Prefer not to say">Je préfère ne pas répondre</option>
                                 </select>
                             </div>
@@ -2664,7 +2664,7 @@
                                 <label for="nomuraCarer">Prenez-vous soin d'une personne souffrant d'un problème de santé physique ou mentale de longue durée dû à un handicap ou à l'âge ?</label>
                                 <select id="nomuraCarer" name="nomura_carer">
                                     <option value="">Sélectionnez…</option>
-                                    <option value="No">Non (No)</option>
+                                    <option value="No">Non</option>
                                     <option value="Yes, 1-19 hours a week">Oui, 1-19 h/semaine</option>
                                     <option value="Yes, 20-49 hours a week">Oui, 20-49 h/semaine</option>
                                     <option value="Yes, 50 hours or more a week">Oui, 50 h ou plus par semaine</option>
@@ -2673,11 +2673,11 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="nomuraDisabilityConfident">Souhaitez-vous candidater via le programme gouvernemental "Disability Confident" ?</label>
+                                <label for="nomuraDisabilityConfident">Souhaitez-vous candidater via le programme "Disability Confident" ?</label>
                                 <select id="nomuraDisabilityConfident" name="nomura_disability_confident">
                                     <option value="">Sélectionnez…</option>
-                                    <option value="No">Non (No)</option>
-                                    <option value="Yes">Oui (Yes)</option>
+                                    <option value="No">Non</option>
+                                    <option value="Yes">Oui</option>
                                 </select>
                             </div>
                         </div>

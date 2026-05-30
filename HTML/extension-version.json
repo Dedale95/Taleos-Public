@@ -1,7 +1,7 @@
 {
-  "version": "1.2.159",
-  "version_name": "1.2.159-nomura-signin-mouseevent",
-  "published_at": "2026-05-30T08:16:04Z",
-  "release_notes": "Fix Nomura connexion : le bouton #fbqa_signin est maintenant cliqué via dispatchEvent(MouseEvent) au lieu de .click() natif — le handler JUIC juic.fire() reçoit un événement complet. Ajout waitFor(5s) pour trouver le bouton après ouverture du modal. activateTab() si bouton introuvable.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.159.zip"
+  "version": "1.2.160",
+  "version_name": "1.2.160-nomura-signin-visible-wait",
+  "published_at": "2026-05-30T08:26:30Z",
+  "release_notes": "Fix Nomura connexion : (1) emailInput et pwdInput attendus VISIBLES (offsetParent !== null) avant remplissage — évite le remplissage avant ouverture du modal. (2) Bouton Sign In attendu VISIBLE et texte non vide (JUIC initialisé) avant clic — évite le clic sur un bouton fantôme. (3) Succès détecté par disparition du bouton Sign In (modal fermée) et non plus par #username.offsetParent — évite le faux positif immédiat. (4) Timeout 15s avec activateTab() si pas de réponse.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.160.zip"
 }

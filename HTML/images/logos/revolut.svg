@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" style="background:#fff">
+  <!-- Revolut logo: R icon (coin-like) + wordmark -->
+  <!-- Dark rounded square background -->
+  <rect x="4" y="4" width="32" height="32" rx="8" fill="#191C1F"/>
+  <!-- R letter in white -->
+  <text x="11" y="27" font-family="Arial Black, Arial, sans-serif" font-size="22" font-weight="900" fill="#fff">R</text>
+  <!-- Wordmark -->
+  <text x="44" y="26" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#191C1F" letter-spacing="0.3">Revolut</text>
+</svg>

@@ -54,6 +54,11 @@ MUFG_DB          = PYTHON_DIR / "mufg_jobs.db"
 MIZUHO_DB        = PYTHON_DIR / "mizuho_jobs.db"
 BOFA_DB          = PYTHON_DIR / "bank_of_america_jobs.db"
 CITI_DB          = PYTHON_DIR / "citi_jobs.db"
+BARCLAYS_DB      = PYTHON_DIR / "barclays_jobs.db"
+LLOYDS_DB        = PYTHON_DIR / "lloyds_jobs.db"
+ING_DB           = PYTHON_DIR / "ing_jobs.db"
+SC_DB            = PYTHON_DIR / "standard_chartered_jobs.db"
+REVOLUT_DB       = PYTHON_DIR / "revolut_jobs.db"
 
 
 def write_json(path: Path, data, pretty: bool = False):
@@ -1341,6 +1346,11 @@ def main():
         ("HSBC",         HSBC_DB),
         ("EY",           EY_DB),
         ("La Banque Postale", LBP_DB),
+        ("Barclays",          BARCLAYS_DB),
+        ("Lloyds Banking Group", LLOYDS_DB),
+        ("ING",               ING_DB),
+        ("Standard Chartered", SC_DB),
+        ("Revolut",            REVOLUT_DB),
     ]
     # Nomura utilise un schéma différent — lecture via fonction dédiée
     NOMURA_SPECIAL = True
@@ -1565,6 +1575,11 @@ def main():
             ("hsbc",              HSBC_DB),
             ("ey",                EY_DB),
             ("la_banque_postale", LBP_DB),
+            ("barclays",          BARCLAYS_DB),
+            ("lloyds",            LLOYDS_DB),
+            ("ing",               ING_DB),
+            ("standard_chartered", SC_DB),
+            ("revolut",           REVOLUT_DB),
         ]
         print("\n📦 Export par source (fichiers individuels)...")
 

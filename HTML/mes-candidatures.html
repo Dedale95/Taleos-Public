@@ -1531,7 +1531,15 @@
             'bank of america':'images/logos/bank_of_america.svg',
             'citi':'images/logos/citi.svg',
             'citibank':'images/logos/citi.svg',
-            'citigroup':'images/logos/citi.svg'
+            'citigroup':'images/logos/citi.svg',
+            'barclays':'images/logos/barclays.svg',
+            'lloyds':'images/logos/lloyds.svg',
+            'lloyds banking group':'images/logos/lloyds.svg',
+            'halifax':'images/logos/lloyds.svg',
+            'bank of scotland':'images/logos/lloyds.svg',
+            'ing':'images/logos/ing.svg',
+            'standard chartered':'images/logos/standard_chartered.svg',
+            'revolut':'images/logos/revolut.svg'
         };
         for (const [key, path] of Object.entries(logoMap)) {
             if (normalized.includes(key) || normalized === key) return path;
@@ -1800,6 +1808,11 @@
         if (n.includes('nomura')) return 'Nomura';
         if (n.includes('bank of america') || n.includes('bank_of_america') || n.includes('bofa') || n.includes('merrill')) return 'Bank of America';
         if (n.includes('citibank') || n.includes('citigroup') || n === 'citi' || n.startsWith('citi ') || n.endsWith(' citi')) return 'Citi';
+        if (n.includes('barclays')) return 'Barclays';
+        if (n.includes('lloyds') || n.includes('halifax') || n.includes('bank of scotland') || n.includes('scottish widows')) return 'Lloyds Banking Group';
+        if (n === 'ing' || n.startsWith('ing ') || n.includes('ing bank') || n.includes('ing group')) return 'ING';
+        if (n.includes('standard chartered')) return 'Standard Chartered';
+        if (n.includes('revolut')) return 'Revolut';
         if (n.includes('goldman sachs') || n.includes('goldman_sachs')) return 'Goldman Sachs';
         if (n.includes('jp morgan') || n.includes('jpmorgan') || n.includes('j.p. morgan')) return 'JP Morgan Chase';
         if (n.includes('hsbc')) return 'HSBC';

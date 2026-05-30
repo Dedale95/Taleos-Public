@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" style="background:#fff">
+  <!-- Barclays Eagle (simplified) + wordmark -->
+  <!-- Eagle silhouette in Barclays blue #00AEEF -->
+  <g transform="translate(4,2)">
+    <ellipse cx="16" cy="18" rx="12" ry="8" fill="#00AEEF" opacity="0.15"/>
+    <!-- Eagle body -->
+    <path d="M16 6 C11 6 8 9 8 14 C8 18 10 21 13 22 L13 28 L19 28 L19 22 C22 21 24 18 24 14 C24 9 21 6 16 6Z" fill="#00AEEF"/>
+    <!-- Wings -->
+    <path d="M8 14 C5 12 2 13 2 16 C2 19 6 20 10 18 L8 14Z" fill="#00AEEF"/>
+    <path d="M24 14 C27 12 30 13 30 16 C30 19 26 20 22 18 L24 14Z" fill="#00AEEF"/>
+    <!-- Head -->
+    <ellipse cx="16" cy="9" rx="4" ry="3.5" fill="#00AEEF"/>
+    <!-- Beak -->
+    <path d="M20 9 L23 8.5 L20 10Z" fill="#FFD700"/>
+    <!-- Eye -->
+    <circle cx="18" cy="8.5" r="0.8" fill="#fff"/>
+    <!-- Tail feathers -->
+    <path d="M13 28 L11 34 L16 31 L21 34 L19 28Z" fill="#00AEEF"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="38" y="24" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#00395D" letter-spacing="0.5">Barclays</text>
+</svg>

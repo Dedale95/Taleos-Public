@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" style="background:#fff">
+  <!-- ING Lion (simplified orange lion head) + ING wordmark -->
+  <!-- Lion head -->
+  <g transform="translate(4,2)">
+    <!-- Mane -->
+    <circle cx="18" cy="20" r="15" fill="#FF6200"/>
+    <!-- Face -->
+    <circle cx="18" cy="19" r="10" fill="#FF9D5C"/>
+    <!-- Eyes -->
+    <ellipse cx="14" cy="16" rx="2.5" ry="2" fill="#fff"/>
+    <ellipse cx="22" cy="16" rx="2.5" ry="2" fill="#fff"/>
+    <circle cx="14.5" cy="16" r="1.2" fill="#2D2D2D"/>
+    <circle cx="22.5" cy="16" r="1.2" fill="#2D2D2D"/>
+    <!-- Nose -->
+    <ellipse cx="18" cy="21" rx="3" ry="2" fill="#E05500"/>
+    <!-- Mouth -->
+    <path d="M15 23 Q18 25 21 23" stroke="#E05500" stroke-width="1.5" fill="none"/>
+    <!-- Ears -->
+    <path d="M8 10 L10 4 L14 10Z" fill="#FF6200"/>
+    <path d="M28 10 L26 4 L22 10Z" fill="#FF6200"/>
+    <!-- Crown / mane top -->
+    <path d="M10 8 L18 3 L26 8 L24 12 L18 10 L12 12Z" fill="#FF6200"/>
+  </g>
+  <!-- ING wordmark -->
+  <text x="42" y="26" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="#FF6200">ING</text>
+</svg>

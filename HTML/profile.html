@@ -1319,15 +1319,15 @@
             </div>
 
             <form id="profileForm" onsubmit="handleSaveProfile(event)">
-                <!-- Section Informations personnelles -->
+                <!-- Section Identité & Coordonnées -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Informations personnelles</h2>
+                        <h2>Identité &amp; Coordonnées</h2>
                         <span class="accordion-icon">▼</span>
                     </div>
                     <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Renseignez vos informations personnelles de base.</p>
-                        
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Vos informations personnelles de base et votre adresse de résidence.</p>
+
                         <div class="form-group">
                         <label for="civility">Civilité</label>
                         <select id="civility" name="civility">
@@ -1358,19 +1358,10 @@
                         <label for="phone">Numéro de téléphone <span style="color:#888;font-weight:400;font-size:0.85em">(sans indicatif pays)</span></label>
                         <input type="tel" id="phone" name="phone" placeholder="Ex. 6 12 34 56 78">
                     </div>
-                    </div>
-                </div>
 
-                <!-- Section Adresse -->
-                <div class="form-section accordion-section">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Adresse</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Indiquez votre adresse de résidence actuelle.</p>
-                        
-                        <div class="form-group">
+                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0 20px;">
+
+                    <div class="form-group">
                         <label for="address">Adresse</label>
                         <input type="text" id="address" name="address" placeholder="Numéro et nom de rue">
                     </div>
@@ -1442,6 +1433,14 @@
                             <option value="Ukraine">Ukraine</option>
                             <option value="Uruguay">Uruguay</option>
                         </select>
+                    </div>
+                    </div>
+
+                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0 20px;">
+
+                    <div class="form-group">
+                        <label for="linkedinUrl">URL de votre profil LinkedIn <span style="color:#888;font-weight:400;font-size:0.85em">(facultatif)</span></label>
+                        <input type="url" id="linkedinUrl" name="linkedinUrl" placeholder="https://www.linkedin.com/in/votre-profil">
                     </div>
                     </div>
                 </div>
@@ -2247,20 +2246,12 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Section Origine & profil -->
-                <div class="form-section accordion-section">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Origine &amp; profil</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations sont utilisées lors de vos candidatures pour indiquer comment vous avez découvert l'offre et retrouver votre profil en ligne.</p>
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
                         <div class="form-group">
-                            <label for="bpceApplicationSource">Origine de votre candidature</label>
+                            <label for="bpceApplicationSource">Comment avez-vous découvert cette offre ?</label>
+                            <p style="color: #888; font-size: 0.85rem; margin-bottom: 8px;">Certains formulaires (notamment BPCE / Natixis) demandent l'origine de votre candidature.</p>
                             <select id="bpceApplicationSource" name="bpceApplicationSource">
                                 <option value="">Sélectionnez...</option>
                                 <option value="Contacted by Natixis HR">Contacted by Natixis HR</option>
@@ -2275,12 +2266,6 @@
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-
-                        <div class="form-group">
-                            <label for="linkedinUrl">URL de votre profil LinkedIn <span style="color:#888;font-weight:400;font-size:0.85em">(facultatif)</span></label>
-                            <input type="url" id="linkedinUrl" name="linkedinUrl" placeholder="https://www.linkedin.com/in/votre-profil">
-                        </div>
-
                     </div>
                 </div>
 
@@ -2338,32 +2323,6 @@
                                 <option value="">Sélectionnez…</option>
                                 <option value="non">Non</option>
                                 <option value="oui">Oui</option>
-                            </select>
-                        </div>
-
-                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
-
-                        <div class="form-group">
-                            <label for="profileGender">Genre</label>
-                            <select id="profileGender" name="gender">
-                                <option value="">Sélectionnez…</option>
-                                <option value="Male">Homme (Male)</option>
-                                <option value="Female">Femme (Female)</option>
-                                <option value="Non-binary">Non-binaire (Non-binary)</option>
-                                <option value="Other">Autre (Other)</option>
-                                <option value="Prefer not to say">Je préfère ne pas répondre</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="profilePronouns">Pronoms</label>
-                            <select id="profilePronouns" name="pronouns">
-                                <option value="">Sélectionnez…</option>
-                                <option value="He / Him">Il / Lui (He / Him)</option>
-                                <option value="She / Her">Elle / La (She / Her)</option>
-                                <option value="They / Them">Iel / Eux (They / Them)</option>
-                                <option value="Other">Autre (Other)</option>
-                                <option value="Prefer Not To Say">Je préfère ne pas répondre</option>
                             </select>
                         </div>
 
@@ -2429,7 +2388,33 @@
                         <span class="accordion-icon">▼</span>
                     </div>
                     <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations peuvent être utilisées par certaines entreprises dans le cadre de leurs programmes de diversité et d'inclusion. Elles sont strictement confidentielles et ne conditionnent pas l'issue de la candidature.</p>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces informations peuvent être utilisées par certaines entreprises dans le cadre de leurs programmes de diversité et d’inclusion. Elles sont strictement confidentielles et ne conditionnent pas l’issue de la candidature.</p>
+
+                        <div class="form-group">
+                            <label for="profileGender">Genre</label>
+                            <select id="profileGender" name="gender">
+                                <option value="">Sélectionnez…</option>
+                                <option value="Male">Homme (Male)</option>
+                                <option value="Female">Femme (Female)</option>
+                                <option value="Non-binary">Non-binaire (Non-binary)</option>
+                                <option value="Other">Autre (Other)</option>
+                                <option value="Prefer not to say">Je préfère ne pas répondre</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profilePronouns">Pronoms</label>
+                            <select id="profilePronouns" name="pronouns">
+                                <option value="">Sélectionnez…</option>
+                                <option value="He / Him">Il / Lui (He / Him)</option>
+                                <option value="She / Her">Elle / La (She / Her)</option>
+                                <option value="They / Them">Iel / Eux (They / Them)</option>
+                                <option value="Other">Autre (Other)</option>
+                                <option value="Prefer Not To Say">Je préfère ne pas répondre</option>
+                            </select>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
                         <div class="form-group">
                             <label for="gsDiversityConsent">Consentement à l’utilisation de ces données</label>
@@ -2747,8 +2732,7 @@
         ]);
 
         const PROFILE_SECTION_META = {
-            'Informations personnelles': { icon: 'person', required: true },
-            'Adresse': { icon: 'pin', required: true },
+            'Identité & Coordonnées': { icon: 'person', required: true },
             'Les métiers qui m\'intéressent': { icon: 'briefcase', required: true },
             'Contrat et disponibilité': { icon: 'calendar', required: true },
             'Préférences géographiques': { icon: 'globe', required: true },
@@ -4374,18 +4358,16 @@
         function isProfileComplete() {
             // Définir les champs requis par section (même structure que validateProfile)
             const requiredFields = {
-                'Informations personnelles': [
-                    { id: 'civility', section: 'Informations personnelles' },
-                    { id: 'firstName', section: 'Informations personnelles' },
-                    { id: 'lastName', section: 'Informations personnelles' },
-                    { id: 'phoneCountryCode', section: 'Informations personnelles' },
-                    { id: 'phone', section: 'Informations personnelles' }
-                ],
-                'Adresse': [
-                    { id: 'address', section: 'Adresse' },
-                    { id: 'postalCode', section: 'Adresse' },
-                    { id: 'city', section: 'Adresse' },
-                    { id: 'country', section: 'Adresse' }
+                'Identité & Coordonnées': [
+                    { id: 'civility', section: 'Identité & Coordonnées' },
+                    { id: 'firstName', section: 'Identité & Coordonnées' },
+                    { id: 'lastName', section: 'Identité & Coordonnées' },
+                    { id: 'phoneCountryCode', section: 'Identité & Coordonnées' },
+                    { id: 'phone', section: 'Identité & Coordonnées' },
+                    { id: 'address', section: 'Identité & Coordonnées' },
+                    { id: 'postalCode', section: 'Identité & Coordonnées' },
+                    { id: 'city', section: 'Identité & Coordonnées' },
+                    { id: 'country', section: 'Identité & Coordonnées' }
                 ],
                 'Les métiers qui m\'intéressent': [
                     { name: 'jobs', section: 'Les métiers qui m\'intéressent', isCheckbox: true }
@@ -4438,20 +4420,9 @@
         }
 
         function applyBpceSectionState() {
-            const bpceHandicap = deriveBpceHandicapFromSharedField(document.getElementById('sgHandicap')?.value || '');
-            const bpceApplicationSource = document.getElementById('bpceApplicationSource')?.value?.trim() || '';
-            const linkedinUrl = document.getElementById('linkedinUrl')?.value?.trim() || '';
-            const bpceHasContent = !!(bpceHandicap || bpceApplicationSource || linkedinUrl);
-
-            document.querySelectorAll('.accordion-header h2').forEach(header => {
-                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Origine & profil') {
-                    const section = header.closest('.accordion-section');
-                    if (section) {
-                        section.classList.remove('incomplete', 'complete');
-                        section.classList.add(bpceHasContent ? 'complete' : 'incomplete');
-                    }
-                }
-            });
+            // Section "Origine & profil" supprimée — les champs ont été redistribués dans d'autres sections.
+            // Cette fonction est conservée car elle est appelée à plusieurs endroits ; elle ne fait plus que
+            // rafraîchir la barre de progression.
             updateProfileCompletionChrome();
         }
 
@@ -4477,12 +4448,11 @@
             const sgHandicapAccommodation = document.getElementById('sgHandicapAccommodation')?.value?.trim() || '';
             const jpMorganMilitaryService = document.getElementById('jpMorganMilitaryService')?.value?.trim() || '';
             const jpMorganWorkAuths = window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [];
-            const gender = document.getElementById('profileGender')?.value?.trim() || '';
-            const pronouns = document.getElementById('profilePronouns')?.value?.trim() || '';
             const gsWorkAuthChecked = ['gsWorkAuthNational', 'gsWorkAuthPermanentResident', 'gsWorkAuthEEA', 'gsWorkAuthVisa']
                 .some(id => document.getElementById(id)?.checked);
+            // Note : genre et pronoms ont été déplacés dans "Diversité & Identité"
             const portalHasContent = !!sgHandicap || !!sgHandicapAccommodation || !!jpMorganMilitaryService
-                || jpMorganWorkAuths.length > 0 || !!gender || !!pronouns || gsWorkAuthChecked;
+                || jpMorganWorkAuths.length > 0 || gsWorkAuthChecked;
 
             document.querySelectorAll('.accordion-header h2').forEach(header => {
                 if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Questions administratives et réglementaires') {
@@ -4499,6 +4469,12 @@
         function applyGsDiversitySectionState() { applyDiversitySectionState(); }
 
         function applyDiversitySectionState() {
+            // ── Genre & Pronoms (champs génériques, déplacés depuis "Questions administratives") ──
+            const gender       = document.getElementById('profileGender')?.value?.trim() || '';
+            const pronouns     = document.getElementById('profilePronouns')?.value?.trim() || '';
+            const identityAny  = !!(gender || pronouns);
+            const identityComplete = !!(gender && pronouns);
+
             // ── Sous-section Goldman Sachs (4 champs clés) ──
             const gsConsent    = document.getElementById('gsDiversityConsent')?.value?.trim() || '';
             const gsTrans      = document.getElementById('gsTransgender')?.value?.trim() || '';
@@ -4516,8 +4492,8 @@
             const nomAny       = !!(nomGender || nomTrans || nomEthnic || nomReligion || nomSexual);
             const nomComplete  = !!(nomGender && nomTrans && nomEthnic && nomReligion && nomSexual);
 
-            const anyFilled    = gsAny || nomAny;
-            const allComplete  = gsComplete && nomComplete;
+            const anyFilled    = identityAny || gsAny || nomAny;
+            const allComplete  = identityComplete && gsComplete && nomComplete;
 
             // Rien rempli → Optionnel (pas de classe, la pill affiche "Optionnel")
             // Au moins un champ rempli mais pas tout → Incomplet
@@ -4551,18 +4527,16 @@
 
             // Définir les champs requis par section
             const requiredFields = {
-                'Informations personnelles': [
-                    { id: 'civility', label: 'Civilité', section: 'Informations personnelles' },
-                    { id: 'firstName', label: 'Prénom', section: 'Informations personnelles' },
-                    { id: 'lastName', label: 'Nom', section: 'Informations personnelles' },
-                    { id: 'phoneCountryCode', label: 'Indicatif pays', section: 'Informations personnelles' },
-                    { id: 'phone', label: 'Téléphone', section: 'Informations personnelles' }
-                ],
-                'Adresse': [
-                    { id: 'address', label: 'Adresse', section: 'Adresse' },
-                    { id: 'postalCode', label: 'Code postal', section: 'Adresse' },
-                    { id: 'city', label: 'Ville', section: 'Adresse' },
-                    { id: 'country', label: 'Pays', section: 'Adresse' }
+                'Identité & Coordonnées': [
+                    { id: 'civility', label: 'Civilité', section: 'Identité & Coordonnées' },
+                    { id: 'firstName', label: 'Prénom', section: 'Identité & Coordonnées' },
+                    { id: 'lastName', label: 'Nom', section: 'Identité & Coordonnées' },
+                    { id: 'phoneCountryCode', label: 'Indicatif pays', section: 'Identité & Coordonnées' },
+                    { id: 'phone', label: 'Téléphone', section: 'Identité & Coordonnées' },
+                    { id: 'address', label: 'Adresse', section: 'Identité & Coordonnées' },
+                    { id: 'postalCode', label: 'Code postal', section: 'Identité & Coordonnées' },
+                    { id: 'city', label: 'Ville', section: 'Identité & Coordonnées' },
+                    { id: 'country', label: 'Pays', section: 'Identité & Coordonnées' }
                 ],
                 'Les métiers qui m\'intéressent': [
                     { name: 'jobs', label: 'Métiers', section: 'Les métiers qui m\'intéressent', isCheckbox: true }

@@ -283,17 +283,49 @@ def clean_html(raw: str) -> str:
 
 
 def extract_city(location_text: str) -> str:
-    """Extrait la ville depuis 'New York, NY' / 'NYC (1285)' / 'London (Lon), GB'."""
+    """Extrait la ville depuis 'New York, NY' / 'NYC (1285)' / 'London (Lon), GB'
+    / 'Australia - Sydney' / 'UK - London'."""
     if not location_text:
         return ""
     loc = clean_html(location_text).strip()
+    # Supprimer les préfixes "Pays - " ex: "Australia - Sydney" → "Sydney"
+    loc = re.sub(r"^[A-Za-z\s]+ - ", "", loc).strip()
     # Supprimer le code pays ISO en fin "..., GB"
     loc = re.sub(r",?\s*[A-Z]{2}$", "", loc).strip()
     # Supprimer les suffixes entre parenthèses : "NYC (1285)" → "NYC"
     loc = re.sub(r"\s*\([^)]*\)", "", loc).strip()
     # Nettoyer état US "New York, NY" → "New York"
     loc = re.sub(r",\s*[A-Z]{2}$", "", loc).strip()
+    # Normaliser les variantes de noms de villes
+    loc = normalize_city_name(loc)
     return loc
+
+
+# Variantes connues → nom canonique
+CITY_ALIASES: dict[str, str] = {
+    "nyc":            "New York",
+    "new york city":  "New York",
+    "ny":             "New York",
+    "london city":    "London",
+    "metropark":      "MetroPark",   # NJ, déjà résolu en États-Unis
+}
+# Variantes préfixées (ex: "NYC 250 Park" → "New York")
+CITY_PREFIX_ALIASES: list[tuple[str, str]] = [
+    ("nyc ", "New York"),
+]
+
+
+def normalize_city_name(city: str) -> str:
+    """Normalise les variantes de noms de villes vers le nom canonique."""
+    if not city:
+        return city
+    key = city.lower().strip()
+    if key in CITY_ALIASES:
+        return CITY_ALIASES[key]
+    for prefix, canonical in CITY_PREFIX_ALIASES:
+        if key.startswith(prefix):
+            return canonical
+    return city
 
 
 def resolve_country(alpha2: str | None, country_name: str | None, city: str) -> tuple[str, str]:
@@ -682,7 +714,7 @@ def parse_wd_job(listing: dict, detail: dict | None, src: dict) -> dict | None:
     host = src["host"]
     site = src["site"]
     tenant = src["tenant"]
-    offer_url = f"https://{host}/{site}/job{ext_path}" if ext_path else ""
+    offer_url = f"https://{host}/fr-FR/{site}/job{ext_path}" if ext_path else ""
 
     # ── Date ──
     posted_raw = (detail or listing).get("startDate") or listing.get("postedOn") or ""

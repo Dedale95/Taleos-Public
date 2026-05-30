@@ -1,7 +1,7 @@
 {
-  "version": "1.2.163",
-  "version_name": "1.2.163-nomura-queue-fix",
-  "published_at": "2026-05-30T10:41:16Z",
-  "release_notes": "Fix enchaînement candidatures Nomura : quand l'utilisateur clique Postuler sur une 2e offre Nomura pendant la 1ère, la 2e restait bloquée dans la queue indéfiniment. Cause : clearPendingStateForBank n'avait pas de cas Nomura (taleos_pending_nomura/taleos_nomura_tab_id non nettoyés à la fin de la candidature). Fix : ajout de Nomura dans clearPendingStateForBank + dans chrome.tabs.onRemoved avec appel dequeueAndStartNext.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.163.zip"
+  "version": "1.2.164",
+  "version_name": "1.2.164-nomura-di-fix",
+  "published_at": "2026-05-30T11:05:09Z",
+  "release_notes": "Fix filler Nomura : (1) Questions Diversité & Inclusion non remplies — findPicklistInputByLabel étendu pour couvrir les layouts table/tr de la section D&I (SF EEO). Ajout du champ Handicap/condition long terme (gs_disability). (2) Fix LM : si la lettre de motivation est déjà présente avec le même nom, skip au lieu de supprimer puis re-uploader (ce qui échouait en boucle).",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.164.zip"
 }

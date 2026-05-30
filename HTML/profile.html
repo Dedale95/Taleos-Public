@@ -1103,6 +1103,39 @@
             line-height: 1.5;
         }
 
+        /* ── Cases à cocher inline (ex : détails handicap Nomura) ── */
+        .inline-checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+            margin-bottom: 10px;
+        }
+        .inline-checkbox-grid label {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            font-weight: normal !important;
+            font-size: 0.875rem !important;
+            letter-spacing: normal !important;
+            text-transform: none !important;
+            color: var(--text-body) !important;
+            margin-bottom: 0 !important;
+            cursor: pointer !important;
+            border: none !important;
+            background: none !important;
+            padding: 3px 0 !important;
+        }
+        .inline-checkbox-grid input[type="checkbox"] {
+            width: 16px !important;
+            min-width: 16px !important;
+            height: 16px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            flex-shrink: 0 !important;
+            cursor: pointer !important;
+            accent-color: var(--gold) !important;
+        }
+
         .repeatable-list {
             display: flex;
             flex-direction: column;
@@ -2562,17 +2595,17 @@
                             <div class="form-group">
                                 <label>Détails du handicap (si vous en avez sélectionné un)</label>
                                 <small style="color:#9ca3af;display:block;margin-bottom:10px;">Cochez tout ce qui s'applique. Uniquement utilisé si le formulaire Nomura pose la question "If you answered yes…"</small>
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:10px;">
-                                    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;"><input type="checkbox" class="nomura-disability-detail" value="Dyslexia"> Dyslexia</label>
-                                    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;"><input type="checkbox" class="nomura-disability-detail" value="Hearing impairment"> Hearing impairment</label>
-                                    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;"><input type="checkbox" class="nomura-disability-detail" value="Long term health condition (such as diabetes, epilepsy,heart condition, multiple sclerosis)"> Long term health condition</label>
-                                    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;"><input type="checkbox" class="nomura-disability-detail" value="Mental health condition"> Mental health condition</label>
-                                    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;"><input type="checkbox" class="nomura-disability-detail" value="Mobility impairment"> Mobility impairment</label>
-                                    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;"><input type="checkbox" class="nomura-disability-detail" value="Musculoskeletal (including back, neck and shoulder condition)"> Musculoskeletal</label>
-                                    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;"><input type="checkbox" class="nomura-disability-detail" value="Other neurodiverse condition"> Other neurodiverse condition</label>
-                                    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;"><input type="checkbox" class="nomura-disability-detail" value="Speech impairment"> Speech impairment</label>
-                                    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;"><input type="checkbox" class="nomura-disability-detail" value="Visual impairment"> Visual impairment</label>
-                                    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;"><input type="checkbox" class="nomura-disability-detail" value="Prefer not to say"> Prefer not to say</label>
+                                <div class="inline-checkbox-grid">
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Dyslexia"> Dyslexia</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Hearing impairment"> Hearing impairment</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Long term health condition (such as diabetes, epilepsy,heart condition, multiple sclerosis)"> Long term health condition</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Mental health condition"> Mental health condition</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Mobility impairment"> Mobility impairment</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Musculoskeletal (including back, neck and shoulder condition)"> Musculoskeletal</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Other neurodiverse condition"> Other neurodiverse condition</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Speech impairment"> Speech impairment</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Visual impairment"> Visual impairment</label>
+                                    <label><input type="checkbox" class="nomura-disability-detail" value="Prefer not to say"> Prefer not to say</label>
                                 </div>
                                 <input type="text" id="nomuraDisabilityOther" name="nomura_disability_other" placeholder="Précisez si 'Other (write below)'…">
                             </div>

@@ -4165,27 +4165,56 @@
         const BPCE_GROUP_KEY = '__BPCE_GROUP__';
         const BNP_PARIBAS_GROUP_KEY = '__BNP_GROUP__';
         const FAMILY_GROUPS = {
-            // IT — 6 sous-catégories + "IT - Autres" pour jobs non reclassés
-            'IT, Digital et Data': [
+            // IT — 6 sous-catégories + "IT - Autres"
+            'IT, Digital & Data': [
                 'Développement & Architecture',
                 'Data & Intelligence Artificielle',
                 'Cybersécurité',
                 'Infrastructure & Cloud',
                 'Gestion de Projet IT',
                 'Conseil & Solutions IT',
-                'IT - Autres',   // jobs IT sans sous-catégorie identifiable
+                'IT - Autres',
             ],
-            // Commercial — 3 sous-catégories + "Commercial - Autres"
-            'Commercial & Relations Clients': [
-                'Banque de Détail & Agence',
-                'Banque Privée & Patrimoine',
-                'Banque Corporate & Marchés',
-                'Commercial - Autres',  // jobs commerciaux sans sous-catégorie
+            // Conseil & Relation Client — fonctions métier réelles (pas segments clients)
+            'Conseil & Relation Client': [
+                'Conseil Clientèle Particuliers',          // ex "Banque de Détail & Agence"
+                'Banque Privée & Gestion de Patrimoine',   // ex "Banque Privée & Patrimoine"
+                'Conseil Clientèle Entreprises',            // ex "Banque Corporate & Marchés"
+                'Développement Commercial',                  // ex "Commercial - Autres"
             ],
-            'Contrôle et Risques': ['Risques / Contrôles permanents', 'Conformité / Sécurité financière', 'Inspection / Audit'],
-            'Finance et Analyse': ['Finances / Comptabilité / Contrôle de gestion', 'Analyse financière et économique'],
-            'Investissement et Gestion d\'Actifs': ['Financement et Investissement', "Gestion d'Actifs"],
-            'Support et Pilotage': ['Organisation / Qualité', 'Gestion des opérations', 'Direction générale', 'Achat', 'Autres'],
+            // Marchés & Investissement
+            'Marchés & Investissement': [
+                'Financement et Investissement',
+                'Marchés financiers & Trading',
+                "Gestion d'Actifs",
+            ],
+            // Risques, Conformité & Contrôle
+            'Risques, Conformité & Contrôle': [
+                'Risques / Contrôles permanents',
+                'Conformité / Sécurité financière',
+                'Inspection / Audit',
+            ],
+            // Finance & Comptabilité
+            'Finance & Comptabilité': [
+                'Finances / Comptabilité / Contrôle de gestion',
+                'Analyse financière et économique',
+            ],
+            // Opérations & Support
+            'Opérations & Support': [
+                'Gestion des opérations',
+                'Organisation / Qualité',
+                'Direction générale',
+                'Achat',
+                'Autres',
+            ],
+            // Fonctions Transverses
+            'Fonctions Transverses': [
+                'Ressources Humaines',
+                'Juridique',
+                'Marketing et Communication',
+                'Immobilier',
+                'Assurances',
+            ],
         };
         const FAMILY_GROUP_PREFIX = '__FAMILY_GROUP__';
         function getFamilyGroupKey(label) { return FAMILY_GROUP_PREFIX + label; }

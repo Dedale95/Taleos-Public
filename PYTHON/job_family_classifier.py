@@ -156,7 +156,7 @@ _IT_SUBCATEGORIES = [
 # ─────────────────────────────────────────────────────────────────────────────
 _COMMERCIAL_SUBCATEGORIES = [
     (
-        "Banque Privée & Patrimoine",
+        "Banque Privée & Gestion de Patrimoine",
         [
             # Anglais
             r'\bprivate\s+bank', r'\bwealth\s+manag', r'\bhigh\s+net\s+worth\b',
@@ -175,7 +175,7 @@ _COMMERCIAL_SUBCATEGORIES = [
         ]
     ),
     (
-        "Banque Corporate & Marchés",
+        "Conseil Clientèle Entreprises",
         [
             # Corporate banking
             r'\bcorporate\s+(?:bank|client|finance|cover)\b',
@@ -194,7 +194,7 @@ _COMMERCIAL_SUBCATEGORIES = [
         ]
     ),
     (
-        "Banque de Détail & Agence",
+        "Conseil Clientèle Particuliers",
         [
             # Conseillers
             r'\bconseiller.*(?:particulier|clientèle|essentiel|premium|professionnel|financier)\b',
@@ -381,10 +381,10 @@ def _classify_it_subcat(job_title: str, job_description: str = "") -> str:
 
 def _classify_commercial_subcat(job_title: str, job_description: str = "") -> str:
     """Retourne la sous-catégorie Commercial la plus appropriée.
-    Retourne 'Commercial - Autres' si aucun pattern ne matche."""
+    Retourne 'Développement Commercial' si aucun pattern ne matche."""
     text = (job_description or "")[:3000]
     title = job_title or ""
-    best_cat, best_score = "Commercial - Autres", 0
+    best_cat, best_score = "Développement Commercial", 0
     for cat, patterns in _COMMERCIAL_SUBCATEGORIES:
         s = _score_subcat(text, title, patterns)
         if s > best_score:

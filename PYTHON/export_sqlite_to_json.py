@@ -144,7 +144,7 @@ def normalize_job_family(raw_family: str) -> str:
 
     norm = _normalize_text(raw_family)
 
-    # Commercial / Relation client (y compris \"expertise commercial et accompagnement réseau\")
+    # Commercial / Relation client (y compris "expertise commercial et accompagnement réseau")
     if "relation client" in norm or "expertise commercial" in norm or "commercial" in norm:
         return "Commercial / Relations Clients"
 
@@ -156,16 +156,24 @@ def normalize_job_family(raw_family: str) -> str:
     if "financement" in norm or "banque de financement" in norm:
         return "Financement et Investissement"
 
+    # Marchés financiers & Trading
+    if "marche" in norm and ("financier" in norm or "trading" in norm or "sales" in norm):
+        return "Marchés financiers & Trading"
+
     # Ressources humaines
-    if "ressources humaines" in norm or "ressourceshumaines" in norm or "rh" in norm:
+    if "ressources humaines" in norm or "ressourceshumaines" in norm or ("rh" in norm and len(norm) < 20):
         return "Ressources Humaines"
 
     # Finance / Comptabilité
-    if "comptabilite" in norm or "comptabilité" in norm or "finance" in norm:
+    if "comptabilite" in norm or "comptabilite" in norm or (
+        "finance" in norm and "financement" not in norm and "marche" not in norm
+    ):
         return "Finances / Comptabilité / Contrôle de gestion"
 
     # Risques / Contrôles permanents / maîtrise des risques
     if "risque" in norm and ("controle" in norm or "contrôle" in norm or "permanent" in norm):
+        return "Risques / Contrôles permanents"
+    if "risque" in norm and "conformite" not in norm:
         return "Risques / Contrôles permanents"
 
     # Conformité / Sécurité financière
@@ -192,40 +200,135 @@ def normalize_job_family(raw_family: str) -> str:
     if "marketing" in norm or "communication" in norm:
         return "Marketing et Communication"
 
-    # Organisation / Qualité
-    if "organisation" in norm or "qualite" in norm or "qualité" in norm or "projets" in norm or "etudes" in norm or "études" in norm:
-        # On laisse \"Analysesétudes et projets\" se regrouper ici
+    # Organisation / Qualité / Projet / PMO
+    if ("organisation" in norm or "qualite" in norm or "qualité" in norm
+            or "projets" in norm or "etudes" in norm or "études" in norm
+            or "pmo" in norm or "pilotage" in norm):
         return "Organisation / Qualité"
 
     # Gestion des opérations / support
-    if "gestion des operations" in norm or "maitrise des operations" in norm or "support" in norm:
+    if "gestion des operations" in norm or "maitrise des operations" in norm or "operations" in norm:
         return "Gestion des opérations"
 
     # Gestion d'actifs
-    if "gestion d actifs" in norm or "gestion d'actifs" in norm or "gestion d actifs" in norm:
+    if "gestion d actifs" in norm or "gestion d'actifs" in norm:
         return "Gestion d'Actifs"
 
-    # Direction générale / management transverse
-    if "direction generale" in norm or "management" in norm:
+    # Direction générale / management transverse / stratégie
+    if "direction generale" in norm or "strategie" in norm or "management" in norm:
         return "Direction générale"
 
-    # Développement durable / RSE
-    if "developpement durable" in norm or "rse" in norm:
-        return "Autres"
+    # Achat / procurement
+    if "achat" in norm or "procurement" in norm:
+        return "Achat"
 
-    # International
-    if "international" in norm:
-        return "Autres"
-
-    # Achat
-    if "achat" in norm:
-        return "Autres"
-
-    # Restauration / hôtellerie ou autres familles exotiques
-    if "restauration" in norm or "hotellerie" in norm or "hôtellerie" in norm:
+    # Développement durable / RSE / exotiques
+    if ("developpement durable" in norm or "rse" in norm or "restauration" in norm
+            or "hotellerie" in norm or "international" in norm or "medical" in norm):
         return "Autres"
 
     return raw_family.strip()
+
+
+# ─── Table de normalisation pour familles venant de scrapers externes ─────────
+# Mappe des noms non-canoniques (BofA, Mizuho, anciennes versions) vers les noms
+# canoniques attendus par FAMILY_GROUPS dans offres.html / filtres.html.
+_EXTERNAL_FAMILY_ALIASES: dict[str, str | None] = {
+    # Wealth management / Banque Privée
+    "banque privée & wealth management":        "Banque Privée & Gestion de Patrimoine",
+    "banque privée & patrimoine":               "Banque Privée & Gestion de Patrimoine",
+    "banque privee & wealth management":        "Banque Privée & Gestion de Patrimoine",
+    "wealth management":                        "Banque Privée & Gestion de Patrimoine",
+    # Commercial
+    "commercial & relations clients":           None,  # → sub-classifier commercial
+    "commercial / relations clients":           None,  # → sub-classifier commercial
+    "développement commercial":                 "Développement Commercial",
+    "commercial - autres":                      "Développement Commercial",
+    "banque de détail":                         "Conseil Clientèle Particuliers",
+    "banque de détail & agence":                "Conseil Clientèle Particuliers",
+    "banque corporate & marchés":               "Conseil Clientèle Entreprises",
+    # Marchés & Trading
+    "marchés financiers / sales & trading":     "Marchés financiers & Trading",
+    "marchés & trading":                        "Marchés financiers & Trading",
+    "sales & trading":                          "Marchés financiers & Trading",
+    # IT (parent → sous-classifier)
+    "it, digital et data":                      None,  # → sub-classifier IT
+    "it, digital & data":                       None,  # → sub-classifier IT
+    # Opérations
+    "opérations / back office":                 "Gestion des opérations",
+    "operations / back office":                 "Gestion des opérations",
+    # Risques
+    "gestion des risques":                      "Risques / Contrôles permanents",
+    "risques":                                  "Risques / Contrôles permanents",
+    # Finance & Comptabilité
+    "finance / comptabilité":                   "Finances / Comptabilité / Contrôle de gestion",
+    "finance / comptabilite":                   "Finances / Comptabilité / Contrôle de gestion",
+    "finances / comptabilité":                  "Finances / Comptabilité / Contrôle de gestion",
+    # Audit
+    "audit / contrôle interne":                 "Inspection / Audit",
+    "audit / controle interne":                 "Inspection / Audit",
+    "audit / inspection":                       "Inspection / Audit",
+    # Juridique
+    "juridique / conformité":                   "Juridique",
+    "juridique / conformite":                   "Juridique",
+    # RH
+    "rh / formation / communication":           "Ressources Humaines",
+    # Marketing
+    "communication / marketing":                "Marketing et Communication",
+    # Stratégie / Management
+    "stratégie / management":                   "Direction générale",
+    "strategie / management":                   "Direction générale",
+    # Organisation
+    "organisation / projet / pmo":              "Organisation / Qualité",
+    "organisation / projet":                    "Organisation / Qualité",
+    # Divers
+    "administration / services généraux":       "Autres",
+}
+
+
+def normalize_external_family(family: str, job_title: str = "", job_desc: str = "") -> str:
+    """
+    Normalise une famille provenant d'un scraper externe (BofA, Mizuho…)
+    vers le référentiel canonique.
+    - Retourne la famille canonique correspondante
+    - Pour les parents IT / Commercial → sub-classifie depuis le titre
+    """
+    if not family:
+        return "Autres"
+
+    key = family.strip().lower()
+
+    # Lookup direct
+    if key in _EXTERNAL_FAMILY_ALIASES:
+        target = _EXTERNAL_FAMILY_ALIASES[key]
+        if target is None:
+            # IT parent → sub-classifie
+            if "it" in key or "digital" in key or "data" in key:
+                return _classify_it_subcat(job_title, job_desc)
+            # Commercial parent → sub-classifie
+            return _classify_commercial_subcat(job_title, job_desc)
+        return target
+
+    # Déjà canonique ? (famille reconnue du classifier central)
+    _CANONICAL_FAMILIES = {
+        "développement & architecture", "data & intelligence artificielle",
+        "cybersécurité", "infrastructure & cloud", "gestion de projet it",
+        "conseil & solutions it", "it - autres",
+        "conseil clientèle particuliers", "banque privée & gestion de patrimoine",
+        "conseil clientèle entreprises", "développement commercial",
+        "financement et investissement", "marchés financiers & trading", "gestion d'actifs",
+        "risques / contrôles permanents", "conformité / sécurité financière", "inspection / audit",
+        "finances / comptabilité / contrôle de gestion", "analyse financière et économique",
+        "gestion des opérations", "organisation / qualité", "direction générale", "achat",
+        "ressources humaines", "juridique", "marketing et communication",
+        "immobilier", "assurances", "autres",
+    }
+    if key in _CANONICAL_FAMILIES:
+        return family.strip()
+
+    # Dernier recours : re-classifier depuis le titre
+    fresh = classify_job_family(job_title, job_desc)
+    return fresh or "Autres"
 
 
 def normalize_contract_type(raw_contract: str) -> str:
@@ -537,13 +640,13 @@ def read_from_db(db_path, company_name, live_only=True):
                         job['job_family'] = result
                 elif normalized_fam == 'Commercial / Relations Clients':
                     result = _classify_commercial_subcat(title_for_family, desc_for_family)
-                    if result == 'Commercial - Autres':
+                    if result == 'Développement Commercial':
                         # Score 0 → essai fresh
                         fresh = classify_job_family(title_for_family, desc_for_family)
-                        if fresh not in ('Commercial / Relations Clients', 'Commercial - Autres', 'Autres', ''):
+                        if fresh not in ('Commercial / Relations Clients', 'Développement Commercial', 'Autres', ''):
                             job['job_family'] = fresh
                         else:
-                            job['job_family'] = 'Commercial - Autres'
+                            job['job_family'] = 'Développement Commercial'
                     else:
                         job['job_family'] = result
                 else:
@@ -899,12 +1002,11 @@ def read_mizuho_from_db() -> list[dict]:
         if exp_level in ('Non spécifié', ''):
             exp_level = ''
 
-        # Famille métier — déjà canonique
-        job_family = r.get('job_family', '') or ''
-        if not job_family or job_family == 'Autres':
-            fresh = classify_job_family(r.get('job_title', ''))
-            if fresh and fresh not in ('Autres', ''):
-                job_family = fresh
+        # Famille métier — normalisation vers le référentiel canonique
+        raw_family = r.get('job_family', '') or ''
+        title_for_fam = r.get('job_title', '') or ''
+        desc_for_fam = (r.get('description') or '')[:2000]
+        job_family = normalize_external_family(raw_family, title_for_fam, desc_for_fam)
 
         # Type de contrat — détecter FTC dans le titre (priorité sur la DB)
         title_for_ct = r.get('job_title', '') or ''
@@ -974,12 +1076,11 @@ def read_bank_of_america_from_db() -> list[dict]:
 
         location = _loc(r.get('city', ''), r.get('country', ''), r.get('region', ''))
 
-        # Famille métier — déjà canonique depuis le scraper
-        job_family = r.get('job_family', '') or ''
-        if not job_family or job_family == 'Autres':
-            fresh = classify_job_family(r.get('job_title', ''))
-            if fresh and fresh not in ('Autres', ''):
-                job_family = fresh
+        # Famille métier — normalisation vers le référentiel canonique
+        raw_family = r.get('job_family', '') or ''
+        title_for_fam = r.get('job_title', '') or ''
+        desc_for_fam = (r.get('description') or '')[:2000]
+        job_family = normalize_external_family(raw_family, title_for_fam, desc_for_fam)
 
         # Niveau d'expérience — déjà canonique
         exp_level = r.get('experience_level', '') or ''

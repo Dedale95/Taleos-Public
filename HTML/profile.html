@@ -2828,7 +2828,7 @@
             const progressFill = document.getElementById('profileProgressFill');
             const progressLabel = document.getElementById('profileProgressLabel');
             if (progressFill) progressFill.style.width = `${progressPercent}%`;
-            if (progressLabel) progressLabel.textContent = `${progressPercent}% complété`;
+            if (progressLabel) progressLabel.textContent = `${progressPercent}% des champs requis complétés`;
         }
 
         function canViewExtensionRuns(email) {
@@ -4463,19 +4463,43 @@
             updateProfileCompletionChrome();
         }
 
-        function applyGsDiversitySectionState() {
-            const consent = document.getElementById('gsDiversityConsent')?.value?.trim() || '';
-            const transgender = document.getElementById('gsTransgender')?.value?.trim() || '';
-            const sexual = document.getElementById('gsSexualOrientation')?.value?.trim() || '';
-            const race = document.getElementById('gsRaceEthnicity')?.value?.trim() || '';
-            const hasContent = !!(consent || transgender || sexual || race);
+        function applyGsDiversitySectionState() { applyDiversitySectionState(); }
 
+        function applyDiversitySectionState() {
+            // ── Sous-section Goldman Sachs (4 champs clés) ──
+            const gsConsent    = document.getElementById('gsDiversityConsent')?.value?.trim() || '';
+            const gsTrans      = document.getElementById('gsTransgender')?.value?.trim() || '';
+            const gsSexual     = document.getElementById('gsSexualOrientation')?.value?.trim() || '';
+            const gsRace       = document.getElementById('gsRaceEthnicity')?.value?.trim() || '';
+            const gsAny        = !!(gsConsent || gsTrans || gsSexual || gsRace);
+            const gsComplete   = !!(gsConsent && gsTrans && gsSexual && gsRace);
+
+            // ── Sous-section Nomura (5 champs clés) ──
+            const nomGender    = document.getElementById('nomuraGender')?.value?.trim() || '';
+            const nomTrans     = document.getElementById('nomuraTrans')?.value?.trim() || '';
+            const nomEthnic    = document.getElementById('nomuraEthnicGroup')?.value?.trim() || '';
+            const nomReligion  = document.getElementById('nomuraReligion')?.value?.trim() || '';
+            const nomSexual    = document.getElementById('nomuraSexualOrientation')?.value?.trim() || '';
+            const nomAny       = !!(nomGender || nomTrans || nomEthnic || nomReligion || nomSexual);
+            const nomComplete  = !!(nomGender && nomTrans && nomEthnic && nomReligion && nomSexual);
+
+            const anyFilled    = gsAny || nomAny;
+            const allComplete  = gsComplete && nomComplete;
+
+            // Rien rempli → Optionnel (pas de classe, la pill affiche "Optionnel")
+            // Au moins un champ rempli mais pas tout → Incomplet
+            // GS et Nomura entièrement remplis → Complet
             document.querySelectorAll('.accordion-header h2').forEach(header => {
                 if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Diversité & Identité') {
                     const section = header.closest('.accordion-section');
                     if (section) {
                         section.classList.remove('incomplete', 'complete');
-                        section.classList.add(hasContent ? 'complete' : 'incomplete');
+                        if (allComplete) {
+                            section.classList.add('complete');
+                        } else if (anyFilled) {
+                            section.classList.add('incomplete');
+                        }
+                        // si !anyFilled : aucune classe → pill affiche "Optionnel"
                     }
                 }
             });

@@ -517,9 +517,137 @@ def _infer_location_from_title(title: str) -> str:
     return ""
 
 
+# Mapping pays (FR) → ville principale — utilisé pour les offres "Remote" sans ville
+# et pour les locations pays-seul afin que le filtre JS puisse extraire le pays.
+_COUNTRY_TO_MAIN_CITY: dict[str, str] = {
+    'France': 'Paris',
+    'Royaume-Uni': 'Londres',
+    'Inde': 'Bengaluru',
+    'Pologne': 'Varsovie',
+    'Lituanie': 'Vilnius',
+    'Lettonie': 'Riga',
+    'Colombie': 'Bogotá',
+    'Israël': 'Tel Aviv',
+    'Argentine': 'Buenos Aires',
+    'Afrique du Sud': 'Johannesburg',
+    'Nouvelle-Zélande': 'Auckland',
+    'Singapour': 'Singapour',
+    'Australie': 'Sydney',
+    'Philippines': 'Manille',
+    'Pérou': 'Lima',
+    'Chypre': 'Nicosie',
+    'États-Unis': 'New York',
+    'Suisse': 'Zurich',
+    'Allemagne': 'Francfort',
+    'Pays-Bas': 'Amsterdam',
+    'Espagne': 'Madrid',
+    'Italie': 'Milan',
+    'Portugal': 'Lisbonne',
+    'Irlande': 'Dublin',
+    'Belgique': 'Bruxelles',
+    'Autriche': 'Vienne',
+    'Suède': 'Stockholm',
+    'Danemark': 'Copenhague',
+    'Norvège': 'Oslo',
+    'Finlande': 'Helsinki',
+    'Grèce': 'Athènes',
+    'Roumanie': 'Bucarest',
+    'Hongrie': 'Budapest',
+    'République Tchèque': 'Prague',
+    'Tchéquie': 'Prague',
+    'Canada': 'Toronto',
+    'Mexique': 'Mexico',
+    'Brésil': 'São Paulo',
+    'Chine': 'Shanghai',
+    'Japon': 'Tokyo',
+    'Corée du Sud': 'Séoul',
+    'Malaisie': 'Kuala Lumpur',
+    'Thaïlande': 'Bangkok',
+    'Vietnam': 'Hanoï',
+    'Indonésie': 'Jakarta',
+    'Hong-Kong': 'Hong Kong',
+    'Taïwan': 'Taipei',
+    'Émirats Arabes Unis': 'Dubaï',
+    'Arabie Saoudite': 'Riyad',
+    'Qatar': 'Doha',
+    'Jordanie': 'Amman',
+    'Turquie': 'Istanbul',
+    'Maroc': 'Casablanca',
+    'Égypte': 'Le Caire',
+    'Nigeria': 'Lagos',
+    'Kenya': 'Nairobi',
+    'Luxembourg': 'Luxembourg',
+    'Uruguay': 'Montevideo',
+    'Chili': 'Santiago',
+    'Malte': 'La Valette',
+    'Île Maurice': 'Ébène',
+    'Pakistan': 'Karachi',
+    'Sri Lanka': 'Colombo',
+    'Bermudes': 'Hamilton',
+    'Bulgarie': 'Sofia',
+    'Croatie': 'Zagreb',
+    'Slovaquie': 'Bratislava',
+    'Slovénie': 'Ljubljana',
+    'Estonie': 'Tallinn',
+    'Ukraine': 'Kyiv',
+    'Serbie': 'Belgrade',
+    'Azerbaïdjan': 'Bakou',
+    'Géorgie': 'Tbilissi',
+    'Islande': 'Reykjavik',
+    'Biélorussie': 'Minsk',
+    'Moldavie': 'Chișinău',
+    'Tunisie': 'Tunis',
+    'Afrique du Sud': 'Johannesburg',
+    'Algérie': 'Alger',
+    'Égypte': 'Le Caire',
+    'Maroc': 'Casablanca',
+    'Nigeria': 'Lagos',
+    'Ghana': 'Accra',
+    'Kenya': 'Nairobi',
+    'Côte d\'Ivoire': 'Abidjan',
+    'Sénégal': 'Dakar',
+    'Angola': 'Luanda',
+    'Tanzanie': 'Dar es Salaam',
+    'Zambie': 'Lusaka',
+    'Éthiopie': 'Addis-Abeba',
+    'Venezuela': 'Caracas',
+    'Équateur': 'Quito',
+    'Costa Rica': 'San José',
+    'Panama': 'Panama City',
+    'Koweït': 'Koweït City',
+    'Bahreïn': 'Manama',
+    'Oman': 'Mascate',
+    'Yémen': 'Sanaa',
+    'Liban': 'Beyrouth',
+    'Irak': 'Bagdad',
+    'Pakistan': 'Karachi',
+    'Bangladesh': 'Dhaka',
+    'Myanmar': 'Rangoun',
+    'Cambodge': 'Phnom Penh',
+    'Sri Lanka': 'Colombo',
+    'Île Maurice': 'Port-Louis',
+    'Malte': 'La Valette',
+    'Chypre': 'Nicosie',
+    'Curaçao': 'Willemstad',
+    'Aruba': 'Oranjestad',
+    'Bermudes': 'Hamilton',
+    'Îles Caïmans': 'George Town',
+    'Djibouti': 'Djibouti',
+    'Laos': 'Vientiane',
+    'Mongolie': 'Oulan-Bator',
+    'Népal': 'Katmandou',
+    'Afghanistan': 'Kaboul',
+}
+
+
 def fix_location(loc):
     """Corrige les locations incorrectes (ex: Tunis - France → Tunis - Tunisie, N/A - Luxembourg → Luxembourg).
-    Normalise toujours le pays en sortie (ex: France, Royaume-Uni) pour cohérence site/filtres."""
+    Normalise toujours le pays en sortie (ex: France, Royaume-Uni) pour cohérence site/filtres.
+    Gère aussi les patterns :
+    - "PAYS (Remote)" → "CAPITALE - PAYS"   (Revolut remote jobs)
+    - Ville seule sans pays (EY) → "Ville - Pays" via CITY_TO_COUNTRY
+    - Pays seul (France, États-Unis…) → "CAPITALE - PAYS" pour que le JS puisse filtrer
+    """
     if not loc:
         return loc
     loc = loc.strip()
@@ -530,6 +658,20 @@ def fix_location(loc):
         parts = re.split(r'\s*-\s*', loc, maxsplit=1)
         if len(parts) >= 2 and parts[0].strip().upper() == 'N/A':
             return normalize_country(parts[1].strip())
+
+    # ── Pattern "PAYS (Remote)" ou "PAYS (remote)" (Revolut, etc.) ────────────
+    # Exemples : "France (Remote)", "Inde (Remote)", "Royaume-Uni (Remote)"
+    # → on extrait le pays, on cherche la ville principale, on retourne "Ville - Pays"
+    _remote_m = re.match(r'^(.+?)\s*\((?:Remote|remote|télétravail|REMOTE)\)\s*$', loc, re.I)
+    if _remote_m:
+        raw_country = _remote_m.group(1).strip()
+        country_norm = normalize_country(raw_country) or raw_country
+        main_city = _COUNTRY_TO_MAIN_CITY.get(country_norm)
+        if main_city:
+            return f"{main_city} - {country_norm}"
+        # Pas de ville connue → garder pays seul mais avec format valide
+        return country_norm
+
     # Cas où la location est juste une ville (sans pays) : Tunis, Paris, Lyon, Clichy, Zurich...
     # On ajoute le pays pour éviter "Non spécifié / Autres" dans les filtres
     loc_lower = loc.lower().strip()
@@ -542,18 +684,32 @@ def fix_location(loc):
             return normalize_country('Allemagne')
         if loc_lower in ('montréal', 'montreal'):
             return loc.strip() + ' - Canada'
-        # Ville seule connue (Tunis→Tunisie, Paris/Lyon/Clichy→France, Zurich→Suisse)
+        # Cas "Dublin 2", "Dublin 4" → "Dublin - Irlande"
+        if re.match(r'^dublin\s+\d', loc_lower):
+            return 'Dublin - Irlande'
+        # Ville seule connue (Tunis→Tunisie, Paris/Lyon→France, Katowice→Pologne, etc.)
         country = get_country_from_city(loc)
+        if not country:
+            # Essai insensible à la casse et sans accents
+            country = get_country_from_city(loc_lower)
         if country:
             return f"{loc.strip()} - {normalize_country(country)}"
-        # Pays seul (Allemagne, France, Tunisie, etc.) → normaliser pour le filtre
-        if loc_lower in ('allemagne', 'france', 'luxembourg', 'suisse', 'belgique', 'tunisie', 'roumanie', 'romania'):
-            return normalize_country(loc)
+        # ── Pays seul → "CAPITALE - PAYS" uniquement si c'est un pays CONNU ──────
+        # On normalise et on vérifie que le résultat est dans _COUNTRY_TO_MAIN_CITY
+        # (pas de .title() aveugle sur des mots inconnus comme "ING", "Flanders"…)
+        _norm_as_country = normalize_country(loc)
+        if _norm_as_country and _norm_as_country in _COUNTRY_TO_MAIN_CITY:
+            main_city = _COUNTRY_TO_MAIN_CITY[_norm_as_country]
+            if main_city and main_city != _norm_as_country:
+                return f"{main_city} - {_norm_as_country}"
+            # Ville-état (ex: Singapour - Singapour)
+            return f"{_norm_as_country} - {_norm_as_country}"
         # Nettoyer "Localisation : Tunisie" si le préfixe est resté
         if loc_lower.startswith('localisation') and ':' in loc:
             rest = loc.split(':', 1)[1].strip()
-            if rest and rest.lower() in ('tunisie', 'roumanie', 'romania'):
-                return normalize_country(rest)
+            rest_norm = normalize_country(rest)
+            if rest_norm:
+                return rest_norm
         return loc
     parts = [part.strip() for part in loc.split(' - ') if part and part.strip()]
     if len(parts) < 2:
@@ -1458,10 +1614,20 @@ def main():
         all_jobs.extend(bnp_jobs_preserved)
 
     # ── Passe de normalisation finale (s'applique à TOUTES les sources) ────────
-    # Certaines sources (offres BNP préservées depuis JSON, etc.) passent en dehors
-    # du pipeline `read_from_db`. Cette passe garantit des valeurs canoniques pour
-    # contract_type et experience_level sur l'ensemble du jeu de données.
+    # Certaines sources (offres BNP préservées, MUFG, BofA, Nomura…) ont des fonctions
+    # de lecture dédiées qui ne passent pas par le pipeline `read_from_db`.
+    # Cette passe garantit des valeurs canoniques pour TOUTES les offres.
     for job in all_jobs:
+        # 0. Normaliser la location : "PAYS (Remote)" → "Capitale - Pays",
+        #    villes sans pays → "Ville - Pays", pays seuls → "Capitale - Pays"
+        # IMPORTANT : fix_location est déjà appelé dans read_from_db ; pour les sources
+        # dédiées (BofA, MUFG, Nomura…) qui n'utilisent pas read_from_db, la location
+        # peut être une ville/pays seul ou un pattern "(Remote)".
+        # On ne rappelle fix_location QUE si le format n'est pas déjà correct (Ville - Pays)
+        # pour éviter le double-appel qui dérégresse les villes-état (Singapour - Singapour → Singapour).
+        _loc = job.get('location') or ''
+        if _loc and ' - ' not in _loc:
+            job['location'] = fix_location(_loc)
         # 1. Override contract_type depuis le titre (Stage/Alternance prime sur la DB)
         _t = (job.get('job_title') or '').lower()
         _stage = (

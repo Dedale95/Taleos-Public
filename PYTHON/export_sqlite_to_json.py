@@ -24,6 +24,7 @@ from pathlib import Path
 from datetime import datetime
 from country_normalizer import get_country_from_city, normalize_country
 from experience_extractor import extract_experience_level
+from education_extractor import extract_education_level
 from credit_mutuel_company_mapping import normalize_company_name as normalize_cm_company_name
 from job_family_classifier import _classify_it_subcat, _classify_commercial_subcat, classify_job_family
 
@@ -949,6 +950,18 @@ def read_from_db(db_path, company_name, live_only=True):
                     if extracted:
                         job['experience_level'] = normalize_experience_level(extracted)
 
+            # Enrichir education_level si vide : extraction depuis description puis titre
+            if not job.get('education_level'):
+                combined_edu = " ".join(filter(None, [
+                    job.get('job_description') or '',
+                    job.get('company_description') or ''
+                ]))
+                edu_extracted = extract_education_level(
+                    combined_edu, job.get('contract_type'), job.get('job_title')
+                )
+                if edu_extracted:
+                    job['education_level'] = edu_extracted
+
             # Crédit Mutuel : consolider les filiales/caisses vers les libellés groupe attendus côté front.
             if db_path == CREDIT_MUTUEL_DB and job.get('company_name'):
                 job['company_name'] = normalize_cm_company_name(job['company_name'])
@@ -1657,6 +1670,32 @@ def main():
         # 3. Stage / Alternance → expérience forcée à 0-2 ans
         if job.get('contract_type') in ('Stage', 'Alternance', 'Stage, Alternance'):
             job['experience_level'] = '0 - 2 ans'
+
+        # 4. Fallback éducation si manquante (sources dédiées : Citi, BofA, SC, ING, Revolut…)
+        #    extract_education_level gère : description anglais/français/allemand/espagnol/portugais
+        #    + inférence depuis le titre quand la description est vide ou trop courte
+        if not job.get('education_level'):
+            _desc_edu = " ".join(filter(None, [
+                job.get('job_description') or '',
+                job.get('company_description') or ''
+            ]))
+            _edu = extract_education_level(
+                _desc_edu, job.get('contract_type'), job.get('job_title')
+            )
+            if _edu:
+                job['education_level'] = _edu
+
+        # 5. Fallback expérience si manquante (sources dédiées qui ne passent pas par read_from_db)
+        if not job.get('experience_level'):
+            _desc_exp = " ".join(filter(None, [
+                job.get('job_description') or '',
+                job.get('company_description') or ''
+            ]))
+            _exp = extract_experience_level(
+                _desc_exp, job.get('contract_type'), job.get('job_title')
+            )
+            if _exp:
+                job['experience_level'] = normalize_experience_level(_exp)
 
     if all_jobs:
         # Sauvegarder en JSON (version complète)

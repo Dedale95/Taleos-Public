@@ -33,7 +33,10 @@ def extract_education_level(
     Returns:
         Niveau d'études normalisé ou None si non déterminable.
     """
+    import unicodedata as _ud
     text_lower = (text or "").lower().strip()
+    # Version sans accents pour les patterns multilingues
+    text_norm = _ud.normalize('NFD', text_lower).encode('ascii', 'ignore').decode('ascii')
 
     # ─── 1. Patterns depuis la description ────────────────────────────────────
     if text_lower:
@@ -49,20 +52,25 @@ def extract_education_level(
         if re.search(
             r"bac\s*[\+＋]\s*5"
             r"|master'?s?\b|mba\b|m\.?b\.?a\b"
-            r"|m2\b|m\s*2\s*(?:minimum|requis|validé|en\s+cours)?"
-            r"|grande\s+[eé]cole"
-            r"|[eé]cole\s+d[e']\s*ing[eé]nieur"
-            r"|[eé]cole\s+de\s+commerce"
-            r"|diplôme\s+d[e']\s*ing[eé]nieur"
-            r"|ing[eé]nieur\b"
+            r"|m2\b|m\s*2\s*(?:minimum|requis|valid[eé]|en\s+cours)?"
+            r"|grande\s+[eé]cole|grande\s+ecole"
+            r"|[eé]cole\s+d[e']\s*ing[eé]nieur|ecole\s+d[e']\s*ingenieur"
+            r"|[eé]cole\s+de\s+commerce|ecole\s+de\s+commerce"
+            r"|dipl[oô]me\s+d[e']\s*ing[eé]nieur"
+            r"|ing[eé]nieur\b|ingenieur\b"
             r"|engineering\s+school|business\s+school"
             r"|postgraduate\s+degree|graduate\s+degree|master'?s?\s+degree"
             r"|m\.?sc\.?\b|m\.?eng\.?\b"
-            r"|\bmeister\b"                              # DE Meister ≈ expert
-            r"|\bdiplom(?:\s+(?:informatik|wirtschaft|ingenieu|kaufman))?"  # DE Diplom (Uni)
-            r"|\bgrand[e]?\s+[eé]cole\b"
-            r"|niveau\s+bac\s*[+＋]\s*5",
-            text_lower,
+            r"|\bmeister\b"
+            r"|\bdiplom(?:\s+(?:informatik|wirtschaft|ingenieu|kaufman))?"
+            r"|nivel\s+universitario|titulaci[oó]n\s+universitaria"  # ES
+            r"|graduado\b|licenciatura\b"                              # ES
+            r"|ensino\s+superior\b|gradua[cç][aã]o\b"                # PT
+            r"|faculdade\b|universit[aá]rio\b"                        # PT
+            r"|universit[aä]tsabschluss\b|hochschulabschluss\b"       # DE
+            r"|niveau\s+bac\s*[+＋]\s*5"
+            r"|\b(?:degree\s+in|degree\s+from|degreed)\b",
+            text_norm or text_lower,
         ):
             return "Bac + 5 / M2 et plus"
 
@@ -136,117 +144,132 @@ def _infer_education_from_title(
     """
     if not job_title:
         return None
+    import unicodedata as _ud2
     t = job_title.lower()
+    # Version normalisée sans accents pour les titres multilingues
+    # ex: "sênior" (PT) → "senior", "spécialisé" (FR) → "specialise"
+    t_norm = _ud2.normalize('NFD', t).encode('ascii', 'ignore').decode('ascii')
     ct = (contract_type or "").lower()
 
     # ── Internship / Trainee → Bac+3 par défaut ──────────────────────────────
-    # (Si la description contenait master/bac+5, c'était déjà traité ci-dessus)
-    if re.search(r"\bstagiaire\b|\bpraktikant\w*\b|\bwerkstudent\w*\b", t):
+    if re.search(r"\bstagiaire\b|\bpraktikant\w*\b|\bwerkstudent\w*\b", t_norm):
         return "Bac + 3 / L3"
-    if re.search(r"\bintern(?:ship)?\b|\btrainee\b", t):
+    if re.search(r"\bintern(?:ship)?\b|\btrainee\b|estagiario\b|becario\b", t_norm):
         return "Bac + 3 / L3"
-    # Alternance → Bac+3 sauf si le titre précise master/M2/ingénieur
     if "alternance" in ct or "apprenti" in ct or "ausbildung" in ct:
-        if re.search(r"\bmaster\b|\bm2\b|\bing[eé]nieur\b|\bbac\s*\+?\s*5\b", t):
+        if re.search(r"\bmaster\b|\bm2\b|\bingenieur\b|\bbac\s*\+?\s*5\b", t_norm):
             return "Bac + 5 / M2 et plus"
         return "Bac + 3 / L3"
 
     # ── Bac+8 ────────────────────────────────────────────────────────────────
-    if re.search(r"\bph\.?d\.?\b|\bdoctora[lt]\b|\bpostdoc\b", t):
+    if re.search(r"\bph\.?d\.?\b|\bdoctora[lt]\b|\bpostdoc\b|\bdoutorado\b|\bdoktor\b", t_norm):
         return "Bac + 8 / Doctorat"
 
     # ── Bac+5 — titres professionnels finance / conseil / IT ─────────────────
-    # Managing Director / Executive Director / C-suite → toujours Bac+5
+    # Utilise t_norm pour gérer les accents multilingues (sênior, spécialisé, etc.)
+
+    # Managing Director / Executive Director / C-suite
     if re.search(
         r"\bmanaging\s+director\b|\bexecutive\s+director\b"
         r"|\b(?:chief|ceo|cfo|cto|cio|cdo|coo|cro)\b"
         r"|\bvice\s+president\b|\bvp\b(?:\s|[-–]|$)",
-        t,
+        t_norm,
     ):
         return "Bac + 5 / M2 et plus"
 
-    # Director / Senior / Lead / Principal / Head
+    # Director / Senior / Lead / Principal / Head (multilingual)
     if re.search(
-        r"\bdirector\b|\bdirecteur\b|\bdirekteur\b|\bdirettore\b"
-        r"|\bsenior\b|\bsr\.?\b"
+        r"\bdirector\b|\bdirecteur\b|\bdirekteur\b|\bdirettore\b|\bdiretor\b|\bdirector[a]?\b"
+        r"|\bsenior\b|\bsr\.?\b|\bsnior\b"       # senior + typos
         r"|\blead\b|\bleader\b|\bleitung\b"
         r"|\bprincipal\b"
         r"|\bhead\s+of\b|\bhead\b(?=\s)",
-        t,
+        t_norm,
     ):
         return "Bac + 5 / M2 et plus"
 
-    # Manager / Responsable
+    # Manager / Responsable (multilingual)
     if re.search(
         r"\bmanager\b|\bresponsable\b|\bleiter\b|\bgerente\b|\bjefe\b"
-        r"|\bkierownik\b|\bkierowniczk\b",
-        t,
+        r"|\bkierownik\b|\bkierowniczk\b|\bverantwortlich\b"
+        r"|\bgestionnaire\b|\bcoordinator\b|\bcoordinateur\b",
+        t_norm,
     ):
         return "Bac + 5 / M2 et plus"
 
-    # Analyst / Associate / Officer / Graduate — cœur finance IB
+    # Analyst / Associate / Officer / Graduate
     if re.search(
-        r"\banalyst[e]?\b|\banalytiker\b|\banalista\b|\banalityk\b"
-        r"|\bassociat[e]?\b|\bassocié[e]?\b"
-        r"|\bofficer\b",
-        t,
+        r"\banalyst[e]?\b|\banalytiker\b|\banalista\b|\banalityk\b|\banaliste\b"
+        r"|\bassociat[e]?\b|\bassocied?\b"
+        r"|\bofficer\b|\boficier\b",
+        t_norm,
     ):
         return "Bac + 5 / M2 et plus"
 
-    # Graduate programme (≠ intern) → Bac+5
-    if re.search(r"\bgraduate\s+programme?\b|\bgraduate\s+program\b", t):
+    # Graduate programme
+    if re.search(r"\bgraduate\s+programme?\b|\bgraduate\s+program\b", t_norm):
         return "Bac + 5 / M2 et plus"
 
-    # Specialist / Expert / Consultant / Advisor
+    # Specialist / Expert / Consultant / Advisor (multilingual)
     if re.search(
-        r"\bspecialist[e]?\b|\bspécialiste\b|\bspezialist\b|\bspecjalista\b"
-        r"|\bexpert[e]?\b|\bexperte?\b|\bexpérimenté[e]?\b"
+        r"\bspecialist[e]?\b|\bspecialiste\b|\bspezialist\b|\bspecjalista\b|\bspecialista\b"
+        r"|\bexpert[e]?\b|\bexperte?\b|\bexperimentado\b|\bexperiente\b"
         r"|\bconsultant[e]?\b|\bkonsultant\b|\bconsultor[a]?\b|\bberater\b"
-        r"|\badvisor\b|\bconseiller\b|\bdoradca\b|\bdoradczyni\b",
-        t,
+        r"|\badvisor\b|\bconseiller\b|\bdoradca\b|\bdoradczyni\b|\bconseillers?\b",
+        t_norm,
     ):
         return "Bac + 5 / M2 et plus"
 
-    # Engineer / Developer / Architect — IT et ingénierie
+    # Engineer / Developer / Architect — IT et ingénierie (multilingual)
     if re.search(
-        r"\bengineer\b|\bingénieur\b|\bingenieur\b|\bengineering\b"
-        r"|\bdeveloper\b|\bdéveloppeur\b|\bentwickler\b|\bdesarrollador\b"
+        r"\bengineer\b|\bingenieur\b|\bengineering\b|\bingegnere\b|\bingen[ie]ro\b"
+        r"|\bdeveloper\b|\bdeveloppeur\b|\bentwickler\b|\bdesarrollador\b|\bprogramador\b"
         r"|\barchitect[e]?\b|\barchitekten?\b"
-        r"|\bdevops\b|\bdevsecops\b|\bsre\b",
-        t,
+        r"|\bdevops\b|\bdevsecops\b|\bsre\b|\bplatform\s+engineer\b"
+        r"|\bsoftware\b|\binfrastructure\b|\bdata\s+(?:engineer|scientist|analyst)\b",
+        t_norm,
     ):
         return "Bac + 5 / M2 et plus"
 
-    # Finance / Audit / Risk / Compliance
+    # Finance / Audit / Risk / Compliance (multilingual)
     if re.search(
-        r"\bauditor\b|\bauditeur\b|\bprüfer\b"
-        r"|\bcontroller\b|\bcontrôleur\b|\bcontrolleur\b"
+        r"\bauditor\b|\bauditeur\b|\bprufer\b|\bauditore\b|\bauditor[a]?\b"
+        r"|\bcontroller\b|\bcontroleur\b|\bcontrolleur\b|\bcontrollador\b"
         r"|\btrader\b|\bquant\b|\bquantitative\b"
-        r"|\bactuaire\b|\bactuary\b|\bactuarial\b"
-        r"|\bjuriste\b|\battorney\b|\blawyer\b|\bparalegal\b"
-        r"|\bscientist\b|\bscientifique\b|\bwissenschaftler\b"
-        r"|\baccountant\b|\bcomptable\b",
-        t,
+        r"|\bactuaire\b|\bactuary\b|\bactuarial\b|\batuario\b"
+        r"|\bjuriste\b|\battorney\b|\blawyer\b|\bparalegal\b|\badvogado\b|\babogado\b"
+        r"|\bscientist\b|\bscientifique\b|\bwissenschaftler\b|\bcientista\b|\bcientifico\b"
+        r"|\baccountant\b|\bcomptable\b|\bcontable\b|\bcontador\b|\bcontabilista\b",
+        t_norm,
     ):
         return "Bac + 5 / M2 et plus"
 
-    # Chargé d'affaires / de mission / de projet / de conformité (sens professionnel en finance)
-    # Gère les formes inclusives : Chargé.e, Chargé(e), CHARGE / CHARGEE
-    # et les apostrophes droites/courbes + absence d'apostrophe ("D AFFAIRES")
+    # Chargé d’affaires / de mission / de projet
     if re.search(
-        r"\bcharg[eé]\.?\(?[e]?\)?\s*(?:/\s*charg[eé]e\s*)?"
-        r"(?:d[e’‘'\s]\s*(?:affaires|mission|[eé]tudes?|conformit[eé]|projet|op[eé]rations?))"
+        r"\bcharge?e?\s+(?:d[e’\s]\s*(?:affaires|mission|etudes?|conformite|projet|operations?))"
         r"|\bchef\s+de\s+(?:projet|produit|mission)\b",
-        t,
+        t_norm,
     ):
         return "Bac + 5 / M2 et plus"
 
-    # MBA / Master dans le titre
-    if re.search(r"\bmba\b|\bmaster\b|\bm\.?sc\b|\bm2\b", t):
+    # MBA / Master / ingénieur dans le titre
+    if re.search(r"\bmba\b|\bmaster\b|\bm\.?sc\b|\bm2\b|\bingenieur\b", t_norm):
         return "Bac + 5 / M2 et plus"
 
-    # Banker / Banquier / Partner
-    if re.search(r"\bbanker\b|\bbanquier\b|\bpartner\b|\bassocié[e]?\s+\w+", t):
+    # Banker / Partner
+    if re.search(r"\bbanker\b|\bbanquier\b|\bpartner\b|\bbanqueiro\b|\bbanquero\b", t_norm):
+        return "Bac + 5 / M2 et plus"
+
+    # Termes EY / Big4 courants dans les titres non-anglais
+    if re.search(
+        r"\bauditoria\b|\bauditoria\s+externa\b"       # PT/ES audit
+        r"|\bfiscal\b|\btributario\b|\btribut[aá]rio\b"  # PT/ES tax
+        r"|\bassurance\b|\brisk\s+(?:advisory|management|consulting)\b"
+        r"|\btransaction\s+advisory\b|\bforensic\b"
+        r"|\bstrategy\s+(?:and|&)\s*transactions?\b"
+        r"|\btax\b|\bcompliance\b|\blegal\b",
+        t_norm,
+    ):
         return "Bac + 5 / M2 et plus"
 
     # ── Bac+3 — rôles opérationnels / support ────────────────────────────────

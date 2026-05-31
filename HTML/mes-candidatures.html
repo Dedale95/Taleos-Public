@@ -1542,7 +1542,8 @@
             'revolut':'images/logos/revolut.png'
         };
         for (const [key, path] of Object.entries(logoMap)) {
-            if (normalized.includes(key) || normalized === key) return path;
+            const keyNorm = key.replace(/\s+/g, '_');
+            if (normalized.includes(keyNorm) || normalized === keyNorm) return path;
         }
         const n = (companyName || '').toLowerCase();
         if (n.includes('bnp')) {

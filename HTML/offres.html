@@ -6633,8 +6633,11 @@
             };
 
             // Rechercher le logo dans le mapping
+            // Les clés sont normalisées de la même façon que le nom (espaces → underscores)
+            // pour garantir le match même si la clé a des espaces.
             for (const [key, logoPath] of Object.entries(logoMap)) {
-                if (normalized.includes(key) || normalized === key) {
+                const keyNorm = key.replace(/\s+/g, '_');
+                if (normalized.includes(keyNorm) || normalized === keyNorm) {
                     return logoPath;
                 }
             }

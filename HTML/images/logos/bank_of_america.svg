@@ -1,17 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 410" role="img" aria-label="Bank of America">
-  <!-- Blue stripes (navy) -->
-  <path d="M 78,52 L 195,38 L 195,70 L 78,84 Z" fill="#012169"/>
-  <path d="M 52,98 L 195,84 L 195,116 L 52,130 Z" fill="#012169"/>
-  <path d="M 36,144 L 195,130 L 195,162 L 36,176 Z" fill="#012169"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 190" role="img" aria-label="Bank of America">
+  <!-- 2 blue parallelogram stripes (left side) -->
+  <polygon points="16,52  104,38  104,68  16,82"  fill="#012169"/>
+  <polygon points="16,88  104,74  104,104 16,118" fill="#012169"/>
 
-  <!-- Red stripes (curved swooshes) -->
-  <path d="M 192,36 Q 292,20 390,78 L 390,112 Q 290,52 192,68 Z" fill="#E31837"/>
-  <path d="M 186,86 Q 308,58 432,158 L 428,196 Q 306,94 186,126 Z" fill="#E31837"/>
-  <path d="M 174,136 Q 318,96 462,232 L 455,286 Q 314,148 170,196 Z" fill="#E31837"/>
-
-  <!-- ® symbol -->
-  <text x="460" y="292" font-size="15" fill="#E31837" font-family="serif" font-style="normal">®</text>
-
-  <!-- BANK OF AMERICA -->
-  <text x="270" y="388" font-family="'Arial Black', 'Arial Bold', Arial, sans-serif" font-size="50" font-weight="900" fill="#012169" text-anchor="middle" letter-spacing="1.5">BANK OF AMERICA</text>
+  <!-- 3 red curved swooshes (right, sweeping up-right) -->
+  <!-- Top swoosh (thinnest) -->
+  <path d="M100,34 C148,18 210,16 280,46 L280,66 C210,36 148,40 100,56 Z" fill="#E31837"/>
+  <!-- Middle swoosh -->
+  <path d="M 96,70 C150,48 218,44 282,84 L280,108 C216,68 150,74  94,96 Z" fill="#E31837"/>
+  <!-- Bottom swoosh (widest) -->
+  <path d="M 88,108 C150,78 224,72 284,124 L278,152 C220,102 148,110  84,142 Z" fill="#E31837"/>
 </svg>

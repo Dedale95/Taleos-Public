@@ -1,9 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" style="background:#fff">
-  <!-- Revolut logo: R icon (coin-like) + wordmark -->
-  <!-- Dark rounded square background -->
-  <rect x="4" y="4" width="32" height="32" rx="8" fill="#191C1F"/>
-  <!-- R letter in white -->
-  <text x="11" y="27" font-family="Arial Black, Arial, sans-serif" font-size="22" font-weight="900" fill="#fff">R</text>
-  <!-- Wordmark -->
-  <text x="44" y="26" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#191C1F" letter-spacing="0.3">Revolut</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" role="img" aria-label="Revolut">
+  <rect width="200" height="240" fill="white"/>
+  <!-- Revolut "R" logo — dark navy rounded outline letter -->
+  <!-- Outer shape of the R (thick outline, rounded) -->
+  <!-- The R has a big rounded top (P part) and a diagonal leg -->
+  <!-- Overall R shape via path: thick stroke outline style -->
+  <path d="
+    M 48,190 L 48,60
+    C 48,44 58,32 78,28
+    L 118,28
+    C 150,28 172,46 172,78
+    C 172,102 158,118 138,124
+    L 162,162 C 166,168 164,176 158,178
+    C 152,180 146,176 142,170
+    L 116,128 L 80,128 L 80,190
+    C 80,198 74,204 64,204
+    C 54,204 48,198 48,190 Z
+    M 80,56 L 80,102 L 116,102
+    C 132,102 142,94 142,80
+    C 142,66 132,56 116,56 Z
+  " fill="none" stroke="#1C2033" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- Fill the R solid dark navy -->
+  <path d="
+    M 48,190 L 48,60
+    C 48,44 58,32 78,28
+    L 118,28
+    C 150,28 172,46 172,78
+    C 172,102 158,118 138,124
+    L 162,162 C 168,172 162,184 152,184
+    C 146,184 140,180 136,172
+    L 110,128 L 80,128 L 80,190
+    C 80,200 72,206 62,206
+    C 52,206 44,200 44,190 Z
+    M 78,56 L 78,104 L 118,104
+    C 136,104 148,94 148,80
+    C 148,66 136,56 118,56 Z
+  " fill="#1C2033"/>
+  <!-- "Revolut" text -->
+  <text x="100" y="232" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#1C2033" text-anchor="middle" letter-spacing="1">Revolut</text>
 </svg>

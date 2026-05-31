@@ -1,22 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" style="background:#fff">
-  <!-- Barclays Eagle (simplified) + wordmark -->
-  <!-- Eagle silhouette in Barclays blue #00AEEF -->
-  <g transform="translate(4,2)">
-    <ellipse cx="16" cy="18" rx="12" ry="8" fill="#00AEEF" opacity="0.15"/>
-    <!-- Eagle body -->
-    <path d="M16 6 C11 6 8 9 8 14 C8 18 10 21 13 22 L13 28 L19 28 L19 22 C22 21 24 18 24 14 C24 9 21 6 16 6Z" fill="#00AEEF"/>
-    <!-- Wings -->
-    <path d="M8 14 C5 12 2 13 2 16 C2 19 6 20 10 18 L8 14Z" fill="#00AEEF"/>
-    <path d="M24 14 C27 12 30 13 30 16 C30 19 26 20 22 18 L24 14Z" fill="#00AEEF"/>
-    <!-- Head -->
-    <ellipse cx="16" cy="9" rx="4" ry="3.5" fill="#00AEEF"/>
-    <!-- Beak -->
-    <path d="M20 9 L23 8.5 L20 10Z" fill="#FFD700"/>
-    <!-- Eye -->
-    <circle cx="18" cy="8.5" r="0.8" fill="#fff"/>
-    <!-- Tail feathers -->
-    <path d="M13 28 L11 34 L16 31 L21 34 L19 28Z" fill="#00AEEF"/>
-  </g>
-  <!-- Wordmark -->
-  <text x="38" y="24" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#00395D" letter-spacing="0.5">Barclays</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" role="img" aria-label="Barclays">
+  <defs>
+    <linearGradient id="barcGrad" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#40CFFF"/>
+      <stop offset="50%" stop-color="#00AEEF"/>
+      <stop offset="100%" stop-color="#0077C2"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="220" fill="white"/>
+  <!-- Barclays Eagle — shield/teardrop silhouette -->
+  <!-- Main body shield shape -->
+  <path d="M100,10 C100,10 52,35 28,80 C12,112 16,148 30,170
+           C44,192 72,210 100,216
+           C128,210 156,192 170,170
+           C184,148 188,112 172,80
+           C148,35 100,10 100,10Z" fill="url(#barcGrad)"/>
+  <!-- White negative space cuts to form eagle shape -->
+  <!-- Upper left wing notch -->
+  <path d="M100,10 C80,20 60,32 44,50 C52,46 64,44 72,50
+           C64,60 56,72 52,84 C60,78 70,74 78,76
+           C74,90 74,104 78,116
+           C86,108 88,96 88,84 L88,140 L100,150 L100,10Z" fill="white"/>
+  <!-- Upper right wing notch -->
+  <path d="M100,10 C120,20 140,32 156,50 C148,46 136,44 128,50
+           C136,60 144,72 148,84 C140,78 130,74 122,76
+           C126,90 126,104 122,116
+           C114,108 112,96 112,84 L112,140 L100,150 L100,10Z" fill="white"/>
+  <!-- Head (top center protrusion) -->
+  <ellipse cx="100" cy="22" rx="22" ry="18" fill="url(#barcGrad)"/>
+  <!-- Beak (right side of head) -->
+  <path d="M120,18 C130,16 136,20 132,26 C128,28 122,24 120,18Z" fill="url(#barcGrad)"/>
+  <!-- Eye -->
+  <circle cx="114" cy="22" r="5" fill="white"/>
+  <circle cx="115" cy="22" r="2.5" fill="#005a8e"/>
+  <!-- Neck re-fill -->
+  <ellipse cx="100" cy="44" rx="16" ry="12" fill="url(#barcGrad)"/>
+  <!-- Lower body tear-drop re-fill -->
+  <path d="M88,84 C88,140 92,170 100,200 C108,170 112,140 112,84
+           C108,90 104,94 100,96 C96,94 92,90 88,84Z" fill="url(#barcGrad)"/>
+  <!-- Tail feathers at bottom -->
+  <path d="M80,190 C86,200 92,208 100,214 C108,208 114,200 120,190
+           C112,194 106,196 100,196 C94,196 88,194 80,190Z" fill="url(#barcGrad)"/>
 </svg>

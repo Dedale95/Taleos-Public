@@ -1,26 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" style="background:#fff">
-  <!-- ING Lion (simplified orange lion head) + ING wordmark -->
-  <!-- Lion head -->
-  <g transform="translate(4,2)">
-    <!-- Mane -->
-    <circle cx="18" cy="20" r="15" fill="#FF6200"/>
-    <!-- Face -->
-    <circle cx="18" cy="19" r="10" fill="#FF9D5C"/>
-    <!-- Eyes -->
-    <ellipse cx="14" cy="16" rx="2.5" ry="2" fill="#fff"/>
-    <ellipse cx="22" cy="16" rx="2.5" ry="2" fill="#fff"/>
-    <circle cx="14.5" cy="16" r="1.2" fill="#2D2D2D"/>
-    <circle cx="22.5" cy="16" r="1.2" fill="#2D2D2D"/>
-    <!-- Nose -->
-    <ellipse cx="18" cy="21" rx="3" ry="2" fill="#E05500"/>
-    <!-- Mouth -->
-    <path d="M15 23 Q18 25 21 23" stroke="#E05500" stroke-width="1.5" fill="none"/>
-    <!-- Ears -->
-    <path d="M8 10 L10 4 L14 10Z" fill="#FF6200"/>
-    <path d="M28 10 L26 4 L22 10Z" fill="#FF6200"/>
-    <!-- Crown / mane top -->
-    <path d="M10 8 L18 3 L26 8 L24 12 L18 10 L12 12Z" fill="#FF6200"/>
-  </g>
-  <!-- ING wordmark -->
-  <text x="42" y="26" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="#FF6200">ING</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="ING">
+  <!-- Orange rounded square background -->
+  <rect width="200" height="200" rx="22" fill="#FF6200"/>
+  <!-- White lion face — geometric/angular style -->
+  <!-- Crown/top of mane - spiky peaks -->
+  <polygon points="100,12 88,30 78,18 72,38 60,26 62,50 48,44 58,66 44,66 60,84 46,88 66,98" fill="white"/>
+  <polygon points="100,12 112,30 122,18 128,38 140,26 138,50 152,44 142,66 156,66 140,84 154,88 134,98" fill="white"/>
+  <!-- Mane sides left -->
+  <path d="M44,90 C32,108 30,130 40,148 C48,162 62,170 78,168 L78,148 C64,148 54,138 52,124 C50,112 56,100 66,96Z" fill="white"/>
+  <!-- Mane sides right -->
+  <path d="M156,90 C168,108 170,130 160,148 C152,162 138,170 122,168 L122,148 C136,148 146,138 148,124 C150,112 144,100 134,96Z" fill="white"/>
+  <!-- Face oval -->
+  <ellipse cx="100" cy="120" rx="46" ry="52" fill="white"/>
+  <!-- Eyes -->
+  <ellipse cx="82" cy="108" rx="11" ry="10" fill="#FF6200"/>
+  <circle cx="82" cy="108" r="6" fill="#1a1a1a"/>
+  <circle cx="80" cy="106" r="2" fill="white"/>
+  <ellipse cx="118" cy="108" rx="11" ry="10" fill="#FF6200"/>
+  <circle cx="118" cy="108" r="6" fill="#1a1a1a"/>
+  <circle cx="116" cy="106" r="2" fill="white"/>
+  <!-- Nose -->
+  <path d="M92,128 C96,124 104,124 108,128 C106,136 102,140 100,140 C98,140 94,136 92,128Z" fill="#FF6200"/>
+  <!-- Nostrils -->
+  <ellipse cx="95" cy="130" rx="3" ry="2.5" fill="#d44f00"/>
+  <ellipse cx="105" cy="130" rx="3" ry="2.5" fill="#d44f00"/>
+  <!-- Mouth -->
+  <path d="M86,144 C92,152 108,152 114,144" stroke="#FF6200" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <line x1="100" y1="140" x2="100" y2="148" stroke="#FF6200" stroke-width="2.5"/>
+  <!-- Whisker lines -->
+  <line x1="48" y1="130" x2="80" y2="128" stroke="#FF6200" stroke-width="2" stroke-linecap="round"/>
+  <line x1="48" y1="138" x2="80" y2="136" stroke="#FF6200" stroke-width="2" stroke-linecap="round"/>
+  <line x1="120" y1="128" x2="152" y2="130" stroke="#FF6200" stroke-width="2" stroke-linecap="round"/>
+  <line x1="120" y1="136" x2="152" y2="138" stroke="#FF6200" stroke-width="2" stroke-linecap="round"/>
+  <!-- Chin fur -->
+  <path d="M78,168 C80,178 86,186 100,188 C114,186 120,178 122,168 C116,172 108,174 100,174 C92,174 84,172 78,168Z" fill="white"/>
 </svg>

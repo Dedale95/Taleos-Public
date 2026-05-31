@@ -1,7 +1,7 @@
 {
-  "version": "1.2.166",
-  "version_name": "1.2.166-bofa-connection-test",
-  "published_at": "2026-05-31T12:04:58Z",
-  "release_notes": "Fix test de connexion Bank of America : bankId manquant dans CONNECTION_TEST_URLS de background.js (→ erreur 'Banque non supportée'). Ajout de l'URL Workday BofA, du flow retry sign-out en 2 étapes, et fermeture propre des onglets de test ghr.wd1.myworkdayjobs.com.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.166.zip"
+  "version": "1.2.167",
+  "version_name": "1.2.167-bofa-click-fix",
+  "published_at": "2026-05-31T12:20:38Z",
+  "release_notes": "Bank of America : les identifiants étaient bien saisis mais le bouton 'Sign In' n'était pas cliqué (bouton React non standard). Corrigé avec la séquence d'événements correcte.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.167.zip"
 }

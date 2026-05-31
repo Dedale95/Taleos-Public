@@ -264,6 +264,61 @@
             margin-bottom: 18px;
         }
 
+        /* ── Changelog ── */
+        .changelog-section {
+            margin: 28px auto 0;
+            max-width: 860px;
+            padding: 0 16px 32px;
+        }
+        .changelog-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--muted, #888);
+            margin-bottom: 10px;
+        }
+        .changelog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border: 1px solid var(--surface2, #e8e4dc);
+            border-radius: 10px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .changelog-item {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--surface2, #e8e4dc);
+            font-size: 0.84rem;
+            line-height: 1.4;
+        }
+        .changelog-item:last-child { border-bottom: none; }
+        .changelog-item:first-child { border-radius: 10px 10px 0 0; }
+        .changelog-emoji { font-size: 1rem; flex-shrink: 0; }
+        .changelog-date {
+            flex-shrink: 0;
+            font-size: 0.76rem;
+            color: var(--muted, #999);
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        .changelog-version {
+            flex-shrink: 0;
+            font-size: 0.72rem;
+            color: #aaa;
+            white-space: nowrap;
+            font-family: monospace;
+        }
+        .changelog-text {
+            color: var(--text, #1a1a1a);
+            flex: 1;
+        }
+        .changelog-loading { padding: 14px; color: #aaa; font-size: 0.84rem; }
+
         .scraping-card {
             background: linear-gradient(180deg, rgba(200,169,110,0.08), rgba(255,255,255,0.98));
             border: 1px solid var(--surface2);
@@ -1086,6 +1141,15 @@
                     <div class="empty" id="emptyState" style="display:none"></div>
                 </div>
             </section>
+
+            <!-- ─── Historique des mises à jour ─── -->
+            <section class="changelog-section" id="changelogSection">
+                <div class="changelog-title">📋 Historique des mises à jour</div>
+                <div class="changelog-list" id="changelogList">
+                    <div class="changelog-loading">Chargement…</div>
+                </div>
+            </section>
+
         </div>
     </div>
 
@@ -2264,6 +2328,61 @@
             });
         });
     </script>
+
+    <!-- ── Changelog loader ── -->
+    <script>
+    (function () {
+        const list = document.getElementById('changelogList');
+        if (!list) return;
+
+        const SOURCES = [
+            'changelog.json',
+            'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/changelog.json',
+            'https://dedale95.github.io/Taleos-Public/HTML/changelog.json'
+        ];
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const d = new Date(dateStr + 'T12:00:00Z');
+                return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch { return dateStr; }
+        }
+
+        function render(entries) {
+            if (!entries || !entries.length) {
+                list.innerHTML = '<div class="changelog-loading">Aucune mise à jour disponible.</div>';
+                return;
+            }
+            list.innerHTML = entries.map(e => `
+                <div class="changelog-item">
+                    <span class="changelog-emoji">${e.emoji || '🔹'}</span>
+                    <span class="changelog-date">${formatDate(e.date)}</span>
+                    <span class="changelog-text">${e.text || ''}</span>
+                    <span class="changelog-version">v${e.version || ''}</span>
+                </div>
+            `).join('');
+        }
+
+        async function tryLoad(src) {
+            const r = await fetch(src, { cache: 'no-cache' });
+            if (!r.ok) throw new Error(r.status);
+            return r.json();
+        }
+
+        (async () => {
+            for (const src of SOURCES) {
+                try {
+                    const data = await tryLoad(src);
+                    render(Array.isArray(data) ? data : []);
+                    return;
+                } catch (_) {}
+            }
+            list.innerHTML = '<div class="changelog-loading">Historique indisponible.</div>';
+        })();
+    })();
+    </script>
+
 <script src="taleos-nav.js"></script>
 </body>
 </html>

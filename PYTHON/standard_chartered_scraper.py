@@ -80,7 +80,7 @@ CITY_MAP: dict[str, tuple[str, str]] = {
     "kowloon":          ("Hong Kong",        "Asie-Pacifique"),
     "admiralty":        ("Hong Kong",        "Asie-Pacifique"),
     "wanchai":          ("Hong Kong",        "Asie-Pacifique"),
-    # Chine
+    # Chine (villes principales + villes SC fréquentes)
     "shanghai":         ("Chine",            "Asie-Pacifique"),
     "beijing":          ("Chine",            "Asie-Pacifique"),
     "tianjin":          ("Chine",            "Asie-Pacifique"),
@@ -91,8 +91,25 @@ CITY_MAP: dict[str, tuple[str, str]] = {
     "nanjing":          ("Chine",            "Asie-Pacifique"),
     "wuhan":            ("Chine",            "Asie-Pacifique"),
     "hangzhou":         ("Chine",            "Asie-Pacifique"),
+    "suzhou":           ("Chine",            "Asie-Pacifique"),
+    "xiamen":           ("Chine",            "Asie-Pacifique"),
+    "qingdao":          ("Chine",            "Asie-Pacifique"),
+    "nanshan":          ("Chine",            "Asie-Pacifique"),  # district Shenzhen
+    "chengdu":          ("Chine",            "Asie-Pacifique"),
+    "foshan":           ("Chine",            "Asie-Pacifique"),
+    "dongguan":         ("Chine",            "Asie-Pacifique"),
+    "ningbo":           ("Chine",            "Asie-Pacifique"),
+    "dalian":           ("Chine",            "Asie-Pacifique"),
     # Taïwan
     "taipei":           ("Taïwan",           "Asie-Pacifique"),
+    "taichung":         ("Taïwan",           "Asie-Pacifique"),
+    "jhongli":          ("Taïwan",           "Asie-Pacifique"),
+    "lujhu":            ("Taïwan",           "Asie-Pacifique"),
+    "yangmei":          ("Taïwan",           "Asie-Pacifique"),
+    "banqiao":          ("Taïwan",           "Asie-Pacifique"),
+    "taoyuan":          ("Taïwan",           "Asie-Pacifique"),
+    "hsinchu":          ("Taïwan",           "Asie-Pacifique"),
+    "sinfong":          ("Singapour",        "Asie-Pacifique"),
     # Malaisie
     "kuala":            ("Malaisie",         "Asie-Pacifique"),  # Kuala Lumpur
     "petaling":         ("Malaisie",         "Asie-Pacifique"),  # Petaling Jaya
@@ -158,6 +175,27 @@ CITY_MAP: dict[str, tuple[str, str]] = {
     "new":              ("États-Unis",       "Amérique du Nord"),  # New York
     "sao":              ("Brésil",           "Amérique du Sud"),
     "bogota":           ("Colombie",         "Amérique du Sud"),
+    "houston":          ("États-Unis",       "Amérique du Nord"),
+    "chicago":          ("États-Unis",       "Amérique du Nord"),
+    "miami":            ("États-Unis",       "Amérique du Nord"),
+    "atlanta":          ("États-Unis",       "Amérique du Nord"),
+    "boston":           ("États-Unis",       "Amérique du Nord"),
+    "washington":       ("États-Unis",       "Amérique du Nord"),
+    "toronto":          ("Canada",           "Amérique du Nord"),
+    "montreal":         ("Canada",           "Amérique du Nord"),
+    "lima":             ("Pérou",            "Amérique du Sud"),
+    "santiago":         ("Chili",            "Amérique du Sud"),
+    "buenos":           ("Argentine",        "Amérique du Sud"),  # Buenos Aires
+    # Autres
+    "multan":           ("Pakistan",         "Asie-Pacifique"),
+    "lahore":           ("Pakistan",         "Asie-Pacifique"),
+    "kathmandu":        ("Népal",            "Asie-Pacifique"),
+    "victoria":         ("Nigeria",          "Moyen-Orient / Afrique"),  # Victoria Island Lagos
+    "brunei":           ("Brunei",           "Asie-Pacifique"),
+    "georgetown":       ("Malaisie",         "Asie-Pacifique"),  # Georgetown Penang
+    "yangon":           ("Myanmar",          "Asie-Pacifique"),
+    "phnom":            ("Cambodge",         "Asie-Pacifique"),  # Phnom Penh
+    "vientiane":        ("Laos",             "Asie-Pacifique"),
     # Australie
     "sydney":           ("Australie",        "Asie-Pacifique"),
     "melbourne":        ("Australie",        "Asie-Pacifique"),
@@ -166,15 +204,25 @@ CITY_MAP: dict[str, tuple[str, str]] = {
 # Surcharges pour certains slugs ambigus
 SLUG_OVERRIDES: dict[str, tuple[str, str, str]] = {
     # slug_start → (city_display, country_fr, region)
-    "kwun-tong": ("Kwun Tong", "Hong Kong", "Asie-Pacifique"),
-    "new-york":  ("New York",  "États-Unis", "Amérique du Nord"),
-    "ho-chi":    ("Ho Chi Minh", "Vietnam",  "Asie-Pacifique"),
-    "kuala-lumpur": ("Kuala Lumpur", "Malaisie", "Asie-Pacifique"),
-    "petaling-jaya": ("Petaling Jaya", "Malaisie", "Asie-Pacifique"),
-    "sao-paulo": ("São Paulo", "Brésil", "Amérique du Sud"),
-    "abu-dhabi": ("Abu Dhabi", "Émirats arabes unis", "Moyen-Orient / Afrique"),
-    "bukit-timah": ("Bukit Timah", "Singapour", "Asie-Pacifique"),
-    "ang-mo-kio": ("Ang Mo Kio", "Singapour", "Asie-Pacifique"),
+    "kwun-tong":      ("Kwun Tong",       "Hong Kong",            "Asie-Pacifique"),
+    "quarry-bay":     ("Quarry Bay",      "Hong Kong",            "Asie-Pacifique"),
+    "wan-chai":       ("Wan Chai",        "Hong Kong",            "Asie-Pacifique"),
+    "new-york":       ("New York",        "États-Unis",           "Amérique du Nord"),
+    "san-francisco":  ("San Francisco",   "États-Unis",           "Amérique du Nord"),
+    "los-angeles":    ("Los Angeles",     "États-Unis",           "Amérique du Nord"),
+    "ho-chi":         ("Ho Chi Minh",     "Vietnam",              "Asie-Pacifique"),
+    "kuala-lumpur":   ("Kuala Lumpur",    "Malaisie",             "Asie-Pacifique"),
+    "petaling-jaya":  ("Petaling Jaya",   "Malaisie",             "Asie-Pacifique"),
+    "kota-kinabalu":  ("Kota Kinabalu",   "Malaisie",             "Asie-Pacifique"),
+    "sao-paulo":      ("São Paulo",       "Brésil",               "Amérique du Sud"),
+    "abu-dhabi":      ("Abu Dhabi",       "Émirats arabes unis",  "Moyen-Orient / Afrique"),
+    "bukit-timah":    ("Bukit Timah",     "Singapour",            "Asie-Pacifique"),
+    "ang-mo-kio":     ("Ang Mo Kio",      "Singapour",            "Asie-Pacifique"),
+    "taichung-city":  ("Taichung City",   "Taïwan",               "Asie-Pacifique"),
+    "victoria-island":("Victoria Island", "Nigeria",              "Moyen-Orient / Afrique"),
+    "dar-es-salaam":  ("Dar es Salaam",   "Tanzanie",             "Moyen-Orient / Afrique"),
+    "buenos-aires":   ("Buenos Aires",    "Argentine",            "Amérique du Sud"),
+    "phnom-penh":     ("Phnom Penh",      "Cambodge",             "Asie-Pacifique"),
 }
 
 # ─────────────────────── Classification niveau d'expérience ─────────────────
@@ -297,37 +345,52 @@ def _extract_city_title_from_slug(slug: str) -> tuple[str, str, str, str]:
     slug_lower = slug.lower()
 
     # 1. Surcharges
-    for key, (city, country, region) in SLUG_OVERRIDES.items():
+    for key, (city, country, region) in sorted(SLUG_OVERRIDES.items(), key=lambda x: -len(x[0])):
         if slug_lower.startswith(key):
             rest = decoded[len(key):].lstrip("-,").strip()
-            title = rest.replace("-", " ").replace(",", ", ").strip()
+            title = re.sub(r"-(?![0-9])", " ", rest)
+            title = re.sub(r",\s*", ", ", title).strip()
+            title = re.sub(r"\s+[A-Z]{2}-\d+$", "", title).strip()
+            title = re.sub(r"\s+\d+$", "", title).strip()
             return city, title, country, region
 
-    # 2. Premier token
+    # 2. Identifier la ville depuis le DÉBUT du slug (1 ou 2 tokens)
+    #    RÈGLE : la ville est TOUJOURS au début du slug, jamais après un tiret intermédiaire.
+    #    ⚠️  NE PAS utiliser la première virgule comme séparateur ville/titre :
+    #         "Suzhou-Senior-Relationship-Manager,-Priority" → virgule après le titre !
     parts = decoded.split("-")
-    first = parts[0].lower()
-    country_fr, region = CITY_MAP.get(first, ("", ""))
 
-    if country_fr:
-        city_display = parts[0]
-        rest_parts = parts[1:]
-    else:
-        # Fallback : première partie avant la première virgule
-        first_comma = decoded.find(",")
-        if first_comma > 0:
-            city_display = decoded[:first_comma].replace("-", " ").strip()
-            rest_raw = decoded[first_comma + 1:].strip()
+    # Essai 2 tokens (ex: "Taichung City", "Quarry Bay" non dans SLUG_OVERRIDES)
+    if len(parts) >= 2:
+        two_word_key = f"{parts[0]}-{parts[1]}".lower()
+        if two_word_key in CITY_MAP:
+            country_fr, region = CITY_MAP[two_word_key]
+            city_display = f"{parts[0]} {parts[1]}"
+            rest_parts = parts[2:]
         else:
-            city_display = parts[0]
-            rest_raw = "-".join(parts[1:])
-        rest_parts = rest_raw.split("-") if isinstance(rest_raw, str) else parts[1:]
+            # Essai 1 token
+            first = parts[0].lower()
+            country_fr, region = CITY_MAP.get(first, ("", ""))
+            if country_fr:
+                city_display = parts[0]
+                rest_parts = parts[1:]
+            else:
+                # Ville inconnue → utiliser seulement le PREMIER token comme ville
+                # (ne jamais prendre tout avant la virgule, ça absorbe le titre !)
+                city_display = parts[0]
+                rest_parts = parts[1:]
+                country_fr, region = "", "Autres"
+    else:
+        city_display = decoded
+        rest_parts = []
         country_fr, region = "", "Autres"
 
-    title_raw = "-".join(rest_parts) if isinstance(rest_parts, list) else rest_parts
+    title_raw = "-".join(rest_parts)
     # Nettoyer le titre : remplacer les tirets entre mots par espaces sauf avant chiffres
     title = re.sub(r"-(?![0-9])", " ", title_raw)
     title = re.sub(r",\s*", ", ", title).strip()
-    # Supprimer les suffixes numériques en fin de titre (ex: "Analyst 1" → "Analyst")
+    # Supprimer les suffixes numériques et codes postaux en fin de titre
+    title = re.sub(r"\s+[A-Z]{2}-\d+$", "", title).strip()  # ex: "TX-77001"
     title = re.sub(r"\s+\d+$", "", title).strip()
 
     return city_display, title, country_fr or "Non spécifié", region or "Autres"

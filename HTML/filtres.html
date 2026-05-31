@@ -2674,7 +2674,8 @@
                         companyGroupAllianzExpanded: data.companyGroupAllianzExpanded === true,
                         companyGroupLBPExpanded: data.companyGroupLBPExpanded === true,
                         companyGroupKPMGExpanded: data.companyGroupKPMGExpanded === true,
-                        companyGroupHSBCExpanded: data.companyGroupHSBCExpanded === true
+                        companyGroupHSBCExpanded: data.companyGroupHSBCExpanded === true,
+                        companyGroupLloydsExpanded: data.companyGroupLloydsExpanded === true
                     };
                     companyGroupCAExpandedByAccordion[accordion.id] = accordion.companyGroupCAExpanded;
                     companyGroupBPCEExpandedByAccordion[accordion.id] = accordion.companyGroupBPCEExpanded;
@@ -2685,6 +2686,7 @@
                     companyGroupLBPExpandedByAccordion[accordion.id] = accordion.companyGroupLBPExpanded;
                     companyGroupKPMGExpandedByAccordion[accordion.id] = accordion.companyGroupKPMGExpanded;
                     companyGroupHSBCExpandedByAccordion[accordion.id] = accordion.companyGroupHSBCExpanded;
+                    companyGroupLloydsExpandedByAccordion[accordion.id] = accordion.companyGroupLloydsExpanded;
                     loadedAccordions.push(accordion);
                     console.log('📦 [loadAccordions] Accordéon chargé:', accordion.id, accordion.name);
                 });
@@ -2877,7 +2879,8 @@
                 companyGroupAllianzExpanded: false,
                 companyGroupLBPExpanded: false,
                 companyGroupKPMGExpanded: false,
-                companyGroupHSBCExpanded: false
+                companyGroupHSBCExpanded: false,
+                companyGroupLloydsExpanded: false
             };
 
             // Vérifier si l'utilisateur est connecté avant de créer l'accordéon
@@ -3027,6 +3030,7 @@
         const BANQUE_POSTALE_GROUP_KEY = '__LBP_GROUP__';
         const KPMG_GROUP_KEY = '__KPMG_GROUP__';
         const HSBC_GROUP_KEY = '__HSBC_GROUP__';
+        const LLOYDS_GROUP_KEY = '__LLOYDS_GROUP__';
         const FAMILY_GROUPS = {
             'IT, Digital & Data': [
                 'Développement & Architecture',
@@ -3085,6 +3089,7 @@
         const companyGroupLBPExpandedByAccordion = {};
         const companyGroupKPMGExpandedByAccordion = {};
         const companyGroupHSBCExpandedByAccordion = {};
+        const companyGroupLloydsExpandedByAccordion = {};
         function getCompanyGroupCAExpanded(accordionId) {
             if (companyGroupCAExpandedByAccordion[accordionId] !== undefined) return companyGroupCAExpandedByAccordion[accordionId];
             return false;
@@ -3141,6 +3146,19 @@
         function getCompanyGroupHSBCExpanded(accordionId) {
             if (companyGroupHSBCExpandedByAccordion[accordionId] !== undefined) return companyGroupHSBCExpandedByAccordion[accordionId];
             return false;
+        }
+        function getCompanyGroupLloydsExpanded(accordionId) {
+            if (companyGroupLloydsExpandedByAccordion[accordionId] !== undefined) return companyGroupLloydsExpandedByAccordion[accordionId];
+            return false;
+        }
+        function isLloydsBrand(name) {
+            if (!name || typeof name !== 'string') return false;
+            const n = name.toLowerCase().trim();
+            return n.includes('lloyds') ||
+                n === 'halifax' || n.startsWith('halifax ') || n.includes('(lloyds') ||
+                n === 'bank of scotland' || n.includes('bank of scotland') ||
+                n === 'scottish widows' || n.includes('scottish widows') ||
+                n === 'mbna' || n.includes('mbna');
         }
         function isCreditMutuelSubsidiary(name) {
             if (!name || typeof name !== 'string') return false;
@@ -3215,6 +3233,7 @@
             const prevLBP = container.querySelector('.company-group-children[data-group="lbp"]');
             const prevKPMG = container.querySelector('.company-group-children[data-group="kpmg"]');
             const prevHSBC = container.querySelector('.company-group-children[data-group="hsbc"]');
+            const prevLloyds = container.querySelector('.company-group-children[data-group="lloyds"]');
             if (prevCA) companyGroupCAExpandedByAccordion[accordionId] = prevCA.classList.contains('visible');
             if (prevBPCE) companyGroupBPCEExpandedByAccordion[accordionId] = prevBPCE.classList.contains('visible');
             if (prevBNP) companyGroupBNPExpandedByAccordion[accordionId] = prevBNP.classList.contains('visible');
@@ -3224,6 +3243,7 @@
             if (prevLBP) companyGroupLBPExpandedByAccordion[accordionId] = prevLBP.classList.contains('visible');
             if (prevKPMG) companyGroupKPMGExpandedByAccordion[accordionId] = prevKPMG.classList.contains('visible');
             if (prevHSBC) companyGroupHSBCExpandedByAccordion[accordionId] = prevHSBC.classList.contains('visible');
+            if (prevLloyds) companyGroupLloydsExpandedByAccordion[accordionId] = prevLloyds.classList.contains('visible');
             const wasExpanded = getCompanyGroupCAExpanded(accordionId);
             const wasBPCEExpanded = getCompanyGroupBPCEExpanded(accordionId);
             const wasBNPExpanded = getCompanyGroupBNPExpanded(accordionId);
@@ -3233,6 +3253,7 @@
             const wasLBPExpanded = getCompanyGroupLBPExpanded(accordionId);
             const wasKPMGExpanded = getCompanyGroupKPMGExpanded(accordionId);
             const wasHSBCExpanded = getCompanyGroupHSBCExpanded(accordionId);
+            const wasLloydsExpanded = getCompanyGroupLloydsExpanded(accordionId);
             container.innerHTML = '';
 
             const caSubs = values.filter(c => isCreditAgricoleSubsidiary(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
@@ -3244,7 +3265,8 @@
             const lbpBrands = values.filter(c => isBanquePostaleBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const kpmgBrands = values.filter(c => isKPMGBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
             const hsbcBrands = values.filter(c => isHSBCBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
-            const others = values.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c) && !isBNPParibasBrand(c) && !isCreditMutuelSubsidiary(c) && !isAXABrand(c) && !isAllianzBrand(c) && !isBanquePostaleBrand(c) && !isKPMGBrand(c) && !isHSBCBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const lloydsBrands = values.filter(c => isLloydsBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+            const others = values.filter(c => !isCreditAgricoleSubsidiary(c) && !isBPCEBrand(c) && !isBNPParibasBrand(c) && !isCreditMutuelSubsidiary(c) && !isAXABrand(c) && !isAllianzBrand(c) && !isBanquePostaleBrand(c) && !isKPMGBrand(c) && !isHSBCBrand(c) && !isLloydsBrand(c)).sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
             const renderedBpceBrands = bpceBrands.filter(c => !(hideDisabled && (counts[c] || 0) === 0));
             const bpceGroupChecked = cv.has(BPCE_GROUP_KEY) || (renderedBpceBrands.length > 0 && renderedBpceBrands.every(c => cv.has(c)));
@@ -4037,6 +4059,89 @@
                         if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
                     });
                 };
+                groupDiv.addEventListener('click', (e) => {
+                    if (e.target === expandSpan || expandSpan.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const allChecked = childCheckboxes.length > 0 && childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    groupCb.checked = !allChecked;
+                    groupCb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                container.appendChild(childrenDiv);
+            }
+
+            const lloydsGroupChecked = cv.has(LLOYDS_GROUP_KEY) || lloydsBrands.every(c => cv.has(c));
+            const lloydsGroupCount = lloydsBrands.reduce((s, c) => s + (counts[c] || 0), 0);
+            if (lloydsBrands.length > 0 && (!hideDisabled || lloydsGroupCount > 0 || lloydsGroupChecked)) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'company-group-header';
+                const expandSpan = document.createElement('span');
+                expandSpan.className = 'company-group-expand';
+                expandSpan.textContent = '▶';
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'company-group-children' + (wasLloydsExpanded ? ' visible' : '');
+                childrenDiv.setAttribute('data-group', 'lloyds');
+                if (wasLloydsExpanded) expandSpan.classList.add('expanded');
+                expandSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    childrenDiv.classList.toggle('visible');
+                    expandSpan.classList.toggle('expanded');
+                    const expanded = childrenDiv.classList.contains('visible');
+                    companyGroupLloydsExpandedByAccordion[accordionId] = expanded;
+                };
+                const groupLabel = document.createElement('label');
+                groupLabel.style.display = 'flex';
+                groupLabel.style.alignItems = 'center';
+                groupLabel.style.flex = '1';
+                groupLabel.style.cursor = 'pointer';
+                const groupCb = document.createElement('input');
+                groupCb.type = 'checkbox';
+                groupCb.value = LLOYDS_GROUP_KEY;
+                groupCb.checked = lloydsGroupChecked;
+                groupCb.onchange = () => {
+                    lloydsBrands.forEach(c => {
+                        const subCb = container.querySelector(`input[value="${c.replace(/"/g, '&quot;')}"][data-lloyds-brand]`);
+                        if (subCb && !subCb.disabled) subCb.checked = groupCb.checked;
+                    });
+                    childCheckboxes.forEach(cb => {
+                        const groupCbNew = container.querySelector(`input[value="${LLOYDS_GROUP_KEY}"]`);
+                        const children = container.querySelector('.company-group-children[data-group="lloyds"]');
+                        const childCbs = children ? Array.from(children.querySelectorAll('input[type="checkbox"]')) : [];
+                        if (groupCbNew && childCbs.length > 0) groupCbNew.checked = childCbs.every(c => c.disabled || c.checked);
+                    });
+                };
+                groupLabel.appendChild(groupCb);
+                const span = document.createElement('span');
+                span.textContent = `Groupe Lloyds (${lloydsGroupCount})`;
+                groupLabel.appendChild(span);
+                groupDiv.appendChild(groupLabel);
+                groupDiv.appendChild(expandSpan);
+                container.appendChild(groupDiv);
+                const childCheckboxes = [];
+                lloydsBrands.forEach(c => {
+                    const cnt = counts[c] || 0;
+                    if (hideDisabled && cnt === 0) return;
+                    const disabled = disabledValues.has(c);
+                    const label = document.createElement('label');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = c;
+                    cb.setAttribute('data-lloyds-brand', '1');
+                    cb.checked = cv.has(c) || lloydsGroupChecked;
+                    cb.disabled = disabled;
+                    childCheckboxes.push(cb);
+                    label.appendChild(cb);
+                    const sp = document.createElement('span');
+                    sp.textContent = cnt > 0 ? `${c} (${cnt})` : c;
+                    label.appendChild(sp);
+                    if (disabled) label.classList.add('disabled');
+                    childrenDiv.appendChild(label);
+                });
+                childCheckboxes.forEach(cb => {
+                    cb.onchange = () => {
+                        groupCb.checked = childCheckboxes.every(cb2 => cb2.disabled || cb2.checked);
+                    };
+                });
                 groupDiv.addEventListener('click', (e) => {
                     if (e.target === expandSpan || expandSpan.contains(e.target)) return;
                     e.preventDefault();

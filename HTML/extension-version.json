@@ -1,7 +1,7 @@
 {
-  "version": "1.2.165",
-  "version_name": "1.2.165-workday-locale-fr",
-  "published_at": "2026-05-30T11:35:06Z",
-  "release_notes": "Fix langue Workday : les offres MUFG (et autres sites myworkdayjobs.com) s'ouvraient en japonais. Ajout de normalizeWorkdayLocale() dans l'injector pour forcer fr-FR sur toutes les URLs myworkdayjobs.com. Même correction dans les scrapers MUFG et Mizuho + mise à jour des 670 URLs déjà en base.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.165.zip"
+  "version": "1.2.166",
+  "version_name": "1.2.166-bofa-connection-test",
+  "published_at": "2026-05-31T12:04:58Z",
+  "release_notes": "Fix test de connexion Bank of America : bankId manquant dans CONNECTION_TEST_URLS de background.js (→ erreur 'Banque non supportée'). Ajout de l'URL Workday BofA, du flow retry sign-out en 2 étapes, et fermeture propre des onglets de test ghr.wd1.myworkdayjobs.com.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.166.zip"
 }

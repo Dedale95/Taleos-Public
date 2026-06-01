@@ -4175,6 +4175,31 @@
                 if (disabled) label.classList.add('disabled');
                 container.appendChild(label);
             });
+
+            // ── Réordonner tous les éléments par nombre d'offres décroissant ──
+            {
+                const entries = [];
+                const kids = Array.from(container.children);
+                let i = 0;
+                while (i < kids.length) {
+                    const el = kids[i];
+                    if (el.classList.contains('company-group-header')) {
+                        const next = kids[i + 1];
+                        const hasChildren = next && next.classList.contains('company-group-children');
+                        const span = el.querySelector('label > span');
+                        const m = (span?.textContent || '').match(/\((\d+)\)/);
+                        entries.push({ els: hasChildren ? [el, next] : [el], count: m ? parseInt(m[1]) : 0 });
+                        i += hasChildren ? 2 : 1;
+                    } else {
+                        const span = el.querySelector('span:last-child');
+                        const m = (span?.textContent || '').match(/\((\d+)\)/);
+                        entries.push({ els: [el], count: m ? parseInt(m[1]) : 0 });
+                        i++;
+                    }
+                }
+                entries.sort((a, b) => b.count - a.count);
+                entries.forEach(e => e.els.forEach(n => container.appendChild(n)));
+            }
         }
 
         const CONTINENT_GROUPS = {

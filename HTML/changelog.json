@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.2.171",
+    "date": "2026-06-01T15:47:00Z",
+    "text": "Bank of America — l'automatisation ne démarrait pas : le routage vers le filler n'était pas câblé. L'extension remplit maintenant les 5 étapes du formulaire Workday et se connecte automatiquement."
+  },
+  {
+    "version": "1.2.170",
+    "date": "2026-06-01T15:07:00Z",
+    "text": "Bank of America — implémentation complète du filler Workday (5 étapes : My Information, My Experience, Application Questions, Voluntary Disclosures, Review & Submit)."
+  },
+  {
     "version": "1.2.169",
     "date": "2026-06-01T14:30:00Z",
     "text": "Bank of America — le bouton Sign In ne répondait pas aux clics simulés, l'extension appuie maintenant sur Entrée."

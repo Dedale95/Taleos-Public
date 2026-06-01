@@ -1,7 +1,7 @@
 {
-  "version": "1.2.184",
-  "version_name": "1.2.184-bofa-education-freetext",
-  "published_at": "2026-06-01T19:07:30Z",
-  "release_notes": "Bank of America — Education : si l'école n'est pas dans la base Workday, la valeur est maintenant acceptée en texte libre (même comportement que JP Morgan). ISC Paris sera correctement renseigné.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.184.zip"
+  "version": "1.2.185",
+  "version_name": "1.2.185-bofa-fix-source-lang-edu",
+  "published_at": "2026-06-01T19:21:57Z",
+  "release_notes": "Bank of America — 3 corrections : How Did You Hear sélectionne Bank of America Careers Site, Add Another cherche dans la section Languages (pas Education), Education confirmée par double Enter.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.185.zip"
 }

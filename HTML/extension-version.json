@@ -1,7 +1,7 @@
 {
-  "version": "1.2.180",
-  "version_name": "1.2.180-bofa-complete-rewrite",
-  "published_at": "2026-06-01T18:29:28Z",
-  "release_notes": "Bank of America — réécriture complète du filler avec sélecteurs vérifiés en direct. Langues entièrement automatisées, CV : pause manuelle avec reprise automatique, Education : gestion des écoles absentes de la base Workday.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.180.zip"
+  "version": "1.2.181",
+  "version_name": "1.2.181-bofa-fix-source",
+  "published_at": "2026-06-01T18:32:48Z",
+  "release_notes": "Bank of America — \"How Did You Hear About Us?\" sélectionne maintenant \"Bank of America Careers Site\" au lieu de laisser la valeur précédente (eFinancialCareers).",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.181.zip"
 }

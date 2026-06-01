@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.182",
+    "date": "2026-06-01T22:00:00Z",
+    "text": "Bank of America — CV uploadé automatiquement depuis Firebase Storage (même méthode que Deloitte et Nomura). École renseignée via frappe simulée pour déclencher l'API Workday."
+  },
+  {
     "version": "1.2.181",
     "date": "2026-06-01T21:30:00Z",
     "text": "Bank of America — \"How Did You Hear About Us?\" sélectionne maintenant automatiquement \"Bank of America Careers Site\"."

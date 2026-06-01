@@ -1,7 +1,7 @@
 {
-  "version": "1.2.181",
-  "version_name": "1.2.181-bofa-fix-source",
-  "published_at": "2026-06-01T18:32:48Z",
-  "release_notes": "Bank of America — \"How Did You Hear About Us?\" sélectionne maintenant \"Bank of America Careers Site\" au lieu de laisser la valeur précédente (eFinancialCareers).",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.181.zip"
+  "version": "1.2.182",
+  "version_name": "1.2.182-bofa-cv-education-fix",
+  "published_at": "2026-06-01T18:38:57Z",
+  "release_notes": "Bank of America — CV et Education maintenant entièrement automatiques. CV : même méthode que Deloitte/Nomura (Firebase Storage → DataTransfer). École : frappe caractère par caractère pour déclencher l'API Workday.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.182.zip"
 }

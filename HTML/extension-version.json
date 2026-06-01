@@ -1,7 +1,7 @@
 {
-  "version": "1.2.167",
-  "version_name": "1.2.167-bofa-click-fix",
-  "published_at": "2026-05-31T12:20:38Z",
-  "release_notes": "Bank of America : les identifiants étaient bien saisis mais le bouton 'Sign In' n'était pas cliqué (bouton React non standard). Corrigé avec la séquence d'événements correcte.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.167.zip"
+  "version": "1.2.168",
+  "version_name": "1.2.168-bofa-form-wait",
+  "published_at": "2026-06-01T13:51:17Z",
+  "release_notes": "Bank of America — le formulaire de connexion ne s'affichait pas encore quand l'extension essayait de remplir les champs. L'extension attend maintenant que la page soit prête.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.168.zip"
 }

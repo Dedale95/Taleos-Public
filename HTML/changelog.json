@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.180",
+    "date": "2026-06-01T21:00:00Z",
+    "text": "Bank of America — réécriture complète du filler : langues sélectionnées automatiquement, CV avec pause manuelle et reprise automatique, gestion des étapes 3-5."
+  },
+  {
     "version": "1.2.179",
     "date": "2026-06-01T20:00:00Z",
     "text": "Bank of America — la section Education est maintenant remplie automatiquement (école, niveau de diplôme, année d'obtention). Field of Study et From year restent à compléter manuellement."

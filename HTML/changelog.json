@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.176",
+    "date": "2026-06-01T18:30:00Z",
+    "text": "Bank of America — le message \"connexion manquante\" s'affichait même après avoir lié son compte. Correction de la recherche des identifiants."
+  },
+  {
     "version": "1.2.175",
     "date": "2026-06-01T18:00:00Z",
     "text": "Bank of America — test de connexion : Sign Out enfin trouvé. Inspection du DOM en direct pour identifier les bons sélecteurs (id et aria-label stables)."

@@ -213,8 +213,11 @@ def _team_to_family(team: str) -> str:
 
 
 def _classify_contract(title: str) -> str:
+    import re as _re
     t = title.lower()
-    if any(k in t for k in ["intern", "internship", "stage", "trainee", "apprentice"]):
+    # Utiliser des mots entiers pour éviter les faux positifs
+    # ex: "Internal" contient "intern" → faux positif sans \b
+    if _re.search(r'\b(intern|internship|stage|trainee|apprentice|alternance|alternant)\b', t):
         return "Stage"
     if any(k in t for k in ["graduate", "junior"]):
         return "CDI"

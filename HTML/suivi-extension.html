@@ -290,7 +290,7 @@
         .changelog-item {
             display: flex;
             align-items: baseline;
-            gap: 10px;
+            gap: 12px;
             padding: 9px 14px;
             border-bottom: 1px solid var(--surface2, #e8e4dc);
             font-size: 0.84rem;
@@ -298,13 +298,12 @@
         }
         .changelog-item:last-child { border-bottom: none; }
         .changelog-item:first-child { border-radius: 10px 10px 0 0; }
-        .changelog-emoji { font-size: 1rem; flex-shrink: 0; }
         .changelog-date {
             flex-shrink: 0;
             font-size: 0.76rem;
             color: var(--muted, #999);
             white-space: nowrap;
-            min-width: 80px;
+            min-width: 110px;
         }
         .changelog-version {
             flex-shrink: 0;
@@ -2344,8 +2343,13 @@
         function formatDate(dateStr) {
             if (!dateStr) return '';
             try {
-                const d = new Date(dateStr + 'T12:00:00Z');
-                return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+                // Accepte "2026-05-31" ou "2026-05-31T18:30:00Z"
+                const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00Z');
+                const day  = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', timeZone: 'Europe/Paris' });
+                const time = dateStr.includes('T')
+                    ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' })
+                    : null;
+                return time ? `${day} · ${time}` : day;
             } catch { return dateStr; }
         }
 
@@ -2356,7 +2360,6 @@
             }
             list.innerHTML = entries.map(e => `
                 <div class="changelog-item">
-                    <span class="changelog-emoji">${e.emoji || '🔹'}</span>
                     <span class="changelog-date">${formatDate(e.date)}</span>
                     <span class="changelog-text">${e.text || ''}</span>
                     <span class="changelog-version">v${e.version || ''}</span>

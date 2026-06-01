@@ -1,56 +1,47 @@
 [
   {
     "version": "1.2.167",
-    "date": "2026-05-31",
-    "emoji": "🖱️",
-    "text": "Bank of America : les identifiants étaient saisis mais le bouton de connexion ne se cliquait pas — corrigé."
+    "date": "2026-05-31T18:30:00Z",
+    "text": "🖱️ Bank of America — le bouton « Sign In » ne répondait pas après la saisie des identifiants."
   },
   {
     "version": "1.2.166",
-    "date": "2026-05-31",
-    "emoji": "🔧",
-    "text": "Connexion Bank of America : le test s'ouvrait et se refermait immédiatement sans rien faire — c'est corrigé."
+    "date": "2026-05-31T14:00:00Z",
+    "text": "🏦 Bank of America — le test de connexion s'ouvrait et se refermait instantanément sans rien faire."
   },
   {
     "version": "1.2.165",
-    "date": "2026-05-30",
-    "emoji": "🌐",
-    "text": "Les offres MUFG s'ouvraient en japonais au lieu du français — corrigé."
+    "date": "2026-05-30T11:35:00Z",
+    "text": "🌐 Les offres MUFG s'ouvraient en japonais au lieu du français."
   },
   {
     "version": "1.2.164",
-    "date": "2026-05-28",
-    "emoji": "✏️",
-    "text": "Nomura : la lettre de motivation s'envoyait parfois sans remplir le bon champ — corrigé."
+    "date": "2026-05-28T09:00:00Z",
+    "text": "✏️ Nomura — la lettre de motivation s'envoyait parfois dans le mauvais champ."
   },
   {
     "version": "1.2.163",
-    "date": "2026-05-26",
-    "emoji": "🚦",
-    "text": "Nomura : après une 1ère candidature, les suivantes restaient bloquées en file d'attente — corrigé."
+    "date": "2026-05-26T16:20:00Z",
+    "text": "🚦 Nomura — après une 1ère candidature, les suivantes restaient bloquées en file d'attente."
   },
   {
     "version": "1.2.162",
-    "date": "2026-05-23",
-    "emoji": "📎",
-    "text": "Nomura : la lettre de motivation ne s'uploadait plus après suppression d'un document — corrigé."
+    "date": "2026-05-23T10:10:00Z",
+    "text": "📎 Nomura — la lettre de motivation ne s'uploadait plus après suppression d'un document."
   },
   {
     "version": "1.2.161",
-    "date": "2026-05-22",
-    "emoji": "🖱️",
-    "text": "Nomura : l'extension restait bloquée sur la fenêtre de confirmation de suppression de PJ — corrigé."
+    "date": "2026-05-22T14:45:00Z",
+    "text": "🖱️ Nomura — l'extension restait bloquée sur la fenêtre de confirmation de suppression de PJ."
   },
   {
     "version": "1.2.160",
-    "date": "2026-05-21",
-    "emoji": "🔐",
-    "text": "Nomura : la connexion automatique échouait si les champs de login s'affichaient trop lentement — corrigé."
+    "date": "2026-05-21T11:00:00Z",
+    "text": "🔐 Nomura — la connexion automatique échouait si les champs de login s'affichaient trop lentement."
   },
   {
     "version": "1.2.159",
-    "date": "2026-05-19",
-    "emoji": "🆕",
-    "text": "Nouveau : candidature automatique sur Nomura. Postuler chez Nomura en un clic depuis Taleos."
+    "date": "2026-05-19T09:30:00Z",
+    "text": "🆕 Candidature automatique sur Nomura disponible."
   }
 ]

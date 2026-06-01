@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.183",
+    "date": "2026-06-01T19:10:00Z",
+    "text": "Bank of America — les langues du profil (Français, Anglais, Espagnol) sont maintenant correctement sélectionnées dans le formulaire Workday (French, English, Spanish)."
+  },
+  {
     "version": "1.2.182",
     "date": "2026-06-01T18:39:52Z",
     "text": "Bank of America — CV uploadé automatiquement depuis Firebase Storage (même méthode que Deloitte et Nomura). École renseignée via frappe simulée pour déclencher l'API Workday."

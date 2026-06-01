@@ -1,7 +1,7 @@
 {
-  "version": "1.2.172",
-  "version_name": "1.2.172-bofa-fix-signout-test",
-  "published_at": "2026-06-01T16:00:01Z",
-  "release_notes": "Bank of America — le test de connexion validait sans vérifier quand l'utilisateur était déjà connecté. L'extension se déconnecte maintenant correctement (clic email → clic Sign Out) avant de tester les identifiants.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.172.zip"
+  "version": "1.2.173",
+  "version_name": "1.2.173-bofa-fix-signout-selector",
+  "published_at": "2026-06-01T16:39:40Z",
+  "release_notes": "Bank of America — le test de connexion cliquait sur Settings au lieu de l'email, puis sur Change Email au lieu de Sign Out. Les éléments sont maintenant identifiés par leur contenu textuel et non par leur classe CSS.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.173.zip"
 }

@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.173",
+    "date": "2026-06-01T17:00:00Z",
+    "text": "Bank of America — lors du test de connexion, l'extension cliquait sur Settings au lieu de l'email et sur Change Email au lieu de Sign Out. Correction de la détection des éléments par contenu textuel."
+  },
+  {
     "version": "1.2.172",
     "date": "2026-06-01T16:30:00Z",
     "text": "Bank of America — le test de connexion validait à tort quand l'utilisateur était déjà connecté. L'extension clique maintenant sur l'email puis sur Sign Out avant de tester les identifiants."

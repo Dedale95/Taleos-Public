@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.186",
+    "date": "2026-06-01T19:50:00Z",
+    "text": "Bank of America — langues 2 et 3 correctement ajoutées, toutes les questions Step 3 remplies automatiquement (dropdowns Yes/No, employeur, salaire, préavis)."
+  },
+  {
     "version": "1.2.185",
     "date": "2026-06-01T19:21:04Z",
     "text": "Bank of America — 3 corrections : 'Comment avez-vous entendu parler de nous' sélectionne Bank of America, Add Another cible bien la section Languages, Education confirmée par double Entrée."

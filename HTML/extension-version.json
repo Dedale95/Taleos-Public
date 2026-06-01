@@ -1,7 +1,7 @@
 {
-  "version": "1.2.185",
-  "version_name": "1.2.185-bofa-fix-source-lang-edu",
-  "published_at": "2026-06-01T19:21:57Z",
-  "release_notes": "Bank of America — 3 corrections : How Did You Hear sélectionne Bank of America Careers Site, Add Another cherche dans la section Languages (pas Education), Education confirmée par double Enter.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.185.zip"
+  "version": "1.2.186",
+  "version_name": "1.2.186-bofa-fix-languages-questions",
+  "published_at": "2026-06-01T19:51:27Z",
+  "release_notes": "Bank of America — 2 corrections : langues 2 et 3 ajoutées correctement (bouton Add initial puis Add Another), questions Step 3 remplies automatiquement (dropdowns Yes/No, employeur, salaire, notice period).",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.186.zip"
 }

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.169",
-  "version_name": "1.2.169-bofa-enter-submit",
-  "published_at": "2026-06-01T14:04:39Z",
-  "release_notes": "Bank of America — le bouton Sign In ne répondait pas aux clics simulés. L'extension utilise maintenant la touche Entrée sur le champ mot de passe pour déclencher la connexion.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.169.zip"
+  "version": "1.2.170",
+  "version_name": "1.2.170-bofa-complete-filler",
+  "published_at": "2026-06-01T15:07:19Z",
+  "release_notes": "Bank of America (Workday) — filler complet implémenté. Automatisation des 5 étapes de candidature (My Information, My Experience, Application Questions, Voluntary Disclosures, Review & Submit). Support EMEA et US portals via détection URL. CV upload via Playwright native file handling.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.170.zip"
 }

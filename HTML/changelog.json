@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.179",
+    "date": "2026-06-01T20:00:00Z",
+    "text": "Bank of America — la section Education est maintenant remplie automatiquement (école, niveau de diplôme, année d'obtention). Field of Study et From year restent à compléter manuellement."
+  },
+  {
     "version": "1.2.178",
     "date": "2026-06-01T19:30:00Z",
     "text": "Bank of America — les langues (français, anglais, espagnol) sont maintenant sélectionnées automatiquement avec le niveau de maîtrise. Tentative d'upload du CV depuis le profil."

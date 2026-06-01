@@ -1,7 +1,7 @@
 {
-  "version": "1.2.178",
-  "version_name": "1.2.178-bofa-languages-cv",
-  "published_at": "2026-06-01T17:59:28Z",
-  "release_notes": "Bank of America — sélection automatique des langues (Language, Fluent checkbox, Written & Spoken), support multi-langues avec Add Another. Tentative d'upload CV depuis Firebase Storage.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.178.zip"
+  "version": "1.2.179",
+  "version_name": "1.2.179-bofa-education",
+  "published_at": "2026-06-01T18:05:42Z",
+  "release_notes": "Bank of America — remplissage automatique de la section Education : école (typeahead), diplôme (mapping niveau), année de diplôme. Les champs Field of Study et From year restent à compléter manuellement (non disponibles dans le profil).",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.179.zip"
 }

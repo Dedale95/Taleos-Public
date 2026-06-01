@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.177",
+    "date": "2026-06-01T19:00:00Z",
+    "text": "Bank of America — candidature automatique opérationnelle. Le filler navigue maintenant correctement à travers les 5 étapes du formulaire Workday en utilisant les bons sélecteurs."
+  },
+  {
     "version": "1.2.176",
     "date": "2026-06-01T18:30:00Z",
     "text": "Bank of America — le message \"connexion manquante\" s'affichait même après avoir lié son compte. Correction de la recherche des identifiants."

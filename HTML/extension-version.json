@@ -1,7 +1,7 @@
 {
-  "version": "1.2.176",
-  "version_name": "1.2.176-bofa-fix-creds-alias",
-  "published_at": "2026-06-01T17:21:50Z",
-  "release_notes": "Bank of America — le message 'connexion manquante' s'affichait même après avoir lié son compte. Les identifiants stockés sous l'ancien identifiant bank_of_america sont maintenant reconnus.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.176.zip"
+  "version": "1.2.177",
+  "version_name": "1.2.177-bofa-filler-dom-verified",
+  "published_at": "2026-06-01T17:35:46Z",
+  "release_notes": "Bank of America — filler réécrit avec les vrais sélecteurs DOM (inspectés en direct). Gestion de 'Continue Application', détection des étapes via progressBar, bouton 'Save and Continue', champs formField-* vérifiés.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.177.zip"
 }

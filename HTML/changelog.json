@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.184",
+    "date": "2026-06-01T19:06:30Z",
+    "text": "Bank of America — Education : l'école est maintenant acceptée même si elle n'est pas dans la base Workday (ISC Paris fonctionnel). Même comportement que JP Morgan."
+  },
+  {
     "version": "1.2.183",
     "date": "2026-06-01T19:10:00Z",
     "text": "Bank of America — les langues du profil (Français, Anglais, Espagnol) sont maintenant correctement sélectionnées dans le formulaire Workday (French, English, Spanish)."

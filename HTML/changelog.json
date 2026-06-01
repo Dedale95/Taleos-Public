@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.172",
+    "date": "2026-06-01T16:30:00Z",
+    "text": "Bank of America — le test de connexion validait à tort quand l'utilisateur était déjà connecté. L'extension clique maintenant sur l'email puis sur Sign Out avant de tester les identifiants."
+  },
+  {
     "version": "1.2.171",
     "date": "2026-06-01T15:47:00Z",
     "text": "Bank of America — l'automatisation ne démarrait pas : le routage vers le filler n'était pas câblé. L'extension remplit maintenant les 5 étapes du formulaire Workday et se connecte automatiquement."

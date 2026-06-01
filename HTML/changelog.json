@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.169",
+    "date": "2026-06-01T14:30:00Z",
+    "text": "🔑 Bank of America — le bouton Sign In ne répondait pas aux clics simulés, l'extension appuie maintenant sur Entrée."
+  },
+  {
     "version": "1.2.168",
     "date": "2026-06-01T10:00:00Z",
     "text": "⏳ Bank of America — l'extension essayait de remplir le formulaire avant que la page soit prête."

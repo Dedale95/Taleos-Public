@@ -2,56 +2,56 @@
   {
     "version": "1.2.169",
     "date": "2026-06-01T14:30:00Z",
-    "text": "🔑 Bank of America — le bouton Sign In ne répondait pas aux clics simulés, l'extension appuie maintenant sur Entrée."
+    "text": "Bank of America — le bouton Sign In ne répondait pas aux clics simulés, l'extension appuie maintenant sur Entrée."
   },
   {
     "version": "1.2.168",
     "date": "2026-06-01T10:00:00Z",
-    "text": "⏳ Bank of America — l'extension essayait de remplir le formulaire avant que la page soit prête."
+    "text": "Bank of America — l'extension essayait de remplir le formulaire avant que la page soit prête."
   },
   {
     "version": "1.2.167",
     "date": "2026-05-31T18:30:00Z",
-    "text": "🖱️ Bank of America — le bouton « Sign In » ne répondait pas après la saisie des identifiants."
+    "text": "Bank of America — le bouton Sign In ne répondait pas après la saisie des identifiants."
   },
   {
     "version": "1.2.166",
     "date": "2026-05-31T14:00:00Z",
-    "text": "🏦 Bank of America — le test de connexion s'ouvrait et se refermait instantanément sans rien faire."
+    "text": "Bank of America — le test de connexion s'ouvrait et se refermait instantanément sans rien faire."
   },
   {
     "version": "1.2.165",
     "date": "2026-05-30T11:35:00Z",
-    "text": "🌐 Les offres MUFG s'ouvraient en japonais au lieu du français."
+    "text": "Les offres MUFG s'ouvraient en japonais au lieu du français."
   },
   {
     "version": "1.2.164",
     "date": "2026-05-28T09:00:00Z",
-    "text": "✏️ Nomura — la lettre de motivation s'envoyait parfois dans le mauvais champ."
+    "text": "Nomura — la lettre de motivation s'envoyait parfois dans le mauvais champ."
   },
   {
     "version": "1.2.163",
     "date": "2026-05-26T16:20:00Z",
-    "text": "🚦 Nomura — après une 1ère candidature, les suivantes restaient bloquées en file d'attente."
+    "text": "Nomura — après une 1ère candidature, les suivantes restaient bloquées en file d'attente."
   },
   {
     "version": "1.2.162",
     "date": "2026-05-23T10:10:00Z",
-    "text": "📎 Nomura — la lettre de motivation ne s'uploadait plus après suppression d'un document."
+    "text": "Nomura — la lettre de motivation ne s'uploadait plus après suppression d'un document."
   },
   {
     "version": "1.2.161",
     "date": "2026-05-22T14:45:00Z",
-    "text": "🖱️ Nomura — l'extension restait bloquée sur la fenêtre de confirmation de suppression de PJ."
+    "text": "Nomura — l'extension restait bloquée sur la fenêtre de confirmation de suppression de PJ."
   },
   {
     "version": "1.2.160",
     "date": "2026-05-21T11:00:00Z",
-    "text": "🔐 Nomura — la connexion automatique échouait si les champs de login s'affichaient trop lentement."
+    "text": "Nomura — la connexion automatique échouait si les champs de login s'affichaient trop lentement."
   },
   {
     "version": "1.2.159",
     "date": "2026-05-19T09:30:00Z",
-    "text": "🆕 Candidature automatique sur Nomura disponible."
+    "text": "Candidature automatique sur Nomura disponible."
   }
 ]

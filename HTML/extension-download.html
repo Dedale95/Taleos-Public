@@ -141,6 +141,15 @@
     .uptodate h3{font-family:var(--serif);font-size:1.4rem;font-weight:500;color:var(--navy);margin-bottom:6px;}
     .uptodate p{color:var(--muted);font-size:14px;}
 
+    /* ── Changelog ── */
+    .changelog-list{display:flex;flex-direction:column;}
+    .changelog-item{display:flex;align-items:baseline;gap:14px;padding:11px 28px;border-bottom:1px solid var(--border);font-size:13.5px;line-height:1.5;}
+    .changelog-item:last-child{border-bottom:none;}
+    .changelog-date{flex-shrink:0;font-size:12px;color:var(--muted);white-space:nowrap;min-width:110px;}
+    .changelog-text{flex:1;color:var(--navy);}
+    .changelog-version{flex-shrink:0;font-size:11px;color:#bbb;font-family:monospace;white-space:nowrap;}
+    .changelog-loading{padding:18px 28px;color:var(--muted);font-size:13.5px;}
+
     /* Footer */
     footer{background:#070f1c;padding:28px 40px;border-top:1px solid rgba(255,255,255,.07);}
     .footer-inner{max-width:860px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
@@ -278,6 +287,16 @@
             <h3>Vous êtes à jour</h3>
             <p>L'extension installée correspond à la dernière version disponible.</p>
           </div>
+        </div>
+      </div>
+
+      <!-- ── Historique des mises à jour ── -->
+      <div class="action-card" id="changelogCard">
+        <div class="action-head">
+          <h2>Historique des mises à jour</h2>
+        </div>
+        <div class="changelog-list" id="changelogList">
+          <div class="changelog-loading">Chargement…</div>
         </div>
       </div>
 
@@ -470,6 +489,49 @@ async function handleLogout() {
   localStorage.removeItem('userEmail');
   window.location.href = 'auth.html';
 }
+
+// ── Changelog ──
+(function () {
+  const SOURCES = [
+    'changelog.json',
+    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/changelog.json',
+    'https://dedale95.github.io/Taleos-Public/HTML/changelog.json'
+  ];
+  function formatCLDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00Z');
+      const day  = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', timeZone: 'Europe/Paris' });
+      const time = dateStr.includes('T')
+        ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' })
+        : null;
+      return time ? `${day} · ${time}` : day;
+    } catch (_) { return dateStr; }
+  }
+  function renderCL(entries) {
+    const list = document.getElementById('changelogList');
+    if (!list) return;
+    if (!entries || !entries.length) { list.innerHTML = '<div class="changelog-loading">Aucune mise à jour disponible.</div>'; return; }
+    list.innerHTML = entries.map(e => `
+      <div class="changelog-item">
+        <span class="changelog-date">${formatCLDate(e.date)}</span>
+        <span class="changelog-text">${e.text || ''}</span>
+        <span class="changelog-version">v${e.version || ''}</span>
+      </div>`).join('');
+  }
+  (async () => {
+    for (const src of SOURCES) {
+      try {
+        const r = await fetch(src, { cache: 'no-cache' });
+        if (!r.ok) throw new Error(r.status);
+        renderCL(await r.json());
+        return;
+      } catch (_) {}
+    }
+    const list = document.getElementById('changelogList');
+    if (list) list.innerHTML = '<div class="changelog-loading">Historique indisponible.</div>';
+  })();
+})();
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', async () => {

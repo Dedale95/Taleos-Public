@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.187",
+    "date": "2026-06-02T16:09:00Z",
+    "text": "Bank of America — refonte complète du filler : connexion Sign In automatisée, bannière en bas pour ne pas bloquer le header, téléphone + indicatif +33, suppression CV existant avant upload, logs détaillés."
+  },
+  {
     "version": "1.2.186",
     "date": "2026-06-01T19:50:00Z",
     "text": "Bank of America — langues 2 et 3 correctement ajoutées, toutes les questions Step 3 remplies automatiquement (dropdowns Yes/No, employeur, salaire, préavis)."

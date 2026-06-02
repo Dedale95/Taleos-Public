@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.196",
+    "date": "2026-06-02T18:52:00Z",
+    "text": "Bank of America — page 3 corrigée : employeur, salaire et dates maintenant renseignés automatiquement, menus déroulants ouverts une seule fois, \"Déjà postulé ?\" fixé à Non."
+  },
+  {
     "version": "1.2.195",
     "date": "2026-06-02T18:38:00Z",
     "text": "Bank of America — vérification que le CV a bien été accepté par Workday après upload, alerte si non."

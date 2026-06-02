@@ -1,7 +1,7 @@
 {
-  "version": "1.2.195",
-  "version_name": "1.2.195-bofa-cv-verify",
-  "published_at": "2026-06-02T18:34:16Z",
-  "release_notes": "Bank of America — vérification du CV après upload (confirmation que Workday a bien accepté le fichier, alerte si non).",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.195.zip"
+  "version": "1.2.196",
+  "version_name": "1.2.196-bofa-page3-fix",
+  "published_at": "2026-06-02T18:53:27Z",
+  "release_notes": "Bank of America — correction page 3 : textareas employeur/salaire renseignés, dates remplies via key events, plus de double ouverture des menus déroulants, \"Previously applied\" fixé à No.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.196.zip"
 }

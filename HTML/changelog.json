@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.191",
+    "date": "2026-06-02T17:32:00Z",
+    "text": "Bank of America — clic automatique sur 'Apply Manually' dans le popup qui apparaît après la connexion."
+  },
+  {
     "version": "1.2.190",
     "date": "2026-06-02T17:27:00Z",
     "text": "Profil — suppression de la question 'comment avez-vous découvert l'offre' (toujours le site carrière), textareas des champs conditionnels agrandies. BPCE — site Natixis utilisé par défaut."

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.188",
-  "version_name": "1.2.188-bofa-appquestions-profile",
-  "published_at": "2026-06-02T16:41:39Z",
-  "release_notes": "Bank of America — Application Questions complètes : toutes les réponses viennent du profil (proches, FINRA, PwC, vendor, préavis, salaire, autres activités, condition médicale). Nouveaux champs dans Mon Profil.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.188.zip"
+  "version": "1.2.189",
+  "version_name": "1.2.189-bofa-previously-applied-yes",
+  "published_at": "2026-06-02T17:22:43Z",
+  "release_notes": "Bank of America — réponse 'Oui' automatique pour la question sur les candidatures précédentes.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.189.zip"
 }

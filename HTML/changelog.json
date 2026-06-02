@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.195",
+    "date": "2026-06-02T18:38:00Z",
+    "text": "Bank of America — vérification que le CV a bien été accepté par Workday après upload, alerte si non."
+  },
+  {
     "version": "1.2.194",
     "date": "2026-06-02T18:30:00Z",
     "text": "Bank of America — Education ignorée (section laissée vide), langues 2 et 3 maintenant ajoutées correctement (bouton trouvé par proximité, sans confondre avec Education)."

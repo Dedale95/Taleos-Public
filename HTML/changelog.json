@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.192",
+    "date": "2026-06-02T18:15:00Z",
+    "text": "Bank of America — 3 corrections : bannière visible en haut, langues 2 et 3 ajoutées (Add Another détecté), toutes les questions Step 3 remplies (FINRA, préavis, etc.)."
+  },
+  {
     "version": "1.2.191",
     "date": "2026-06-02T17:32:00Z",
     "text": "Bank of America — clic automatique sur 'Apply Manually' dans le popup qui apparaît après la connexion."

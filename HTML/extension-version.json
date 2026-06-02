@@ -1,7 +1,7 @@
 {
-  "version": "1.2.191",
-  "version_name": "1.2.191-bofa-apply-manually-popup",
-  "published_at": "2026-06-02T17:33:22Z",
-  "release_notes": "Bank of America — gestion automatique du popup 'Apply Manually' qui apparaît après le clic sur Apply.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.191.zip"
+  "version": "1.2.192",
+  "version_name": "1.2.192-bofa-banner-langs-step3",
+  "published_at": "2026-06-02T18:16:25Z",
+  "release_notes": "Bank of America — bannière remise en haut (60px), langues 2 et 3 corrigées (Add Another), Step 3 questions remplies avec détection contextuelle du label.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.192.zip"
 }

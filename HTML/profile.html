@@ -2468,6 +2468,20 @@
                             </div>
                         </div>
 
+                        <div class="form-group" style="margin-top:16px;">
+                            <label for="bofaOtherBusiness">Êtes-vous actuellement engagé·e dans toute autre activité commerciale (propriétaire, partenaire, directeur, agent, etc.) ?</label>
+                            <select id="bofaOtherBusiness" name="bofa_other_business" onchange="document.getElementById('bofaOtherBusinessSection').style.display = this.value === 'Yes' ? 'block' : 'none'">
+                                <option value="No">Non</option>
+                                <option value="Yes">Oui</option>
+                            </select>
+                        </div>
+                        <div id="bofaOtherBusinessSection" style="display:none; margin-top:8px; padding:14px; background:#f8f9fa; border-radius:8px;">
+                            <div class="form-group">
+                                <label for="bofaOtherBusinessDetails">Détails de l'autre activité</label>
+                                <textarea id="bofaOtherBusinessDetails" name="bofa_other_business_details" rows="2" placeholder="Activité, rôle, revenus associés"></textarea>
+                            </div>
+                        </div>
+
                         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
                         <div class="form-group">

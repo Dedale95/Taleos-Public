@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.198",
+    "date": "2026-06-02T19:43:00Z",
+    "text": "Bank of America — déblocage complet : l'étape \"Self Identify\" (6 étapes au lieu de 5) est maintenant reconnue et franchie automatiquement ; menu \"How Did You Hear About Us?\" corrigé."
+  },
+  {
     "version": "1.2.197",
     "date": "2026-06-02T19:12:00Z",
     "text": "Bank of America — prénom, nom, téléphone et code postal maintenant correctement renseignés ; champs bofa_* (FINRA, préavis, employeur, salaire) lus depuis Firebase."

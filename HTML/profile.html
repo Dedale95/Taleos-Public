@@ -2440,50 +2440,6 @@
                             </select>
                         </div>
 
-                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
-
-                        <div class="form-group">
-                            <label for="jpMorganMilitaryService">Avez-vous déjà servi comme membre des forces armées ou comme réserviste ?</label>
-                            <select id="jpMorganMilitaryService" name="jpMorganMilitaryService">
-                                <option value="">Sélectionnez...</option>
-                                <option value="No">Non</option>
-                                <option value="Yes, I am a UK Veteran">Oui, je suis un ancien combattant du Royaume-Uni</option>
-                                <option value="Yes, I am a Veteran of a country other than the UK">Oui, je suis un ancien combattant d’un autre pays</option>
-                                <option value="Yes, I am a UK Reservist">Oui, je suis réserviste au Royaume-Uni</option>
-                                <option value="Yes, I am a Reservist of a country other than the UK">Oui, je suis réserviste dans un autre pays</option>
-                                <option value="I do not wish to answer">Je ne souhaite pas répondre</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Autorisation de travail et sponsorship par pays / zone</label>
-                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
-                                Indiquez les pays ou zones dans lesquels vous êtes autorisé·e à travailler, et si un sponsorship / visa employeur y est nécessaire. Taleos réutilisera automatiquement la bonne réponse selon le pays de l’offre. Pour l’Europe, utilisez la zone <strong>Union européenne</strong> plutôt que de dupliquer les pays un par un.
-                            </p>
-                            <div id="jpMorganWorkAuthContainer" class="repeatable-list"></div>
-                            <div class="repeatable-actions">
-                                <button type="button" class="btn-secondary" onclick="addJpMorganWorkAuthItem()">+ Ajouter un pays ou une zone</button>
-                            </div>
-                        </div>
-
-                        <!-- ── Questions réglementaires BofA ─────────────────── -->
-                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
-                        <p style="font-weight: 600; font-size: 0.92rem; color: #012169; margin-bottom: 16px;">🏦 Bank of America — Questions réglementaires</p>
-
-                        <div class="form-group">
-                            <label for="bofaOtherBusiness">Êtes-vous actuellement engagé·e dans toute autre activité commerciale (propriétaire, partenaire, directeur, agent, etc.) ?</label>
-                            <select id="bofaOtherBusiness" name="bofa_other_business" onchange="document.getElementById('bofaOtherBusinessSection').style.display = this.value === 'Yes' ? 'block' : 'none'">
-                                <option value="No">Non</option>
-                                <option value="Yes">Oui</option>
-                            </select>
-                        </div>
-                        <div id="bofaOtherBusinessSection" style="display:none; margin-top:8px; padding:14px; background:#f8f9fa; border-radius:8px;">
-                            <div class="form-group">
-                                <label for="bofaOtherBusinessDetails">Détails de l'autre activité</label>
-                                <textarea id="bofaOtherBusinessDetails" name="bofa_other_business_details" rows="2" placeholder="Décrivez l'activité, votre rôle, et les revenus associés"></textarea>
-                            </div>
-                        </div>
-
                         <div class="form-group" style="margin-top:16px;">
                             <label for="bofaMedicalCondition">Avez-vous une condition médicale ou un handicap nécessitant des aménagements pour les tests ou entretiens ?</label>
                             <select id="bofaMedicalCondition" name="bofa_medical_condition" onchange="document.getElementById('bofaMedicalSection').style.display = this.value === 'Yes' ? 'block' : 'none'">
@@ -2509,6 +2465,32 @@
                             <div class="form-group">
                                 <label for="bofaAdditionalInfoDetails">Détails</label>
                                 <textarea id="bofaAdditionalInfoDetails" name="bofa_additional_info_details" rows="2" placeholder="Informations à divulguer"></textarea>
+                            </div>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
+
+                        <div class="form-group">
+                            <label for="jpMorganMilitaryService">Avez-vous déjà servi comme membre des forces armées ou comme réserviste ?</label>
+                            <select id="jpMorganMilitaryService" name="jpMorganMilitaryService">
+                                <option value="">Sélectionnez...</option>
+                                <option value="No">Non</option>
+                                <option value="Yes, I am a UK Veteran">Oui, je suis un ancien combattant du Royaume-Uni</option>
+                                <option value="Yes, I am a Veteran of a country other than the UK">Oui, je suis un ancien combattant d’un autre pays</option>
+                                <option value="Yes, I am a UK Reservist">Oui, je suis réserviste au Royaume-Uni</option>
+                                <option value="Yes, I am a Reservist of a country other than the UK">Oui, je suis réserviste dans un autre pays</option>
+                                <option value="I do not wish to answer">Je ne souhaite pas répondre</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Autorisation de travail et sponsorship par pays / zone</label>
+                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
+                                Indiquez les pays ou zones dans lesquels vous êtes autorisé·e à travailler, et si un sponsorship / visa employeur y est nécessaire. Taleos réutilisera automatiquement la bonne réponse selon le pays de l’offre. Pour l’Europe, utilisez la zone <strong>Union européenne</strong> plutôt que de dupliquer les pays un par un.
+                            </p>
+                            <div id="jpMorganWorkAuthContainer" class="repeatable-list"></div>
+                            <div class="repeatable-actions">
+                                <button type="button" class="btn-secondary" onclick="addJpMorganWorkAuthItem()">+ Ajouter un pays ou une zone</button>
                             </div>
                         </div>
 

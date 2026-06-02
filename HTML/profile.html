@@ -1579,25 +1579,24 @@
                         </div>
                     </div>
 
-                    <!-- ── Emploi actuel (BofA + autres formulaires) ───────────── -->
+                    <!-- ── Emploi actuel ──────────────────────────────────────── -->
                     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
-                    <p style="color: #666; font-size: 0.88rem; margin-bottom: 16px;">Informations sur votre poste actuel — utilisées notamment par Bank of America (étape Application Questions).</p>
+                    <p style="color: #666; font-size: 0.88rem; margin-bottom: 16px;">Informations sur votre poste actuel.</p>
 
                     <div class="form-group">
                         <label for="currentEmployer">Employeur actuel / le plus récent</label>
-                        <input type="text" id="currentEmployer" name="currentEmployer" placeholder="Ex. NatWest Markets">
+                        <input type="text" id="currentEmployer" name="currentEmployer" placeholder="">
                     </div>
 
                     <div class="form-group" style="margin-top: 16px; display: flex; gap: 16px;">
                         <div style="flex: 1;">
                             <label for="employmentStartDate">Date de début chez cet employeur</label>
                             <input type="date" id="employmentStartDate" name="employmentStartDate">
-                            <small style="color: #888;">Format affiché sur le formulaire BofA : MM/DD/YYYY</small>
                         </div>
                         <div style="flex: 1;">
                             <label for="currentRoleStartDate">Date de début dans le rôle actuel</label>
                             <input type="date" id="currentRoleStartDate" name="currentRoleStartDate">
-                            <small style="color: #888;">Si différent de la date d'embauche</small>
+                            <small style="color: #888;">Si votre rôle actuel a démarré après votre embauche. Laissez vide si identique.</small>
                         </div>
                     </div>
 
@@ -2298,11 +2297,10 @@
 
                         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
-                        <!-- ── Questions spécifiques Bank of America ──────────────── -->
-                        <p style="font-weight: 600; font-size: 0.92rem; color: #012169; margin-bottom: 16px;">🏦 Bank of America — Application Questions</p>
+                        <!-- ── Questions récurrentes des candidatures ─────────────── -->
 
                         <div class="form-group">
-                            <label for="bofaHasRelatives">Avez-vous des proches (famille, amis) qui travaillent chez Bank of America ou ses filiales ?</label>
+                            <label for="bofaHasRelatives">Avez-vous des proches ou des personnes avec lesquelles vous avez une relation personnelle étroite qui travaillent chez Bank of America ou ses filiales ?</label>
                             <select id="bofaHasRelatives" name="bofa_has_relatives" onchange="document.getElementById('bofaRelativesSection').style.display = this.value === 'Yes' ? 'block' : 'none'">
                                 <option value="No">Non</option>
                                 <option value="Yes">Oui</option>
@@ -2310,28 +2308,28 @@
                         </div>
                         <div id="bofaRelativesSection" style="display:none; margin-top:8px; padding:14px; background:#f8f9fa; border-radius:8px;">
                             <div class="form-group">
-                                <label for="bofaRelativesDetails">Nom et description de la relation</label>
-                                <textarea id="bofaRelativesDetails" name="bofa_relatives_details" rows="2" placeholder="Ex. Jean Dupont, cousin, Analyst — Paris"></textarea>
+                                <label for="bofaRelativesDetails">Indiquez le nom et décrivez la relation</label>
+                                <textarea id="bofaRelativesDetails" name="bofa_relatives_details" rows="2" placeholder="Nom, lien de parenté ou relation, poste, entité"></textarea>
                             </div>
                         </div>
 
                         <div class="form-group" style="margin-top:16px;">
-                            <label for="bofaReferred">Avez-vous été référé·e chez Bank of America ?</label>
+                            <label for="bofaReferred">Avez-vous été recommandé·e pour un emploi chez Bank of America ?</label>
                             <select id="bofaReferred" name="bofa_referred" onchange="document.getElementById('bofaReferrerSection').style.display = ['Yes_employee','Yes_client'].includes(this.value) ? 'block' : 'none'">
                                 <option value="No">Non</option>
-                                <option value="Yes_employee">Oui, par un employé de BofA</option>
-                                <option value="Yes_client">Oui, par un client de BofA</option>
+                                <option value="Yes_employee">Oui, par un employé de Bank of America</option>
+                                <option value="Yes_client">Oui, par un client de Bank of America</option>
                             </select>
                         </div>
                         <div id="bofaReferrerSection" style="display:none; margin-top:8px; padding:14px; background:#f8f9fa; border-radius:8px;">
                             <div class="form-group">
-                                <label for="bofaReferrerName">Nom de la personne qui vous a référé·e</label>
-                                <input type="text" id="bofaReferrerName" name="bofa_referrer_name" placeholder="Ex. Marie Martin">
+                                <label for="bofaReferrerName">Indiquez le nom de la personne qui vous a recommandé·e</label>
+                                <input type="text" id="bofaReferrerName" name="bofa_referrer_name" placeholder="Prénom Nom">
                             </div>
                         </div>
 
                         <div class="form-group" style="margin-top:16px;">
-                            <label for="bofaWorkedAtPwc">Avez-vous travaillé chez PricewaterhouseCoopers (PwC), l'auditeur indépendant de BofA, depuis juillet 2002 ?</label>
+                            <label for="bofaWorkedAtPwc">Travaillez-vous actuellement ou avez-vous travaillé chez PricewaterhouseCoopers LLP (PwC), l'auditeur indépendant de Bank of America, depuis juillet 2002 ?</label>
                             <select id="bofaWorkedAtPwc" name="bofa_worked_at_pwc">
                                 <option value="No">Non</option>
                                 <option value="Yes">Oui</option>
@@ -2339,16 +2337,16 @@
                         </div>
 
                         <div class="form-group" style="margin-top:16px;">
-                            <label for="bofaFinraLicense">Licence FINRA</label>
+                            <label for="bofaFinraLicense">Licence FINRA — La FINRA (Financial Industry Regulatory Authority) est l'organisme américain de régulation des professionnels des marchés financiers.</label>
                             <select id="bofaFinraLicense" name="bofa_finra_license">
                                 <option value="I do not hold a FINRA license">Je ne détiens pas de licence FINRA</option>
-                                <option value="I hold a FINRA license and I DO NOT wish to transfer it">Je détiens une licence FINRA et je NE souhaite PAS la transférer</option>
+                                <option value="I hold a FINRA license and I DO NOT wish to transfer it">Je détiens une licence FINRA et je ne souhaite pas la transférer</option>
                                 <option value="I hold a FINRA license and I DO wish to transfer it">Je détiens une licence FINRA et je souhaite la transférer</option>
                             </select>
                         </div>
 
                         <div class="form-group" style="margin-top:16px;">
-                            <label for="bofaIsVendorWorker">Êtes-vous actuellement un Vendor Worker (contractor, consultant, prestataire onsite) ?</label>
+                            <label for="bofaIsVendorWorker">Êtes-vous actuellement employé·e via un prestataire externe (intérimaire, consultant, sous-traitant ou tout autre statut non permanent) au sein de l'entreprise ?</label>
                             <select id="bofaIsVendorWorker" name="bofa_is_vendor_worker">
                                 <option value="No">Non</option>
                                 <option value="Yes">Oui</option>
@@ -2360,23 +2358,6 @@
                             <select id="bofaPreviouslyApplied" name="bofa_previously_applied">
                                 <option value="No">Non</option>
                                 <option value="Yes">Oui</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group" style="margin-top:16px;">
-                            <label for="bofaRightToWorkType">Type de droit au travail (pour le pays de l'offre BofA)</label>
-                            <select id="bofaRightToWorkType" name="bofa_right_to_work_type">
-                                <option value="">Sélectionnez…</option>
-                                <option value="Citizenship">Citoyenneté (Citizenship)</option>
-                                <option value="Settled / Pre-settled status">Settled / Pre-settled status (UE)</option>
-                                <option value="European Union Blue Card">Carte bleue européenne</option>
-                                <option value="Skilled Worker visa / Tier 2">Skilled Worker visa / Tier 2</option>
-                                <option value="Global Business Mobility visa /Intra-Company Transfer Visa">Intra-Company Transfer Visa</option>
-                                <option value="Indefinite Leave to Remain">Indefinite Leave to Remain</option>
-                                <option value="Graduate visa / Stamp 1G / Youth Mobility visa">Graduate visa</option>
-                                <option value="Spousal/Dependent visa">Spousal/Dependent visa</option>
-                                <option value="Global Talent Visa (Tier 1)">Global Talent Visa (Tier 1)</option>
-                                <option value="Other">Autre (Other)</option>
                             </select>
                         </div>
 
@@ -4278,7 +4259,6 @@
             setVal('bofaFinraLicense', profile.bofa_finra_license);
             setVal('bofaIsVendorWorker', profile.bofa_is_vendor_worker);
             setVal('bofaPreviouslyApplied', profile.bofa_previously_applied);
-            setVal('bofaRightToWorkType', profile.bofa_right_to_work_type);
             // BofA réglementaires
             setVal('bofaOtherBusiness', profile.bofa_other_business);
             if (profile.bofa_other_business === 'Yes') document.getElementById('bofaOtherBusinessSection').style.display = 'block';
@@ -5106,7 +5086,6 @@
                 bofa_finra_license: document.getElementById('bofaFinraLicense')?.value || 'I do not hold a FINRA license',
                 bofa_is_vendor_worker: document.getElementById('bofaIsVendorWorker')?.value || 'No',
                 bofa_previously_applied: document.getElementById('bofaPreviouslyApplied')?.value || 'No',
-                bofa_right_to_work_type: document.getElementById('bofaRightToWorkType')?.value || '',
                 // BofA — Questions réglementaires
                 bofa_other_business: document.getElementById('bofaOtherBusiness')?.value || 'No',
                 bofa_other_business_details: document.getElementById('bofaOtherBusinessDetails')?.value?.trim() || '',

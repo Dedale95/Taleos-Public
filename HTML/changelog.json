@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.194",
+    "date": "2026-06-02T18:30:00Z",
+    "text": "Bank of America — Education ignorée (section laissée vide), langues 2 et 3 maintenant ajoutées correctement (bouton trouvé par proximité, sans confondre avec Education)."
+  },
+  {
     "version": "1.2.193",
     "date": "2026-06-02T18:19:00Z",
     "text": "Bank of America — 'Avez-vous déjà travaillé chez BofA ?' ajouté dans Mon Profil (Non par défaut), réponse automatique configurée par l'utilisateur."

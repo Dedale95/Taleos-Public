@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """
-Revolut — Scraper Next.js (revolut.com/careers)
-=================================================
-Phase 1 : Une seule page Playwright sur /careers/ → __NEXT_DATA__ → 686 positions
-           (title, team, locations, ID — descriptions vides à ce stade)
-Phase 2 : Playwright concurrent sur chaque page /careers/position/{slug}-{id}/
-           → __NEXT_DATA__.pageProps.position.description (HTML complet)
+Revolut — Scraper (revolut.com/careers)
+========================================
+Revolut utilise un SPA (React/Next.js) derrière Cloudflare Bot Protection.
+`__NEXT_DATA__` n'est plus disponible SSR depuis mi-2026.
 
-Aucune API JSON publique accessible sans auth (Ashby requiert OAuth).
-revolut.com bloque les requêtes HTTP simples (403) → Playwright obligatoire.
+Stratégie multi-couches (dans l'ordre) :
+  1. playwright-stealth pour contourner la détection Cloudflare
+  2. Interception des réponses XHR/fetch du SPA (API JSON interne)
+  3. Lecture de window.__NEXT_DATA__ si encore présent
+  4. Extraction depuis le DOM (liens /careers/position/)
+  5. Fallback : lecture des scripts JSON inline
+
+Phase 2 (descriptions) : même approche sur chaque page de poste.
 """
 from __future__ import annotations
 
@@ -27,6 +31,32 @@ try:
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
 
+# playwright-stealth : contourne la détection Cloudflare / headless
+try:
+    from playwright_stealth import stealth_async as _stealth_async
+    STEALTH_AVAILABLE = True
+except ImportError:
+    STEALTH_AVAILABLE = False
+
+# Script de stealth minimal si le package n'est pas dispo
+_STEALTH_JS = """
+(function () {
+    const overwrite = (obj, prop, value) => {
+        try { Object.defineProperty(obj, prop, { get: () => value, configurable: true }); }
+        catch(e) {}
+    };
+    overwrite(navigator, 'webdriver', undefined);
+    overwrite(navigator, 'plugins', [1, 2, 3, 4, 5]);
+    overwrite(navigator, 'languages', ['en-US', 'en']);
+    if (!window.chrome) window.chrome = { runtime: {} };
+    const orig = window.navigator.permissions.query;
+    window.navigator.permissions.query = (params) =>
+        params.name === 'notifications'
+            ? Promise.resolve({ state: Notification.permission })
+            : orig(params);
+})();
+"""
+
 # ───────────────────────────────── Logging ──────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
@@ -42,10 +72,11 @@ logger = logging.getLogger(__name__)
 DB_PATH       = Path(__file__).parent / "revolut_jobs.db"
 CAREERS_URL   = "https://www.revolut.com/careers/"
 JOB_BASE_URL  = "https://www.revolut.com/careers/position"
-CONCURRENCY   = 8        # pages Playwright simultanées (detail)
-PAGE_TIMEOUT  = 20_000   # ms
-HEADLESS      = True
-USER_AGENT    = (
+CONCURRENCY    = 6        # pages Playwright simultanées (detail)
+PAGE_TIMEOUT   = 40_000   # ms
+CF_WAIT_S      = 10       # secondes d'attente pour que le challenge CF se résolve
+HEADLESS       = True
+USER_AGENT     = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
@@ -304,80 +335,317 @@ def mark_expired(conn: sqlite3.Connection, urls: set[str]) -> None:
     conn.commit()
 
 
+# ──────────────────────── Helpers stealth & context ──────────────────────────
+
+async def _apply_stealth(page: Page) -> None:
+    """Applique les patches anti-détection sur la page."""
+    if STEALTH_AVAILABLE:
+        await _stealth_async(page)
+    else:
+        await page.add_init_script(_STEALTH_JS)
+
+
+async def _new_stealth_context(browser):
+    """Crée un contexte navigateur avec headers et viewport réalistes."""
+    context = await browser.new_context(
+        user_agent=USER_AGENT,
+        viewport={"width": 1280, "height": 800},
+        locale="en-US",
+        timezone_id="Europe/London",
+        extra_http_headers={
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
+    )
+    return context
+
+
+def _extract_positions_from_data(data) -> list[dict]:
+    """Tente d'extraire une liste de positions depuis un objet JSON quelconque."""
+    if isinstance(data, list) and len(data) > 3:
+        # Vérifier que ça ressemble à des offres (id + text ou title)
+        if data and isinstance(data[0], dict) and (
+            "text" in data[0] or "title" in data[0] or "name" in data[0]
+        ):
+            return data
+    if isinstance(data, dict):
+        for key in ("positions", "jobs", "data", "results", "openings", "items"):
+            val = data.get(key)
+            if isinstance(val, list) and len(val) > 3:
+                if val and isinstance(val[0], dict):
+                    return val
+        # Imbriqué : props.pageProps.positions
+        props = data.get("props", {}) or {}
+        page_props = props.get("pageProps", {}) or {}
+        positions = page_props.get("positions")
+        if isinstance(positions, list) and positions:
+            return positions
+    return []
+
+
 # ──────────────────────────── Phase 1 : listing ──────────────────────────────
-async def fetch_all_positions(context: BrowserContext) -> list[dict]:
+async def fetch_all_positions(browser) -> list[dict]:
     """
-    Charge revolut.com/careers/ via Playwright et extrait les 686 positions
-    depuis window.__NEXT_DATA__.props.pageProps.positions.
+    Charge revolut.com/careers/ et extrait toutes les positions.
+    Stratégies (dans l'ordre) :
+      1. window.__NEXT_DATA__ (legacy SSR)
+      2. Interception des réponses XHR/fetch JSON du SPA
+      3. Scripts JSON inline (<script type="application/json">)
+      4. Liens DOM vers /careers/position/
     """
+    context = await _new_stealth_context(browser)
     page = await context.new_page()
+    await _apply_stealth(page)
+
+    # ── Interception réseau ──────────────────────────────────────────────────
+    captured: list[dict] = []
+
+    async def on_response(response):
+        ct = response.headers.get("content-type", "")
+        if "application/json" not in ct:
+            return
+        url_lower = response.url.lower()
+        # Cibler les URLs qui ressemblent à des endpoints d'offres
+        if not any(k in url_lower for k in (
+            "/api/", "careers", "positions", "jobs", "openings", "posting"
+        )):
+            return
+        try:
+            data = await response.json()
+        except Exception:
+            return
+        found = _extract_positions_from_data(data)
+        if found:
+            logger.info(f"  [XHR] {len(found)} positions depuis {response.url[:80]}")
+            captured.extend(found)
+
+    page.on("response", on_response)
+
+    # ── Chargement de la page ────────────────────────────────────────────────
     try:
-        # "networkidle" timeout car Revolut a des analytics qui keepalive en permanence
-        await page.goto(CAREERS_URL, timeout=30_000, wait_until="domcontentloaded")
-        await asyncio.sleep(5)  # attendre que Next.js injecte __NEXT_DATA__
-        next_data = await page.evaluate("() => window.__NEXT_DATA__")
-        if not next_data:
-            logger.error("__NEXT_DATA__ absent sur la page Revolut careers")
-            return []
-        positions = (
-            next_data.get("props", {})
-            .get("pageProps", {})
-            .get("positions", [])
-        )
-        logger.info(f"Phase 1 terminée — {len(positions)} positions Revolut")
-        return positions
+        await page.goto(CAREERS_URL, timeout=60_000, wait_until="domcontentloaded")
+        # Attendre que le challenge Cloudflare se résolve et que le SPA s'initialise
+        await asyncio.sleep(CF_WAIT_S)
+
+        # Attendre networkidle (avec tolérance si keepalives analytics bloquent)
+        try:
+            await page.wait_for_load_state("networkidle", timeout=20_000)
+        except Exception:
+            pass
+        await asyncio.sleep(3)
+
+        # ── Stratégie 1 : __NEXT_DATA__ ──────────────────────────────────────
+        try:
+            next_data = await page.evaluate("() => window.__NEXT_DATA__")
+            if next_data:
+                found = _extract_positions_from_data(next_data)
+                if found:
+                    logger.info(f"  [__NEXT_DATA__] {len(found)} positions")
+                    return found
+        except Exception:
+            pass
+
+        # ── Stratégie 2 : réponses XHR capturées ─────────────────────────────
+        if captured:
+            # Dédupliquer par id/text
+            seen = set()
+            unique = []
+            for pos in captured:
+                key = pos.get("id") or pos.get("text") or str(pos)
+                if key not in seen:
+                    seen.add(key)
+                    unique.append(pos)
+            logger.info(f"  [XHR total] {len(unique)} positions uniques")
+            return unique
+
+        # ── Stratégie 3 : scripts JSON inline ────────────────────────────────
+        try:
+            inline = await page.evaluate("""
+                () => {
+                    for (const s of document.querySelectorAll(
+                        'script[type="application/json"], script#__NEXT_DATA__'
+                    )) {
+                        try {
+                            const d = JSON.parse(s.textContent);
+                            if (d && d.positions) return d;
+                            if (Array.isArray(d) && d.length > 5 && d[0] && (d[0].id || d[0].text))
+                                return d;
+                        } catch(e) {}
+                    }
+                    return null;
+                }
+            """)
+            if inline:
+                found = _extract_positions_from_data(inline)
+                if found:
+                    logger.info(f"  [JSON inline] {len(found)} positions")
+                    return found
+        except Exception:
+            pass
+
+        # ── Stratégie 4 : liens DOM /careers/position/ ───────────────────────
+        try:
+            links = await page.evaluate("""
+                () => {
+                    const seen = new Set();
+                    const jobs = [];
+                    for (const a of document.querySelectorAll('a[href*="/careers/position/"]')) {
+                        const href = a.getAttribute('href') || '';
+                        if (seen.has(href)) continue;
+                        seen.add(href);
+                        // Récupérer le titre depuis l'élément ou ses enfants
+                        const title = (
+                            a.querySelector('[class*="title"],[class*="name"],[class*="heading"]')
+                            || a
+                        ).textContent.trim();
+                        // Extraire l'ID depuis le slug (dernier segment numérique ou alphanumérique)
+                        const m = href.match(/([a-zA-Z0-9]+)\\/?$/);
+                        jobs.push({ href, title, rawId: m ? m[1] : '' });
+                    }
+                    return jobs;
+                }
+            """)
+            if links and len(links) > 5:
+                logger.info(f"  [DOM links] {len(links)} postes trouvés")
+                # Convertir en format compatible avec le reste du pipeline
+                positions = []
+                for lk in links:
+                    positions.append({
+                        "id":        lk.get("rawId", ""),
+                        "text":      lk.get("title", ""),
+                        "team":      "",
+                        "locations": [],
+                        "_href":     lk.get("href", ""),
+                    })
+                return positions
+        except Exception:
+            pass
+
+        logger.error("Aucune position trouvée après toutes les stratégies")
+        return []
+
     except Exception as exc:
         logger.error(f"Erreur Phase 1 Revolut: {exc}")
         return []
     finally:
-        await page.close()
+        await context.close()
 
 
 # ──────────────────────────── Phase 2 : détails ──────────────────────────────
-async def fetch_detail(context: BrowserContext,
+async def fetch_detail(browser,
                         sem: asyncio.Semaphore,
                         job_url: str) -> tuple[str, str, str]:
     """
     Retourne (job_url, description_html, pub_date).
-    Pubdate: extraite de la description ou date du jour.
+    Stratégies : __NEXT_DATA__ → XHR → DOM.
     """
     async with sem:
+        context = await _new_stealth_context(browser)
         page = await context.new_page()
+        await _apply_stealth(page)
+
+        # Bloquer médias/fonts pour aller plus vite
+        await page.route(
+            "**/*",
+            lambda route: route.abort()
+            if route.request.resource_type in ("image", "media", "font", "stylesheet")
+            else route.continue_(),
+        )
+
+        # Intercepter les réponses JSON
+        captured_desc = []
+
+        async def on_resp(response):
+            ct = response.headers.get("content-type", "")
+            if "application/json" not in ct:
+                return
+            url_lower = response.url.lower()
+            if not any(k in url_lower for k in ("/api/", "position", "career", "job")):
+                return
+            try:
+                data = await response.json()
+                if isinstance(data, dict):
+                    desc = (
+                        data.get("description")
+                        or (data.get("position") or {}).get("description")
+                        or (data.get("data") or {}).get("description")
+                    )
+                    if desc:
+                        captured_desc.append(desc)
+            except Exception:
+                pass
+
+        page.on("response", on_resp)
+
         try:
-            await page.route(
-                "**/*",
-                lambda route: route.abort()
-                if route.request.resource_type in ("image", "media", "font", "stylesheet")
-                else route.continue_(),
-            )
-            await page.goto(job_url, timeout=30_000, wait_until="domcontentloaded")
-            await asyncio.sleep(2.5)  # attendre l'hydratation Next.js
+            await page.goto(job_url, timeout=PAGE_TIMEOUT, wait_until="domcontentloaded")
+            await asyncio.sleep(5)
 
-            next_data = await page.evaluate("() => window.__NEXT_DATA__")
-            if not next_data:
-                return job_url, "", ""
+            try:
+                await page.wait_for_load_state("networkidle", timeout=12_000)
+            except Exception:
+                pass
+            await asyncio.sleep(2)
 
-            pos = (
-                next_data.get("props", {})
-                .get("pageProps", {})
-                .get("position", {}) or {}
-            )
-            desc_html = pos.get("description", "") or ""
+            # Stratégie 1 : __NEXT_DATA__
+            try:
+                next_data = await page.evaluate("() => window.__NEXT_DATA__")
+                if next_data:
+                    pos = (
+                        next_data.get("props", {})
+                        .get("pageProps", {})
+                        .get("position", {}) or {}
+                    )
+                    desc_html = pos.get("description", "") or ""
+                    if not desc_html and not pos.get("text"):
+                        return job_url, "__EXPIRED__", ""
+                    if desc_html:
+                        return job_url, desc_html, datetime.utcnow().strftime("%Y-%m-%d")
+            except Exception:
+                pass
 
-            # Vérifier expiration
-            if not desc_html and not pos.get("text"):
+            # Stratégie 2 : XHR capturé
+            if captured_desc:
+                return job_url, captured_desc[0], datetime.utcnow().strftime("%Y-%m-%d")
+
+            # Stratégie 3 : DOM
+            try:
+                desc_dom = await page.evaluate("""
+                    () => {
+                        // Chercher les blocs de description courants
+                        const selectors = [
+                            '[class*="description"]',
+                            '[class*="content"]',
+                            '[data-qa="job-description"]',
+                            'article',
+                            'main .prose',
+                            '.job-description',
+                        ];
+                        for (const sel of selectors) {
+                            const el = document.querySelector(sel);
+                            if (el && el.innerText && el.innerText.length > 100)
+                                return el.innerHTML;
+                        }
+                        return null;
+                    }
+                """)
+                if desc_dom:
+                    return job_url, desc_dom, datetime.utcnow().strftime("%Y-%m-%d")
+            except Exception:
+                pass
+
+            # Aucune description trouvée — offre peut-être expirée
+            page_text = await page.evaluate("() => document.body.innerText") or ""
+            if len(page_text.strip()) < 200:
                 return job_url, "__EXPIRED__", ""
 
-            # Extraire la date depuis la description (rare) ou laisser vide
-            pub_date = datetime.utcnow().strftime("%Y-%m-%d")
-
-            return job_url, desc_html, pub_date
+            return job_url, "", ""
 
         except Exception as exc:
             logger.warning(f"Detail failed: {job_url} — {exc}")
             return job_url, "", ""
         finally:
-            await page.close()
+            await context.close()
 
 
 # ────────────────────────────────── Main ─────────────────────────────────────
@@ -391,12 +659,21 @@ async def main() -> None:
     existing_urls = get_existing_urls(conn)
     logger.info(f"DB existante : {len(existing_urls)} offres")
 
+    logger.info(f"playwright-stealth disponible: {STEALTH_AVAILABLE}")
+
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=HEADLESS)
-        context = await browser.new_context(user_agent=USER_AGENT)
+        browser = await pw.chromium.launch(
+            headless=HEADLESS,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-blink-features=AutomationControlled",
+            ],
+        )
 
         # ── Phase 1 : listing ─────────────────────────────────────────────
-        positions_raw = await fetch_all_positions(context)
+        positions_raw = await fetch_all_positions(browser)
         if not positions_raw:
             logger.error("Aucune position trouvée — abandon")
             await browser.close()
@@ -407,16 +684,25 @@ async def main() -> None:
         jobs_meta: list[dict] = []
         today = datetime.utcnow().strftime("%Y-%m-%d")
         for pos in positions_raw:
-            pos_id    = pos.get("id", "")
-            title     = (pos.get("text") or "").strip()
-            team      = pos.get("team", "")
-            locations = pos.get("locations", [])
+            pos_id    = str(pos.get("id", "") or "").strip()
+            title     = (pos.get("text") or pos.get("title") or pos.get("name") or "").strip()
+            team      = pos.get("team", "") or pos.get("department", "") or ""
+            locations = pos.get("locations", []) or pos.get("location", []) or []
+            if isinstance(locations, str):
+                locations = [{"name": locations, "country": locations}]
 
-            if not pos_id or not title:
+            if not title:
                 continue
 
-            slug    = _title_to_slug(title)
-            job_url = f"{JOB_BASE_URL}/{slug}-{pos_id}/"
+            # URL : fournie directement (stratégie DOM) ou construite depuis id+slug
+            raw_href = pos.get("_href", "")
+            if raw_href:
+                job_url = raw_href if raw_href.startswith("http") else f"https://www.revolut.com{raw_href}"
+            elif pos_id:
+                slug    = _title_to_slug(title)
+                job_url = f"{JOB_BASE_URL}/{slug}-{pos_id}/"
+            else:
+                continue
 
             loc_str, country_fr, region = _build_location(locations)
 
@@ -446,7 +732,7 @@ async def main() -> None:
         # ── Phase 2 : détails (descriptions) ──────────────────────────────
         logger.info(f"Phase 2 — Fetch descriptions ({len(jobs_meta)} offres, concurrency={CONCURRENCY})…")
         sem = asyncio.Semaphore(CONCURRENCY)
-        tasks = [fetch_detail(context, sem, j["job_url"]) for j in jobs_meta]
+        tasks = [fetch_detail(browser, sem, j["job_url"]) for j in jobs_meta]
         url_to_detail: dict[str, tuple[str, str]] = {}
         expired_urls: set[str] = set()
         done = 0

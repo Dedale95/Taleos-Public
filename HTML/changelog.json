@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.190",
+    "date": "2026-06-02T17:27:00Z",
+    "text": "Profil — suppression de la question 'comment avez-vous découvert l'offre' (toujours le site carrière), textareas des champs conditionnels agrandies. BPCE — site Natixis utilisé par défaut."
+  },
+  {
     "version": "1.2.189",
     "date": "2026-06-02T17:21:00Z",
     "text": "Bank of America — réponse automatique 'Oui' pour les candidatures précédentes (question supprimée du profil)."

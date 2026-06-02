@@ -1,7 +1,7 @@
 {
-  "version": "1.2.189",
-  "version_name": "1.2.189-bofa-previously-applied-yes",
-  "published_at": "2026-06-02T17:22:43Z",
-  "release_notes": "Bank of America — réponse 'Oui' automatique pour la question sur les candidatures précédentes.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.189.zip"
+  "version": "1.2.190",
+  "version_name": "1.2.190-profile-textarea-bpce-site",
+  "published_at": "2026-06-02T17:28:11Z",
+  "release_notes": "Profil — suppression de la question 'comment avez-vous découvert l'offre', textareas agrandies. BPCE — utilise le site carrière de l'entreprise par défaut.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.190.zip"
 }

@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.193",
+    "date": "2026-06-02T18:19:00Z",
+    "text": "Bank of America — 'Avez-vous déjà travaillé chez BofA ?' ajouté dans Mon Profil (Non par défaut), réponse automatique configurée par l'utilisateur."
+  },
+  {
     "version": "1.2.192",
     "date": "2026-06-02T18:15:00Z",
     "text": "Bank of America — 3 corrections : bannière visible en haut, langues 2 et 3 ajoutées (Add Another détecté), toutes les questions Step 3 remplies (FINRA, préavis, etc.)."

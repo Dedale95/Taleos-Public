@@ -1,7 +1,7 @@
 {
-  "version": "1.2.192",
-  "version_name": "1.2.192-bofa-banner-langs-step3",
-  "published_at": "2026-06-02T18:16:25Z",
-  "release_notes": "Bank of America — bannière remise en haut (60px), langues 2 et 3 corrigées (Add Another), Step 3 questions remplies avec détection contextuelle du label.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.192.zip"
+  "version": "1.2.193",
+  "version_name": "1.2.193-bofa-previously-employed-profile",
+  "published_at": "2026-06-02T18:20:24Z",
+  "release_notes": "Bank of America — ajout dans Mon Profil de la question Avez-vous déjà travaillé chez Bank of America ?, réponse lue depuis le profil au lieu d'être figée à Non.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.193.zip"
 }

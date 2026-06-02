@@ -2353,6 +2353,14 @@
                             </select>
                         </div>
 
+                        <div class="form-group" style="margin-top:16px;">
+                            <label for="bofaPreviouslyEmployed">Avez-vous déjà été employé·e par Bank of America (ou l'une de ses filiales), ou avez-vous effectué un travail pour la banque via un tiers ?</label>
+                            <select id="bofaPreviouslyEmployed" name="bofa_previously_employed">
+                                <option value="No">Non</option>
+                                <option value="Yes">Oui</option>
+                            </select>
+                        </div>
+
                     </div>
                 </div>
 
@@ -4227,6 +4235,7 @@
             setVal('bofaWorkedAtPwc', profile.bofa_worked_at_pwc);
             setVal('bofaFinraLicense', profile.bofa_finra_license);
             setVal('bofaIsVendorWorker', profile.bofa_is_vendor_worker);
+            setVal('bofaPreviouslyEmployed', profile.bofa_previously_employed);
             setVal('bofaPreviouslyApplied', profile.bofa_previously_applied);
             // BofA réglementaires
             setVal('bofaOtherBusiness', profile.bofa_other_business);
@@ -5054,6 +5063,7 @@
                 bofa_worked_at_pwc: document.getElementById('bofaWorkedAtPwc')?.value || 'No',
                 bofa_finra_license: document.getElementById('bofaFinraLicense')?.value || 'I do not hold a FINRA license',
                 bofa_is_vendor_worker: document.getElementById('bofaIsVendorWorker')?.value || 'No',
+                bofa_previously_employed: document.getElementById('bofaPreviouslyEmployed')?.value || 'No',
                 bofa_previously_applied: document.getElementById('bofaPreviouslyApplied')?.value || 'No',
                 // BofA — Questions réglementaires
                 bofa_other_business: document.getElementById('bofaOtherBusiness')?.value || 'No',

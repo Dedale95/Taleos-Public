@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.214",
+    "date": "2026-06-03T20:35:00Z",
+    "text": "Bank of America — langues : suppression complète des ghost rows (boucle avec re-fetch DOM après chaque Delete, plus de lignes fantômes bloquantes)."
+  },
+  {
     "version": "1.2.213",
     "date": "2026-06-03T20:20:00Z",
     "text": "Bank of America — T&C corrigé (aria-checked + attente rendu) + suppression lignes de langue vides orphelines (Select One)."

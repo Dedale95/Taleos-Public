@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.210",
+    "date": "2026-06-03T19:25:00Z",
+    "text": "Bank of America — langues : réécriture complète de la détection de lignes (paires langBtn/wsBtn) + debug log + dedup automatique."
+  },
+  {
     "version": "1.2.209",
     "date": "2026-06-03T19:10:00Z",
     "text": "Bank of America — langues : détection robuste via Written and Spoken (capte la row 1) + suppression automatique des doublons de langues."

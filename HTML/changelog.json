@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.200",
+    "date": "2026-06-03T16:17:00Z",
+    "text": "Bank of America — résolution définitive : le filler passe maintenant toujours par le formulaire vierge (/apply/applyManually), même pour les candidatures déjà soumises où Workday chargeait un formulaire pré-rempli incompatible."
+  },
+  {
     "version": "1.2.199",
     "date": "2026-06-03T16:07:00Z",
     "text": "Bank of America — formulaire EMEA (Paris) : les champs pré-remplis sont maintenant correctement détectés (plus de faux \"champ introuvable\"), et les menus déjà sélectionnés sont ignorés proprement."

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.199",
-  "version_name": "1.2.199-bofa-emea-compat",
-  "published_at": "2026-06-03T16:08:58Z",
-  "release_notes": "Bank of America — compatibilité formulaire EMEA : fallback par name attribute si formField-* absent, détection items pré-sélectionnés (promptOption) pour How Did You Hear et Country Phone Code.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.199.zip"
+  "version": "1.2.200",
+  "version_name": "1.2.200-bofa-force-applymanually",
+  "published_at": "2026-06-03T16:18:23Z",
+  "release_notes": "Bank of America — formulaire toujours vierge : redirection systématique vers /apply/applyManually pour éviter le formulaire pré-rempli EMEA où les champs formField-* sont absents.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.200.zip"
 }

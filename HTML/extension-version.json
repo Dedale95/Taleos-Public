@@ -1,7 +1,7 @@
 {
-  "version": "1.2.214",
-  "version_name": "1.2.214-bofa-fix-dedup-loop-ghost-rows",
-  "published_at": "2026-06-03T21:13:42Z",
-  "release_notes": "Bank of America — suppression complète des ghost rows de langue (boucle re-fetch après chaque Delete).",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.214.zip"
+  "version": "1.2.215",
+  "version_name": "1.2.215-bofa-fix-lang-arialabel-priority",
+  "published_at": "2026-06-03T21:40:23Z",
+  "release_notes": "Bank of America — langues : identification langBtn/wsBtn par aria-label en priorité (évite le swap quand les deux affichent 'Select One').",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.215.zip"
 }

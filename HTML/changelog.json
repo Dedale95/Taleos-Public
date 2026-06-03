@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.206",
+    "date": "2026-06-03T18:35:00Z",
+    "text": "Bank of America — correction boucle infinie sur Apply Manually : le filler détecte maintenant le formulaire déjà rendu et ne redirige plus en boucle."
+  },
+  {
     "version": "1.2.205",
     "date": "2026-06-03T16:53:00Z",
     "text": "Bank of America — mapping complet Firebase↔formulaire : les 6 champs de détails conditionnels ajoutés, 21/21 questions de la page 3 correctement remplies."

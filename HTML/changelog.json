@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.204",
+    "date": "2026-06-03T16:47:00Z",
+    "text": "Bank of America — page 3 entièrement corrigée : tous les menus sont maintenant remplis (FINRA, préavis, referred...) grâce à la détection via legend/richText au lieu de label."
+  },
+  {
     "version": "1.2.203",
     "date": "2026-06-03T16:39:00Z",
     "text": "Bank of America — CV : suppression directe via delete-file, skip si le bon fichier est déjà uploadé, attente de la confirmation Workday avant de continuer."

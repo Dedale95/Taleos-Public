@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.205",
+    "date": "2026-06-03T16:53:00Z",
+    "text": "Bank of America — mapping complet Firebase↔formulaire : les 6 champs de détails conditionnels ajoutés, 21/21 questions de la page 3 correctement remplies."
+  },
+  {
     "version": "1.2.204",
     "date": "2026-06-03T16:47:00Z",
     "text": "Bank of America — page 3 entièrement corrigée : tous les menus sont maintenant remplis (FINRA, préavis, referred...) grâce à la détection via legend/richText au lieu de label."

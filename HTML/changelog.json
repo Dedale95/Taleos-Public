@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.207",
+    "date": "2026-06-03T18:45:00Z",
+    "text": "Bank of America — correction doublons de langues : le filler ne re-sélectionne plus une langue déjà présente dans le formulaire (erreur \"Duplicate language entries are not allowed\")."
+  },
+  {
     "version": "1.2.206",
     "date": "2026-06-03T18:35:00Z",
     "text": "Bank of America — correction boucle infinie sur Apply Manually : le filler détecte maintenant le formulaire déjà rendu et ne redirige plus en boucle."

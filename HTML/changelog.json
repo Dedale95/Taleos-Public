@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.199",
+    "date": "2026-06-03T16:07:00Z",
+    "text": "Bank of America — formulaire EMEA (Paris) : les champs pré-remplis sont maintenant correctement détectés (plus de faux \"champ introuvable\"), et les menus déjà sélectionnés sont ignorés proprement."
+  },
+  {
     "version": "1.2.198",
     "date": "2026-06-02T19:43:00Z",
     "text": "Bank of America — déblocage complet : l'étape \"Self Identify\" (6 étapes au lieu de 5) est maintenant reconnue et franchie automatiquement ; menu \"How Did You Hear About Us?\" corrigé."

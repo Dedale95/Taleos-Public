@@ -434,7 +434,26 @@ def main():
 
     # 1. Fetch
     logger.info("\n📋 ÉTAPE 1 — Récupération via API REST")
-    raw_items = fetch_all_jobs()
+    try:
+        raw_items = fetch_all_jobs()
+    except requests.exceptions.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else 0
+        if status in (403, 429, 503):
+            # AXA bloque parfois les IPs CI (anti-bot) → conserver les données
+            # existantes du cache et sortir proprement (exit 0) pour ne pas
+            # bloquer la consolidation du pipeline.
+            logger.warning(
+                f"⚠️ AXA API inaccessible (HTTP {status}) — données du cache conservées. "
+                f"Le pipeline continue sans mise à jour AXA aujourd'hui."
+            )
+            return
+        raise  # Autre erreur HTTP → remonter normalement
+    except Exception as exc:
+        logger.warning(
+            f"⚠️ Erreur réseau AXA ({type(exc).__name__}: {exc}) — "
+            f"données du cache conservées."
+        )
+        return
     logger.info(f"   → {len(raw_items)} offres brutes récupérées")
 
     # 2. Transform

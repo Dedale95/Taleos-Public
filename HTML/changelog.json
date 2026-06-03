@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.203",
+    "date": "2026-06-03T16:39:00Z",
+    "text": "Bank of America — CV : suppression directe via delete-file, skip si le bon fichier est déjà uploadé, attente de la confirmation Workday avant de continuer."
+  },
+  {
     "version": "1.2.202",
     "date": "2026-06-03T16:33:00Z",
     "text": "Bank of America — langues refaites : chaque langue est maintenant matchée par son nom (French, English, Spanish), le niveau et la case Fluent sont vérifiés et corrigés par ligne, plus de doublons ni d'oublis."

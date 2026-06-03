@@ -1,7 +1,7 @@
 {
-  "version": "1.2.202",
-  "version_name": "1.2.202-bofa-languages-rewrite",
-  "published_at": "2026-06-03T16:34:44Z",
-  "release_notes": "Bank of America — refonte complète des langues : matching par nom (plus par index), détection et correction du niveau/native par ligne, plus de doublons ni d'oublis.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.202.zip"
+  "version": "1.2.203",
+  "version_name": "1.2.203-bofa-cv-upload-fix",
+  "published_at": "2026-06-03T16:40:09Z",
+  "release_notes": "Bank of America — CV : sélecteur delete-file direct, skip si bon fichier déjà uploadé, attente confirmation file-upload-successful.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.203.zip"
 }

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.201",
-  "version_name": "1.2.201-bofa-input-diag",
-  "published_at": "2026-06-03T16:23:20Z",
-  "release_notes": "Bank of America — diagnostic Step 1 : log de tous les inputs visibles + fallback id$='--fieldName' pour trouver les champs sur formulaire EMEA.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.201.zip"
+  "version": "1.2.202",
+  "version_name": "1.2.202-bofa-languages-rewrite",
+  "published_at": "2026-06-03T16:34:44Z",
+  "release_notes": "Bank of America — refonte complète des langues : matching par nom (plus par index), détection et correction du niveau/native par ligne, plus de doublons ni d'oublis.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.202.zip"
 }

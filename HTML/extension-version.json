@@ -1,7 +1,7 @@
 {
-  "version": "1.2.212",
-  "version_name": "1.2.212-bofa-fix-lang-wait-safe-add",
-  "published_at": "2026-06-03T20:33:58Z",
-  "release_notes": "Bank of America — langues : attente rendu React avant détection + sécurisation du bouton Add (ne clique plus sur Work Experience par erreur).",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.212.zip"
+  "version": "1.2.213",
+  "version_name": "1.2.213-bofa-fix-tc-dedup-empty-rows",
+  "published_at": "2026-06-03T21:06:53Z",
+  "release_notes": "Bank of America — T&C : détection aria-checked + attente rendu. Langues : suppression lignes vides orphelines (Select One) en plus des doublons.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.213.zip"
 }

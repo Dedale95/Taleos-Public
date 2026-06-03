@@ -1,7 +1,7 @@
 {
   "version": "1.2.205",
   "version_name": "1.2.205-bofa-fetchprofile-bofa-fields",
-  "published_at": "2026-06-03T16:54:15Z",
+  "published_at": "2026-06-03T18:14:07Z",
   "release_notes": "Bank of America — fetchProfile : ajout des 6 champs de détails conditionnels manquants (relatives_details, referrer_name, other_business_details, medical_details, additional_info_details, right_to_work_type).",
   "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.205.zip"
 }

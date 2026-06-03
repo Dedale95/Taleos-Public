@@ -1,7 +1,7 @@
 {
-  "version": "1.2.210",
-  "version_name": "1.2.210-bofa-fix-lang-pairwise",
-  "published_at": "2026-06-03T20:15:03Z",
-  "release_notes": "Bank of America — langues : détection par paires de boutons + debug log pour identifier rows.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.210.zip"
+  "version": "1.2.211",
+  "version_name": "1.2.211-bofa-review-timer-lang-fix",
+  "published_at": "2026-06-03T20:23:05Z",
+  "release_notes": "Bank of America — pause 60s avant soumission pour vérification manuelle + correction détection lignes de langues.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.211.zip"
 }

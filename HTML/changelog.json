@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.216",
+    "date": "2026-06-03T22:00:00Z",
+    "text": "Bank of America — détection 'Vous avez déjà candidaté' : Taleos mis à jour automatiquement + fermeture de l'onglet."
+  },
+  {
     "version": "1.2.215",
     "date": "2026-06-03T20:50:00Z",
     "text": "Bank of America — langues : priorité aria-label pour identifier langBtn vs wsBtn (corrige le swap 'French introuvable' quand les deux boutons montrent 'Select One')."

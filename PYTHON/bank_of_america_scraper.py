@@ -779,6 +779,9 @@ def main() -> None:
 
     conn = init_db(DB_PATH)
 
+    # Timestamp de début du run — toute offre non mise à jour pendant ce run sera supprimée
+    run_start = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
     total = 0
 
     # 1. Workday sources (EMEA → APAC → US)
@@ -795,6 +798,14 @@ def main() -> None:
         total += n
     except Exception as e:
         logger.error(f"Erreur campus feed: {e}", exc_info=True)
+
+    # Supprimer les offres qui n'ont pas été vues lors de ce run (= retirées du site BofA)
+    cur = conn.execute("SELECT COUNT(*) FROM jobs WHERE scraped_at < ?", (run_start,))
+    stale_count = cur.fetchone()[0]
+    if stale_count > 0:
+        conn.execute("DELETE FROM jobs WHERE scraped_at < ?", (run_start,))
+        conn.commit()
+        logger.info(f"🗑️  {stale_count} offre(s) expirée(s) supprimée(s) (non vues ce run)")
 
     # Résumé
     logger.info("=" * 70)

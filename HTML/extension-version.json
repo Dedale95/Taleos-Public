@@ -1,7 +1,7 @@
 {
-  "version": "1.2.216",
-  "version_name": "1.2.216-bofa-already-applied-detection",
-  "published_at": "2026-06-04T15:57:30Z",
-  "release_notes": "Bank of America — détection 'Vous avez déjà candidaté' : mise à jour Taleos automatique + fermeture de l'onglet.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.216.zip"
+  "version": "1.2.217",
+  "version_name": "1.2.217-bofa-viewbutton-detection",
+  "published_at": "2026-06-04T16:09:52Z",
+  "release_notes": "Bank of America — détection 'déjà candidaté' étendue au bouton View Application (data-automation-id=viewButton).",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.217.zip"
 }

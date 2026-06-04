@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.217",
+    "date": "2026-06-04T06:00:00Z",
+    "text": "Bank of America — détection 'déjà candidaté' étendue au bouton View Application en plus du texte."
+  },
+  {
     "version": "1.2.216",
     "date": "2026-06-03T22:00:00Z",
     "text": "Bank of America — détection 'Vous avez déjà candidaté' : Taleos mis à jour automatiquement + fermeture de l'onglet."

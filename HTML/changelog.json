@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.218",
+    "date": "2026-06-04T16:20:00Z",
+    "text": "Bank of America — Phone Number corrigé (plus de 'undefined') + How Did You Hear : fallback par label si formField-source absent du formulaire vierge."
+  },
+  {
     "version": "1.2.217",
     "date": "2026-06-04T06:00:00Z",
     "text": "Bank of America — détection 'déjà candidaté' étendue au bouton View Application en plus du texte."

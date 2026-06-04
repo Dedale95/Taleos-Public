@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.219",
+    "date": "2026-06-04T16:35:00Z",
+    "text": "Bank of America — How Did You Hear : clic sur l'input selectinput (data-uxi-widget-type) pour ouvrir le dropdown + sélection en 2 niveaux avec attente."
+  },
+  {
     "version": "1.2.218",
     "date": "2026-06-04T16:20:00Z",
     "text": "Bank of America — Phone Number corrigé (plus de 'undefined') + How Did You Hear : fallback par label si formField-source absent du formulaire vierge."

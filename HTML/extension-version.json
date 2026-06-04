@@ -1,7 +1,7 @@
 {
-  "version": "1.2.218",
-  "version_name": "1.2.218-bofa-fix-phone-source",
-  "published_at": "2026-06-04T16:58:23Z",
-  "release_notes": "Bank of America — Phone Number : corrigé (plus de 'undefined') + How Did You Hear : fallback par label si formField-source absent.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.218.zip"
+  "version": "1.2.219",
+  "version_name": "1.2.219-bofa-fix-source-selectinput",
+  "published_at": "2026-06-04T17:14:19Z",
+  "release_notes": "Bank of America — How Did You Hear : clic sur input selectinput + attente dropdown + sélection en 2 niveaux.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.219.zip"
 }

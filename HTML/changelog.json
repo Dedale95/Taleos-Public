@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.220",
+    "date": "2026-06-04T17:00:00Z",
+    "text": "Bank of America — How Did You Hear : attente que le champ charge (race condition React) + sélection confirmée en 2 niveaux via MCP."
+  },
+  {
     "version": "1.2.219",
     "date": "2026-06-04T16:35:00Z",
     "text": "Bank of America — How Did You Hear : clic sur l'input selectinput (data-uxi-widget-type) pour ouvrir le dropdown + sélection en 2 niveaux avec attente."

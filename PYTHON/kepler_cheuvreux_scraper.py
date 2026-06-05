@@ -178,6 +178,7 @@ def init_db(db_path: Path) -> sqlite3.Connection:
             job_description  TEXT,
             company_name     TEXT DEFAULT 'Kepler Cheuvreux',
             status           TEXT DEFAULT 'Live',
+            is_valid         INTEGER DEFAULT 1,
             scraped_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             first_seen       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_updated     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -194,11 +195,11 @@ def upsert_job(conn: sqlite3.Connection, job: dict) -> None:
             (job_url, job_id, job_title, contract_type, publication_date,
              location, city, country, region,
              job_family, experience_level, education_level,
-             job_description, company_name, status, scraped_at, last_updated)
+             job_description, company_name, status, is_valid, scraped_at, last_updated)
         VALUES (:job_url, :job_id, :job_title, :contract_type, :publication_date,
                 :location, :city, :country, :region,
                 :job_family, :experience_level, :education_level,
-                :job_description, :company_name, 'Live', :now, :now)
+                :job_description, :company_name, 'Live', 1, :now, :now)
         ON CONFLICT(job_url) DO UPDATE SET
             job_title        = excluded.job_title,
             contract_type    = excluded.contract_type,
@@ -212,6 +213,7 @@ def upsert_job(conn: sqlite3.Connection, job: dict) -> None:
             education_level  = excluded.education_level,
             job_description  = excluded.job_description,
             status           = 'Live',
+            is_valid         = 1,
             scraped_at       = :now,
             last_updated     = :now
     """, {**job, "now": now})

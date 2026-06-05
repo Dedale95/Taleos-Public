@@ -1027,6 +1027,7 @@ def main() -> None:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     init_db(conn)
+    run_start = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
     if args.stats_only:
         print_stats(conn)
@@ -1042,6 +1043,14 @@ def main() -> None:
 
     if sources_to_run in ("all", "emea"):
         total += scrape_emea(conn)
+
+    # Supprimer les offres non vues lors de ce run (retirées du site)
+    cur = conn.execute("SELECT COUNT(*) FROM jobs WHERE scraped_at < ?", (run_start,))
+    stale_count = cur.fetchone()[0]
+    if stale_count > 0:
+        conn.execute("DELETE FROM jobs WHERE scraped_at < ?", (run_start,))
+        conn.commit()
+        log.info(f"🗑️  {stale_count} offre(s) expirée(s) supprimée(s) (non vues ce run)")
 
     log.info("=== Total : %d offres traitées ===", total)
     print_stats(conn)

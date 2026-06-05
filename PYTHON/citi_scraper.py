@@ -784,6 +784,7 @@ def main() -> None:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     init_db(conn)
+    run_start = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
     try:
         start = time.time()
@@ -791,6 +792,14 @@ def main() -> None:
         elapsed = time.time() - start
 
         # Stats
+        # Supprimer les offres non vues lors de ce run (retirées du site)
+        cur = conn.execute("SELECT COUNT(*) FROM jobs WHERE scraped_at < ?", (run_start,))
+        stale_count = cur.fetchone()[0]
+        if stale_count > 0:
+            conn.execute("DELETE FROM jobs WHERE scraped_at < ?", (run_start,))
+            conn.commit()
+            log.info(f"🗑️  {stale_count} offre(s) expirée(s) supprimée(s) (non vues ce run)")
+
         cur = conn.execute("SELECT COUNT(*) FROM jobs WHERE status='Live'")
         count = cur.fetchone()[0]
         log.info(f"\n✅ Terminé en {elapsed:.0f}s — {count} offres Citi en base")

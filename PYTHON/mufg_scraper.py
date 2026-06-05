@@ -686,6 +686,7 @@ def main() -> None:
 
     db_path = Path(args.db)
     conn    = init_db(db_path)
+    run_start = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     logger.info(f"Base de données : {db_path}")
 
     if args.stats_only:
@@ -694,6 +695,15 @@ def main() -> None:
         return
 
     count = scrape(conn)
+
+    # Supprimer les offres non vues lors de ce run (retirées du site)
+    cur = conn.execute("SELECT COUNT(*) FROM jobs WHERE scraped_at < ?", (run_start,))
+    stale_count = cur.fetchone()[0]
+    if stale_count > 0:
+        conn.execute("DELETE FROM jobs WHERE scraped_at < ?", (run_start,))
+        conn.commit()
+        logger.info(f"🗑️  {stale_count} offre(s) expirée(s) supprimée(s) (non vues ce run)")
+
     logger.info(f"\n✅ {count} nouvelles offres MUFG enregistrées")
     print_stats(conn)
 

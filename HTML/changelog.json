@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.221",
+    "date": "2026-06-04T18:00:00Z",
+    "text": "Bank of America — Right to Work : réponse désormais déterminée par le pays du poste. UK post-Brexit → No si pas d'autorisation UK explicite dans le profil."
+  },
+  {
     "version": "1.2.220",
     "date": "2026-06-04T17:00:00Z",
     "text": "Bank of America — How Did You Hear : attente que le champ charge (race condition React) + sélection confirmée en 2 niveaux via MCP."

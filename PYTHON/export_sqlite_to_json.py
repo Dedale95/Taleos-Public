@@ -59,7 +59,8 @@ BARCLAYS_DB      = PYTHON_DIR / "barclays_jobs.db"
 LLOYDS_DB        = PYTHON_DIR / "lloyds_jobs.db"
 ING_DB           = PYTHON_DIR / "ing_jobs.db"
 SC_DB            = PYTHON_DIR / "standard_chartered_jobs.db"
-REVOLUT_DB       = PYTHON_DIR / "revolut_jobs.db"
+REVOLUT_DB          = PYTHON_DIR / "revolut_jobs.db"
+KEPLER_CHEUVREUX_DB = PYTHON_DIR / "kepler_cheuvreux_jobs.db"
 
 
 def write_json(path: Path, data, pretty: bool = False):
@@ -1785,6 +1786,7 @@ def main():
             ("ing",               ING_DB),
             ("standard_chartered", SC_DB),
             ("revolut",           REVOLUT_DB),
+            ("kepler_cheuvreux",  KEPLER_CHEUVREUX_DB),
         ]
         print("\n📦 Export par source (fichiers individuels)...")
 

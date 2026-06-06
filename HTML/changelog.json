@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.223",
+    "date": "2026-06-06T17:30:00Z",
+    "text": "Morgan Stanley — fix bouton \"Ouvrir une session\" (fr-CA) : le sélecteur aria-label était en anglais uniquement, le clic ne se déclenchait pas."
+  },
+  {
     "version": "1.2.222",
     "date": "2026-06-06T17:00:00Z",
     "text": "Morgan Stanley — test de connexion Workday dans l'onglet Connexions : remplissage auto email/password, déconnexion automatique si déjà connecté."

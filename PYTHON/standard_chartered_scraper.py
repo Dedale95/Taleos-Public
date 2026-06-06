@@ -191,7 +191,7 @@ CITY_MAP: dict[str, tuple[str, str]] = {
     "lahore":           ("Pakistan",         "Asie-Pacifique"),
     "kathmandu":        ("Népal",            "Asie-Pacifique"),
     "victoria":         ("Nigeria",          "Moyen-Orient / Afrique"),  # Victoria Island Lagos
-    "brunei":           ("Brunei",           "Asie-Pacifique"),
+    "brunei":           ("Brunéi",           "Asie-Pacifique"),
     "georgetown":       ("Malaisie",         "Asie-Pacifique"),  # Georgetown Penang
     "yangon":           ("Myanmar",          "Asie-Pacifique"),
     "phnom":            ("Cambodge",         "Asie-Pacifique"),  # Phnom Penh

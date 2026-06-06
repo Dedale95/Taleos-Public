@@ -184,6 +184,10 @@ def init_db(db_path: Path) -> sqlite3.Connection:
             last_updated     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    # Migration : ajouter is_valid si la table existait sans cette colonne
+    existing_cols = {r[1] for r in conn.execute("PRAGMA table_info(jobs)").fetchall()}
+    if "is_valid" not in existing_cols:
+        conn.execute("ALTER TABLE jobs ADD COLUMN is_valid INTEGER DEFAULT 1")
     conn.commit()
     return conn
 

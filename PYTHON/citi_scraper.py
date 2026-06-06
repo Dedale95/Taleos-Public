@@ -284,6 +284,23 @@ COUNTRY_MAP = {
     "sri lanka": "Sri Lanka",
     "pakistan": "Pakistan",
     "bangladesh": "Bangladesh",
+    # Variantes manquantes détectées en production
+    "türkiye": "Turquie",
+    "czechia": "Tchéquie",
+    "israel": "Israël",
+    "morocco": "Maroc",
+    "ecuador": "Équateur",
+    "guatemala": "Guatemala",
+    "paraguay": "Paraguay",
+    "gabon": "Gabon",
+    "côte d'ivoire": "Côte D'Ivoire",
+    "cote d'ivoire": "Côte D'Ivoire",
+    "ivory coast": "Côte D'Ivoire",
+    "congo, democratic republic of the": "RD Congo",
+    "democratic republic of the congo": "RD Congo",
+    "macau": "Macao",
+    "macao": "Macao",
+    "hong-kong": "Hong Kong",
 }
 
 REGION_MAP = {

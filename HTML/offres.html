@@ -3020,7 +3020,32 @@
             'slovakia': 'Slovaquie',
             'finland': 'Finlande',
             'malta': 'Malte',
-            'hong kong': 'Hong-Kong', 'hongkong': 'Hong-Kong'
+            'hong kong': 'Hong-Kong', 'hongkong': 'Hong-Kong',
+            // Noms anglais de pays manquants (format Citi/HSBC/ING "City, State, Country")
+            'poland': 'Pologne', 'romania': 'Roumanie', 'hungary': 'Hongrie',
+            'austria': 'Autriche', 'slovakia': 'Slovaquie', 'czech republic': 'Tchéquie',
+            'greece': 'Grèce', 'sweden': 'Suède', 'norway': 'Norvège', 'denmark': 'Danemark',
+            'finland': 'Finlande', 'croatia': 'Croatie', 'slovenia': 'Slovénie',
+            'lithuania': 'Lituanie', 'latvia': 'Lettonie', 'estonia': 'Estonie',
+            'ireland': 'Irlande', 'portugal': 'Portugal', 'netherlands': 'Pays-Bas',
+            'belgium': 'Belgique', 'luxembourg': 'Luxembourg', 'russia': 'Russie',
+            'turkey': 'Turquie', 'ukraine': 'Ukraine',
+            'india': 'Inde', 'china': 'Chine', 'japan': 'Japon', 'singapore': 'Singapour',
+            'malaysia': 'Malaisie', 'indonesia': 'Indonésie', 'thailand': 'Thaïlande',
+            'vietnam': 'Vietnam', 'philippines': 'Philippines', 'south korea': 'Corée du Sud',
+            'taiwan': 'Taïwan', 'sri lanka': 'Sri Lanka', 'pakistan': 'Pakistan',
+            'bangladesh': 'Bangladesh', 'nepal': 'Népal', 'myanmar': 'Myanmar',
+            'cambodia': 'Cambodge', 'laos': 'Laos',
+            'australia': 'Australie', 'new zealand': 'Nouvelle-Zélande',
+            'canada': 'Canada', 'mexico': 'Mexique', 'brazil': 'Brésil',
+            'argentina': 'Argentine', 'chile': 'Chili', 'colombia': 'Colombie',
+            'south africa': 'Afrique du Sud', 'nigeria': 'Nigeria', 'kenya': 'Kenya',
+            'ghana': 'Ghana', 'egypt': 'Égypte', 'morocco': 'Maroc', 'tunisia': 'Tunisie',
+            'ethiopia': 'Ethiopie', 'tanzania': 'Tanzanie', 'rwanda': 'Rwanda',
+            'united arab emirates': 'Émirats Arabes Unis', 'saudi arabia': 'Arabie Saoudite',
+            'qatar': 'Qatar', 'kuwait': 'Koweït', 'bahrain': 'Bahreïn', 'oman': 'Oman',
+            'jordan': 'Jordanie', 'lebanon': 'Liban', 'iraq': 'Irak', 'israel': 'Israël',
+            'kazakhstan': 'Kazakhstan'
         };
 
         const ITALY_CITY_TO_REGION = {
@@ -3745,19 +3770,55 @@
                             } catch (e) {
                                 console.warn(`Erreur lors du traitement de la location "${job.location}":`, e);
                             }
-                        } else if (job && job.location && typeof job.location === 'string' && job.location.trim()) {
-                            // Location sans " - " : peut être un nom de ville seul ou un nom de pays seul
-                            const locRaw = job.location.trim();
+                        } else if (job && (job.location || job.country) && typeof (job.location || job.country) === 'string') {
+                            // Location sans " - " : peut être un nom de ville seul, un nom de pays seul,
+                            // ou un format CSV "City, State, Country" (Citi, HSBC, ING…)
+                            const locRaw = (job.location || '').trim();
                             // 1. Essayer le lookup ville en normalisant (supprimer suffixe Cedex, numéro de district…)
                             const locForCity = locRaw.toLowerCase()
                                 .replace(/\s*cedex\b.*/gi, '')      // "Lille Cedex" → "Lille"
                                 .replace(/\s+\d+\s*$/, '')          // "Dublin 2" → "Dublin"
                                 .trim();
-                            const cityCountryLookup = CITY_TO_COUNTRY[locForCity]
-                                || CITY_TO_COUNTRY[normalizeCityForLookup(locRaw)]
-                                || CITY_TO_COUNTRY[normalizeCityForLookup(locForCity)];
-                            // 2. Sinon normalisation pays
-                            const cNorm = cityCountryLookup || normalizeCountryForFilter(locRaw) || locRaw;
+                            const cityCountryLookup = locForCity
+                                ? (CITY_TO_COUNTRY[locForCity]
+                                    || CITY_TO_COUNTRY[normalizeCityForLookup(locRaw)]
+                                    || CITY_TO_COUNTRY[normalizeCityForLookup(locForCity)])
+                                : null;
+
+                            // 2. Format "City, State, Country" → prendre la DERNIÈRE partie après virgule
+                            let fromCommaFormat = null;
+                            if (!cityCountryLookup && locForCity.includes(',')) {
+                                const commaParts = locForCity.split(',').map(p => p.trim()).filter(Boolean);
+                                // Essai depuis la fin : dernier token, puis avant-dernier
+                                for (let ci = commaParts.length - 1; ci >= 0; ci--) {
+                                    const part = commaParts[ci];
+                                    const tried = CITY_TO_COUNTRY[part] || normalizeCountryForFilter(part);
+                                    if (tried && tried !== part && tried !== locRaw.trim()) {
+                                        fromCommaFormat = tried; break;
+                                    }
+                                }
+                            }
+
+                            // 3. Format "Multiple Locations (Country, Country)" → extraire entre parenthèses
+                            let fromParens = null;
+                            if (!cityCountryLookup && !fromCommaFormat) {
+                                const pm = locRaw.match(/\(([^)]+)\)/);
+                                if (pm) {
+                                    const inside = pm[1].split(',')[0].trim().toLowerCase();
+                                    const tried = CITY_TO_COUNTRY[inside] || normalizeCountryForFilter(inside);
+                                    if (tried && tried !== inside) fromParens = tried;
+                                }
+                            }
+
+                            // 4. Fallback sur job.country (champ DB — déjà normalisé par le scraper)
+                            const dbCountryNorm = job.country ? normalizeCountryForFilter(job.country) : null;
+                            const validDbCountry = dbCountryNorm && dbCountryNorm !== 'Non spécifié' && dbCountryNorm !== '' ? dbCountryNorm : null;
+
+                            // 2. Sinon normalisation pays sur la chaîne brute
+                            const cNorm = cityCountryLookup || fromCommaFormat || fromParens
+                                || normalizeCountryForFilter(locRaw)
+                                || validDbCountry
+                                || locRaw || 'Non spécifié';
                             job.cleanCountries = [cNorm];
                             const locRegion = cNorm === 'France'
                                 ? (getCityRegion(locRaw, 'France') || 'Autres régions françaises')

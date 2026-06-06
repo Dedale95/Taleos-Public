@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.224",
+    "date": "2026-06-06T17:45:00Z",
+    "text": "Morgan Stanley — déconnexion automatique : couvre \"Sign Out\" (en-US), \"Fermer la session\" (fr-CA), fallback texte et navigation /d/logout."
+  },
+  {
     "version": "1.2.223",
     "date": "2026-06-06T17:30:00Z",
     "text": "Morgan Stanley — fix bouton \"Ouvrir une session\" (fr-CA) : le sélecteur aria-label était en anglais uniquement, le clic ne se déclenchait pas."

@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.227",
+    "date": "2026-06-06T23:00:00Z",
+    "text": "Morgan Stanley — filler v2 : réécrit après exploration MCP du vrai DOM. Source 2 niveaux, questions compliance Yes/No (scan texte), genre fr-CA (Homme/Femme/Préfère), checkbox CGU obligatoire."
+  },
+  {
     "version": "1.2.226",
     "date": "2026-06-06T21:30:00Z",
     "text": "Morgan Stanley — filler Workday fr-CA complet : 6 étapes automatisées (connexion, coordonnées, CV Firebase, formation, langues, questions, divulgations). Soumission finale manuelle."

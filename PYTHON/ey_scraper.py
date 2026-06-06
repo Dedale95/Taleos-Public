@@ -119,6 +119,59 @@ def parse_contract_type(title: str, description: str = "") -> str:
 # LOCALISATION  —  parsing depuis og:description + city normalizer
 # ═══════════════════════════════════════════════════════════════
 
+# Mapping ISO 3166-1 alpha-2 → pays français (pour la meta cachée EY)
+_ISO2_TO_COUNTRY: dict[str, str] = {
+    "FR": "France", "DE": "Allemagne", "GB": "Royaume-Uni", "US": "États-Unis",
+    "CA": "Canada", "AU": "Australie", "NZ": "Nouvelle-Zélande", "JP": "Japon",
+    "CN": "Chine", "HK": "Hong-Kong", "SG": "Singapour", "IN": "Inde",
+    "MY": "Malaisie", "ID": "Indonésie", "PH": "Philippines", "TH": "Thaïlande",
+    "VN": "Vietnam", "KR": "Corée du Sud", "TW": "Taïwan", "PK": "Pakistan",
+    "BD": "Bangladesh", "LK": "Sri Lanka", "NP": "Népal", "MM": "Myanmar",
+    "KH": "Cambodge", "LA": "Laos",
+    "AE": "Émirats Arabes Unis", "SA": "Arabie Saoudite", "QA": "Qatar",
+    "KW": "Koweït", "BH": "Bahreïn", "OM": "Oman", "IL": "Israël",
+    "JO": "Jordanie", "LB": "Liban", "IQ": "Irak", "KZ": "Kazakhstan",
+    "ES": "Espagne", "IT": "Italie", "PT": "Portugal", "NL": "Pays-Bas",
+    "BE": "Belgique", "CH": "Suisse", "AT": "Autriche", "PL": "Pologne",
+    "RO": "Roumanie", "HU": "Hongrie", "CZ": "Tchéquie", "SK": "Slovaquie",
+    "GR": "Grèce", "SE": "Suède", "NO": "Norvège", "DK": "Danemark",
+    "FI": "Finlande", "IE": "Irlande", "LU": "Luxembourg", "MC": "Monaco",
+    "HR": "Croatie", "SI": "Slovénie", "LT": "Lituanie", "LV": "Lettonie",
+    "EE": "Estonie", "CY": "Chypre", "MT": "Malte", "BG": "Bulgarie",
+    "UA": "Ukraine", "RU": "Russie", "TR": "Turquie", "RS": "Serbie",
+    "ZA": "Afrique du Sud", "NG": "Nigeria", "KE": "Kenya", "GH": "Ghana",
+    "MA": "Maroc", "TN": "Tunisie", "DZ": "Algérie", "EG": "Égypte",
+    "SN": "Sénégal", "CI": "Côte D'Ivoire", "CM": "Cameroun", "GA": "Gabon",
+    "CD": "RD Congo", "AO": "Angola", "ZW": "Zimbabwe", "MZ": "Mozambique",
+    "TZ": "Tanzanie", "RW": "Rwanda", "UG": "Ouganda", "ET": "Ethiopie",
+    "ZM": "Zambie", "BW": "Botswana", "MG": "Madagascar", "MU": "Maurice",
+    "CV": "Cap-Vert", "BJ": "Bénin", "ML": "Mali", "NE": "Niger",
+    "BF": "Burkina Faso", "TG": "Togo",
+    "BR": "Brésil", "MX": "Mexique", "AR": "Argentine", "CL": "Chili",
+    "CO": "Colombie", "PE": "Pérou", "EC": "Équateur", "BO": "Bolivie",
+    "PY": "Paraguay", "UY": "Uruguay", "VE": "Venezuela", "PA": "Panama",
+    "CR": "Costa Rica", "GT": "Guatemala", "HN": "Honduras", "SV": "El Salvador",
+    "NI": "Nicaragua", "BS": "Bahamas", "JM": "Jamaïque", "TT": "Trinité-et-Tobago",
+    "SR": "Suriname", "GY": "Guyane",
+    "KZ": "Kazakhstan", "UZ": "Ouzbékistan",
+}
+
+def _extract_iso_country_from_soup(soup) -> str:
+    """
+    Extrait le code pays ISO depuis la meta cachée EY (content=[A-Z]{2} sans name/property).
+    Ex: <meta content="SG"> → "Singapour"
+    Filtre 'EY' (société) et les codes d'états US (_US_STATE_RE).
+    """
+    for meta in soup.find_all("meta"):
+        if meta.get("name") or meta.get("property"):
+            continue  # ignorer les metas nommées
+        content = (meta.get("content") or "").strip()
+        if len(content) == 2 and content.isupper() and content != "EY":
+            country = _ISO2_TO_COUNTRY.get(content)
+            if country:
+                return country
+    return ""
+
 # Codes d'états US/Canada souvent présents dans l'og:desc EY
 _US_STATE_RE = re.compile(
     r"\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA"
@@ -485,6 +538,27 @@ class Database:
             ).fetchall()
         return {r[0] for r in rows}
 
+    def get_urls_without_country(self) -> List[str]:
+        """Retourne les job_url Live sans pays (pour réenrichissement ISO)."""
+        with sqlite3.connect(self.db_path) as conn:
+            rows = conn.execute(
+                "SELECT job_url FROM jobs WHERE status = 'Live' "
+                "AND (country IS NULL OR country = '' OR country = 'Non spécifié')"
+            ).fetchall()
+        return [r[0] for r in rows]
+
+    def update_country_only(self, job_url: str, country: str, location: str) -> None:
+        """Met à jour uniquement country et location pour un job."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                UPDATE jobs SET
+                    country      = CASE WHEN ? != '' THEN ? ELSE country END,
+                    location     = CASE WHEN ? != '' AND (location IS NULL OR location = '') THEN ? ELSE location END,
+                    last_updated = CURRENT_TIMESTAMP
+                WHERE job_url = ?
+            """, (country, country, location, location, job_url))
+            conn.commit()
+
     def get_urls_without_description(self) -> List[Tuple[str, str]]:
         """Retourne (job_url, sf_id) pour les offres Live sans description."""
         with sqlite3.connect(self.db_path) as conn:
@@ -714,6 +788,13 @@ def fetch_detail(session: requests.Session, job_url: str) -> Optional[Dict]:
     og_desc = (desc_meta_tag.get("content", "") if desc_meta_tag else "").strip()
     location_display, country, city = parse_location(title, og_desc)
 
+    # Fallback : meta ISO country cachée EY (ex: <meta content="SG">)
+    if not country:
+        iso_country = _extract_iso_country_from_soup(soup)
+        if iso_country:
+            country = iso_country
+            location_display = iso_country  # pays seul si pas de ville
+
     # ── Description ─────────────────────────────────────────────
     desc_div = (
         soup.find(class_=re.compile(r"jobdescription", re.I))
@@ -829,7 +910,29 @@ def main():
     else:
         logger.info("Phase 2 — aucune nouvelle offre à enrichir")
 
-    # ── Phase 3 : backfill NLP ──────────────────────────────
+    # ── Phase 3 : backfill pays manquants via meta ISO EY ───
+    urls_without_country = db.get_urls_without_country()
+    if urls_without_country:
+        logger.info(f"Phase 3b — {len(urls_without_country)} offres sans pays → extraction meta ISO")
+        session_iso = requests.Session()
+        session_iso.headers.update(HEADERS)
+        iso_resolved = 0
+        for job_url in urls_without_country[:200]:  # plafond 200/run
+            try:
+                resp = session_iso.get(job_url, timeout=REQUEST_TIMEOUT)
+                resp.raise_for_status()
+                from bs4 import BeautifulSoup as _BS
+                soup_iso = _BS(resp.text, "html.parser")
+                iso_country = _extract_iso_country_from_soup(soup_iso)
+                if iso_country:
+                    db.update_country_only(job_url, iso_country, iso_country)
+                    iso_resolved += 1
+                time.sleep(0.3)
+            except Exception as e:
+                logger.debug(f"Phase 3b ISO {job_url[-50:]}: {e}")
+        logger.info(f"Phase 3b — {iso_resolved}/{min(len(urls_without_country),200)} pays résolus via meta ISO")
+
+    # ── Phase 4 : backfill NLP ──────────────────────────────
     updated = db.backfill_education_experience()
     if updated:
         logger.info(f"Phase 3 — {updated} offres enrichies (éducation/expérience)")

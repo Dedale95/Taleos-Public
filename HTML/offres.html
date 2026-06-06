@@ -1049,6 +1049,11 @@
             transform-origin: center;
         }
 
+        .job-company-logo-box .company-logo.company-logo-square {
+            padding: 2px;
+            object-fit: contain;
+        }
+
         .job-company-initials {
             font-size: 0.7rem;
             font-weight: 700;
@@ -6896,6 +6901,10 @@
             const path = String(logoPath || '').toLowerCase();
             if (normalized.includes('goldman sachs') || path.includes('goldman_sachs')) {
                 return 'company-logo company-logo-goldman';
+            }
+            if (normalized.includes('morgan stanley') || path.includes('morgan_stanley') ||
+                normalized.includes('kepler cheuvreux') || path.includes('kepler_cheuvreux')) {
+                return 'company-logo company-logo-square';
             }
             return 'company-logo';
         }

@@ -1,4 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
-  <rect width="200" height="60" fill="#002D62" rx="4"/>
-  <text x="100" y="38" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="white" text-anchor="middle" letter-spacing="0.5">MORGAN STANLEY</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Morgan Stanley">
+  <!-- Fond blanc -->
+  <rect width="200" height="200" fill="white"/>
+  <!-- Carré bleu marine centré -->
+  <rect x="10" y="10" width="180" height="180" fill="#002D62" rx="8"/>
+  <!-- Monogramme MS -->
+  <text
+    x="100" y="128"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="90"
+    font-weight="bold"
+    fill="white"
+    text-anchor="middle"
+    letter-spacing="-4"
+  >MS</text>
+  <!-- Ligne décorative fine -->
+  <rect x="30" y="148" width="140" height="2" fill="rgba(255,255,255,0.4)" rx="1"/>
+  <!-- Texte "MORGAN STANLEY" en petit -->
+  <text
+    x="100" y="170"
+    font-family="Arial, sans-serif"
+    font-size="14"
+    font-weight="600"
+    fill="rgba(255,255,255,0.85)"
+    text-anchor="middle"
+    letter-spacing="1.5"
+  >MORGAN STANLEY</text>
 </svg>

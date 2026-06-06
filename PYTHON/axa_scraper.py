@@ -212,7 +212,7 @@ def _build_session() -> requests.Session:
     return s
 
 
-def fetch_page(session: requests.Session, page: int) -> dict:
+def fetch_page(session: requests.Session, page: int, max_retries: int = 4) -> dict:
     params: dict = {
         "page": page,
         "sortBy": config.SORT_BY,
@@ -222,9 +222,19 @@ def fetch_page(session: requests.Session, page: int) -> dict:
     }
     if config.COUNTRY:
         params["country"] = config.COUNTRY
-    resp = session.get(config.API_BASE, params=params, timeout=config.REQUEST_TIMEOUT)
-    resp.raise_for_status()
-    return resp.json()
+    for attempt in range(1, max_retries + 1):
+        try:
+            resp = session.get(config.API_BASE, params=params, timeout=config.REQUEST_TIMEOUT)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as exc:
+            # 502/503/504 : erreurs temporaires côté AXA → on retente
+            if attempt < max_retries:
+                wait = 2 ** attempt  # backoff exponentiel : 2s, 4s, 8s
+                logger.warning(f"   ⚠️ Page {page} erreur ({exc}) — retry {attempt}/{max_retries - 1} dans {wait}s")
+                time.sleep(wait)
+            else:
+                raise
 
 
 def fetch_all_jobs() -> list[dict]:

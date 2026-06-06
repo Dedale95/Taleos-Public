@@ -1,7 +1,7 @@
 {
-  "version": "1.2.227",
-  "version_name": "1.2.227-morgan-stanley-filler-v2-real-dom",
-  "published_at": "2026-06-06T23:00:00Z",
-  "release_notes": "Morgan Stanley — filler v2 réécrit après exploration MCP du vrai formulaire : source 2 niveaux, questions Yes/No par scan texte, genre Homme/Femme/Préfère (fr-CA), checkbox CGU obligatoire.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.227.zip"
+  "version": "1.2.228",
+  "version_name": "1.2.228-morgan-stanley-profile-fields",
+  "published_at": "2026-06-06T23:15:00Z",
+  "release_notes": "Morgan Stanley — nouveaux champs profil : ms_sms_consent (SMS/WhatsApp Talent Acquisition → Yes), ms_previously_employed, ms_source. Fix : consentement communication répondu Yes.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.228.zip"
 }

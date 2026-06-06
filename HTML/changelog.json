@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.222",
+    "date": "2026-06-06T17:00:00Z",
+    "text": "Morgan Stanley — test de connexion Workday dans l'onglet Connexions : remplissage auto email/password, déconnexion automatique si déjà connecté."
+  },
+  {
     "version": "1.2.221",
     "date": "2026-06-04T18:00:00Z",
     "text": "Bank of America — Right to Work : réponse désormais déterminée par le pays du poste. UK post-Brexit → No si pas d'autorisation UK explicite dans le profil."

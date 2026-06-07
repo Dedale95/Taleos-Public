@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.231",
+    "date": "2026-06-07T20:00:00Z",
+    "text": "MS Filler v3 final : dérivation automatique diplôme (Bac+5 + École de commerce → Professional Degree), champs génériques education_degree/field_of_study/skills. Profil : Diplôme international, Domaine d'études, Compétences."
+  },
+  {
     "version": "1.2.230",
     "date": "2026-06-07T19:00:00Z",
     "text": "MS Filler v3 : réécriture complète DOM réel. Corrections genre (formField-gender), CGU (Field-acceptTermsAndAgreements), questions step 3 (button[id]), source combobox, pays. Nouveauté : Études (school/degree/fieldOfStudy), habiletés (ms_skills), connexion robuste."

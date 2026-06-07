@@ -1,7 +1,7 @@
 {
-  "version": "1.2.230",
-  "version_name": "1.2.230-ms-filler-v3-dom-exploration",
-  "published_at": "2026-06-07T19:00:00Z",
-  "release_notes": "MS Filler v3 : réécriture complète basée sur exploration DOM réelle (MCP). Corrections : genre selector (formField-gender/personalInfoPerson--gender), CGU (Field-acceptTermsAndAgreements), questions step 3 (button[id] au lieu de aria-haspopup), source combobox, pays combobox. Nouveauté : section Études (formField-school/degree/fieldOfStudy), habiletés (formField-skills), connexion login robuste.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.230.zip"
+  "version": "1.2.231",
+  "version_name": "1.2.231-ms-filler-v3-final",
+  "published_at": "2026-06-07T20:00:00Z",
+  "release_notes": "MS Filler v3 final : dérivation automatique du diplôme (education_level + institution_type → format MS), champs génériques education_degree / field_of_study / skills utilisés en priorité. Profil : 3 nouveaux champs Formation (Diplôme international, Domaine d'études, Compétences).",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.231.zip"
 }

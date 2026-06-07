@@ -64,6 +64,12 @@ KEPLER_CHEUVREUX_DB  = PYTHON_DIR / "kepler_cheuvreux_jobs.db"
 MORGAN_STANLEY_DB    = PYTHON_DIR / "morgan_stanley_jobs.db"
 MAZARS_DB            = PYTHON_DIR / "mazars_jobs.db"
 LAZARD_DB            = PYTHON_DIR / "lazard_jobs.db"
+STRIPE_DB            = PYTHON_DIR / "stripe_jobs.db"
+ADYEN_DB             = PYTHON_DIR / "adyen_jobs.db"
+JEFFERIES_DB         = PYTHON_DIR / "jefferies_jobs.db"
+MOELIS_DB            = PYTHON_DIR / "moelis_jobs.db"
+ROTHSCHILD_DB        = PYTHON_DIR / "rothschild_jobs.db"
+ACCENTURE_DB         = PYTHON_DIR / "accenture_jobs.db"
 
 
 def write_json(path: Path, data, pretty: bool = False):
@@ -1793,6 +1799,12 @@ def main():
             ("morgan_stanley",    MORGAN_STANLEY_DB),
             ("mazars",            MAZARS_DB),
             ("lazard",            LAZARD_DB),
+            ("stripe",            STRIPE_DB),
+            ("adyen",             ADYEN_DB),
+            ("jefferies",         JEFFERIES_DB),
+            ("moelis",            MOELIS_DB),
+            ("rothschild",        ROTHSCHILD_DB),
+            ("accenture",         ACCENTURE_DB),
         ]
         print("\n📦 Export par source (fichiers individuels)...")
 

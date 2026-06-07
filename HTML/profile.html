@@ -2165,13 +2165,34 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="educationDegree">Diplôme (format international)</label>
+                        <select id="educationDegree" name="educationDegree">
+                            <option value="">Sélectionnez...</option>
+                            <option value="High School or High School Equivalent">Bac / Equivalent bac</option>
+                            <option value="Diploma">BTS / DUT / Diplôme Bac+2</option>
+                            <option value="Bachelor’s Degree">Licence / Bachelor (Bac+3)</option>
+                            <option value="Professional Degree">Diplôme Grande École (Commerce / Ingénieur)</option>
+                            <option value="Master’s Degree">Master / M2 / Mastère spécialisé (Bac+5)</option>
+                            <option value="Degree in Progress">Diplôme en cours d’obtention</option>
+                            <option value="Doctorat">Doctorat / PhD</option>
+                        </select>
+                        <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">Utilisé sur les formulaires anglophones (Morgan Stanley, Goldman Sachs…). Choisissez le diplôme le plus proche.</small>
+                    </div>
+
+                    <div class="form-group">
                         <label for="establishment">Établissement ou université</label>
                         <input type="text" id="establishment" name="establishment" placeholder="Ex. ISC Paris, HEC Paris, Université Paris-Dauphine…">
                         <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">Nom libre de votre établissement. L’extension essaiera de retrouver la meilleure correspondance sur les formulaires partenaires.</small>
                     </div>
 
                     <div class="form-group">
-                        <label for="institutionType">Type d'établissement</label>
+                        <label for="fieldOfStudy">Domaine d’études</label>
+                        <input type="text" id="fieldOfStudy" name="fieldOfStudy" placeholder="Ex. Finance, Economics, Mathematics, Business Administration…">
+                        <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">De préférence en anglais pour les formulaires internationaux (ex: Finance, Economics, Applied Mathematics).</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="institutionType">Type d’établissement</label>
                         <select id="institutionType" name="institutionType">
                             <option value="">Sélectionnez...</option>
                             <option value="CFA">CFA</option>
@@ -2205,6 +2226,12 @@
                             <!-- Les langues seront ajoutées dynamiquement ici -->
                         </div>
                         <button type="button" id="addLanguageBtn" class="btn-add-item" style="margin-top: 12px;">+ Ajouter une langue</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="skills">Compétences clés</label>
+                        <input type="text" id="skills" name="skills" placeholder="Ex. Financial Modeling, Python, Excel, Bloomberg, VBA…">
+                        <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">Séparées par des virgules. De préférence en anglais pour les formulaires internationaux. Ces compétences seront ajoutées une par une dans les champs "Habiletés / Skills" des formulaires.</small>
                     </div>
                     </div>
                 </div>
@@ -3912,20 +3939,41 @@
                 }
             }
             
+            if (profile.education_degree) {
+                const educationDegreeSelect = document.getElementById('educationDegree');
+                if (educationDegreeSelect) {
+                    educationDegreeSelect.value = profile.education_degree;
+                }
+            }
+
+            if (profile.field_of_study) {
+                const fieldOfStudyInput = document.getElementById('fieldOfStudy');
+                if (fieldOfStudyInput) {
+                    fieldOfStudyInput.value = profile.field_of_study;
+                }
+            }
+
             if (profile.diploma_status) {
                 const diplomaStatusSelect = document.getElementById('diplomaStatus');
                 if (diplomaStatusSelect) {
                     diplomaStatusSelect.value = profile.diploma_status;
                 }
             }
-            
+
             if (profile.graduation_year) {
                 const graduationYearInput = document.getElementById('graduationYear');
                 if (graduationYearInput) {
                     graduationYearInput.value = profile.graduation_year;
                 }
             }
-            
+
+            if (profile.skills) {
+                const skillsInput = document.getElementById('skills');
+                if (skillsInput) {
+                    skillsInput.value = profile.skills;
+                }
+            }
+
             // Charger les langues
             if (profile.languages && Array.isArray(profile.languages) && profile.languages.length > 0) {
                 const languagesContainer = document.getElementById('languagesContainer');
@@ -4568,7 +4616,9 @@
                 'Formation et expérience': [
                     { id: 'experienceLevel', section: 'Formation et expérience' },
                     { id: 'educationLevel', section: 'Formation et expérience' },
+                    { id: 'educationDegree', section: 'Formation et expérience' },
                     { id: 'establishment', section: 'Formation et expérience' },
+                    { id: 'fieldOfStudy', section: 'Formation et expérience' },
                     { id: 'institutionType', section: 'Formation et expérience' },
                     { id: 'diplomaStatus', section: 'Formation et expérience' }
                 ]
@@ -4741,7 +4791,9 @@
                 'Formation et expérience': [
                     { id: 'experienceLevel', label: 'Niveau d\'expérience', section: 'Formation et expérience' },
                     { id: 'educationLevel', label: 'Niveau d\'études', section: 'Formation et expérience' },
+                    { id: 'educationDegree', label: 'Diplôme (format international)', section: 'Formation et expérience' },
                     { id: 'establishment', label: 'Établissement ou université', section: 'Formation et expérience' },
+                    { id: 'fieldOfStudy', label: 'Domaine d\'études', section: 'Formation et expérience' },
                     { id: 'institutionType', label: 'Type d\'établissement', section: 'Formation et expérience' },
                     { id: 'diplomaStatus', label: 'Statut du diplôme', section: 'Formation et expérience' }
                 ]
@@ -4978,10 +5030,13 @@
                 regions: selectedRegions, // Array des régions sélectionnées
                 experience_level: document.getElementById('experienceLevel').value,
                 education_level: document.getElementById('educationLevel').value,
+                education_degree: document.getElementById('educationDegree')?.value || '',
                 establishment: document.getElementById('establishment').value.trim(),
+                field_of_study: document.getElementById('fieldOfStudy')?.value?.trim() || '',
                 institution_type: document.getElementById('institutionType').value,
                 diploma_status: document.getElementById('diplomaStatus').value,
                 graduation_year: document.getElementById('graduationYear').value ? parseInt(document.getElementById('graduationYear').value) : null,
+                skills: document.getElementById('skills')?.value?.trim() || '',
                 languages: window.getLanguagesData ? window.getLanguagesData() : [], // Array des langues avec leur niveau
                 deloitte_worked: document.getElementById('deloitteWorked')?.value || '',
                 deloitte_old_office: document.getElementById('deloitteOldOffice')?.value?.trim() || '',

@@ -1587,50 +1587,66 @@ def main():
         else:
             print(f"   ⚠️ Aucune offre trouvée dans {db_path.name}")
 
+    def _load_special_source(label: str, db_key: str, read_fn, fallback_json: Path) -> list:
+        """Lit une source à schéma spécifique. Si la DB est absente, préserve depuis le JSON individuel."""
+        jobs = read_fn()
+        if jobs:
+            print(f"   ✅ {len(jobs)} offres {label} lues")
+            return jobs
+        if not db_key:
+            print(f"   ⚠️ Aucune offre {label} trouvée")
+            return []
+        existing = load_existing_json(fallback_json)
+        if existing:
+            live = [j for j in existing if j.get('status') != 'Expired']
+            print(
+                f"   🛡️  PROTECTION {label} : DB absente — {len(live)} offres préservées "
+                f"depuis {fallback_json.name}"
+            )
+            return live
+        print(f"   ⚠️ Aucune offre {label} trouvée (DB absente, JSON individuel vide)")
+        return []
+
     # ── Nomura (schéma spécifique) ────────────────────────────────
     print(f"📁 Lecture de Nomura depuis {NOMURA_DB.name}...")
-    nomura_jobs = read_nomura_from_db()
+    nomura_jobs = _load_special_source(
+        "Nomura", "nomura", read_nomura_from_db, HTML_DIR / "scraped_jobs_nomura.json"
+    )
     if nomura_jobs:
         all_jobs.extend(nomura_jobs)
-        print(f"   ✅ {len(nomura_jobs)} offres Nomura lues")
-    else:
-        print(f"   ⚠️ Aucune offre Nomura trouvée")
 
     # ── MUFG (schéma spécifique) ──────────────────────────────────
     print(f"📁 Lecture de MUFG depuis {MUFG_DB.name}...")
-    mufg_jobs = read_mufg_from_db()
+    mufg_jobs = _load_special_source(
+        "MUFG", "mufg", read_mufg_from_db, HTML_DIR / "scraped_jobs_mufg.json"
+    )
     if mufg_jobs:
         all_jobs.extend(mufg_jobs)
-        print(f"   ✅ {len(mufg_jobs)} offres MUFG lues")
-    else:
-        print(f"   ⚠️ Aucune offre MUFG trouvée")
 
     # ── Mizuho (schéma spécifique) ────────────────────────────────
     print(f"📁 Lecture de Mizuho depuis {MIZUHO_DB.name}...")
-    mizuho_jobs = read_mizuho_from_db()
+    mizuho_jobs = _load_special_source(
+        "Mizuho", "mizuho", read_mizuho_from_db, HTML_DIR / "scraped_jobs_mizuho.json"
+    )
     if mizuho_jobs:
         all_jobs.extend(mizuho_jobs)
-        print(f"   ✅ {len(mizuho_jobs)} offres Mizuho lues")
-    else:
-        print(f"   ⚠️ Aucune offre Mizuho trouvée")
 
     # ── Bank of America (schéma spécifique) ───────────────────────
     print(f"📁 Lecture de Bank of America depuis {BOFA_DB.name}...")
-    bofa_jobs = read_bank_of_america_from_db()
+    bofa_jobs = _load_special_source(
+        "Bank of America", "bank_of_america", read_bank_of_america_from_db,
+        HTML_DIR / "scraped_jobs_bank_of_america.json"
+    )
     if bofa_jobs:
         all_jobs.extend(bofa_jobs)
-        print(f"   ✅ {len(bofa_jobs)} offres Bank of America lues")
-    else:
-        print(f"   ⚠️ Aucune offre Bank of America trouvée")
 
     # ── Citi (schéma spécifique) ──────────────────────────────────
     print(f"📁 Lecture de Citi depuis {CITI_DB.name}...")
-    citi_jobs = read_citi_from_db()
+    citi_jobs = _load_special_source(
+        "Citi", "citi", read_citi_from_db, HTML_DIR / "scraped_jobs_citi.json"
+    )
     if citi_jobs:
         all_jobs.extend(citi_jobs)
-        print(f"   ✅ {len(citi_jobs)} offres Citi lues")
-    else:
-        print(f"   ⚠️ Aucune offre Citi trouvée")
 
     # Ajouter les offres BNP préservées si la base était absente
     if bnp_jobs_preserved:

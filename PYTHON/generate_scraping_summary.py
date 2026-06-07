@@ -11,9 +11,31 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INPUT_PATH = ROOT / "HTML" / "scraped_jobs_live.json"
+HTML_DIR = ROOT / "HTML"
+INPUT_PATH = HTML_DIR / "scraped_jobs_live.json"
+
+# Sources streaming individuelles (non incluses dans scraped_jobs_live.json)
+# Clé = nom du fichier JSON (scraped_jobs_{key}.json), valeur = nom du groupe pour le summary
+STREAMING_SOURCES = {
+    "morgan_stanley":    "Morgan Stanley",
+    "nomura":            "Nomura",
+    "mufg":              "MUFG",
+    "kepler_cheuvreux":  "Kepler Cheuvreux",
+    "mizuho":            "Mizuho",
+    "bank_of_america":   "Bank of America",
+    "citi":              "Citi",
+    "mazars":            "Mazars",
+    "lazard":            "Lazard",
+    "stripe":            "Stripe",
+    "adyen":             "Adyen",
+    "jefferies":         "Jefferies",
+    "moelis":            "Moelis",
+    "rothschild":        "Rothschild & Co",
+    "accenture":         "Accenture",
+}
+
 OUTPUT_PATHS = [
-    ROOT / "HTML" / "scraped_jobs_summary.json",
+    HTML_DIR / "scraped_jobs_summary.json",
     ROOT / "scraped_jobs_summary.json",
 ]
 
@@ -65,9 +87,32 @@ def main() -> None:
         for job in jobs
     )
 
+    total = len(jobs)
+
+    # Ajouter les sources streaming individuelles
+    # Ces sources ne sont pas dans scraped_jobs_live.json mais dans des fichiers séparés
+    for key, group_name in STREAMING_SOURCES.items():
+        # Éviter le double-comptage : certaines sources (nomura, mufg, mizuho, bofa, citi)
+        # sont maintenant incluses dans scraped_jobs_live.json via fallback.
+        # On les inclut ici seulement si elles ne sont pas déjà comptées.
+        if group_name in counter:
+            continue
+        json_path = HTML_DIR / f"scraped_jobs_{key}.json"
+        if not json_path.exists():
+            continue
+        try:
+            source_jobs = json.loads(json_path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        live_jobs = [j for j in source_jobs if j.get("status") != "Expired"]
+        if live_jobs:
+            counter[group_name] += len(live_jobs)
+            total += len(live_jobs)
+            print(f"   ✅ streaming {key} : {len(live_jobs)} offres ajoutées au summary")
+
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "total_jobs": len(jobs),
+        "total_jobs": total,
         "counts_by_group": dict(sorted(counter.items())),
     }
 
@@ -78,6 +123,7 @@ def main() -> None:
         )
 
     print(f"Résumé écrit dans {', '.join(str(path) for path in OUTPUT_PATHS)}")
+    print(f"Total : {total} offres ({len(counter)} groupes)")
 
 
 if __name__ == "__main__":

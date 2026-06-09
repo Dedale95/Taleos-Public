@@ -35,6 +35,7 @@ STREAMING_SOURCES = {
     # BNP Paribas : DB souvent absente en local (Playwright), mais le fichier streaming
     # est toujours présent (généré en CI ou préservé depuis le run précédent).
     "bnp_paribas":       "Groupe BNP Paribas",
+    "bloomberg":         "Bloomberg",
 }
 
 OUTPUT_PATHS = [
@@ -86,6 +87,8 @@ def normalize_company_group(company_name: str) -> str:
     # KPMG : toutes les entités géographiques (KPMG France, KPMG Australie…)
     if normalized.startswith("kpmg"):
         return "KPMG"
+    if normalized.startswith("bloomberg"):
+        return "Bloomberg"
     return raw
 
 

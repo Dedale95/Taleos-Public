@@ -70,6 +70,7 @@ JEFFERIES_DB         = PYTHON_DIR / "jefferies_jobs.db"
 MOELIS_DB            = PYTHON_DIR / "moelis_jobs.db"
 ROTHSCHILD_DB        = PYTHON_DIR / "rothschild_jobs.db"
 ACCENTURE_DB         = PYTHON_DIR / "accenture_jobs.db"
+BLOOMBERG_DB         = PYTHON_DIR / "bloomberg_jobs.db"
 
 
 def write_json(path: Path, data, pretty: bool = False):
@@ -83,13 +84,30 @@ def write_json(path: Path, data, pretty: bool = False):
 def safe_write_json(path: Path, data, pretty: bool = False) -> bool:
     """Écrit le JSON sauf si le résultat est vide ET que le fichier existant contient des données.
     Protège contre l'écrasement par [] lors d'une panne de scraping ou d'une DB absente.
+
+    En dehors de CI (GITHUB_ACTIONS non défini) : protège aussi contre un écrasement avec
+    moins de 75 % des offres existantes — évite d'écraser les données CI avec des DBs locales
+    stales lorsqu'on teste des changements de script en local.
+
     Retourne True si le fichier a été écrit, False s'il a été préservé."""
+    import os
+    existing = load_existing_json(path)
     if not data:
-        existing = load_existing_json(path)
         if existing:
             print(
                 f"   🛡️  PROTECTION : {path.name} conservé "
                 f"({len(existing)} offres existantes) — résultat vide ignoré"
+            )
+            return False
+    elif existing and not os.environ.get("GITHUB_ACTIONS"):
+        # En local : refuser si le nouveau résultat est < 75 % de l'existant
+        # (signe probable que les DBs locales sont stales par rapport aux données CI)
+        ratio = len(data) / len(existing)
+        if ratio < 0.75:
+            print(
+                f"   🛡️  PROTECTION LOCAL : {path.name} conservé "
+                f"({len(existing)} offres existantes vs {len(data)} nouvelles = {ratio:.0%}) "
+                f"— DBs locales probablement stales, relancer le CI pour màj"
             )
             return False
     write_json(path, data, pretty)
@@ -1877,6 +1895,7 @@ def main():
             ("moelis",            MOELIS_DB),
             ("rothschild",        ROTHSCHILD_DB),
             ("accenture",         ACCENTURE_DB),
+            ("bloomberg",         BLOOMBERG_DB),
         ]
         print("\n📦 Export par source (fichiers individuels)...")
 

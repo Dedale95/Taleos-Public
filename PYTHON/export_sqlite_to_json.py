@@ -1652,6 +1652,40 @@ def main():
     if bnp_jobs_preserved:
         all_jobs.extend(bnp_jobs_preserved)
 
+    # ── Passe de backfill pays (toutes sources) ──────────────────────────────────
+    # Pour les offres avec city/location mais sans pays, on tente de dériver le pays
+    # depuis la ville via get_country_from_city (EY, Accenture, etc.).
+    _backfill_count = 0
+    for job in all_jobs:
+        if not job.get('country') and job.get('location'):
+            loc = job['location']
+            country_found = ""
+
+            # 1. Si location est déjà au format "Ville - Pays", extraire la partie pays
+            if ' - ' in loc:
+                parts = loc.rsplit(' - ', 1)
+                candidate_country = parts[-1].strip()
+                # Vérifier si c'est un pays valide via normalize_country
+                normalized = normalize_country(candidate_country)
+                if normalized:
+                    country_found = normalized
+
+            # 2. Sinon, lookup depuis la ville
+            if not country_found:
+                for candidate in [loc.split(' - ')[0].strip(), loc, job.get('city', '')]:
+                    if not candidate:
+                        continue
+                    cr = get_country_from_city(candidate.lower())
+                    if cr:
+                        country_found = normalize_country(cr)
+                        break
+
+            if country_found:
+                job['country'] = country_found
+                _backfill_count += 1
+    if _backfill_count:
+        print(f"   🌍 Backfill pays : {_backfill_count} offres enrichies depuis ville→pays")
+
     # ── Passe de normalisation finale (s'applique à TOUTES les sources) ────────
     # Certaines sources (offres BNP préservées, MUFG, BofA, Nomura…) ont des fonctions
     # de lecture dédiées qui ne passent pas par le pipeline `read_from_db`.

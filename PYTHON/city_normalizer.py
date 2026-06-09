@@ -198,6 +198,151 @@ CITY_MAPPING = {
     'florence': 'Florence',
     'napoli': 'Naples',
     'naples': 'Naples',
+
+    # ========== AMÉRIQUE LATINE ==========
+    'sao paulo': 'São Paulo',
+    'são paulo': 'São Paulo',
+    'so paulo': 'São Paulo',
+    'rio de janeiro': 'Rio de Janeiro',
+    'brasilia': 'Brasilia',
+    'belo horizonte': 'Belo Horizonte',
+    'recife': 'Recife',
+    'barueri': 'Barueri',
+    'nova lima': 'Nova Lima',
+    'buenos aires': 'Buenos Aires',
+    'bogota': 'Bogotá',
+    'bogotá': 'Bogotá',
+    'barranquilla': 'Barranquilla',
+    'medellin': 'Medellín',
+    'medellín': 'Medellín',
+    'mexico city': 'Mexico',
+    'ciudad de mexico': 'Mexico',
+    'monterrey': 'Monterrey',
+    'santiago': 'Santiago',
+    'lima': 'Lima',
+    'belen': 'Belén',
+    'heredia': 'Heredia',
+    'san jose': 'San José',
+
+    # ========== AMÉRIQUE DU NORD ==========
+    'charlotte': 'Charlotte',
+    'atlanta': 'Atlanta',
+    'chicago': 'Chicago',
+    'houston': 'Houston',
+    'boston': 'Boston',
+    'seattle': 'Seattle',
+    'los angeles': 'Los Angeles',
+    'philadelphia': 'Philadelphie',
+    'dallas': 'Dallas',
+    'miami': 'Miami',
+    'denver': 'Denver',
+    'minneapolis': 'Minneapolis',
+    'tampa': 'Tampa',
+    'san antonio': 'San Antonio',
+    'arlington': 'Arlington',
+    'brooklyn': 'Brooklyn',
+    'morristown': 'Morristown',
+    'calgary': 'Calgary',
+    'ottawa': 'Ottawa',
+    'mississauga': 'Mississauga',
+
+    # ========== EUROPE CENTRALE & ORIENTALE ==========
+    'cluj napoca': 'Cluj-Napoca',
+    'cluj-napoca': 'Cluj-Napoca',
+    'riga': 'Riga',
+    'vilnius': 'Vilnius',
+    'bratislava': 'Bratislava',
+    'sofia': 'Sofia',
+    'krakow': 'Cracovie',
+    'kraków': 'Cracovie',
+    'poznan': 'Poznań',
+    'wroclaw': 'Wrocław',
+    'oslo': 'Oslo',
+    'stockholm': 'Stockholm',
+    'helsinki': 'Helsinki',
+    'copenhagen': 'Copenhague',
+    'stavanger': 'Stavanger',
+    'trondheim': 'Trondheim',
+
+    # ========== ROYAUME-UNI ==========
+    'leeds': 'Leeds',
+    'glasgow': 'Glasgow',
+    'birmingham': 'Birmingham',
+    'manchester': 'Manchester',
+    'edinburgh': 'Édimbourg',
+    'bristol': 'Bristol',
+    'newcastle': 'Newcastle',
+    'cheltenham': 'Cheltenham',
+    'portsmouth': 'Portsmouth',
+
+    # ========== ASIE ==========
+    'bengaluru': 'Bangalore',
+    'bengalore': 'Bangalore',
+    'pune': 'Pune',
+    'gurugram': 'Gurugram',
+    'gurgaon': 'Gurugram',
+    'hyderabad': 'Hyderabad',
+    'kolkata': 'Kolkata',
+    'calcutta': 'Kolkata',
+    'navi mumbai': 'Navi Mumbai',
+    'new delhi': 'New Delhi',
+    'noida': 'Noida',
+    'jaipur': 'Jaipur',
+    'ahmedabad': 'Ahmedabad',
+    'coimbatore': 'Coimbatore',
+    'nagpur': 'Nagpur',
+    'indore': 'Indore',
+    'bhubaneswar': 'Bhubaneswar',
+    'jakarta': 'Jakarta',
+    'semarang': 'Semarang',
+    'ho chi minh': 'Hô-Chi-Minh-Ville',
+    'ho chiminh': 'Hô-Chi-Minh-Ville',
+    'manila': 'Manille',
+    'mandaluyong': 'Mandaluyong',
+    'taguig': 'Taguig',
+    'quezon': 'Quezon City',
+    'quezon city': 'Quezon City',
+    'cebu city': 'Cebu',
+    'cebu': 'Cebu',
+    'muntinlupa': 'Muntinlupa',
+    'dalian': 'Dalian',
+    'guangzhou': 'Guangzhou',
+    'bangkok': 'Bangkok',
+    'selangor': 'Selangor',
+    'ebene': 'Ebène',
+
+    # ========== MOYEN-ORIENT & AFRIQUE ==========
+    'al sila tower': 'Abu Dhabi',
+    'abu dhabi': 'Abou Dabi',
+    'riyadh': 'Riyad',
+    'cairo': 'Le Caire',
+    'johannesburg': 'Johannesburg',
+    'cape town': 'Le Cap',
+
+    # ========== OCÉANIE ==========
+    'brisbane': 'Brisbane',
+    'canberra': 'Canberra',
+    'perth': 'Perth',
+    'ballarat': 'Ballarat',
+
+    # ========== PORTUGAL ==========
+    'lisbon': 'Lisbonne',
+    'lisbonne': 'Lisbonne',
+    'porto': 'Porto',
+    'braga': 'Braga',
+    'aveiro': 'Aveiro',
+    'matosinhos': 'Matosinhos',
+    'blagnac': 'Blagnac',
+
+    # ========== ESPAGNE - villes supplémentaires ==========
+    'bilbao': 'Bilbao',
+    'sevilla': 'Séville',
+    'seville': 'Séville',
+    'valencia': 'Valence',
+    'montoir de bretagne': 'Montoir-de-Bretagne',
+
+    # ========== SCANDINAVIE ==========
+    'kronberg': 'Kronberg',
 }
 
 def normalize_city(city_raw):
@@ -213,7 +358,12 @@ def normalize_city(city_raw):
     # Variantes scraping CA/LCL : "Ile-De France", "Ile-de-France", "Île de France" (sans entrée mapping exacte)
     if re.match(r'^î?le(\s|-)+de(\s|-)+france$', city_clean):
         return 'Île-de-France'
-    
+
+    # Vérifier le CITY_MAPPING EN PRIORITÉ : certaines villes sont aussi des noms de pays
+    # (Singapour, Hong Kong, Luxembourg…) et seraient sinon rejetées par known_countries_lower
+    if city_clean in CITY_MAPPING:
+        return CITY_MAPPING[city_clean]
+
     # Liste des pays connus à rejeter (ne doivent pas être traités comme villes)
     known_countries_lower = {
         'france', 'inde', 'india', 'japon', 'japan', 'pologne', 'poland', 'roumanie', 'romania', 'chine', 'china', 'corée', 'corée du sud', 'korea', 'south korea',

@@ -22,16 +22,18 @@ import requests
 from bs4 import BeautifulSoup
 
 try:
-    from country_normalizer import normalize_country
+    from country_normalizer import normalize_country, get_country_from_city
     from job_family_classifier import classify_job_family
     from experience_extractor import extract_experience_level
     from education_extractor import extract_education_level
+    from city_normalizer import normalize_city
 except ImportError:
     sys.path.append(str(Path(__file__).parent))
-    from country_normalizer import normalize_country
+    from country_normalizer import normalize_country, get_country_from_city
     from job_family_classifier import classify_job_family
     from experience_extractor import extract_experience_level
     from education_extractor import extract_education_level
+    from city_normalizer import normalize_city
 
 logging.basicConfig(
     level=logging.INFO,
@@ -231,22 +233,97 @@ def fetch_detail(session: requests.Session, external_path: str) -> Optional[dict
         return None
 
 
+def _location_from_url_slug(slug: str) -> tuple:
+    """Extrait (city, country) depuis le slug de localisation dans l'URL Workday Accenture.
+
+    Format : /job/{LOCATION_SLUG}/{TITLE_SLUG}_{ID}
+    Exemples :
+      'New-York-One-Manhattan-West-Corp' → ('New York', 'États-Unis')
+      'Pernambuco---Recife'             → ('Recife', 'Brésil')
+      'Bengaluru-BDC7C'                 → ('Bangalore', 'Inde')
+      'Sao-Paulo-Torre-Paineira'        → ('São Paulo', 'Brésil')
+    """
+    if not slug:
+        return "", ""
+
+    s = slug
+
+    # 1. Supprimer les suffixes de code de bureau : -BDC7C, -PDC3B, -4A, -NonSTPI, -STPI…
+    s = re.sub(r'-(?:[A-Z]{2,}[0-9]+[A-Z0-9]*|NonSTPI|STPI|Corp|Song)$', '', s)
+
+    # 2. Gérer le séparateur triple tiret (région---ville ou ville---bâtiment)
+    if '---' in s:
+        left, right = s.split('---', 1)
+        right_c = right.replace('-', ' ').strip()
+        # Si la partie droite ressemble à un code/bâtiment, prendre la gauche
+        if (re.match(r'^(Bldg|Bld|Tower|Hub|Building)\b', right_c, re.I)
+                or len(right_c) < 3
+                or re.match(r'^[A-Z][0-9]$', right_c)):
+            s = left
+        else:
+            s = right
+
+    # 3. Remplacer les tirets par des espaces
+    city_raw = s.replace('-', ' ').strip()
+
+    # 4. Essayer de trouver la ville en réduisant progressivement les mots de la fin
+    #    Critère : le candidat doit avoir une correspondance dans CITY_TO_COUNTRY
+    words = city_raw.split()
+    city_norm = ""
+    country = ""
+
+    for n in range(len(words), 0, -1):
+        candidate = ' '.join(words[:n]).lower()
+        result = normalize_city(candidate)
+        if not result:
+            continue
+        country_raw = get_country_from_city(result.lower()) or get_country_from_city(candidate)
+        if country_raw:
+            city_norm = result
+            country = normalize_country(country_raw)
+            break
+
+    # 5. Fallback sans pays : premier mot normalisé ou capitalisé
+    if not city_norm and words:
+        city_norm = normalize_city(words[0].lower()) or words[0].title()
+
+    return city_norm, country
+
+
 def parse_job(job: dict) -> dict:
     title      = (job.get("title") or "").strip()
     ext_path   = job.get("externalPath", "")
-    loc_txt    = job.get("locationsText", "")
+    loc_txt    = job.get("locationsText", "") or ""
     posted     = (job.get("postedOn") or "")[:10]
-    parts      = [p.strip() for p in loc_txt.split(",")]
-    city       = parts[0] if parts else ""
-    country    = normalize_country(parts[-1]) if len(parts) > 1 else ""
     contract   = _detect_contract(title)
     exp_level  = _detect_level(title)
     job_family = classify_job_family(title)
     url        = f"{WD_HOST}/en-US/{BOARD}{ext_path}"
+
+    # Extraire location depuis locationsText si disponible, sinon depuis l'URL
+    if loc_txt:
+        parts   = [p.strip() for p in loc_txt.split(",")]
+        city    = parts[0] if parts else ""
+        country = normalize_country(parts[-1]) if len(parts) > 1 else ""
+    else:
+        # Extraire le slug de localisation depuis externalPath (/job/{LOC}/{TITLE}_{ID})
+        m = re.match(r'^/job/([^/]+)/', ext_path)
+        slug = m.group(1) if m else ""
+        city, country = _location_from_url_slug(slug)
+        loc_txt = city  # Utiliser la ville comme location display
+
+    # Construire la location display "Ville - Pays"
+    if city and country and ' - ' not in loc_txt:
+        location_display = f"{city} - {country}"
+    elif city:
+        location_display = city
+    else:
+        location_display = loc_txt
+
     return {
         "job_url": url, "wd_id": ext_path, "job_title": title,
         "contract_type": contract, "publication_date": posted,
-        "location": loc_txt, "city": city, "country": country, "region": "",
+        "location": location_display, "city": city, "country": country, "region": "",
         "department": "", "job_family": job_family,
         "experience_level": exp_level, "education_level": "",
         "job_description": None, "company_name": COMPANY_NAME, "status": "Live",

@@ -32,6 +32,9 @@ STREAMING_SOURCES = {
     "moelis":            "Moelis",
     "rothschild":        "Rothschild & Co",
     "accenture":         "Accenture",
+    # BNP Paribas : DB souvent absente en local (Playwright), mais le fichier streaming
+    # est toujours présent (généré en CI ou préservé depuis le run précédent).
+    "bnp_paribas":       "Groupe BNP Paribas",
 }
 
 OUTPUT_PATHS = [
@@ -77,6 +80,12 @@ def normalize_company_group(company_name: str) -> str:
         return "J.P. Morgan"
     if "goldman sachs" in normalized:
         return "Goldman Sachs"
+    # AXA : toutes les entités (AXA France, GIE AXA, AXA XL, AXA Group Operations…)
+    if normalized.startswith("axa") or normalized.startswith("gie axa") or normalized.startswith("direct assurance"):
+        return "AXA"
+    # KPMG : toutes les entités géographiques (KPMG France, KPMG Australie…)
+    if normalized.startswith("kpmg"):
+        return "KPMG"
     return raw
 
 

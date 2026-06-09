@@ -141,6 +141,25 @@ def slim_full_job(job: dict) -> dict:
     return slim
 
 
+# Taille maximale de la description dans les fichiers de streaming (par source + live).
+# 500 chars suffisent largement pour la recherche par mots-clés (titre du poste, compétences,
+# niveau). Réduit les JSONs streaming de ~99 MB → ~53 MB (-47 %), et le transfert gzip
+# de ~20 MB → ~10 MB, sans casser la fonctionnalité de recherche côté front.
+_STREAM_DESC_MAX = 500
+
+
+def slim_streaming_job(job: dict) -> dict:
+    """Tronque la description à _STREAM_DESC_MAX pour les fichiers de streaming."""
+    if not isinstance(job, dict):
+        return job
+    desc = job.get('job_description') or ''
+    if len(desc) <= _STREAM_DESC_MAX:
+        return job
+    slim = dict(job)
+    slim['job_description'] = desc[:_STREAM_DESC_MAX]
+    return slim
+
+
 def _normalize_text(s: str) -> str:
     """Normalise une string pour les comparaisons (minuscules, sans accents)."""
     if not s:
@@ -1767,12 +1786,15 @@ def main():
         print(f"   (Les offres expirées sont exclues du site - voir scraped_jobs_full.json pour référence)")
         
         # Créer une version allégée avec seulement les offres Live (pour GitHub Pages)
+        # La description est tronquée à _STREAM_DESC_MAX pour réduire la taille du JSON
+        # (fallback utilisé par offres.html quand les fichiers par source ne sont pas disponibles).
         live_jobs = [job for job in all_jobs if job.get('status') == 'Live']
+        live_jobs_slim = [slim_streaming_job(job) for job in live_jobs]
         OUTPUT_JSON_LIVE = HTML_DIR / "scraped_jobs_live.json"
-        write_json(OUTPUT_JSON_LIVE, live_jobs, pretty=False)
-        write_json(ROOT_DIR / "scraped_jobs_live.json", live_jobs, pretty=False)
-        
-        print(f"✅ Version allégée créée : {len(live_jobs)} offres Live dans {OUTPUT_JSON_LIVE.name}")
+        write_json(OUTPUT_JSON_LIVE, live_jobs_slim, pretty=False)
+        write_json(ROOT_DIR / "scraped_jobs_live.json", live_jobs_slim, pretty=False)
+
+        print(f"✅ Version allégée créée : {len(live_jobs_slim)} offres Live dans {OUTPUT_JSON_LIVE.name} (descriptions ≤ {_STREAM_DESC_MAX} chars)")
         
         # Version complète (Live + Expired) pour mes-candidatures / référence
         all_jobs_full = []
@@ -1860,31 +1882,31 @@ def main():
 
         # Nomura — export individuel depuis fonction dédiée
         nomura_out = HTML_DIR / "scraped_jobs_nomura.json"
-        if safe_write_json(nomura_out, nomura_jobs):
+        if safe_write_json(nomura_out, [slim_streaming_job(j) for j in nomura_jobs]):
             size_kb = nomura_out.stat().st_size // 1024
             print(f"   ✅ nomura : {len(nomura_jobs)} offres → scraped_jobs_nomura.json ({size_kb} KB)")
 
         # MUFG — export individuel depuis fonction dédiée
         mufg_out = HTML_DIR / "scraped_jobs_mufg.json"
-        if safe_write_json(mufg_out, mufg_jobs):
+        if safe_write_json(mufg_out, [slim_streaming_job(j) for j in mufg_jobs]):
             size_kb = mufg_out.stat().st_size // 1024
             print(f"   ✅ mufg : {len(mufg_jobs)} offres → scraped_jobs_mufg.json ({size_kb} KB)")
 
         # Mizuho — export individuel
         mizuho_out = HTML_DIR / "scraped_jobs_mizuho.json"
-        if safe_write_json(mizuho_out, mizuho_jobs):
+        if safe_write_json(mizuho_out, [slim_streaming_job(j) for j in mizuho_jobs]):
             size_kb = mizuho_out.stat().st_size // 1024
             print(f"   ✅ mizuho : {len(mizuho_jobs)} offres → scraped_jobs_mizuho.json ({size_kb} KB)")
 
         # Bank of America — export individuel
         bofa_out = HTML_DIR / "scraped_jobs_bank_of_america.json"
-        if safe_write_json(bofa_out, bofa_jobs):
+        if safe_write_json(bofa_out, [slim_streaming_job(j) for j in bofa_jobs]):
             size_kb = bofa_out.stat().st_size // 1024
             print(f"   ✅ bank_of_america : {len(bofa_jobs)} offres → scraped_jobs_bank_of_america.json ({size_kb} KB)")
 
         # Citi — export individuel
         citi_out = HTML_DIR / "scraped_jobs_citi.json"
-        if safe_write_json(citi_out, citi_jobs):
+        if safe_write_json(citi_out, [slim_streaming_job(j) for j in citi_jobs]):
             size_kb = citi_out.stat().st_size // 1024
             print(f"   ✅ citi : {len(citi_jobs)} offres → scraped_jobs_citi.json ({size_kb} KB)")
 
@@ -1930,7 +1952,7 @@ def main():
                     if _job.get('contract_type') in ('Stage', 'Alternance', 'Stage, Alternance'):
                         _job['experience_level'] = '0 - 2 ans'
                 label = 'DB' if bnp_from_db else ('préservées' if bnp_jobs_preserved else 'normalisées depuis fichier')
-                write_json(out_path, source_bnp)
+                write_json(out_path, [slim_streaming_job(j) for j in source_bnp])
                 size_kb = out_path.stat().st_size // 1024
                 print(f"   ✅ bnp_paribas : {len(source_bnp)} offres {label} → scraped_jobs_bnp_paribas.json ({size_kb} KB)")
                 continue
@@ -1939,7 +1961,7 @@ def main():
                 print(f"   ⚠️  {key} : DB absente")
                 continue
             jobs = read_from_db(db_path, key, live_only=True)
-            if safe_write_json(out_path, jobs):
+            if safe_write_json(out_path, [slim_streaming_job(j) for j in jobs]):
                 size_kb = out_path.stat().st_size // 1024
                 print(f"   ✅ {key} : {len(jobs)} offres → scraped_jobs_{key}.json ({size_kb} KB)")
     else:

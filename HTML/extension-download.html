@@ -385,7 +385,12 @@ function renderPage() {
   const latestVn = latestVersionData.version_name || latest;
   const date     = latestVersionData.published_at || '';
   const notes    = latestVersionData.release_notes || '';
-  const dlUrl    = latestVersionData.download_url || '';
+  // Forcer raw.githubusercontent.com pour contourner le cache CDN de GitHub Pages
+  const dlUrlRaw = (latestVersionData.download_url || '').replace(
+    'https://dedale95.github.io/Taleos-Public/',
+    'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/'
+  );
+  const dlUrl = dlUrlRaw || latestVersionData.download_url || '';
 
   document.getElementById('latestVersion').textContent = latest;
   document.getElementById('latestDate').textContent    = formatDate(date);

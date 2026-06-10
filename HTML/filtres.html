@@ -4176,7 +4176,7 @@
                 container.appendChild(label);
             });
 
-            // ── Réordonner tous les éléments par nombre d'offres décroissant ──
+            // ── Réordonner : groupes (accordéons) d'abord, puis autres — le tout par ordre alphabétique ──
             {
                 const entries = [];
                 const kids = Array.from(container.children);
@@ -4187,17 +4187,20 @@
                         const next = kids[i + 1];
                         const hasChildren = next && next.classList.contains('company-group-children');
                         const span = el.querySelector('label > span');
-                        const m = (span?.textContent || '').match(/\((\d+)\)/);
-                        entries.push({ els: hasChildren ? [el, next] : [el], count: m ? parseInt(m[1]) : 0 });
+                        const name = (span?.textContent || '').replace(/\s*\(\d+\)$/, '').trim();
+                        entries.push({ els: hasChildren ? [el, next] : [el], isGroup: true, name });
                         i += hasChildren ? 2 : 1;
                     } else {
                         const span = el.querySelector('span:last-child');
-                        const m = (span?.textContent || '').match(/\((\d+)\)/);
-                        entries.push({ els: [el], count: m ? parseInt(m[1]) : 0 });
+                        const name = (span?.textContent || '').replace(/\s*\(\d+\)$/, '').trim();
+                        entries.push({ els: [el], isGroup: false, name });
                         i++;
                     }
                 }
-                entries.sort((a, b) => b.count - a.count);
+                entries.sort((a, b) => {
+                    if (a.isGroup !== b.isGroup) return a.isGroup ? -1 : 1;
+                    return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
+                });
                 entries.forEach(e => e.els.forEach(n => container.appendChild(n)));
             }
         }

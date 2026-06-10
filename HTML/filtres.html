@@ -732,6 +732,176 @@
             color: var(--muted);
         }
 
+        /* ── Card structure (identique à offres.html) ── */
+        .job-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .job-company-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .job-company-logo-box {
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--surface2);
+            overflow: hidden;
+        }
+
+        .job-company-logo-box .company-logo {
+            width: 100%;
+            height: 100%;
+            padding: 6px;
+            background: transparent;
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        .job-company-logo-box .company-logo.company-logo-square {
+            padding: 2px;
+            object-fit: contain;
+        }
+
+        .job-company-initials {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .job-title-wrap {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .job-company-name {
+            color: var(--muted);
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .job-favorite-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            border: 1px solid var(--surface3);
+            background: var(--white);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            flex-shrink: 0;
+        }
+
+        .job-favorite-btn:hover {
+            border-color: rgba(209, 67, 67, 0.28);
+            background: rgba(209, 67, 67, 0.05);
+        }
+
+        .job-favorite-btn.active {
+            border-color: rgba(209, 67, 67, 0.3);
+            background: rgba(209, 67, 67, 0.08);
+        }
+
+        .job-favorite-btn svg {
+            width: 17px;
+            height: 17px;
+            transition: all var(--transition);
+        }
+
+        /* ── Vue liste (list-view) ── */
+        .jobs-grid.list-view {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .jobs-grid.list-view .job-card {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 0 16px;
+        }
+
+        .jobs-grid.list-view .job-card-head {
+            grid-column: 1 / 2;
+            grid-row: 1 / 4;
+            align-items: flex-start;
+            margin-bottom: 0;
+        }
+
+        .jobs-grid.list-view .job-company-header {
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .jobs-grid.list-view .job-title-wrap { display: none; }
+
+        .jobs-grid.list-view .job-tags {
+            grid-column: 2;
+            grid-row: 2;
+            margin-bottom: 8px;
+        }
+
+        .jobs-grid.list-view .job-bottom-block {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        .jobs-grid.list-view .job-company-name,
+        .jobs-grid.list-view .job-favorite-btn { display: none; }
+
+        /* ── Toolbar view toggle ── */
+        .advanced-search-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .offers-view-tabs {
+            display: flex;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--surface2);
+            overflow: hidden;
+        }
+
+        .offers-view-tab {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all var(--transition);
+        }
+
+        .offers-view-tab.active,
+        .offers-view-tab:hover {
+            background: var(--white);
+            color: var(--ink);
+        }
+
+        .offers-view-tab svg { width: 16px; height: 16px; }
+
         .jobs-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -870,10 +1040,7 @@
         }
 
         .job-id {
-            color: var(--gold);
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
+            display: none;
         }
 
         .job-tags {
@@ -1535,6 +1702,17 @@
                 <div class="advanced-search-header-actions"></div>
             </div>
 
+            <div class="advanced-search-toolbar">
+                <div class="offers-view-tabs" aria-label="Changer l'affichage des offres">
+                    <button class="offers-view-tab active" id="gridViewBtn" type="button" onclick="setOffersView('grid')" title="Affichage en grille">
+                        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+                    </button>
+                    <button class="offers-view-tab" id="listViewBtn" type="button" onclick="setOffersView('list')" title="Affichage en liste">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+                    </button>
+                </div>
+            </div>
+
             <div class="accordions-container" id="accordionsContainer">
                 <!-- Les accordéons seront générés dynamiquement ici -->
             </div>
@@ -1623,6 +1801,152 @@
         // pendingApplications : plus utilisé (timer supprimé). Conservé pour compatibilité cancelApplication.
         let pendingApplications = {};
 
+        // Variables pour les favoris
+        const FAVORITES_STORAGE_KEY = 'taleosFavoriteJobs';
+        let favoriteJobs = new Set();
+        let showFavoritesOnly = false;
+        let offersViewMode = localStorage.getItem('taleosOffersView') || 'grid';
+
+        function getCurrentUserIdForFavorites() {
+            try {
+                const auth = firebase?.auth?.();
+                const uid = auth?.currentUser?.uid;
+                if (uid) return uid;
+            } catch (_) {}
+            return null;
+        }
+
+        function readLocalFavoriteJobs() {
+            try {
+                return JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY) || '[]')
+                    .map((value) => String(value || '').trim())
+                    .filter(Boolean);
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function writeLocalFavoriteJobs(keys) {
+            localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(keys || [])));
+        }
+
+        function getFavoriteJobKey(job) {
+            if (!job || typeof job !== 'object') return '';
+            return String(job.job_id || job.job_url || '').trim();
+        }
+
+        function getFavoriteLookupKeys(job) {
+            const keys = new Set();
+            if (!job || typeof job !== 'object') return keys;
+            const jobId = String(job.job_id || '').trim();
+            const jobUrl = String(job.job_url || '').trim();
+            if (jobId) keys.add(jobId);
+            if (jobUrl) keys.add(jobUrl);
+            return keys;
+        }
+
+        function getFavoritesDocumentRef() {
+            const uid = getCurrentUserIdForFavorites();
+            if (!uid || !firebase?.firestore) return null;
+            return firebase.firestore()
+                .collection('profiles')
+                .doc(uid)
+                .collection('user_preferences')
+                .doc('offres_favorites');
+        }
+
+        async function persistFavoriteJobs() {
+            const serialized = Array.from(favoriteJobs);
+            const ref = getFavoritesDocumentRef();
+            if (ref) {
+                await ref.set({
+                    jobKeys: serialized,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+                localStorage.removeItem(FAVORITES_STORAGE_KEY);
+                return;
+            }
+            writeLocalFavoriteJobs(serialized);
+        }
+
+        async function hydrateFavoriteJobs() {
+            const localFavorites = readLocalFavoriteJobs();
+            const ref = getFavoritesDocumentRef();
+            if (!ref) {
+                favoriteJobs = new Set(localFavorites);
+                updateFavoritesToggle();
+                return;
+            }
+            try {
+                const snap = await ref.get();
+                const remoteFavorites = snap.exists && Array.isArray(snap.data()?.jobKeys)
+                    ? snap.data().jobKeys.map((value) => String(value || '').trim()).filter(Boolean)
+                    : [];
+                favoriteJobs = new Set([...remoteFavorites, ...localFavorites]);
+                await persistFavoriteJobs();
+            } catch (error) {
+                console.error('Erreur chargement favoris Firebase:', error);
+                favoriteJobs = new Set(localFavorites);
+            }
+            updateFavoritesToggle();
+        }
+
+        function updateFavoritesToggle() {
+            const countEl = document.getElementById('favoritesCount');
+            if (countEl) countEl.textContent = favoriteJobs.size;
+            const toggle = document.getElementById('favoritesToggle');
+            if (toggle) toggle.classList.toggle('active', showFavoritesOnly);
+        }
+
+        async function toggleFavoriteJob(event, jobId, btn) {
+            event.stopPropagation();
+            const favoriteKey = String(jobId || '').trim();
+            if (!favoriteKey) return;
+            if (favoriteJobs.has(favoriteKey)) favoriteJobs.delete(favoriteKey);
+            else favoriteJobs.add(favoriteKey);
+            updateFavoritesToggle();
+            if (btn && btn.isConnected) {
+                const isFavorite = favoriteJobs.has(favoriteKey);
+                btn.classList.toggle('active', isFavorite);
+                btn.innerHTML = getFavoriteIconMarkup(isFavorite);
+                btn.title = isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris';
+                btn.closest('.job-card')?.classList.toggle('favorite', isFavorite);
+            }
+            try {
+                await persistFavoriteJobs();
+            } catch (error) {
+                console.error('Erreur sauvegarde favori:', error);
+            }
+        }
+
+        function getFavoriteIconMarkup(isFavorite) {
+            return `
+                <svg viewBox="0 0 20 20" fill="${isFavorite ? '#d14343' : 'none'}" stroke="${isFavorite ? '#d14343' : 'currentColor'}" stroke-width="1.8">
+                    <path d="M10 16.5S2 11.3 2 6.5a4 4 0 0 1 8-1.1A4 4 0 0 1 18 6.5c0 4.8-8 10-8 10z"/>
+                </svg>
+            `;
+        }
+
+        function getCompanyInitials(name) {
+            return String(name || '')
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(part => part[0]?.toUpperCase() || '')
+                .join('');
+        }
+
+        function setOffersView(mode) {
+            offersViewMode = mode === 'list' ? 'list' : 'grid';
+            localStorage.setItem('taleosOffersView', offersViewMode);
+            // Appliquer la classe list-view à tous les grilles d'accordéons déjà rendus
+            document.querySelectorAll('.jobs-grid').forEach(c => {
+                c.classList.toggle('list-view', offersViewMode === 'list');
+            });
+            document.getElementById('gridViewBtn')?.classList.toggle('active', offersViewMode === 'grid');
+            document.getElementById('listViewBtn')?.classList.toggle('active', offersViewMode === 'list');
+        }
+
         // Fonction pour nettoyer le titre d'une offre (retirer les balises HTML si présentes)
         // Fonction pour formater une date au format français dd/mm/yyyy
         function formatDateToFrench(dateString) {
@@ -1665,6 +1989,41 @@
             } catch (error) {
                 console.warn('Erreur lors du formatage de la date:', dateString, error);
                 return dateString; // Retourner la date originale en cas d'erreur
+            }
+        }
+
+        function formatDateRelative(dateString) {
+            if (!dateString || dateString === 'date inconnue' || dateString === 'Date non spécifiée') {
+                return 'à une date inconnue';
+            }
+            try {
+                const raw = String(dateString || '').trim();
+                let parsed = null;
+                const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                if (iso) {
+                    const [, y, m, d] = iso;
+                    parsed = new Date(Number(y), Number(m) - 1, Number(d));
+                } else {
+                    const fr = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+                    if (fr) {
+                        const [, d, m, y] = fr;
+                        parsed = new Date(Number(y), Number(m) - 1, Number(d));
+                    } else {
+                        const fallback = new Date(raw);
+                        parsed = Number.isNaN(fallback.getTime()) ? null : fallback;
+                    }
+                }
+                if (!parsed || Number.isNaN(parsed.getTime())) return 'à une date inconnue';
+                const days = Math.round((Date.now() - parsed.getTime()) / 86400000);
+                if (days <= 0) return "aujourd'hui";
+                if (days === 1) return 'il y a 1 jour';
+                if (days < 31) return `il y a ${days} jours`;
+                if (days < 60) return 'il y a 1 mois';
+                const months = Math.round(days / 30);
+                if (months < 12) return `il y a ${months} mois`;
+                return "il y a plus d'un an";
+            } catch (e) {
+                return 'à une date inconnue';
             }
         }
 
@@ -2261,10 +2620,16 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Initialiser la navigation en premier pour éviter le flash
             initNav();
+            // Appliquer le mode d'affichage sauvegardé
+            setOffersView(offersViewMode);
+            // Charger les favoris depuis localStorage (et Firestore une fois auth prêt)
+            hydrateFavoriteJobs();
             // Rendu immédiat de l'état vide pour éviter une page "bloquée" au premier chargement
             renderAccordions();
             // Démarrer l'auth sans attendre le chargement des offres
             await checkAuthAndInit();
+            // Re-hydrater les favoris après auth (pour récupérer ceux Firestore)
+            hydrateFavoriteJobs();
             // Charger ensuite les offres et rafraîchir l'affichage des filtres quand prêtes
             await loadJobs();
             if (currentUserId) renderAccordions();
@@ -2275,10 +2640,42 @@
                 const cacheBust = `v=${Date.now()}`;
                 const isInHTMLFolder = window.location.href.includes('/HTML/');
                 const SOURCES_STREAMING = [
-                    'bpifrance', 'oddo_bhf', 'goldman_sachs', 'hsbc', 'nomura', 'mufg', 'mizuho', 'bank_of_america', 'citi',
-                    'barclays', 'lloyds', 'ing', 'standard_chartered', 'revolut',
-                    'jp_morgan', 'credit_mutuel', 'credit_agricole', 'la_banque_postale', 'kpmg',
-                    'societe_generale', 'axa', 'deloitte', 'bnp_paribas', 'bpce', 'ey'
+                    'bpifrance',         // ~444 KB
+                    'oddo_bhf',          // ~474 KB
+                    'kpmg',              // ~697 KB
+                    'la_banque_postale', // ~721 KB
+                    'deloitte',          // ~953 KB
+                    'bnp_paribas',       // ~0 KB
+                    'societe_generale',  // ~1.5 MB
+                    'axa',               // ~2.2 MB
+                    'credit_mutuel',     // ~2.3 MB
+                    'credit_agricole',   // ~2.8 MB
+                    'bpce',              // ~3.5 MB
+                    'goldman_sachs',     // ~3.8 MB
+                    'hsbc',              // ~4.1 MB
+                    'nomura',            // ~0.8 MB
+                    'mufg',              // ~0.7 MB
+                    'mizuho',            // ~0.2 MB
+                    'bank_of_america',   // ~4 MB
+                    'citi',              // ~3.5 MB
+                    'barclays',          // ~1 MB
+                    'lloyds',            // ~0.1 MB
+                    'ing',               // ~1 MB
+                    'standard_chartered',// ~0.5 MB
+                    'revolut',           // ~0.5 MB
+                    'kepler_cheuvreux',  // ~0.01 MB
+                    'mazars',            // ~0.2 MB
+                    'lazard',            // ~0.05 MB
+                    'stripe',            // ~0.3 MB
+                    'adyen',             // ~0.2 MB
+                    'jefferies',         // ~0.2 MB
+                    'moelis',            // ~0.05 MB
+                    'rothschild',        // ~0.1 MB
+                    'accenture',         // ~3 MB
+                    'morgan_stanley',    // ~2 MB
+                    'bloomberg',         // ~0.5 MB
+                    'jp_morgan',         // ~6.2 MB
+                    'ey',                // ~22 MB ← toujours en dernier
                 ];
                 const BASE_CANDIDATES = isInHTMLFolder
                     ? ['', 'https://dedale95.github.io/Taleos-Public/HTML', 'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML']
@@ -5874,15 +6271,15 @@
                             const jobTitle = cleanJobTitle(job.job_title);
                             
                             let buttonHTML = '';
-                            const jobLinkHTML = `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
-                            
+                            const jobLinkHTML = `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>`;
+
                             if (isExpired) {
                                 buttonHTML = `<span class="job-expired-label">Offre expirée</span>`;
                             } else if (isSubmitted || isApplied || isPending) {
                                 buttonHTML = jobLinkHTML;
                             } else {
-                                buttonHTML = `<button class="job-apply-btn" onclick="applyToJob('${jobId}', '${jobTitle.replace(/'/g, "\\'")}', this)">📝 Candidater</button>`;
-                                buttonHTML += jobLinkHTML;
+                                buttonHTML = jobLinkHTML;
+                                buttonHTML += `<button class="job-apply-btn" onclick="applyToJob('${jobId}', '${jobTitle.replace(/'/g, "\\'")}', this)">Postuler</button>`;
                             }
                             
                             actionsDiv.innerHTML = buttonHTML;
@@ -5894,27 +6291,46 @@
 
         // Fonction pour générer le HTML d'une carte d'offre (identique à offres.html)
         function renderJobCard(job) {
+            // Déterminer l'état de la candidature
             const hasApplied = userApplications.has(job.job_id);
             const isPending = pendingApplications[job.job_id];
             const status = applicationStatuses.get(job.job_id);
             const isSubmitted = status === 'envoyée';
-            const isAuthenticated = checkIsAuthenticated();
-            
+            const isFavorite = favoriteJobs.has(job.job_id);
+
+            // Classes CSS selon l'état
             let cardClass = 'job-card';
             let badgeHTML = '';
-            
+
             if (isSubmitted || (hasApplied && !isPending)) {
                 cardClass += ' application-submitted';
                 badgeHTML = '<div class="job-card-badge">✓ Candidature envoyée</div>';
             }
+            if (isFavorite) cardClass += ' favorite';
             // Plus de "Candidature en cours" avec timer : la vignette passe à "envoyée" uniquement via l'onglet de candidature
-            
+
+            const logoPath = getCompanyLogo(job.company_name);
+            const logoUrl = logoPath ? (() => { try { return new URL(logoPath, window.location.href).href; } catch(e) { return logoPath; } })() : null;
+            const logoClass = getCompanyLogoClass(job.company_name, logoPath);
+
             return `
         <div class="${cardClass}" data-job-url="${normalizeOfferUrl(job)}">
             ${badgeHTML}
-            <div class="job-title">${cleanJobTitle(job.job_title)}</div>
-            <div class="job-id">${job.job_id}</div>
-            <div class="job-date">Publiée le ${formatDateToFrench(job.publication_date)}</div>
+            <div class="job-card-head">
+                <div class="job-company-header">
+                    <div class="job-company-logo-box">
+                        ${logoUrl ? `<img src="${logoUrl}" alt="${(job.company_name || '').replace(/"/g, '&quot;')}" class="${logoClass}" loading="lazy" onerror="this.closest('.job-company-logo-box').innerHTML='<span class=&quot;job-company-initials&quot;>${getCompanyInitials(job.company_name)}</span>'">` : `<span class="job-company-initials">${getCompanyInitials(job.company_name)}</span>`}
+                    </div>
+                    <div class="job-title-wrap">
+                        <div class="job-title">${cleanJobTitle(job.job_title)}</div>
+                        <div class="job-company-name">${job.company_name || ''}</div>
+                        <div class="job-id">${job.job_id}</div>
+                    </div>
+                </div>
+                <button class="job-favorite-btn ${isFavorite ? 'active' : ''}" onclick="toggleFavoriteJob(event, '${job.job_id}', this)" title="${isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+                    ${getFavoriteIconMarkup(isFavorite)}
+                </button>
+            </div>
             <div class="job-tags">
                 ${job.location ? `<span class="tag tag-location">🌍 ${job.location}</span>` : ''}
                 ${job.contract_type ? `<span class="tag tag-contract">📄 ${job.contract_type}</span>` : ''}
@@ -5923,31 +6339,19 @@
                 ${job.job_family ? `<span class="tag tag-family">🎯 ${job.job_family}</span>` : ''}
             </div>
             <div class="job-bottom-block">
-                ${job.company_name ? (() => {
-                    const logoPath = getCompanyLogo(job.company_name);
-                    const logoUrl = logoPath ? (() => { try { return new URL(logoPath, window.location.href).href; } catch(e) { return logoPath; } })() : null;
-                    const logoClass = getCompanyLogoClass(job.company_name, logoPath);
-                    return `
-                <div class="job-company">
-                    ${logoUrl ? `<img src="${logoUrl}" alt="${(job.company_name || '').replace(/"/g, '&quot;')}" class="${logoClass}" loading="lazy" onerror="this.style.display='none'">` : ''}
-                    <div class="company-name-wrapper">
-                        <span>${job.company_name}</span>
-                    </div>
-                </div>`;
-                })() : ''}
                 <div class="job-footer">
+                    <div class="job-date">Publiée ${formatDateRelative(job.publication_date)}</div>
                     <div class="job-actions">
-                    ${isAuthenticated ? (() => {
-                        const status = applicationStatuses.get(job.job_id);
-                        const isSubmitted = status === 'envoyée';
-                        
-                        if (isSubmitted || hasApplied) {
-                            return `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                    ${checkIsAuthenticated() ? (() => {
+                        const st = applicationStatuses.get(job.job_id);
+                        const submitted = st === 'envoyée';
+                        if (submitted || hasApplied) {
+                            return `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>`;
                         } else {
-                            return `<button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">📝 Candidater</button>
-                                    <a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre →</a>`;
+                            return `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link" onclick="event.stopPropagation()">Voir l'offre</a>
+                                    <button class="job-apply-btn" onclick="applyToJob('${job.job_id}', '${cleanJobTitle(job.job_title).replace(/'/g, "\\'")}', this)">Postuler</button>`;
                         }
-                    })() : `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link">Voir l'offre →</a>`}
+                    })() : `<a href="${normalizeOfferUrl(job)}" target="_blank" class="job-link">Voir l'offre</a>`}
                     </div>
                 </div>
             </div>
@@ -6024,7 +6428,7 @@
                     <div class="accordion-results-header">
                         <div class="accordion-results-title">Résultats (${total} offres)</div>
                     </div>
-                    <div class="jobs-grid">
+                    <div class="jobs-grid${offersViewMode === 'list' ? ' list-view' : ''}">
                         ${pageJobs.map(job => renderJobCard(job)).join('')}
                     </div>
                     ${paginationHtml}
@@ -6038,27 +6442,28 @@
             return allJobs.filter(job => {
                 // Mots-clés
                 if (filters.searchKeywords && filters.searchKeywords.length > 0) {
-                    const titleMatch = filters.searchKeywords.every(kw => 
-                        (job.job_title || '').toLowerCase().includes(kw.toLowerCase())
-                    );
-                    const descMatch = filters.searchKeywords.every(kw =>
-                        (job.job_description || '').toLowerCase().includes(kw.toLowerCase())
-                    );
-                    if (!titleMatch && !descMatch) return false;
+                    const matchKeywords = filters.searchKeywords.every(kw => {
+                        const k = kw.toLowerCase();
+                        return (job.job_title || '').toLowerCase().includes(k) ||
+                               (job.job_description || '').toLowerCase().includes(k) ||
+                               (job.job_id || '').toLowerCase().includes(k);
+                    });
+                    if (!matchKeywords) return false;
                 }
 
-                // Pays
-                if (filters.countries && filters.countries.length > 0) {
-                    if (!job.cleanCountries || !job.cleanCountries.some(c => filters.countries.includes(c))) {
-                        return false;
-                    }
-                }
-
-                // Régions
-                if (filters.regions && filters.regions.length > 0) {
-                    if (!job.cleanRegions || !job.cleanRegions.some(r => filters.regions.includes(r))) {
-                        return false;
-                    }
+                // Localisation — OR logic : pays OU région
+                const hasCountryFilter = filters.countries && filters.countries.length > 0;
+                const hasRegionFilter = filters.regions && filters.regions.length > 0;
+                if (hasCountryFilter || hasRegionFilter) {
+                    const jobCountry = job.cleanCountries && job.cleanCountries.length ? job.cleanCountries : null;
+                    const matchCountry = hasCountryFilter && (
+                        (filters.countries.includes('Non spécifié') && !jobCountry) ||
+                        (jobCountry && jobCountry.some(c => filters.countries.includes(c)))
+                    );
+                    const matchRegion = hasRegionFilter && (
+                        job.cleanRegions && job.cleanRegions.some(r => filters.regions.includes(r))
+                    );
+                    if (!matchCountry && !matchRegion) return false;
                 }
 
                 // Contrats

@@ -2007,7 +2007,8 @@
         // Pagination variables
         let currentPage = 1;
         let itemsPerPage = 25;
-        let favoriteJobs = new Set(JSON.parse(localStorage.getItem('taleosFavoriteJobs') || '[]'));
+        const FAVORITES_STORAGE_KEY = 'taleosFavoriteJobs';
+        let favoriteJobs = new Set();
         let showFavoritesOnly = false;
         let offersViewMode = localStorage.getItem('taleosOffersView') || 'grid';
         const SECTIONS_MAX = 12;
@@ -7845,18 +7846,89 @@
                 .join('');
         }
 
-        function toggleFavoriteJob(event, jobId, btn) {
+        function readLocalFavoriteJobs() {
+            try {
+                return JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY) || '[]')
+                    .map((value) => String(value || '').trim())
+                    .filter(Boolean);
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function writeLocalFavoriteJobs(keys) {
+            localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(keys || [])));
+        }
+
+        function getFavoritesDocumentRef() {
+            try {
+                const auth = firebase?.auth?.();
+                const uid = auth?.currentUser?.uid;
+                if (!uid || !firebase?.firestore) return null;
+                return firebase.firestore()
+                    .collection('profiles')
+                    .doc(uid)
+                    .collection('user_preferences')
+                    .doc('offres_favorites');
+            } catch (_) {
+                return null;
+            }
+        }
+
+        async function persistFavoriteJobs() {
+            const serialized = Array.from(favoriteJobs);
+            const ref = getFavoritesDocumentRef();
+            if (ref) {
+                await ref.set({
+                    jobKeys: serialized,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+                localStorage.removeItem(FAVORITES_STORAGE_KEY);
+                return;
+            }
+            writeLocalFavoriteJobs(serialized);
+        }
+
+        async function hydrateFavoriteJobs() {
+            const localFavorites = readLocalFavoriteJobs();
+            const ref = getFavoritesDocumentRef();
+            if (!ref) {
+                favoriteJobs = new Set(localFavorites);
+                updateFavoritesToggle();
+                return;
+            }
+            try {
+                const snap = await ref.get();
+                const remoteFavorites = snap.exists && Array.isArray(snap.data()?.jobKeys)
+                    ? snap.data().jobKeys.map((value) => String(value || '').trim()).filter(Boolean)
+                    : [];
+                favoriteJobs = new Set([...remoteFavorites, ...localFavorites]);
+                await persistFavoriteJobs();
+            } catch (error) {
+                console.error('Erreur chargement favoris Firebase:', error);
+                favoriteJobs = new Set(localFavorites);
+            }
+            updateFavoritesToggle();
+        }
+
+        async function toggleFavoriteJob(event, jobId, btn) {
             event.stopPropagation();
-            if (favoriteJobs.has(jobId)) favoriteJobs.delete(jobId);
-            else favoriteJobs.add(jobId);
-            localStorage.setItem('taleosFavoriteJobs', JSON.stringify(Array.from(favoriteJobs)));
+            const favoriteKey = String(jobId || '').trim();
+            if (!favoriteKey) return;
+            if (favoriteJobs.has(favoriteKey)) favoriteJobs.delete(favoriteKey);
+            else favoriteJobs.add(favoriteKey);
             updateFavoritesToggle();
             if (btn && btn.isConnected) {
-                const isFavorite = favoriteJobs.has(jobId);
+                const isFavorite = favoriteJobs.has(favoriteKey);
                 btn.classList.toggle('active', isFavorite);
                 btn.innerHTML = getFavoriteIconMarkup(isFavorite);
                 btn.title = isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris';
                 btn.closest('.job-card')?.classList.toggle('favorite', isFavorite);
+            }
+            try {
+                await persistFavoriteJobs();
+            } catch (error) {
+                console.error('Erreur sauvegarde favori:', error);
             }
             if (showFavoritesOnly) {
                 applyFilters();
@@ -8129,6 +8201,7 @@
         // ⚡ OPTIMISATION : Charger les jobs IMMÉDIATEMENT sans attendre l'auth
         // Les statistiques s'affichent tout de suite, les boutons se mettent à jour après
         setOffersView(offersViewMode);
+        hydrateFavoriteJobs(); // Charger les favoris (localStorage + Firestore si connecté)
         console.log('⚡ Démarrage du chargement des jobs (optimisé)...');
         loadJobs().then(() => {
             jobsLoaded = true;
@@ -8148,6 +8221,7 @@
 
                     // Charger les candidatures de l'utilisateur EN ARRIÈRE-PLAN
                     if (user) {
+                        hydrateFavoriteJobs(); // Re-sync favoris avec Firestore à la connexion
                         loadUserApplications().then(() => {
                             // Une fois les candidatures chargées, mettre à jour les boutons
                             if (jobsLoaded && filteredJobs.length > 0) {

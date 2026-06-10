@@ -3799,6 +3799,27 @@
                     'bpce',              // ~3.5 MB
                     'goldman_sachs',     // ~3.8 MB
                     'hsbc',              // ~4.1 MB
+                    'nomura',            // ~0.8 MB
+                    'mufg',              // ~0.7 MB
+                    'mizuho',            // ~0.2 MB
+                    'bank_of_america',   // ~4 MB
+                    'citi',              // ~3.5 MB
+                    'barclays',          // ~1 MB
+                    'lloyds',            // ~0.1 MB
+                    'ing',               // ~1 MB
+                    'standard_chartered',// ~0.5 MB
+                    'revolut',           // ~0.5 MB
+                    'kepler_cheuvreux',  // ~0.01 MB
+                    'mazars',            // ~0.2 MB
+                    'lazard',            // ~0.05 MB
+                    'stripe',            // ~0.3 MB
+                    'adyen',             // ~0.2 MB
+                    'jefferies',         // ~0.2 MB
+                    'moelis',            // ~0.05 MB
+                    'rothschild',        // ~0.1 MB
+                    'accenture',         // ~3 MB
+                    'morgan_stanley',    // ~2 MB
+                    'bloomberg',         // ~0.5 MB
                     'jp_morgan',         // ~6.2 MB
                     'ey',                // ~22 MB ← toujours en dernier
                 ];
@@ -7627,6 +7648,7 @@
                     <div class="job-title-wrap">
                         <div class="job-title">${cleanJobTitle(job.job_title)}</div>
                         <div class="job-company-name">${job.company_name || ''}</div>
+                        <div class="job-id">${job.job_id}</div>
                     </div>
                 </div>
                 <button class="job-favorite-btn ${isFavorite ? 'active' : ''}" onclick="toggleFavoriteJob(event, '${favoriteKey.replace(/'/g, "\\'")}', this)" title="${isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">

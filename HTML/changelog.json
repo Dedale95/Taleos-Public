@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.240",
+    "date": "2026-06-10T22:00:00Z",
+    "text": "Morgan Stanley Workday — correction des identifiants manquants : ajout de l'alias morgan_stanley pour la clé career_connections dans Firebase (les identifiants sont stockés sous morgan_stanley et non morgan_stanley_workday)."
+  },
+  {
     "version": "1.2.239",
     "date": "2026-06-10T21:00:00Z",
     "text": "Morgan Stanley Workday — isLoggedIn() ne retourne plus true sur la page Start Your Application. Étape login (Créer un compte/Ouvrir une session) détectée dans currentStep() et gérée dans la boucle principale après clic Apply Manually."

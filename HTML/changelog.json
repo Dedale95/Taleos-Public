@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.236",
+    "date": "2026-06-10T20:10:00Z",
+    "text": "Morgan Stanley Eightfold — interception window.open() avant le clic : capture l'URL Workday (param n=) et navigation dans le même onglet sans ouvrir un second onglet."
+  },
+  {
     "version": "1.2.235",
     "date": "2026-06-10T19:57:00Z",
     "text": "Morgan Stanley Eightfold — extraction de l'URL Workday depuis le paramètre n= du lien de tracking, navigation dans le même onglet (plus d'ouverture d'un second onglet). Fallback interception click target=_blank."

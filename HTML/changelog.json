@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.238",
+    "date": "2026-06-10T20:40:00Z",
+    "text": "Morgan Stanley Eightfold — nouveau content script world:MAIN (morgan-stanley-eightfold-main-world.js) déclaré dans le manifest. Patche window.open() dans le monde de la page sans script inline (contourne la CSP). Activation via flag data-taleos-ms-intercept sur <html>."
+  },
+  {
     "version": "1.2.237",
     "date": "2026-06-10T20:25:00Z",
     "text": "Morgan Stanley Eightfold — injection dans le main world (script tag) pour patcher window.open() de la page React. Les content scripts Chrome sont dans un monde isolé et ne peuvent pas intercepter window.open directement."

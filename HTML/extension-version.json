@@ -1,7 +1,7 @@
 {
-  "version": "1.2.238",
-  "version_name": "1.2.238",
+  "version": "1.2.239",
+  "version_name": "1.2.239",
   "published_at": "2026-06-10T00:00:00Z",
-  "release_notes": "Morgan Stanley Eightfold — content script world:MAIN pour intercepter window.open() sans bloquer la CSP.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.238.zip"
+  "release_notes": "Morgan Stanley Workday — détection étape login après Apply Manually. isLoggedIn() corrigé pour ne pas retourner true sur la page Start Your Application.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.239.zip"
 }

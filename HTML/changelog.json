@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.239",
+    "date": "2026-06-10T21:00:00Z",
+    "text": "Morgan Stanley Workday — isLoggedIn() ne retourne plus true sur la page Start Your Application. Étape login (Créer un compte/Ouvrir une session) détectée dans currentStep() et gérée dans la boucle principale après clic Apply Manually."
+  },
+  {
     "version": "1.2.238",
     "date": "2026-06-10T20:40:00Z",
     "text": "Morgan Stanley Eightfold — nouveau content script world:MAIN (morgan-stanley-eightfold-main-world.js) déclaré dans le manifest. Patche window.open() dans le monde de la page sans script inline (contourne la CSP). Activation via flag data-taleos-ms-intercept sur <html>."

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.233",
-  "version_name": "1.2.233-ms-eightfold-fix",
+  "version": "1.2.234",
+  "version_name": "1.2.234",
   "published_at": "2026-06-10T00:00:00Z",
-  "release_notes": "Fix Morgan Stanley Eightfold : l'extension reconnaît désormais les offres MS (Eightfold + Workday) depuis le tableau de bord Taleos et déclenche correctement l'automatisation.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.233.zip"
+  "release_notes": "Fix Morgan Stanley Eightfold : détection du bouton 'Postuler maintenant' (texte français) + recherche via span enfant.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.234.zip"
 }

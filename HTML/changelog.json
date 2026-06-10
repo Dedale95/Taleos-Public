@@ -1,5 +1,25 @@
 [
   {
+    "version": "1.2.235",
+    "date": "2026-06-10T19:57:00Z",
+    "text": "Morgan Stanley Eightfold — extraction de l'URL Workday depuis le paramètre n= du lien de tracking, navigation dans le même onglet (plus d'ouverture d'un second onglet). Fallback interception click target=_blank."
+  },
+  {
+    "version": "1.2.234",
+    "date": "2026-06-10T19:46:00Z",
+    "text": "Morgan Stanley Eightfold — détection du bouton 'Postuler maintenant' (texte français, span enfant). Recherche en 3 passes : data-test-id, textContent bouton/span, remontée depuis span."
+  },
+  {
+    "version": "1.2.233",
+    "date": "2026-06-10T19:35:00Z",
+    "text": "Fix Morgan Stanley non reconnu depuis le tableau de bord : getBankIdFromUrl et getBankIdFromCompanyName ajoutés pour morganstanley.eightfold.ai et ms.wd5.myworkdayjobs.com. morgan_stanley_workday exclu de requiresCareerCredentials. version_name corrigé (était bloqué à 1.2.231)."
+  },
+  {
+    "version": "1.2.232",
+    "date": "2026-06-10T17:00:00Z",
+    "text": "Support Morgan Stanley Eightfold (morganstanley.eightfold.ai) : l'extension prend désormais le relai sur le portail Eightfold, clique automatiquement sur Apply et transmet à Workday le cas échéant."
+  },
+  {
     "version": "1.2.231",
     "date": "2026-06-07T20:00:00Z",
     "text": "MS Filler v3 final : dérivation automatique diplôme (Bac+5 + École de commerce → Professional Degree), champs génériques education_degree/field_of_study/skills. Profil : Diplôme international, Domaine d'études, Compétences."

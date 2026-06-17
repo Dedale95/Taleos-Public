@@ -2519,8 +2519,7 @@
                         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
                         <!-- Questions de sélection spécifiques JP Morgan (screener) -->
-                        <p style="font-weight: 600; margin-bottom: 16px; color: #374151;">Questions de sélection — JP Morgan</p>
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.6;">Ces questions n'apparaissent que sur certains postes JP Morgan. Taleos les remplira automatiquement quand elles sont présentes.</p>
+                        <p style="font-weight: 600; margin-bottom: 20px; color: #374151;">Questions de sélection</p>
 
                         <div class="form-group">
                             <label for="jpmTradesExperience">Années d'expérience en trading / traitement de transactions</label>
@@ -2589,15 +2588,41 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="noticePeriod">Préavis de départ (JP Morgan / Oracle)</label>
-                            <input type="text" id="noticePeriod" name="noticePeriod" placeholder="Ex. 3 months, 1 month, Immediately available">
-                            <small style="color: #888;">Valeur texte libre telle qu'attendue par Oracle HCM (en anglais)</small>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="jpmEthnicity">Origine ethnique (JP Morgan / Oracle)</label>
-                            <input type="text" id="jpmEthnicity" name="jpmEthnicity" placeholder="Ex. White, Asian - Chinese, Mixed - White and Asian…">
-                            <small style="color: #888;">Valeur texte correspondant exactement à l'option affichée dans le formulaire Oracle</small>
+                            <label for="jpmEthnicity">Origine ethnique</label>
+                            <select id="jpmEthnicity" name="jpmEthnicity">
+                                <option value="">Sélectionnez…</option>
+                                <optgroup label="White">
+                                    <option value="White">White</option>
+                                    <option value="White - British">White - British</option>
+                                    <option value="White - Irish">White - Irish</option>
+                                    <option value="White - Any other White background">White - Any other White background</option>
+                                </optgroup>
+                                <optgroup label="Mixed">
+                                    <option value="Mixed - White and Black Caribbean">Mixed - White and Black Caribbean</option>
+                                    <option value="Mixed - White and Black African">Mixed - White and Black African</option>
+                                    <option value="Mixed - White and Asian">Mixed - White and Asian</option>
+                                    <option value="Mixed - Any other Mixed background">Mixed - Any other Mixed background</option>
+                                </optgroup>
+                                <optgroup label="Asian or Asian British">
+                                    <option value="Asian or Asian British - Indian">Asian or Asian British - Indian</option>
+                                    <option value="Asian or Asian British - Pakistani">Asian or Asian British - Pakistani</option>
+                                    <option value="Asian or Asian British - Bangladeshi">Asian or Asian British - Bangladeshi</option>
+                                    <option value="Asian or Asian British - Chinese">Asian or Asian British - Chinese</option>
+                                    <option value="Asian or Asian British - Any other Asian background">Asian or Asian British - Any other Asian background</option>
+                                </optgroup>
+                                <optgroup label="Black or Black British">
+                                    <option value="Black or Black British - Caribbean">Black or Black British - Caribbean</option>
+                                    <option value="Black or Black British - African">Black or Black British - African</option>
+                                    <option value="Black or Black British - Any other Black background">Black or Black British - Any other Black background</option>
+                                </optgroup>
+                                <optgroup label="Other">
+                                    <option value="Arab">Arab</option>
+                                    <option value="Any other ethnic group">Any other ethnic group</option>
+                                    <option value="Prefer not to say">Prefer not to say</option>
+                                    <option value="I do not wish to provide this information">I do not wish to provide this information</option>
+                                </optgroup>
+                            </select>
+                            <small style="color: #888;">Si la valeur ne correspond à aucune option ci-dessus, laisser vide — Taleos ignorera le champ.</small>
                         </div>
 
                         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
@@ -4118,7 +4143,6 @@
             setV('jpmRegulationsExperience',     profile.jpm_regulations_experience);
             setV('jpmDerivativesExperience',     profile.jpm_derivatives_experience);
             setV('jpmOffice5Days',               profile.jpm_office_5_days);
-            setV('noticePeriod',                 profile.notice_period);
             setV('jpmEthnicity',                 profile.jpm_ethnicity);
         }
 
@@ -5153,8 +5177,7 @@
                 jpm_regulations_experience: document.getElementById('jpmRegulationsExperience')?.value || '',
                 jpm_derivatives_experience: document.getElementById('jpmDerivativesExperience')?.value || '',
                 jpm_office_5_days: document.getElementById('jpmOffice5Days')?.value || '',
-                notice_period: document.getElementById('noticePeriod')?.value?.trim() || '',
-                jpm_ethnicity: document.getElementById('jpmEthnicity')?.value?.trim() || '',
+                jpm_ethnicity: document.getElementById('jpmEthnicity')?.value || '',
                 sg_handicap: document.getElementById('sgHandicap')?.value || '',
                 sg_handicap_accommodation: document.getElementById('sgHandicapAccommodation')?.value || '',
                 // Genre / Pronoms

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.242",
-  "version_name": "1.2.242",
-  "published_at": "2026-06-17T21:58:08Z",
-  "release_notes": "Morgan Stanley Workday — fix adresse : suppression de la valeur par défaut \"Non\" dans le champ Département/Région.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.242.zip"
+  "version": "1.2.243",
+  "version_name": "1.2.243",
+  "published_at": "2026-06-18T00:00:00Z",
+  "release_notes": "JP Morgan Oracle — questions de sélection : ajout asset servicing / securities operations, fix ethnicité (priorité jpm_ethnicity direct Firebase), logs de debug pour les questions ignorées.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.243.zip"
 }

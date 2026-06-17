@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.243",
+    "date": "2026-06-18T00:00:00Z",
+    "text": "JP Morgan Oracle — questions de sélection : ajout de la question asset servicing / securities operations, correction de l'ethnicité (jpm_ethnicity Firebase prioritaire sur le mapping Goldman Sachs), amélioration des logs de debug."
+  },
+  {
     "version": "1.2.242",
     "date": "2026-06-17T21:58:08Z",
     "text": "Morgan Stanley Workday — correction du bug \"Non\" dans la comparaison d'adresse : le champ Département est maintenant explicitement effacé si vide pour éviter qu'une valeur par défaut Workday ne déclenche une mise à jour d'adresse inattendue."

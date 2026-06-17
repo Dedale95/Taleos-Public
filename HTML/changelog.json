@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.244",
+    "date": "2026-06-18T00:30:00Z",
+    "text": "JP Morgan Oracle — fix screener questions : salary et notice period sont des textarea Oracle (pas des inputs ni des pills). Le notice period détecte le textarea en priorité, puis les pills, puis le dropdown. Le salary inclut désormais les textarea dans sa recherche."
+  },
+  {
     "version": "1.2.243",
     "date": "2026-06-18T00:00:00Z",
     "text": "JP Morgan Oracle — questions de sélection : ajout de la question asset servicing / securities operations, correction de l'ethnicité (jpm_ethnicity Firebase prioritaire sur le mapping Goldman Sachs), amélioration des logs de debug."

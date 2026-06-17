@@ -1385,6 +1385,23 @@
             background: #e5e7eb;
         }
 
+        /* ── Modale extension Taleos ──────────────────────────────────────────── */
+        .ext-check-modal { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:99999; opacity:0; pointer-events:none; transition:opacity .2s; }
+        .ext-check-modal.active { opacity:1; pointer-events:auto; }
+        .ext-check-modal-content { background:#fff; border-radius:16px; padding:32px 28px 24px; max-width:440px; width:calc(100% - 32px); box-shadow:0 8px 40px rgba(0,0,0,.18); text-align:center; }
+        .ext-check-modal-content h3 { margin:0 0 12px; font-size:1.15rem; color:#111827; }
+        .ext-check-modal-content p { margin:0 0 24px; color:#6b7280; font-size:.93rem; line-height:1.55; }
+        .ext-check-modal-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+        .ext-check-modal-btn { padding:10px 22px; border:none; border-radius:8px; font-size:.9rem; font-weight:600; cursor:pointer; transition:background .15s; }
+        .ext-check-modal-btn-primary { background:#2563eb; color:#fff; }
+        .ext-check-modal-btn-primary:hover { background:#1d4ed8; }
+        .ext-check-modal-btn-secondary { background:#f3f4f6; color:#374151; }
+        .ext-check-modal-btn-secondary:hover { background:#e5e7eb; }
+        .ext-outdated-banner { position:fixed; top:70px; left:50%; transform:translateX(-50%); background:#fff8e1; border:1px solid #f59e0b; color:#92400e; border-radius:10px; padding:10px 20px; font-size:.88rem; z-index:9999; display:flex; gap:12px; align-items:center; box-shadow:0 2px 12px rgba(0,0,0,.1); max-width:520px; width:calc(100% - 32px); }
+        .ext-outdated-banner strong { color:#78350f; }
+        .ext-outdated-banner button { background:none; border:none; cursor:pointer; color:#92400e; font-size:1.1rem; line-height:1; padding:0 4px; opacity:.7; }
+        .ext-outdated-banner button:hover { opacity:1; }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -7063,6 +7080,84 @@
             return isAuthenticated;
         }
 
+        // ── Vérification extension Taleos avant candidature ────────────────────────
+        (function () {
+            // Charger la dernière version disponible dès le chargement de la page
+            window._taleosLatestExt = null;
+            const EXT_VERSION_URLS = [
+                'extension-version.json',
+                'https://raw.githubusercontent.com/Dedale95/Taleos-Public/main/HTML/extension-version.json',
+                'https://dedale95.github.io/Taleos-Public/HTML/extension-version.json'
+            ];
+            (async () => {
+                for (const url of EXT_VERSION_URLS) {
+                    try {
+                        const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
+                        if (r.ok) { window._taleosLatestExt = await r.json(); break; }
+                    } catch (_) {}
+                }
+            })();
+
+            function compareVersions(a, b) {
+                const pa = String(a).split('.').map(Number);
+                const pb = String(b).split('.').map(Number);
+                for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+                    const na = pa[i] || 0, nb = pb[i] || 0;
+                    if (na < nb) return -1;
+                    if (na > nb) return 1;
+                }
+                return 0;
+            }
+
+            window.checkExtensionBeforeApply = function () {
+                const isReady = document.documentElement.getAttribute('data-taleos-injector') === 'ready';
+                if (!isReady) { showExtensionMissingModal(); return false; }
+                const installed = document.documentElement.getAttribute('data-taleos-injector-version') || '';
+                const latest = window._taleosLatestExt?.version || window._taleosLatestExt?.version_name || '';
+                if (installed && latest && compareVersions(installed, latest) < 0) {
+                    showExtensionOutdatedBanner(installed, latest);
+                }
+                return true;
+            };
+
+            window.showExtensionMissingModal = function () {
+                let modal = document.getElementById('extCheckModal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'extCheckModal';
+                    modal.className = 'ext-check-modal';
+                    document.body.appendChild(modal);
+                    modal.addEventListener('click', e => { if (e.target === modal) closeExtCheckModal(); });
+                }
+                modal.innerHTML = `
+                    <div class="ext-check-modal-content">
+                        <h3>🧩 Extension Taleos requise</h3>
+                        <p>Pour candidater automatiquement, l'extension Taleos doit être installée et activée dans votre navigateur Chrome.</p>
+                        <div class="ext-check-modal-actions">
+                            <button class="ext-check-modal-btn ext-check-modal-btn-secondary" onclick="closeExtCheckModal()">Fermer</button>
+                            <button class="ext-check-modal-btn ext-check-modal-btn-primary" onclick="window.open('extension-download.html','_blank');closeExtCheckModal()">Télécharger l'extension</button>
+                        </div>
+                    </div>`;
+                modal.classList.add('active');
+            };
+
+            window.closeExtCheckModal = function () {
+                const m = document.getElementById('extCheckModal');
+                if (m) m.classList.remove('active');
+            };
+
+            window.showExtensionOutdatedBanner = function (installed, latest) {
+                if (document.getElementById('extOutdatedBanner')) return;
+                const banner = document.createElement('div');
+                banner.id = 'extOutdatedBanner';
+                banner.className = 'ext-outdated-banner';
+                banner.innerHTML = `⚠️ <span>Version obsolète — vous utilisez la <strong>v${installed}</strong>, la dernière est la <strong>v${latest}</strong>. Des bugs sont possibles, pensez à <a href="extension-download.html" target="_blank" style="color:#92400e;font-weight:600">mettre à jour</a>.</span>
+                    <button onclick="document.getElementById('extOutdatedBanner').remove()" title="Fermer">✕</button>`;
+                document.body.appendChild(banner);
+                setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
+            };
+        })();
+
         // Gérer la candidature à une offre
         async function applyToJob(jobId, jobTitle, buttonElement) {
             const btn = buttonElement || (typeof event !== 'undefined' && event?.target?.closest?.('.job-apply-btn')) || null;
@@ -7085,6 +7180,9 @@
                     setTimeout(() => window.location.href = 'auth.html', 1500);
                     reEnableBtn(); return;
                 }
+
+                // Vérifier que l'extension Taleos est installée et à jour
+                if (!window.checkExtensionBeforeApply()) { reEnableBtn(); return; }
 
                 const userId = currentUser.uid;
 

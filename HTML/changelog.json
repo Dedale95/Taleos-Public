@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.241",
+    "date": "2026-06-17T21:45:32Z",
+    "text": "JP Morgan Oracle — gestion des questions de sélection spécifiques au poste : expérience en trading, services financiers, réglementation, produits dérivés, préavis, ethnicité (mappée depuis le profil). Les nouvelles questions sont ignorées silencieusement si elles ne sont pas présentes dans le formulaire."
+  },
+  {
     "version": "1.2.240",
     "date": "2026-06-10T22:00:00Z",
     "text": "Morgan Stanley Workday — correction des identifiants manquants : ajout de l'alias morgan_stanley pour la clé career_connections dans Firebase (les identifiants sont stockés sous morgan_stanley et non morgan_stanley_workday)."

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.240",
-  "version_name": "1.2.240",
-  "published_at": "2026-06-10T00:00:00Z",
-  "release_notes": "Morgan Stanley Workday — correction récupération des identifiants Firebase (alias morgan_stanley_workday → morgan_stanley).",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.240.zip"
+  "version": "1.2.241",
+  "version_name": "1.2.241",
+  "published_at": "2026-06-17T21:45:32Z",
+  "release_notes": "JP Morgan Oracle — questions de sélection (expérience, salary, préavis, ethnicité) + mapping ethnicité depuis gs_race_ethnicity.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.241.zip"
 }

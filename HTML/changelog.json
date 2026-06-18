@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.251",
+    "date": "2026-06-18",
+    "changes": [
+      "fix(profile): suppression div orphelin qui sortait Formation/Questions/Diversité/Documents du conteneur principal — espacement homogène"
+    ]
+  },
+  {
     "version": "1.2.250",
     "date": "2026-06-18",
     "changes": [

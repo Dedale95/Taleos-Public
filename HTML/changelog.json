@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.2.249",
+    "date": "2026-06-18",
+    "changes": [
+      "fix(profile): section Aménagements placée dans accordion-content Diversité",
+      "fix(profile): checkboxes géographiques ne s'affichent plus en majuscules"
+    ]
+  },
+  {
     "version": "1.2.248",
     "date": "2026-06-18",
     "changes": [

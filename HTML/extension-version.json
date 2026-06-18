@@ -1,7 +1,7 @@
 {
-  "version": "1.2.248",
-  "version_name": "1.2.248",
-  "published_at": "2026-06-18T03:12:54Z",
+  "version": "1.2.249",
+  "version_name": "1.2.249",
+  "published_at": "2026-06-18T03:17:57Z",
   "release_notes": "JP Morgan Oracle — fix screener questions : salary et notice period en textarea, notice period détecte textarea en priorité avant pills/dropdown.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.248.zip"
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.249.zip"
 }

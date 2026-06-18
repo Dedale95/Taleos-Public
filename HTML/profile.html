@@ -2529,11 +2529,6 @@
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label for="jpmNoticePeriod">Préavis de départ (JP Morgan)</label>
-                            <input type="text" id="jpmNoticePeriod" name="jpmNoticePeriod" placeholder="ex: 3 months, 1 month, Immediately available">
-                            <p style="color:#888; font-size:0.85rem; margin-top:4px;">Texte libre tel qu'attendu par le formulaire JP Morgan (en anglais).</p>
-                        </div>
 
 
                         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
@@ -4118,7 +4113,6 @@
             setV('jpmDerivativesExperience',     profile.jpm_derivatives_experience);
             setV('jpmOffice5Days',               profile.jpm_office_5_days);
             setV('jpmAssetServicingExperience',  profile.jpm_asset_servicing_experience);
-            setV('jpmNoticePeriod',              profile.jpm_notice_period);
         }
 
         function loadSgScreeningInfo(profile) {
@@ -5150,7 +5144,6 @@
                 jpm_derivatives_experience: document.getElementById('jpmDerivativesExperience')?.value || '',
                 jpm_office_5_days: document.getElementById('jpmOffice5Days')?.value || '',
                 jpm_asset_servicing_experience: document.getElementById('jpmAssetServicingExperience')?.value || '',
-                jpm_notice_period: document.getElementById('jpmNoticePeriod')?.value || '',
                 sg_handicap: document.getElementById('sgHandicap')?.value || '',
                 sg_handicap_accommodation: document.getElementById('sgHandicapAccommodation')?.value || '',
                 // Genre / Pronoms

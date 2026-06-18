@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.250",
+    "date": "2026-06-18",
+    "changes": [
+      "fix(profile): accordion \"Questions récurrentes\" se développe/ferme correctement, contenu plus hors-cadre"
+    ]
+  },
+  {
     "version": "1.2.249",
     "date": "2026-06-18",
     "changes": [

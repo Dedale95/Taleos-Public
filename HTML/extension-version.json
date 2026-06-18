@@ -2,6 +2,6 @@
   "version": "1.2.249",
   "version_name": "1.2.249",
   "published_at": "2026-06-18T03:17:57Z",
-  "release_notes": "JP Morgan Oracle — fix screener questions : salary et notice period en textarea, notice period détecte textarea en priorité avant pills/dropdown.",
+  "release_notes": "JP Morgan — les 7 questions screener (trades, financial products, services, regulations, derivatives, office 5 days, asset servicing) sont désormais remplies depuis Firebase. Salary expectations composé en texte libre (ex: EUR 125,000 yearly). Notice period mappé depuis le champ Préavis de départ commun.",
   "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.249.zip"
 }

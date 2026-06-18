@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.252",
+    "date": "2026-06-18",
+    "changes": [
+      "fix(profile): section Préférences de recherche — clé requiredFields corrigée, désormais détectée comme complète quand jobs+continents+pays sont cochés"
+    ]
+  },
+  {
     "version": "1.2.251",
     "date": "2026-06-18",
     "changes": [

@@ -1447,7 +1447,7 @@
                 <!-- Section Métiers qui m'intéressent -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Les métiers qui m'intéressent</h2>
+                        <h2>Préférences de recherche</h2>
                         <span class="accordion-icon">▼</span>
                     </div>
                     <div class="accordion-content">
@@ -1545,284 +1545,10 @@
                             <span class="checkbox-text">RSE / ESG</span>
                         </label>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Section Contrat et disponibilité -->
-                <div class="form-section accordion-section">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Contrat et disponibilité</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
-                    
-                    <div class="form-group">
-                        <label for="contractType">Le contrat qui m'intéresse</label>
-                        <select id="contractType" name="contractType">
-                            <option value="">Sélectionnez...</option>
-                            <option value="Stage">Stage</option>
-                            <option value="Alternance / Apprentissage">Alternance / Apprentissage</option>
-                            <option value="VIE">VIE</option>
-                            <option value="CDD">CDD</option>
-                            <option value="CDI">CDI</option>
-                        </select>
-                    </div>
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 18px;">
+                        <p style="font-weight: 600; margin-bottom: 16px; color: #374151;">Préférences géographiques</p>
 
-                    <div class="form-group">
-                        <label for="availableFrom">Disponible à partir de</label>
-                        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                            <input type="date" id="availableFrom" name="availableFrom" placeholder="jj/mm/yyyy" style="flex: 1; min-width: 200px;">
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; margin: 0;">
-                                <input type="checkbox" id="availableImmediately" name="availableImmediately">
-                                <span>Immédiatement</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- ── Emploi actuel ──────────────────────────────────────── -->
-                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
-                    <p style="color: #666; font-size: 0.88rem; margin-bottom: 16px;">Informations sur votre poste actuel.</p>
-
-                    <div class="form-group">
-                        <label for="currentEmployer">Employeur actuel / le plus récent</label>
-                        <input type="text" id="currentEmployer" name="currentEmployer" placeholder="">
-                    </div>
-
-                    <div class="form-group" style="margin-top: 16px; display: flex; gap: 16px;">
-                        <div style="flex: 1;">
-                            <label for="employmentStartDate">Date de début chez cet employeur</label>
-                            <input type="date" id="employmentStartDate" name="employmentStartDate">
-                        </div>
-                        <div style="flex: 1;">
-                            <label for="currentRoleStartDate">Date de début dans le rôle actuel</label>
-                            <input type="date" id="currentRoleStartDate" name="currentRoleStartDate">
-                            <small style="color: #888;">Si votre rôle actuel a démarré après votre embauche. Laissez vide si identique.</small>
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 16px;">
-                        <label for="currentSalary">Salaire actuel (base)</label>
-                        <div style="display: flex; gap: 10px; align-items: flex-start;">
-                            <div style="flex: 0 0 140px;">
-                                <select id="currentSalaryCurrency" name="currentSalaryCurrency" style="width: 100%;">
-                                    <option value="">Devise…</option>
-                                    <option value="EUR">EUR — Euro</option>
-                                    <option value="GBP">GBP — Livre sterling</option>
-                                    <option value="USD">USD — Dollar américain</option>
-                                    <option value="CHF">CHF — Franc suisse</option>
-                                    <option value="SGD">SGD — Dollar singapourien</option>
-                                    <option value="JPY">JPY — Yen japonais</option>
-                                    <option value="HKD">HKD — Dollar de Hong Kong</option>
-                                </select>
-                            </div>
-                            <div style="flex: 1;">
-                                <input type="number" id="currentSalary" name="currentSalary" placeholder="Ex. 75000" min="0">
-                                <small style="color: #888;">BofA demande le salaire de base annuel + devise (ex : "75000 EUR")</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 16px;">
-                        <label for="currentBonus">Prime / bonus actuel(le)</label>
-                        <input type="text" id="currentBonus" name="currentBonus" placeholder="Ex. 10000 EUR ou 0">
-                        <small style="color: #888;">Montant annuel de votre bonus ou incentive actuel</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="sgNoticePeriod">Préavis de départ</label>
-                        <select id="sgNoticePeriod" name="sgNoticePeriod">
-                            <option value="">Sélectionnez…</option>
-                            <option value="none">Aucun / non applicable</option>
-                            <option value="1_month">1 mois</option>
-                            <option value="2_months">2 mois</option>
-                            <option value="3_months">3 mois</option>
-                            <option value="more_than_3_months">Plus de 3 mois</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="salaryExpectations">Prétentions salariales</label>
-                        <div style="display: flex; gap: 10px; align-items: flex-start;">
-                            <div style="flex: 0 0 220px;">
-                                <select id="salaryCurrency" name="salaryCurrency" style="width: 100%;">
-                                    <option value="">Devise…</option>
-                                    <option value="AED">AED — Dirham des Émirats arabes unis</option>
-                                    <option value="AFN">AFN — Afghani afghan</option>
-                                    <option value="ALL">ALL — Lek albanais</option>
-                                    <option value="AMD">AMD — Dram arménien</option>
-                                    <option value="ANG">ANG — Florin des Antilles néerlandaises</option>
-                                    <option value="AOA">AOA — Kwanza angolais</option>
-                                    <option value="ARS">ARS — Peso argentin</option>
-                                    <option value="AUD">AUD — Dollar australien</option>
-                                    <option value="AWG">AWG — Florin arubais</option>
-                                    <option value="AZN">AZN — Manat azerbaïdjanais</option>
-                                    <option value="BAM">BAM — Mark convertible (Bosnie-Herzégovine)</option>
-                                    <option value="BBD">BBD — Dollar de la Barbade</option>
-                                    <option value="BDT">BDT — Taka bangladais</option>
-                                    <option value="BGN">BGN — Lev bulgare</option>
-                                    <option value="BHD">BHD — Dinar bahreïni</option>
-                                    <option value="BIF">BIF — Franc burundais</option>
-                                    <option value="BMD">BMD — Dollar des Bermudes</option>
-                                    <option value="BND">BND — Dollar brunéien</option>
-                                    <option value="BOB">BOB — Boliviano bolivien</option>
-                                    <option value="BRL">BRL — Réal brésilien</option>
-                                    <option value="BSD">BSD — Dollar des Bahamas</option>
-                                    <option value="BTN">BTN — Ngultrum bhoutanais</option>
-                                    <option value="BWP">BWP — Pula botswanais</option>
-                                    <option value="BYR">BYR — Rouble biélorusse</option>
-                                    <option value="BZD">BZD — Dollar bélizien</option>
-                                    <option value="CAD">CAD — Dollar canadien</option>
-                                    <option value="CDF">CDF — Franc congolais</option>
-                                    <option value="CHF">CHF — Franc suisse</option>
-                                    <option value="CLP">CLP — Peso chilien</option>
-                                    <option value="CNY">CNY — Yuan renminbi (Chine)</option>
-                                    <option value="COP">COP — Peso colombien</option>
-                                    <option value="CRC">CRC — Colón costaricain</option>
-                                    <option value="CUP">CUP — Peso cubain</option>
-                                    <option value="CVE">CVE — Escudo cap-verdien</option>
-                                    <option value="CZK">CZK — Couronne tchèque</option>
-                                    <option value="DJF">DJF — Franc djiboutien</option>
-                                    <option value="DKK">DKK — Couronne danoise</option>
-                                    <option value="DOP">DOP — Peso dominicain</option>
-                                    <option value="DZD">DZD — Dinar algérien</option>
-                                    <option value="EEK">EEK — Couronne estonienne</option>
-                                    <option value="EGP">EGP — Livre égyptienne</option>
-                                    <option value="ERN">ERN — Nakfa érythréen</option>
-                                    <option value="ETB">ETB — Birr éthiopien</option>
-                                    <option value="EUR">EUR — Euro</option>
-                                    <option value="FJD">FJD — Dollar fidjien</option>
-                                    <option value="FKP">FKP — Livre des Îles Falkland</option>
-                                    <option value="GBP">GBP — Livre sterling (Royaume-Uni)</option>
-                                    <option value="GEL">GEL — Lari géorgien</option>
-                                    <option value="GHS">GHS — Cedi ghanéen</option>
-                                    <option value="GIP">GIP — Livre de Gibraltar</option>
-                                    <option value="GMD">GMD — Dalasi gambien</option>
-                                    <option value="GNF">GNF — Franc guinéen</option>
-                                    <option value="GTQ">GTQ — Quetzal guatémaltèque</option>
-                                    <option value="GWP">GWP — Peso de Guinée-Bissau</option>
-                                    <option value="GYD">GYD — Dollar guyanais</option>
-                                    <option value="HKD">HKD — Dollar de Hong Kong</option>
-                                    <option value="HNL">HNL — Lempira hondurien</option>
-                                    <option value="HRK">HRK — Kuna croate</option>
-                                    <option value="HTG">HTG — Gourde haïtienne</option>
-                                    <option value="HUF">HUF — Forint hongrois</option>
-                                    <option value="IDR">IDR — Roupie indonésienne</option>
-                                    <option value="ILS">ILS — Nouveau shekel israélien</option>
-                                    <option value="INR">INR — Roupie indienne</option>
-                                    <option value="IQD">IQD — Dinar irakien</option>
-                                    <option value="IRR">IRR — Rial iranien</option>
-                                    <option value="ISK">ISK — Couronne islandaise</option>
-                                    <option value="JMD">JMD — Dollar jamaïcain</option>
-                                    <option value="JOD">JOD — Dinar jordanien</option>
-                                    <option value="JPY">JPY — Yen japonais</option>
-                                    <option value="KES">KES — Shilling kényan</option>
-                                    <option value="KGS">KGS — Som kirghiz</option>
-                                    <option value="KHR">KHR — Riel cambodgien</option>
-                                    <option value="KMF">KMF — Franc comorien</option>
-                                    <option value="KPW">KPW — Won nord-coréen</option>
-                                    <option value="KRW">KRW — Won sud-coréen</option>
-                                    <option value="KWD">KWD — Dinar koweïtien</option>
-                                    <option value="KYD">KYD — Dollar des Îles Caïmans</option>
-                                    <option value="KZT">KZT — Tenge kazakh</option>
-                                    <option value="LAK">LAK — Kip laotien</option>
-                                    <option value="LBP">LBP — Livre libanaise</option>
-                                    <option value="LKR">LKR — Roupie sri-lankaise</option>
-                                    <option value="LRD">LRD — Dollar libérien</option>
-                                    <option value="LSL">LSL — Loti lesothan</option>
-                                    <option value="LTL">LTL — Litas lituanien</option>
-                                    <option value="LVL">LVL — Lats letton</option>
-                                    <option value="LYD">LYD — Dinar libyen</option>
-                                    <option value="MAD">MAD — Dirham marocain</option>
-                                    <option value="MDL">MDL — Leu moldave</option>
-                                    <option value="MGA">MGA — Ariary malgache</option>
-                                    <option value="MKD">MKD — Denar macédonien</option>
-                                    <option value="MMK">MMK — Kyat birman</option>
-                                    <option value="MNT">MNT — Tögrög mongol</option>
-                                    <option value="MOP">MOP — Pataca macanaise</option>
-                                    <option value="MUR">MUR — Roupie mauricienne</option>
-                                    <option value="MVR">MVR — Rufiyaa maldivienne</option>
-                                    <option value="MWK">MWK — Kwacha malawien</option>
-                                    <option value="MXN">MXN — Peso mexicain</option>
-                                    <option value="MYR">MYR — Ringgit malaisien</option>
-                                    <option value="MZN">MZN — Metical mozambicain</option>
-                                    <option value="NAD">NAD — Dollar namibien</option>
-                                    <option value="NGN">NGN — Naira nigérian</option>
-                                    <option value="NIO">NIO — Córdoba nicaraguayen</option>
-                                    <option value="NOK">NOK — Couronne norvégienne</option>
-                                    <option value="NPR">NPR — Roupie népalaise</option>
-                                    <option value="NZD">NZD — Dollar néo-zélandais</option>
-                                    <option value="OMR">OMR — Rial omanais</option>
-                                    <option value="PAB">PAB — Balboa panaméen</option>
-                                    <option value="PEN">PEN — Sol péruvien</option>
-                                    <option value="PGK">PGK — Kina (Papouasie-Nouvelle-Guinée)</option>
-                                    <option value="PHP">PHP — Peso philippin</option>
-                                    <option value="PKR">PKR — Roupie pakistanaise</option>
-                                    <option value="PLN">PLN — Zloty polonais</option>
-                                    <option value="PYG">PYG — Guaraní paraguayen</option>
-                                    <option value="QAR">QAR — Riyal du Qatar</option>
-                                    <option value="RON">RON — Leu roumain</option>
-                                    <option value="RSD">RSD — Dinar serbe</option>
-                                    <option value="RUB">RUB — Rouble russe</option>
-                                    <option value="RWF">RWF — Franc rwandais</option>
-                                    <option value="SAR">SAR — Riyal saoudien</option>
-                                    <option value="SBD">SBD — Dollar des Îles Salomon</option>
-                                    <option value="SCR">SCR — Roupie seychelloise</option>
-                                    <option value="SDG">SDG — Livre soudanaise</option>
-                                    <option value="SEK">SEK — Couronne suédoise</option>
-                                    <option value="SGD">SGD — Dollar de Singapour</option>
-                                    <option value="SHP">SHP — Livre de Sainte-Hélène</option>
-                                    <option value="SLL">SLL — Leone sierra-léonais</option>
-                                    <option value="SOS">SOS — Shilling somalien</option>
-                                    <option value="SRD">SRD — Dollar surinamais</option>
-                                    <option value="STD">STD — Dobra (São Tomé-et-Príncipe)</option>
-                                    <option value="SVC">SVC — Colón salvadorien</option>
-                                    <option value="SYP">SYP — Livre syrienne</option>
-                                    <option value="SZL">SZL — Lilangeni swatinien</option>
-                                    <option value="THB">THB — Baht thaïlandais</option>
-                                    <option value="TJS">TJS — Somoni tadjik</option>
-                                    <option value="TMT">TMT — Manat turkmène</option>
-                                    <option value="TND">TND — Dinar tunisien</option>
-                                    <option value="TOP">TOP — Paʻanga tongien</option>
-                                    <option value="TRY">TRY — Livre turque</option>
-                                    <option value="TTD">TTD — Dollar de Trinité-et-Tobago</option>
-                                    <option value="TWD">TWD — Nouveau dollar taïwanais</option>
-                                    <option value="TZS">TZS — Shilling tanzanien</option>
-                                    <option value="UAH">UAH — Hryvnia ukrainienne</option>
-                                    <option value="UGX">UGX — Shilling ougandais</option>
-                                    <option value="USD">USD — Dollar américain</option>
-                                    <option value="UYU">UYU — Peso uruguayen</option>
-                                    <option value="UZS">UZS — Sum ouzbek</option>
-                                    <option value="VEF">VEF — Bolívar vénézuélien</option>
-                                    <option value="VND">VND — Dong vietnamien</option>
-                                    <option value="VUV">VUV — Vatu vanuatais</option>
-                                    <option value="WST">WST — Tālā samoan</option>
-                                    <option value="XAF">XAF — Franc CFA d'Afrique centrale</option>
-                                    <option value="XCD">XCD — Dollar des Caraïbes orientales</option>
-                                    <option value="XOF">XOF — Franc CFA d'Afrique de l'Ouest</option>
-                                    <option value="XPF">XPF — Franc CFP (Pacifique)</option>
-                                    <option value="YER">YER — Rial yéménite</option>
-                                    <option value="ZAR">ZAR — Rand sud-africain</option>
-                                    <option value="ZMK">ZMK — Kwacha zambien</option>
-                                    <option value="ZWL">ZWL — Dollar zimbabwéen</option>
-                                </select>
-                            </div>
-                            <div style="flex: 1;">
-                                <input type="number" id="salaryExpectations" name="salaryExpectations"
-                                    placeholder="Ex. 70000" min="0" step="1000" style="width: 100%;">
-                            </div>
-                        </div>
-                        <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">Montant brut annuel. Réutilisé par les formulaires qui demandent vos attentes salariales (Nomura, etc.).</small>
-                    </div>
-                </div>
-                </div>
-
-                <!-- Section Préférences géographiques -->
-                <div class="form-section accordion-section">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Préférences géographiques</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
                         <div class="form-group">
                             <label>Sélectionnez le(s) continent(s)</label>
                             <div class="checkbox-group">
@@ -2133,7 +1859,277 @@
                         </div>
                         </div>
                     </div>
+                    </div>
                 </div>
+
+                <!-- Section Contrat & Rémunération -->
+                <div class="form-section accordion-section">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2>Contrat &amp; Rémunération</h2>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                    
+                    <div class="form-group">
+                        <label for="contractType">Le contrat qui m'intéresse</label>
+                        <select id="contractType" name="contractType">
+                            <option value="">Sélectionnez...</option>
+                            <option value="Stage">Stage</option>
+                            <option value="Alternance / Apprentissage">Alternance / Apprentissage</option>
+                            <option value="VIE">VIE</option>
+                            <option value="CDD">CDD</option>
+                            <option value="CDI">CDI</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="availableFrom">Disponible à partir de</label>
+                        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                            <input type="date" id="availableFrom" name="availableFrom" placeholder="jj/mm/yyyy" style="flex: 1; min-width: 200px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; margin: 0;">
+                                <input type="checkbox" id="availableImmediately" name="availableImmediately">
+                                <span>Immédiatement</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- ── Emploi actuel ──────────────────────────────────────── -->
+                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
+                    <p style="color: #666; font-size: 0.88rem; margin-bottom: 16px;">Informations sur votre poste actuel.</p>
+
+                    <div class="form-group">
+                        <label for="currentEmployer">Employeur actuel / le plus récent</label>
+                        <input type="text" id="currentEmployer" name="currentEmployer" placeholder="">
+                    </div>
+
+                    <div class="form-group" style="margin-top: 16px; display: flex; gap: 16px;">
+                        <div style="flex: 1;">
+                            <label for="employmentStartDate">Date de début chez cet employeur</label>
+                            <input type="date" id="employmentStartDate" name="employmentStartDate">
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="currentRoleStartDate">Date de début dans le rôle actuel</label>
+                            <input type="date" id="currentRoleStartDate" name="currentRoleStartDate">
+                            <small style="color: #888;">Si votre rôle actuel a démarré après votre embauche. Laissez vide si identique.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label for="currentSalary">Salaire actuel (base)</label>
+                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                            <div style="flex: 0 0 140px;">
+                                <select id="currentSalaryCurrency" name="currentSalaryCurrency" style="width: 100%;">
+                                    <option value="">Devise…</option>
+                                    <option value="EUR">EUR — Euro</option>
+                                    <option value="GBP">GBP — Livre sterling</option>
+                                    <option value="USD">USD — Dollar américain</option>
+                                    <option value="CHF">CHF — Franc suisse</option>
+                                    <option value="SGD">SGD — Dollar singapourien</option>
+                                    <option value="JPY">JPY — Yen japonais</option>
+                                    <option value="HKD">HKD — Dollar de Hong Kong</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <input type="number" id="currentSalary" name="currentSalary" placeholder="Ex. 75000" min="0">
+                                <small style="color: #888;">BofA demande le salaire de base annuel + devise (ex : "75000 EUR")</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label for="currentBonus">Prime / bonus actuel(le)</label>
+                        <input type="text" id="currentBonus" name="currentBonus" placeholder="Ex. 10000 EUR ou 0">
+                        <small style="color: #888;">Montant annuel de votre bonus ou incentive actuel</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sgNoticePeriod">Préavis de départ</label>
+                        <select id="sgNoticePeriod" name="sgNoticePeriod">
+                            <option value="">Sélectionnez…</option>
+                            <option value="none">Aucun / non applicable</option>
+                            <option value="1_month">1 mois</option>
+                            <option value="2_months">2 mois</option>
+                            <option value="3_months">3 mois</option>
+                            <option value="more_than_3_months">Plus de 3 mois</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="salaryExpectations">Prétentions salariales</label>
+                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                            <div style="flex: 0 0 220px;">
+                                <select id="salaryCurrency" name="salaryCurrency" style="width: 100%;">
+                                    <option value="">Devise…</option>
+                                    <option value="AED">AED — Dirham des Émirats arabes unis</option>
+                                    <option value="AFN">AFN — Afghani afghan</option>
+                                    <option value="ALL">ALL — Lek albanais</option>
+                                    <option value="AMD">AMD — Dram arménien</option>
+                                    <option value="ANG">ANG — Florin des Antilles néerlandaises</option>
+                                    <option value="AOA">AOA — Kwanza angolais</option>
+                                    <option value="ARS">ARS — Peso argentin</option>
+                                    <option value="AUD">AUD — Dollar australien</option>
+                                    <option value="AWG">AWG — Florin arubais</option>
+                                    <option value="AZN">AZN — Manat azerbaïdjanais</option>
+                                    <option value="BAM">BAM — Mark convertible (Bosnie-Herzégovine)</option>
+                                    <option value="BBD">BBD — Dollar de la Barbade</option>
+                                    <option value="BDT">BDT — Taka bangladais</option>
+                                    <option value="BGN">BGN — Lev bulgare</option>
+                                    <option value="BHD">BHD — Dinar bahreïni</option>
+                                    <option value="BIF">BIF — Franc burundais</option>
+                                    <option value="BMD">BMD — Dollar des Bermudes</option>
+                                    <option value="BND">BND — Dollar brunéien</option>
+                                    <option value="BOB">BOB — Boliviano bolivien</option>
+                                    <option value="BRL">BRL — Réal brésilien</option>
+                                    <option value="BSD">BSD — Dollar des Bahamas</option>
+                                    <option value="BTN">BTN — Ngultrum bhoutanais</option>
+                                    <option value="BWP">BWP — Pula botswanais</option>
+                                    <option value="BYR">BYR — Rouble biélorusse</option>
+                                    <option value="BZD">BZD — Dollar bélizien</option>
+                                    <option value="CAD">CAD — Dollar canadien</option>
+                                    <option value="CDF">CDF — Franc congolais</option>
+                                    <option value="CHF">CHF — Franc suisse</option>
+                                    <option value="CLP">CLP — Peso chilien</option>
+                                    <option value="CNY">CNY — Yuan renminbi (Chine)</option>
+                                    <option value="COP">COP — Peso colombien</option>
+                                    <option value="CRC">CRC — Colón costaricain</option>
+                                    <option value="CUP">CUP — Peso cubain</option>
+                                    <option value="CVE">CVE — Escudo cap-verdien</option>
+                                    <option value="CZK">CZK — Couronne tchèque</option>
+                                    <option value="DJF">DJF — Franc djiboutien</option>
+                                    <option value="DKK">DKK — Couronne danoise</option>
+                                    <option value="DOP">DOP — Peso dominicain</option>
+                                    <option value="DZD">DZD — Dinar algérien</option>
+                                    <option value="EEK">EEK — Couronne estonienne</option>
+                                    <option value="EGP">EGP — Livre égyptienne</option>
+                                    <option value="ERN">ERN — Nakfa érythréen</option>
+                                    <option value="ETB">ETB — Birr éthiopien</option>
+                                    <option value="EUR">EUR — Euro</option>
+                                    <option value="FJD">FJD — Dollar fidjien</option>
+                                    <option value="FKP">FKP — Livre des Îles Falkland</option>
+                                    <option value="GBP">GBP — Livre sterling (Royaume-Uni)</option>
+                                    <option value="GEL">GEL — Lari géorgien</option>
+                                    <option value="GHS">GHS — Cedi ghanéen</option>
+                                    <option value="GIP">GIP — Livre de Gibraltar</option>
+                                    <option value="GMD">GMD — Dalasi gambien</option>
+                                    <option value="GNF">GNF — Franc guinéen</option>
+                                    <option value="GTQ">GTQ — Quetzal guatémaltèque</option>
+                                    <option value="GWP">GWP — Peso de Guinée-Bissau</option>
+                                    <option value="GYD">GYD — Dollar guyanais</option>
+                                    <option value="HKD">HKD — Dollar de Hong Kong</option>
+                                    <option value="HNL">HNL — Lempira hondurien</option>
+                                    <option value="HRK">HRK — Kuna croate</option>
+                                    <option value="HTG">HTG — Gourde haïtienne</option>
+                                    <option value="HUF">HUF — Forint hongrois</option>
+                                    <option value="IDR">IDR — Roupie indonésienne</option>
+                                    <option value="ILS">ILS — Nouveau shekel israélien</option>
+                                    <option value="INR">INR — Roupie indienne</option>
+                                    <option value="IQD">IQD — Dinar irakien</option>
+                                    <option value="IRR">IRR — Rial iranien</option>
+                                    <option value="ISK">ISK — Couronne islandaise</option>
+                                    <option value="JMD">JMD — Dollar jamaïcain</option>
+                                    <option value="JOD">JOD — Dinar jordanien</option>
+                                    <option value="JPY">JPY — Yen japonais</option>
+                                    <option value="KES">KES — Shilling kényan</option>
+                                    <option value="KGS">KGS — Som kirghiz</option>
+                                    <option value="KHR">KHR — Riel cambodgien</option>
+                                    <option value="KMF">KMF — Franc comorien</option>
+                                    <option value="KPW">KPW — Won nord-coréen</option>
+                                    <option value="KRW">KRW — Won sud-coréen</option>
+                                    <option value="KWD">KWD — Dinar koweïtien</option>
+                                    <option value="KYD">KYD — Dollar des Îles Caïmans</option>
+                                    <option value="KZT">KZT — Tenge kazakh</option>
+                                    <option value="LAK">LAK — Kip laotien</option>
+                                    <option value="LBP">LBP — Livre libanaise</option>
+                                    <option value="LKR">LKR — Roupie sri-lankaise</option>
+                                    <option value="LRD">LRD — Dollar libérien</option>
+                                    <option value="LSL">LSL — Loti lesothan</option>
+                                    <option value="LTL">LTL — Litas lituanien</option>
+                                    <option value="LVL">LVL — Lats letton</option>
+                                    <option value="LYD">LYD — Dinar libyen</option>
+                                    <option value="MAD">MAD — Dirham marocain</option>
+                                    <option value="MDL">MDL — Leu moldave</option>
+                                    <option value="MGA">MGA — Ariary malgache</option>
+                                    <option value="MKD">MKD — Denar macédonien</option>
+                                    <option value="MMK">MMK — Kyat birman</option>
+                                    <option value="MNT">MNT — Tögrög mongol</option>
+                                    <option value="MOP">MOP — Pataca macanaise</option>
+                                    <option value="MUR">MUR — Roupie mauricienne</option>
+                                    <option value="MVR">MVR — Rufiyaa maldivienne</option>
+                                    <option value="MWK">MWK — Kwacha malawien</option>
+                                    <option value="MXN">MXN — Peso mexicain</option>
+                                    <option value="MYR">MYR — Ringgit malaisien</option>
+                                    <option value="MZN">MZN — Metical mozambicain</option>
+                                    <option value="NAD">NAD — Dollar namibien</option>
+                                    <option value="NGN">NGN — Naira nigérian</option>
+                                    <option value="NIO">NIO — Córdoba nicaraguayen</option>
+                                    <option value="NOK">NOK — Couronne norvégienne</option>
+                                    <option value="NPR">NPR — Roupie népalaise</option>
+                                    <option value="NZD">NZD — Dollar néo-zélandais</option>
+                                    <option value="OMR">OMR — Rial omanais</option>
+                                    <option value="PAB">PAB — Balboa panaméen</option>
+                                    <option value="PEN">PEN — Sol péruvien</option>
+                                    <option value="PGK">PGK — Kina (Papouasie-Nouvelle-Guinée)</option>
+                                    <option value="PHP">PHP — Peso philippin</option>
+                                    <option value="PKR">PKR — Roupie pakistanaise</option>
+                                    <option value="PLN">PLN — Zloty polonais</option>
+                                    <option value="PYG">PYG — Guaraní paraguayen</option>
+                                    <option value="QAR">QAR — Riyal du Qatar</option>
+                                    <option value="RON">RON — Leu roumain</option>
+                                    <option value="RSD">RSD — Dinar serbe</option>
+                                    <option value="RUB">RUB — Rouble russe</option>
+                                    <option value="RWF">RWF — Franc rwandais</option>
+                                    <option value="SAR">SAR — Riyal saoudien</option>
+                                    <option value="SBD">SBD — Dollar des Îles Salomon</option>
+                                    <option value="SCR">SCR — Roupie seychelloise</option>
+                                    <option value="SDG">SDG — Livre soudanaise</option>
+                                    <option value="SEK">SEK — Couronne suédoise</option>
+                                    <option value="SGD">SGD — Dollar de Singapour</option>
+                                    <option value="SHP">SHP — Livre de Sainte-Hélène</option>
+                                    <option value="SLL">SLL — Leone sierra-léonais</option>
+                                    <option value="SOS">SOS — Shilling somalien</option>
+                                    <option value="SRD">SRD — Dollar surinamais</option>
+                                    <option value="STD">STD — Dobra (São Tomé-et-Príncipe)</option>
+                                    <option value="SVC">SVC — Colón salvadorien</option>
+                                    <option value="SYP">SYP — Livre syrienne</option>
+                                    <option value="SZL">SZL — Lilangeni swatinien</option>
+                                    <option value="THB">THB — Baht thaïlandais</option>
+                                    <option value="TJS">TJS — Somoni tadjik</option>
+                                    <option value="TMT">TMT — Manat turkmène</option>
+                                    <option value="TND">TND — Dinar tunisien</option>
+                                    <option value="TOP">TOP — Paʻanga tongien</option>
+                                    <option value="TRY">TRY — Livre turque</option>
+                                    <option value="TTD">TTD — Dollar de Trinité-et-Tobago</option>
+                                    <option value="TWD">TWD — Nouveau dollar taïwanais</option>
+                                    <option value="TZS">TZS — Shilling tanzanien</option>
+                                    <option value="UAH">UAH — Hryvnia ukrainienne</option>
+                                    <option value="UGX">UGX — Shilling ougandais</option>
+                                    <option value="USD">USD — Dollar américain</option>
+                                    <option value="UYU">UYU — Peso uruguayen</option>
+                                    <option value="UZS">UZS — Sum ouzbek</option>
+                                    <option value="VEF">VEF — Bolívar vénézuélien</option>
+                                    <option value="VND">VND — Dong vietnamien</option>
+                                    <option value="VUV">VUV — Vatu vanuatais</option>
+                                    <option value="WST">WST — Tālā samoan</option>
+                                    <option value="XAF">XAF — Franc CFA d'Afrique centrale</option>
+                                    <option value="XCD">XCD — Dollar des Caraïbes orientales</option>
+                                    <option value="XOF">XOF — Franc CFA d'Afrique de l'Ouest</option>
+                                    <option value="XPF">XPF — Franc CFP (Pacifique)</option>
+                                    <option value="YER">YER — Rial yéménite</option>
+                                    <option value="ZAR">ZAR — Rand sud-africain</option>
+                                    <option value="ZMK">ZMK — Kwacha zambien</option>
+                                    <option value="ZWL">ZWL — Dollar zimbabwéen</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <input type="number" id="salaryExpectations" name="salaryExpectations"
+                                    placeholder="Ex. 70000" min="0" step="1000" style="width: 100%;">
+                            </div>
+                        </div>
+                        <small style="display: block; margin-top: 6px; color: #666; font-size: 0.85rem;">Montant brut annuel. Réutilisé par les formulaires qui demandent vos attentes salariales (Nomura, etc.).</small>
+                    </div>
+                </div>
+                </div>
+
 
                 <!-- Section Formation et expérience -->
                 <div class="form-section accordion-section">
@@ -2389,78 +2385,8 @@
                         </div>
 
                     </div>
-                </div>
 
-                <!-- Section Alertes et viviers -->
-                <div class="form-section accordion-section">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Alertes et viviers talents</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Choisissez les groupes pour lesquels vous acceptez d’être recontacté·e ou de recevoir des mises à jour sur de nouvelles opportunités.</p>
-
-                        <div class="form-group">
-                            <label style="font-weight: 600; margin-bottom: 12px; display: block;">Je souhaite recevoir des mises à jour ou être recontacté·e par :</label>
-                            <div class="checkbox-grid">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="talentPoolBpce" name="talentPools" value="bpce" onchange="applyTalentPoolsSectionState()">
-                                    <span class="checkbox-text">BPCE</span>
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="talentPoolBpifrance" name="talentPools" value="bpifrance" onchange="applyTalentPoolsSectionState()">
-                                    <span class="checkbox-text">Bpifrance</span>
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="talentPoolAxa" name="talentPools" value="axa" onchange="applyTalentPoolsSectionState()">
-                                    <span class="checkbox-text">AXA</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section Questions administratives et réglementaires -->
-                <div class="form-section accordion-section">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Questions administratives et réglementaires</h2>
-                        <span class="accordion-icon">▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Ces réponses sont réutilisées quand certains formulaires demandent des informations réglementaires, sensibles ou très spécifiques à certaines candidatures.</p>
-
-                        <div class="form-group">
-                            <label for="sgHandicap">Avez-vous une reconnaissance de la qualité de travailleur handicapé (RQTH) ?</label>
-                            <select id="sgHandicap" name="sgHandicap" onchange="toggleSgHandicapAccommodation(this.value)">
-                                <option value="">Sélectionnez…</option>
-                                <option value="non">Non</option>
-                                <option value="oui">Oui</option>
-                                <option value="prefer_not">Je ne souhaite pas répondre</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group" id="sgHandicapAccommodationSection" style="display:none">
-                            <label for="sgHandicapAccommodation">Aménagement spécifique pour les tests (tiers-temps, accessibilité) ?</label>
-                            <select id="sgHandicapAccommodation" name="sgHandicapAccommodation">
-                                <option value="">Sélectionnez…</option>
-                                <option value="non">Non</option>
-                                <option value="oui">Oui</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group" style="margin-top:16px;">
-                            <label for="bofaMedicalCondition">Avez-vous une condition médicale ou un handicap nécessitant des aménagements pour les tests ou entretiens ?</label>
-                            <select id="bofaMedicalCondition" name="bofa_medical_condition" onchange="document.getElementById('bofaMedicalSection').style.display = this.value === 'Yes' ? 'block' : 'none'">
-                                <option value="No">Non</option>
-                                <option value="Yes">Oui</option>
-                            </select>
-                        </div>
-                        <div id="bofaMedicalSection" style="display:none; margin-top:8px; padding:14px; background:#f8f9fa; border-radius:8px;">
-                            <div class="form-group">
-                                <label for="bofaMedicalDetails">Détails et aménagements nécessaires</label>
-                                <textarea id="bofaMedicalDetails" name="bofa_medical_details" rows="4" placeholder="Ex. tiers-temps, accessibilité…"></textarea>
-                            </div>
-                        </div>
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
 
                         <div class="form-group" style="margin-top:16px;">
                             <label for="bofaAdditionalInfo">Y a-t-il des informations supplémentaires que vous souhaitez divulguer pouvant impacter votre candidature ?</label>
@@ -2626,13 +2552,42 @@
                                 </label>
                             </div>
                         </div>
+                </div>
+
+                <!-- Section Alertes et viviers -->
+                <div class="form-section accordion-section">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2>Alertes et viviers talents</h2>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Choisissez les groupes pour lesquels vous acceptez d’être recontacté·e ou de recevoir des mises à jour sur de nouvelles opportunités.</p>
+
+                        <div class="form-group">
+                            <label style="font-weight: 600; margin-bottom: 12px; display: block;">Je souhaite recevoir des mises à jour ou être recontacté·e par :</label>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="talentPoolBpce" name="talentPools" value="bpce" onchange="applyTalentPoolsSectionState()">
+                                    <span class="checkbox-text">BPCE</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="talentPoolBpifrance" name="talentPools" value="bpifrance" onchange="applyTalentPoolsSectionState()">
+                                    <span class="checkbox-text">Bpifrance</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="talentPoolAxa" name="talentPools" value="axa" onchange="applyTalentPoolsSectionState()">
+                                    <span class="checkbox-text">AXA</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Section Diversité & Identité -->
+
+                <!-- Section Diversité & Inclusion -->
                 <div class="form-section accordion-section">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <h2>Diversité &amp; Identité</h2>
+                        <h2>Diversité &amp; Inclusion</h2>
                         <span class="accordion-icon">▼</span>
                     </div>
                     <div class="accordion-content">
@@ -2915,6 +2870,43 @@
                             </div>
                         </div>
                     </div>
+
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 22px;">
+                        <p style="font-weight: 600; margin-bottom: 16px; color: #374151;">Aménagements et accessibilité</p>
+
+                        <div class="form-group">
+                            <label for="sgHandicap">Avez-vous une reconnaissance de la qualité de travailleur handicapé (RQTH) ?</label>
+                            <select id="sgHandicap" name="sgHandicap" onchange="toggleSgHandicapAccommodation(this.value)">
+                                <option value="">Sélectionnez…</option>
+                                <option value="non">Non</option>
+                                <option value="oui">Oui</option>
+                                <option value="prefer_not">Je ne souhaite pas répondre</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="sgHandicapAccommodationSection" style="display:none">
+                            <label for="sgHandicapAccommodation">Aménagement spécifique pour les tests (tiers-temps, accessibilité) ?</label>
+                            <select id="sgHandicapAccommodation" name="sgHandicapAccommodation">
+                                <option value="">Sélectionnez…</option>
+                                <option value="non">Non</option>
+                                <option value="oui">Oui</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-top:16px;">
+                            <label for="bofaMedicalCondition">Avez-vous une condition médicale ou un handicap nécessitant des aménagements pour les tests ou entretiens ?</label>
+                            <select id="bofaMedicalCondition" name="bofa_medical_condition" onchange="document.getElementById('bofaMedicalSection').style.display = this.value === 'Yes' ? 'block' : 'none'">
+                                <option value="No">Non</option>
+                                <option value="Yes">Oui</option>
+                            </select>
+                        </div>
+                        <div id="bofaMedicalSection" style="display:none; margin-top:8px; padding:14px; background:#f8f9fa; border-radius:8px;">
+                            <div class="form-group">
+                                <label for="bofaMedicalDetails">Détails et aménagements nécessaires</label>
+                                <textarea id="bofaMedicalDetails" name="bofa_medical_details" rows="4" placeholder="Ex. tiers-temps, accessibilité…"></textarea>
+                            </div>
+                        </div>
+
                 </div>
 
                 <!-- Section Documents -->
@@ -2981,14 +2973,12 @@
 
         const PROFILE_SECTION_META = {
             'Identité & Coordonnées': { icon: 'person', required: true },
-            'Les métiers qui m\'intéressent': { icon: 'briefcase', required: true },
-            'Contrat et disponibilité': { icon: 'calendar', required: true },
-            'Préférences géographiques': { icon: 'globe', required: true },
+            'Préférences de recherche': { icon: 'briefcase', required: true },
+            'Contrat & Rémunération': { icon: 'calendar', required: true },
             'Formation et expérience': { icon: 'graduation', required: true },
             'Questions récurrentes des employeurs': { icon: 'repeat', required: true },
             'Alertes et viviers talents': { icon: 'bell', required: false },
-            'Questions administratives et réglementaires': { icon: 'shield', required: false },
-            'Diversité & Identité': { icon: 'sparkles', required: false },
+            'Diversité & Inclusion': { icon: 'sparkles', required: false },
             'Documents': { icon: 'folder', required: true }
         };
 
@@ -4686,18 +4676,18 @@
                 'Les métiers qui m\'intéressent': [
                     { name: 'jobs', section: 'Les métiers qui m\'intéressent', isCheckbox: true }
                 ],
-                'Contrat et disponibilité': [
-                    { id: 'contractType', section: 'Contrat et disponibilité' },
-                    { id: 'availableFrom', section: 'Contrat et disponibilité' },
-                    { id: 'sgNoticePeriod', section: 'Contrat et disponibilité' },
-                    { id: 'currentEmployer', section: 'Contrat et disponibilité' },
-                    { id: 'employmentStartDate', section: 'Contrat et disponibilité' },
-                    { id: 'currentSalaryCurrency', section: 'Contrat et disponibilité' },
-                    { id: 'currentSalary', section: 'Contrat et disponibilité' }
+                'Contrat & Rémunération': [
+                    { id: 'contractType', section: 'Contrat & Rémunération' },
+                    { id: 'availableFrom', section: 'Contrat & Rémunération' },
+                    { id: 'sgNoticePeriod', section: 'Contrat & Rémunération' },
+                    { id: 'currentEmployer', section: 'Contrat & Rémunération' },
+                    { id: 'employmentStartDate', section: 'Contrat & Rémunération' },
+                    { id: 'currentSalaryCurrency', section: 'Contrat & Rémunération' },
+                    { id: 'currentSalary', section: 'Contrat & Rémunération' }
                 ],
-                'Préférences géographiques': [
-                    { name: 'continents', section: 'Préférences géographiques', isCheckbox: true },
-                    { name: 'preferredCountries', section: 'Préférences géographiques', isCheckbox: true }
+                'Préférences de recherche (géo)': [
+                    { name: 'continents', section: 'Préférences de recherche', isCheckbox: true },
+                    { name: 'preferredCountries', section: 'Préférences de recherche', isCheckbox: true }
                 ],
                 'Questions récurrentes des employeurs': [
                     { id: 'deloitteWorked', section: 'Questions récurrentes des employeurs' }
@@ -4763,14 +4753,15 @@
             updateProfileCompletionChrome();
         }
 
-        function applyPortalQuestionsSectionState() {
+        function applyPortalQuestionsSectionState() { /* section supprimée — no-op */ }
+        function _applyPortalQuestionsSectionState_unused() {
             const sgHandicap = document.getElementById('sgHandicap')?.value?.trim() || '';
             const sgHandicapAccommodation = document.getElementById('sgHandicapAccommodation')?.value?.trim() || '';
             const jpMorganMilitaryService = document.getElementById('jpMorganMilitaryService')?.value?.trim() || '';
             const jpMorganWorkAuths = window.getJpMorganWorkAuthorizationData ? window.getJpMorganWorkAuthorizationData() : [];
             const gsWorkAuthChecked = ['gsWorkAuthNational', 'gsWorkAuthPermanentResident', 'gsWorkAuthEEA', 'gsWorkAuthVisa']
                 .some(id => document.getElementById(id)?.checked);
-            // Note : genre et pronoms ont été déplacés dans "Diversité & Identité"
+            // Note : genre et pronoms ont été déplacés dans "Diversité & Inclusion"
             const portalHasContent = !!sgHandicap || !!sgHandicapAccommodation || !!jpMorganMilitaryService
                 || jpMorganWorkAuths.length > 0 || gsWorkAuthChecked;
 
@@ -4819,7 +4810,7 @@
             // Au moins un champ rempli mais pas tout → Incomplet
             // GS et Nomura entièrement remplis → Complet
             document.querySelectorAll('.accordion-header h2').forEach(header => {
-                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Diversité & Identité') {
+                if ((header.textContent || '').replace(/\s*✓\s*$/g, '').trim() === 'Diversité & Inclusion') {
                     const section = header.closest('.accordion-section');
                     if (section) {
                         section.classList.remove('incomplete', 'complete');
@@ -4861,18 +4852,18 @@
                 'Les métiers qui m\'intéressent': [
                     { name: 'jobs', label: 'Métiers', section: 'Les métiers qui m\'intéressent', isCheckbox: true }
                 ],
-                'Contrat et disponibilité': [
-                    { id: 'contractType', label: 'Type de contrat', section: 'Contrat et disponibilité' },
-                    { id: 'availableFrom', label: 'Disponibilité', section: 'Contrat et disponibilité' },
-                    { id: 'sgNoticePeriod', label: 'Préavis de départ', section: 'Contrat et disponibilité' },
-                    { id: 'currentEmployer', label: 'Employeur actuel', section: 'Contrat et disponibilité' },
-                    { id: 'employmentStartDate', label: 'Date de début chez cet employeur', section: 'Contrat et disponibilité' },
-                    { id: 'currentSalaryCurrency', label: 'Devise du salaire actuel', section: 'Contrat et disponibilité' },
-                    { id: 'currentSalary', label: 'Salaire actuel (base)', section: 'Contrat et disponibilité' }
+                'Contrat & Rémunération': [
+                    { id: 'contractType', label: 'Type de contrat', section: 'Contrat & Rémunération' },
+                    { id: 'availableFrom', label: 'Disponibilité', section: 'Contrat & Rémunération' },
+                    { id: 'sgNoticePeriod', label: 'Préavis de départ', section: 'Contrat & Rémunération' },
+                    { id: 'currentEmployer', label: 'Employeur actuel', section: 'Contrat & Rémunération' },
+                    { id: 'employmentStartDate', label: 'Date de début chez cet employeur', section: 'Contrat & Rémunération' },
+                    { id: 'currentSalaryCurrency', label: 'Devise du salaire actuel', section: 'Contrat & Rémunération' },
+                    { id: 'currentSalary', label: 'Salaire actuel (base)', section: 'Contrat & Rémunération' }
                 ],
-                'Préférences géographiques': [
-                    { name: 'continents', label: 'Continents', section: 'Préférences géographiques', isCheckbox: true },
-                    { name: 'preferredCountries', label: 'Pays', section: 'Préférences géographiques', isCheckbox: true }
+                'Préférences de recherche (géo)': [
+                    { name: 'continents', label: 'Continents', section: 'Préférences de recherche', isCheckbox: true },
+                    { name: 'preferredCountries', label: 'Pays', section: 'Préférences de recherche', isCheckbox: true }
                 ],
                 'Questions récurrentes des employeurs': [
                     { id: 'deloitteWorked', label: 'Avez-vous déjà travaillé pour Deloitte ?', section: 'Questions récurrentes des employeurs' }

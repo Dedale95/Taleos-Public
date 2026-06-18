@@ -1,5 +1,34 @@
 [
   {
+    "version": "1.2.248",
+    "date": "2026-06-18",
+    "changes": [
+      "refactor: préfixes de log ATS identifiés — Taleez (Bpifrance), Cegid Talent (Crédit Mutuel), Bwelcome (BNP), WordPress custom (CA)"
+    ]
+  },
+  {
+    "version": "1.2.247",
+    "date": "2026-06-18",
+    "changes": [
+      "refactor: préfixes de log unifiés au format [ATS — Banque] sur tous les fillers"
+    ]
+  },
+  {
+    "version": "1.2.246",
+    "date": "2026-06-18",
+    "changes": [
+      "refactor: renommage fichiers fillers sans nom de banque (bpce-lumesse → lumesse, bpce-oracle → oracle-hcm, bpce_blueprint → oracle_lumesse_blueprint)",
+      "fix(manifest): retrait du pattern *.oraclecloud.com/* des scripts BPCE — évite le chargement parasite sur les pages JP Morgan Oracle"
+    ]
+  },
+  {
+    "version": "1.2.245",
+    "date": "2026-06-18",
+    "changes": [
+      "fix(jpm): double code email — guard one-shot sur le clic Next de la page email Oracle"
+    ]
+  },
+  {
     "version": "1.2.244",
     "date": "2026-06-18T00:30:00Z",
     "text": "JP Morgan Oracle — fix screener questions : salary et notice period sont des textarea Oracle (pas des inputs ni des pills). Le notice period détecte le textarea en priorité, puis les pills, puis le dropdown. Le salary inclut désormais les textarea dans sa recherche."

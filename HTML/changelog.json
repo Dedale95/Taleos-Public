@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.253",
+    "date": "2026-06-18",
+    "changes": [
+      "fix(profile): structure HTML complète — toutes les sections dans le form, footer hors container, espacement homogène"
+    ]
+  },
+  {
     "version": "1.2.252",
     "date": "2026-06-18",
     "changes": [

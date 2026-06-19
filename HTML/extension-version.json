@@ -1,7 +1,7 @@
 {
-  "version": "1.2.260",
-  "version_name": "1.2.260",
-  "published_at": "2026-06-19T16:25:41Z",
-  "release_notes": "Filler BEDL / La Banque Postale — correction du mapping : La Banque Postale et BEDL sont maintenant correctement identifiés comme la_banque_postale (et non bpce). Ajout de labanquepostale.com dans la détection par URL.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.260.zip"
+  "version": "1.2.261",
+  "version_name": "1.2.261",
+  "published_at": "2026-06-19T16:36:01Z",
+  "release_notes": "Refactor interne : renommage des clés de stockage taleos_pending_bpce → taleos_pending_lumesse (Lumesse est la plateforme ATS partagée par LBP, BPCE, BEDL et autres). Aucun changement fonctionnel.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.261.zip"
 }

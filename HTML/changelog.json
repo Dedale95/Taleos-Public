@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.261",
+    "date": "2026-06-19",
+    "changes": [
+      "refactor: renommage taleos_pending_bpce → taleos_pending_lumesse (Lumesse est la plateforme ATS commune à LBP, BPCE, BEDL…) — aucun changement fonctionnel"
+    ]
+  },
+  {
     "version": "1.2.260",
     "date": "2026-06-19",
     "changes": [

@@ -1,7 +1,7 @@
 {
   "version": "1.2.262",
   "version_name": "1.2.262",
-  "published_at": "2026-06-19T18:25:57Z",
+  "published_at": "2026-06-19T18:41:20Z",
   "release_notes": "Ajout du test de connexion Rothschild & Co (Workday) sur la page Connexions. Déconnexion automatique si déjà connecté, même logique que Bank of America et Morgan Stanley.",
   "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.262.zip"
 }

@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.266",
+    "date": "2026-06-19T10:00:00Z",
+    "text": "Crédit Agricole : attente confirmation upload fichier (CV/LM) avant soumission pour éviter le crash 500 admin-ajax.php."
+  },
+  {
     "version": "1.2.265",
     "date": "2026-06-19",
     "changes": [

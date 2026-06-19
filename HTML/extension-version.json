@@ -1,7 +1,7 @@
 {
-  "version": "1.2.265",
-  "version_name": "1.2.265",
-  "published_at": "2026-06-19T19:56:05Z",
-  "release_notes": "feat: Rothschild & Co Workday Filler v1 — remplissage automatique des 4 étapes (Mes renseignements, Mon expérience, Questions candidature, Divulgations)",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.265.zip"
+  "version": "1.2.266",
+  "version_name": "1.2.266",
+  "published_at": "2026-06-19T19:57:52Z",
+  "release_notes": "Crédit Agricole : attente confirmation upload fichier avant soumission (fix 500 admin-ajax.php)",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.266.zip"
 }

@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.256",
+    "date": "2026-06-19",
+    "changes": [
+      "fix(jpm): clic Next page email — attente 400ms pour validation KO + retry automatique si le premier clic échoue (page toujours sur l'étape email après 3s)"
+    ]
+  },
+  {
     "version": "1.2.255",
     "date": "2026-06-19",
     "changes": [

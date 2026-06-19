@@ -1,7 +1,7 @@
 {
-  "version": "1.2.255",
-  "version_name": "1.2.255",
-  "published_at": "2026-06-19T14:10:51Z",
-  "release_notes": "JP Morgan — correction définitive du champ «Salary expectations» : Oracle JET rend un textarea KO-model numérique miroir de la textarea immigration support (contenant le texte immigration). Le filler exclut maintenant toute textarea dont le contenu ressemble à du texte immigration (visa sponsorship, legally authorized...), garantissant qu'on cible uniquement le vrai champ salaire.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.255.zip"
+  "version": "1.2.256",
+  "version_name": "1.2.256",
+  "published_at": "2026-06-19T15:01:15Z",
+  "release_notes": "JP Morgan — correction du clic Next sur la page email : Oracle KO rejette le clic si le champ email n'est pas encore validé. On attend maintenant 400ms après le remplissage avant de cliquer, et on autorise un retry si le clic a échoué (page toujours sur l'étape email après 3 secondes).",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.256.zip"
 }

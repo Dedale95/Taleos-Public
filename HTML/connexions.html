@@ -527,6 +527,17 @@
             border-color: #ef4444;
         }
 
+        .btn-secondary {
+            background: transparent;
+            color: #c8a96e;
+            border-color: rgba(200,169,110,0.3);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(200,169,110,0.08);
+            border-color: #c8a96e;
+        }
+
         /* ─── CONNECTION STATUS ─── */
         .connection-status {
             display: none;
@@ -1292,6 +1303,7 @@
                         </div>
                         <div class="connection-status" id="status-${bank.id}"></div>
                         <div class="form-actions">
+                            ${!isEmailOnly ? `<button class="btn btn-secondary" id="btn-retest-${bank.id}" onclick="retestConnection('${bank.id}', event)">🔁 Retester la connexion</button>` : ''}
                             <button class="btn btn-danger" id="btn-disconnect-${bank.id}" onclick="disconnectBank('${bank.id}', event)">✕ Délier ce compte</button>
                         </div>
                     ` : `
@@ -1472,6 +1484,46 @@
             if (error.message?.toLowerCase?.().includes('timeout extension')) msg="Le bridge de l'extension n'a pas répondu. Rechargez la page puis rechargez l'extension.";
             if (statusDiv) { statusDiv.className='connection-status show error'; statusDiv.innerHTML=`❌ ${msg}`; }
             if (btn) { btn.disabled=false; btn.innerHTML='🔗 Lier mon compte'; }
+        }
+    }
+
+    // ─── retestConnection (banque déjà connectée) ───
+    async function retestConnection(bankId, event) {
+        if (event) event.preventDefault();
+        const bank = banks.find(b => b.id === bankId);
+        if (!bank || !currentUser) return;
+        const statusDiv = document.getElementById(`status-${bankId}`);
+        const btn = document.getElementById(`btn-retest-${bankId}`);
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Vérification...'; }
+        if (statusDiv) { statusDiv.className = 'connection-status show info'; statusDiv.innerHTML = '⏳ Récupération des identifiants...'; }
+        try {
+            await db.enableNetwork();
+            const doc = await db.collection('profiles').doc(currentUser.uid).collection('career_connections').doc(bankId).get();
+            if (!doc.exists) {
+                if (statusDiv) { statusDiv.className = 'connection-status show error'; statusDiv.innerHTML = '❌ Identifiants introuvables. Reconnectez ce compte.'; }
+                if (btn) { btn.disabled = false; btn.innerHTML = '🔁 Retester la connexion'; }
+                return;
+            }
+            const data = doc.data();
+            const email = data.email || '';
+            const password = data.password ? atob(data.password) : '';
+            if (!email) {
+                if (statusDiv) { statusDiv.className = 'connection-status show error'; statusDiv.innerHTML = '❌ Email non trouvé. Reconnectez ce compte.'; }
+                if (btn) { btn.disabled = false; btn.innerHTML = '🔁 Retester la connexion'; }
+                return;
+            }
+            if (!password) {
+                if (statusDiv) { statusDiv.className = 'connection-status show error'; statusDiv.innerHTML = '❌ Mot de passe non stocké. Reconnectez ce compte pour le sauvegarder.'; }
+                if (btn) { btn.disabled = false; btn.innerHTML = '🔁 Retester la connexion'; }
+                return;
+            }
+            if (btn) { btn.disabled = false; btn.innerHTML = '🔁 Retester la connexion'; }
+            // Déléguer à testConnection avec les credentials récupérés
+            await testConnection(bankId, email, password, null);
+        } catch (e) {
+            console.error('retestConnection:', e);
+            if (statusDiv) { statusDiv.className = 'connection-status show error'; statusDiv.innerHTML = `❌ Erreur : ${e.message}`; }
+            if (btn) { btn.disabled = false; btn.innerHTML = '🔁 Retester la connexion'; }
         }
     }
 

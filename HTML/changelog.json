@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.255",
+    "date": "2026-06-19",
+    "changes": [
+      "fix(jpm): salary expectations — Oracle JET rend un textarea KO-model numérique miroir de la textarea immigration (même contenu) ; le filler filtre maintenant toute textarea dont la valeur contient du texte immigration (visa sponsorship, legally authorized...) pour cibler uniquement le vrai champ salaire"
+    ]
+  },
+  {
     "version": "1.2.254",
     "date": "2026-06-19",
     "changes": [

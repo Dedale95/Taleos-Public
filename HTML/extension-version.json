@@ -1,7 +1,7 @@
 {
-  "version": "1.2.254",
-  "version_name": "1.2.254",
-  "published_at": "2026-06-19T13:58:38Z",
-  "release_notes": "JP Morgan — correction du champ «Salary expectations» : la textarea immigration support (oda-work-summary-text-area) était remplie par erreur à la place du vrai champ salaire quand Oracle JET n'avait pas encore rendu ce dernier. Le filler attend maintenant que la bonne textarea soit visible avant de remplir, et bloque le clic Next le temps que le rendu soit complet.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.254.zip"
+  "version": "1.2.255",
+  "version_name": "1.2.255",
+  "published_at": "2026-06-19T14:10:51Z",
+  "release_notes": "JP Morgan — correction définitive du champ «Salary expectations» : Oracle JET rend un textarea KO-model numérique miroir de la textarea immigration support (contenant le texte immigration). Le filler exclut maintenant toute textarea dont le contenu ressemble à du texte immigration (visa sponsorship, legally authorized...), garantissant qu'on cible uniquement le vrai champ salaire.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.255.zip"
 }

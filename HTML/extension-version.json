@@ -2,6 +2,6 @@
   "version": "1.2.253",
   "version_name": "1.2.253",
   "published_at": "2026-06-19T13:31:43Z",
-  "release_notes": "JP Morgan — les 7 questions screener (trades, financial products, services, regulations, derivatives, office 5 days, asset servicing) sont désormais remplies depuis Firebase. Salary expectations composé en texte libre (ex: EUR 125,000 yearly). Notice period mappé depuis le champ Préavis de départ commun.",
+  "release_notes": "JP Morgan — correction complète des screener questions : les 7 questions (trades, financial products, financial services, regulations, derivatives, office 5 days, asset servicing) sont remplies depuis Firebase. Salary expectations en texte libre (ex : GBP 125,000 yearly — devise + montant + fréquence). Notice period mappé automatiquement depuis le champ Préavis de départ du profil (none → Immediately available, 1_month → 1 month, etc.).",
   "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.253.zip"
 }

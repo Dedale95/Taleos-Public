@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.259",
+    "date": "2026-06-19",
+    "changes": [
+      "fix(lbp): BEDL, Natixis, Banque Populaire, Caisse d'Épargne, Oney, Palatine reconnus comme entités BPCE — le filler La Banque Postale se déclenche maintenant pour ces entités"
+    ]
+  },
+  {
     "version": "1.2.258",
     "date": "2026-06-19",
     "changes": [

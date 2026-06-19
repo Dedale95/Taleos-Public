@@ -1,7 +1,7 @@
 {
-  "version": "1.2.264",
-  "version_name": "1.2.264",
-  "published_at": "2026-06-19T19:48:00Z",
-  "release_notes": "Fix faux positif Morgan Stanley & BofA : span.css-1xtbc5b (sélecteur de langue) remplacé par accountSettingsButton dans successCheck — gère les locales en-US et fr-CA.",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.264.zip"
+  "version": "1.2.265",
+  "version_name": "1.2.265",
+  "published_at": "2026-06-19T19:56:05Z",
+  "release_notes": "feat: Rothschild & Co Workday Filler v1 — remplissage automatique des 4 étapes (Mes renseignements, Mon expérience, Questions candidature, Divulgations)",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.265.zip"
 }

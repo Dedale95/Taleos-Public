@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.2.265",
+    "date": "2026-06-19",
+    "changes": [
+      "feat(rothschild): Workday Filler v1 — remplissage automatique 4 étapes : Mes renseignements, Mon expérience (CV upload), Questions candidature (générique), Divulgations volontaires",
+      "feat(routing): bid rothschild_workday câblé dans background.js + content_script manifest"
+    ]
+  },
+  {
     "version": "1.2.264",
     "date": "2026-06-19",
     "changes": [

@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.254",
+    "date": "2026-06-19",
+    "changes": [
+      "fix(jpm): salary expectations — la textarea immigration support (oda-work-summary-text-area) était remplie par erreur ; le filler attend maintenant que la vraie textarea salaire soit visible et bloque le clic Next en attendant"
+    ]
+  },
+  {
     "version": "1.2.253",
     "date": "2026-06-18",
     "changes": [

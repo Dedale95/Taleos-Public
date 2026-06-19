@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.264",
+    "date": "2026-06-19",
+    "changes": [
+      "fix(connexions): Morgan Stanley & BofA — faux positif supprimé dans successCheck (span.css-1xtbc5b = sélecteur de langue, pas l'email) → remplacé par accountSettingsButton, valide en-US et fr-CA"
+    ]
+  },
+  {
     "version": "1.2.263",
     "date": "2026-06-19",
     "changes": [

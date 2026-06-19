@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.258",
+    "date": "2026-06-19",
+    "changes": [
+      "fix(jpm): autorisation de travail France/UE — si jp_morgan_work_authorizations est vide mais sg_eu_work_authorization=yes, répondre Yes/No correctement sans visa sponsoring pour les postes dans l'UE"
+    ]
+  },
+  {
     "version": "1.2.257",
     "date": "2026-06-19",
     "changes": [

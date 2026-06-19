@@ -517,12 +517,15 @@ async function handleLogout() {
     const list = document.getElementById('changelogList');
     if (!list) return;
     if (!entries || !entries.length) { list.innerHTML = '<div class="changelog-loading">Aucune mise à jour disponible.</div>'; return; }
-    list.innerHTML = entries.map(e => `
+    list.innerHTML = entries.map(e => {
+      const text = e.text || (Array.isArray(e.changes) ? e.changes.join(' · ') : '');
+      return `
       <div class="changelog-item">
         <span class="changelog-date">${formatCLDate(e.date)}</span>
-        <span class="changelog-text">${e.text || ''}</span>
+        <span class="changelog-text">${text}</span>
         <span class="changelog-version">v${e.version || ''}</span>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
   (async () => {
     for (const src of SOURCES) {

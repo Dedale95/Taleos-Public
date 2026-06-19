@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.257",
+    "date": "2026-06-19",
+    "changes": [
+      "fix(jpm): salary expectations — TreeWalker depuis le nœud texte salary + exclusion des conteneurs contenant notice period ou immigration. findQuestionRow retournait un conteneur trop large (plusieurs screener questions), causant le remplissage croisé salary↔notice period"
+    ]
+  },
+  {
     "version": "1.2.256",
     "date": "2026-06-19",
     "changes": [

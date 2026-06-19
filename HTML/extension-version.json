@@ -1,7 +1,7 @@
 {
-  "version": "1.2.256",
-  "version_name": "1.2.256",
-  "published_at": "2026-06-19T15:01:15Z",
-  "release_notes": "JP Morgan — correction du clic Next sur la page email : Oracle KO rejette le clic si le champ email n'est pas encore validé. On attend maintenant 400ms après le remplissage avant de cliquer, et on autorise un retry si le clic a échoué (page toujours sur l'étape email après 3 secondes).",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.256.zip"
+  "version": "1.2.257",
+  "version_name": "1.2.257",
+  "published_at": "2026-06-19T15:29:18Z",
+  "release_notes": "JP Morgan — correction définitive salary expectations : TreeWalker depuis le nœud texte «minimum gross salary» + exclusion des conteneurs contenant «notice period» ou «immigration support». findQuestionRow retournait un conteneur trop large englobant plusieurs questions screener, causant le remplissage croisé salary↔notice period.",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.257.zip"
 }

@@ -702,6 +702,9 @@ def fix_location(loc):
     loc = re.sub(r'\s*\(?\s*Ce\s+[Ll]ien\s+[Ss]\'[Oo]uvre\s+[Dd]ans\s+[Uu]n\s+[Nn]ouvel\s+[Oo]nglet\s*\)?', '', loc, flags=re.IGNORECASE).strip()
     if not loc:
         return loc
+    # "N/A" seul ou "N/A - Pays" → "Remote" ou pays extrait
+    if re.fullmatch(r'N/A', loc, re.IGNORECASE):
+        return 'Remote'
     if loc.upper().startswith('N/A') and (' - ' in loc or '-' in loc):
         parts = re.split(r'\s*-\s*', loc, maxsplit=1)
         if len(parts) >= 2 and parts[0].strip().upper() == 'N/A':
@@ -876,6 +879,13 @@ def read_from_db(db_path, company_name, live_only=True):
                     inferred = _infer_location_from_title(title)
                     if inferred:
                         job['location'] = inferred
+                    else:
+                        # Postes EY globaux sans localisation → Remote plutôt que Non spécifié
+                        job['location'] = 'Remote'
+
+            # Supprimer les offres sans titre (entrées corrompues)
+            if not (job.get('job_title') or '').strip():
+                continue
 
             # Normaliser le type de contrat (filet de sécurité)
             if job.get('contract_type'):

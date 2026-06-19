@@ -77,8 +77,8 @@ def _html_to_text(html: str) -> str:
 
 def _parse_location(loc_name: str) -> tuple[str, str]:
     """Retourne (city, country) depuis 'City, Country'."""
-    if not loc_name:
-        return "", ""
+    if not loc_name or loc_name.strip().upper() == 'N/A':
+        return "Remote", "Remote"
     parts = [p.strip() for p in loc_name.split(",")]
     if len(parts) >= 2:
         return parts[0], normalize_country(parts[-1])
@@ -185,7 +185,9 @@ def parse_job(job: dict) -> dict:
     gh_id    = str(job.get("id", ""))
     title    = (job.get("title") or "").strip()
     url      = job.get("absolute_url", "")
-    loc_name = (job.get("location") or {}).get("name", "")
+    loc_name = (job.get("location") or {}).get("name", "") or ""
+    if loc_name.strip().upper() == "N/A":
+        loc_name = "Remote"
     city, country = _parse_location(loc_name)
     dept     = ", ".join(d.get("name", "") for d in (job.get("departments") or []))
     updated  = (job.get("updated_at") or "")[:10]

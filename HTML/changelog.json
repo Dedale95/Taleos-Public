@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.271",
+    "date": "2026-06-21T00:15:00Z",
+    "text": "Injector : taleos-request-apply renvoie maintenant le résultat background.js via event taleos-apply-result (debug)."
+  },
+  {
     "version": "1.2.270",
     "date": "2026-06-20T22:00:00Z",
     "text": "Injector : ajout event bridge taleos-request-apply pour déclencher une candidature depuis la page (contournement de la barrière MAIN/ISOLATED world)."

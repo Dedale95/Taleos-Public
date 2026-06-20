@@ -1,7 +1,7 @@
 {
-  "version": "1.2.270",
-  "version_name": "1.2.270",
-  "published_at": "2026-06-20T21:51:35Z",
-  "release_notes": "Injector : ajout event bridge taleos-request-apply pour déclencher une candidature depuis la page",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.270.zip"
+  "version": "1.2.271",
+  "version_name": "1.2.271",
+  "published_at": "2026-06-20T22:15:51Z",
+  "release_notes": "Injector : taleos-request-apply retourne maintenant le résultat via taleos-apply-result pour debug",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.271.zip"
 }

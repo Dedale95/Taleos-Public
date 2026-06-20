@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.273",
+    "date": "2026-06-21T01:30:00Z",
+    "text": "Fix(ms-workday): handleStartPage() appelé AVANT handleSignIn() dans main() — le filler cliquait 'Utiliser ma dernière candidature' sur la page 3-choix au lieu de 'Postuler manuellement'. Aussi : boucle post-submit utilisait isLoggedIn() polling au lieu de tester la disparition du dialog (qui n'existait pas en mode full-page)."
+  },
+  {
     "version": "1.2.272",
     "date": "2026-06-21T00:30:00Z",
     "text": "Fix(ms-workday): isLoggedIn() corrigé — vérifier les champs password AVANT progressBarActiveStep pour éviter un faux positif sur la page 'Créer un compte' (qui a aussi une barre de progression)."

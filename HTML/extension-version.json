@@ -1,7 +1,7 @@
 {
-  "version": "1.2.272",
-  "version_name": "1.2.272",
-  "published_at": "2026-06-20T22:24:37Z",
-  "release_notes": "Fix(ms-workday): isLoggedIn() vérifiait progressBarActiveStep avant les champs password — faux positif sur page Créer un compte",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.272.zip"
+  "version": "1.2.273",
+  "version_name": "1.2.273",
+  "published_at": "2026-06-20T22:40:56Z",
+  "release_notes": "Fix(ms-workday): ordre handleStartPage→handleSignIn corrigé dans main() + boucle post-submit simplifiée",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.273.zip"
 }

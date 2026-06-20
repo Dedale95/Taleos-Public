@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.267",
+    "date": "2026-06-20T12:00:00Z",
+    "text": "Fix login Morgan Stanley Workday : sélection du champ email via data-automation-id='email' pour éviter de remplir les honeypots beecatcher (causait une connexion échouée)."
+  },
+  {
     "version": "1.2.266",
     "date": "2026-06-19T10:00:00Z",
     "text": "Crédit Agricole : attente confirmation upload fichier (CV/LM) avant soumission pour éviter le crash 500 admin-ajax.php."

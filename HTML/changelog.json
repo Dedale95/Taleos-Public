@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.275",
+    "date": "2026-06-21T02:00:00Z",
+    "text": "Fix(ms-workday): les deux forms (Créer un compte + Ouvrir une session) coexistent dans le DOM avec les mêmes data-automation-id. Désormais on cible l'email/password/submit qui viennent APRÈS signInLink dans le DOM via compareDocumentPosition."
+  },
+  {
     "version": "1.2.274",
     "date": "2026-06-21T01:00:00Z",
     "text": "Fix(ms-workday): isLoggedIn() utilise désormais l'URL (/applyManually = toujours pas connecté) au lieu de tester les champs DOM — évite les faux positifs dus aux formField-email/password et au progressBarActiveStep présents sur la page de login. handleStartPage() et handleSignIn() wait-loop mis à jour en conséquence."

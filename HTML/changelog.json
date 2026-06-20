@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.277",
+    "date": "2026-06-21T03:00:00Z",
+    "text": "Fix(ms-workday): attendre le rendu React du formulaire (/applyManually) avant de chercher signInLink — évite email=undefined quand le filler démarre avant que les inputs soient visibles."
+  },
+  {
     "version": "1.2.276",
     "date": "2026-06-21T02:30:00Z",
     "text": "Fix(ms-workday): après clic signInLink, attendre la disparition du champ verifyPassword (fin de la transition DOM) avant de remplir — évite de cibler les champs 'Créer un compte' pendant la coexistence des deux forms."

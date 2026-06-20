@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.270",
+    "date": "2026-06-20T22:00:00Z",
+    "text": "Injector : ajout event bridge taleos-request-apply pour déclencher une candidature depuis la page (contournement de la barrière MAIN/ISOLATED world)."
+  },
+  {
     "version": "1.2.269",
     "date": "2026-06-20T21:30:00Z",
     "text": "Fix login Morgan Stanley Workday : cibler le popUpDialog pour les champs email/password afin d'éviter de remplir le formulaire de fond 'Créer un compte' (deux formulaires coexistent dans le DOM)."

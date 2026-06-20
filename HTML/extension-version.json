@@ -1,7 +1,7 @@
 {
-  "version": "1.2.275",
-  "version_name": "1.2.275",
-  "published_at": "2026-06-20T23:20:47Z",
-  "release_notes": "Fix(ms-workday): ciblage email/pwd/submit via compareDocumentPosition après signInLink",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.275.zip"
+  "version": "1.2.276",
+  "version_name": "1.2.276",
+  "published_at": "2026-06-20T23:31:35Z",
+  "release_notes": "Fix(ms-workday): attendre disparition verifyPassword après clic signInLink avant de remplir",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.276.zip"
 }

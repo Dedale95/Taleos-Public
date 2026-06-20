@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.276",
+    "date": "2026-06-21T02:30:00Z",
+    "text": "Fix(ms-workday): après clic signInLink, attendre la disparition du champ verifyPassword (fin de la transition DOM) avant de remplir — évite de cibler les champs 'Créer un compte' pendant la coexistence des deux forms."
+  },
+  {
     "version": "1.2.275",
     "date": "2026-06-21T02:00:00Z",
     "text": "Fix(ms-workday): les deux forms (Créer un compte + Ouvrir une session) coexistent dans le DOM avec les mêmes data-automation-id. Désormais on cible l'email/password/submit qui viennent APRÈS signInLink dans le DOM via compareDocumentPosition."

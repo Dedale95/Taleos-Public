@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.274",
+    "date": "2026-06-21T01:00:00Z",
+    "text": "Fix(ms-workday): isLoggedIn() utilise désormais l'URL (/applyManually = toujours pas connecté) au lieu de tester les champs DOM — évite les faux positifs dus aux formField-email/password et au progressBarActiveStep présents sur la page de login. handleStartPage() et handleSignIn() wait-loop mis à jour en conséquence."
+  },
+  {
     "version": "1.2.273",
     "date": "2026-06-21T01:30:00Z",
     "text": "Fix(ms-workday): handleStartPage() appelé AVANT handleSignIn() dans main() — le filler cliquait 'Utiliser ma dernière candidature' sur la page 3-choix au lieu de 'Postuler manuellement'. Aussi : boucle post-submit utilisait isLoggedIn() polling au lieu de tester la disparition du dialog (qui n'existait pas en mode full-page)."

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.273",
-  "version_name": "1.2.273",
-  "published_at": "2026-06-20T22:40:56Z",
-  "release_notes": "Fix(ms-workday): ordre handleStartPage→handleSignIn corrigé dans main() + boucle post-submit simplifiée",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.273.zip"
+  "version": "1.2.274",
+  "version_name": "1.2.274",
+  "published_at": "2026-06-20T22:51:00Z",
+  "release_notes": "Fix(ms-workday): isLoggedIn() basé sur l'URL (/applyManually) — faux positifs eliminés",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.274.zip"
 }

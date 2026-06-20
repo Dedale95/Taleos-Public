@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.272",
+    "date": "2026-06-21T00:30:00Z",
+    "text": "Fix(ms-workday): isLoggedIn() corrigé — vérifier les champs password AVANT progressBarActiveStep pour éviter un faux positif sur la page 'Créer un compte' (qui a aussi une barre de progression)."
+  },
+  {
     "version": "1.2.271",
     "date": "2026-06-21T00:15:00Z",
     "text": "Injector : taleos-request-apply renvoie maintenant le résultat background.js via event taleos-apply-result (debug)."

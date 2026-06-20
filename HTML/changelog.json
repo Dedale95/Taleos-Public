@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.269",
+    "date": "2026-06-20T21:30:00Z",
+    "text": "Fix login Morgan Stanley Workday : cibler le popUpDialog pour les champs email/password afin d'éviter de remplir le formulaire de fond 'Créer un compte' (deux formulaires coexistent dans le DOM)."
+  },
+  {
     "version": "1.2.268",
     "date": "2026-06-20T23:10:00Z",
     "text": "Fix login Morgan Stanley Workday : clic sur \"Utiliser ma dernière candidature\" avant le login pour éviter de cliquer le bouton header (qui n'ouvre pas le formulaire dans le contexte de candidature)."

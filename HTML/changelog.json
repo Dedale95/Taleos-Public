@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.2.283",
+    "date": "2026-06-21",
+    "changes": [
+      "Fix(ms-workday): Source combobox — trustedClickEl + focus avant reactSet pour niveaux 1 et 2",
+      "Fix(ms-workday): Prénom/Nom — fallback firstname/lastname (clés Firebase réelles)"
+    ]
+  },
+  {
     "version": "1.2.282",
     "date": "2026-06-21T13:00:00Z",
     "text": "Fix(ms-workday): trustedClickEl() via chrome.debugger pour les options combobox/select-button (isTrusted:true requis par Workday) + fallbacks supplémentaires pour prénom/nom (prenom, given_name, forename, nom, family_name, surname) + saveAndContinue() utilise trustedClick et ignore les erreurs 'liée à la page' (données pré-existantes)."

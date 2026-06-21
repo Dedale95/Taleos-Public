@@ -1,7 +1,7 @@
 {
   "version": "1.2.286",
   "version_name": "1.2.286",
-  "published_at": "2026-06-21T13:12:26Z",
+  "published_at": "2026-06-21T23:03:24Z",
   "release_notes": "Fix(ms-workday): trustedClickEl via chrome.debugger pour combobox/select options + fallbacks prénom/nom + saveAndContinue ignore erreurs page-level Workday",
   "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.286.zip"
 }

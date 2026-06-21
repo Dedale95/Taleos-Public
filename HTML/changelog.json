@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.287",
+    "date": "2026-06-22T00:00:00Z",
+    "changes": [
+      "Fix(ms-workday): handleSignIn ne clique plus utilityButtonSignIn quand le champ email est déjà visible — évite la fermeture accidentelle de la modal de connexion"
+    ]
+  },
+  {
     "version": "1.2.286",
     "date": "2026-06-21T14:30:00Z",
     "changes": [

@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.2.285",
+    "date": "2026-06-21",
+    "changes": [
+      "Chore: relay rechargement autonome via window.postMessage → background.reload_extension (mode non empaqueté)",
+      "Fix(ms-workday): Source — trustedClickEl sur input avant reactSet"
+    ]
+  },
+  {
     "version": "1.2.284",
     "date": "2026-06-21",
     "changes": [

@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.280",
+    "date": "2026-06-21T05:00:00Z",
+    "text": "Fix(ms-workday): soumission du formulaire de connexion via chrome.debugger (trusted click isTrusted:true) + isLoggedIn() basé sur présence du champ password et du DOM de candidature (plus sur l'URL /applyManually qui reste inchangée après login dans cette SPA)."
+  },
+  {
     "version": "1.2.279",
     "date": "2026-06-21T04:00:00Z",
     "text": "Fix(ms-workday): le bouton submit ciblait utilityButtonSignIn (nav header, 128px) au lieu de signInSubmitButton (form submit, 376px) — le formulaire n'était jamais soumis."

@@ -1,7 +1,7 @@
 {
-  "version": "1.2.279",
-  "version_name": "1.2.279",
-  "published_at": "2026-06-21T00:18:32Z",
-  "release_notes": "Fix(ms-workday): submit ciblait utilityButtonSignIn au lieu de signInSubmitButton",
-  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.279.zip"
+  "version": "1.2.280",
+  "version_name": "1.2.280",
+  "published_at": "2026-06-21T00:49:22Z",
+  "release_notes": "Fix(ms-workday): trusted_click via chrome.debugger + isLoggedIn() détecte la session via DOM (pas URL)",
+  "download_url": "https://dedale95.github.io/Taleos-Public/HTML/downloads/taleos-extension-1.2.280.zip"
 }

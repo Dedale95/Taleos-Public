@@ -1,5 +1,10 @@
 [
   {
+    "version": "1.2.279",
+    "date": "2026-06-21T04:00:00Z",
+    "text": "Fix(ms-workday): le bouton submit ciblait utilityButtonSignIn (nav header, 128px) au lieu de signInSubmitButton (form submit, 376px) — le formulaire n'était jamais soumis."
+  },
+  {
     "version": "1.2.278",
     "date": "2026-06-21T03:30:00Z",
     "text": "Fix(ms-workday): ReferenceError waited is not defined dans la boucle post-submit de handleSignIn (variable renommée en waitRender mais pas redéclarée)."

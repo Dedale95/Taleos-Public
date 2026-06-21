@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.2.286",
+    "date": "2026-06-21T14:30:00Z",
+    "changes": [
+      "Fix(ms-workday): diagnostic login — log des boutons visibles + fallback sélecteur email + attente correcte transition formulaire sign-in"
+    ]
+  },
+  {
     "version": "1.2.285",
     "date": "2026-06-21",
     "changes": [

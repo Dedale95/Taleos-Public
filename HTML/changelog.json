@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.2.288",
+    "date": "2026-06-22T02:30:00Z",
+    "changes": [
+      "Fix(ms-workday): école ISC Paris via fetch patch MAIN world (script tag injection)",
+      "Fix(ms-workday): questions step 3 — sélecteur GUID générique au lieu de formField-dc*",
+      "Fix(ms-workday): race/veteran US ajoutés dans fillDivulgationsVolontaires",
+      "Fix(ms-workday): Financial Markets — virtual list scroll index 1173 + recherche texte",
+      "Fix(ms-workday): max itérations boucle principale 12 → 20"
+    ]
+  },
+  {
     "version": "1.2.287",
     "date": "2026-06-22T00:00:00Z",
     "changes": [

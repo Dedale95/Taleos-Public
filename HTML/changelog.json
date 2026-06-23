@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.2.289",
+    "date": "2026-06-24T00:00:00Z",
+    "changes": [
+      "Fix(ms-workday): field_of_study — alias 'Market Finance' → 'Financial Markets' (texte exact Workday)",
+      "Fix(ms-workday): langues — ajout automatique depuis p.languages (langue + niveau) avec mapping niveaux FR→EN",
+      "Fix(ms-workday): work authorization — réponse basée sur jp_morgan_work_authorizations vs pays du poste (défaut: No si pays inconnu)",
+      "Fix(ms-workday): sponsoring visa — même logique que work authorization (défaut: Yes si pays inconnu)"
+    ]
+  },
+  {
     "version": "1.2.288",
     "date": "2026-06-22T02:30:00Z",
     "changes": [

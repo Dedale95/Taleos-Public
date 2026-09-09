@@ -1,5 +1,8 @@
 name: Publish Public Site
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   push:
@@ -25,7 +28,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Dedale95/Taleos-Public
-          token: ${{ secrets.PUBLIC_REPO_PUSH_TOKEN }}
+          # Ce workflow s'exécute déjà dans Taleos-Public : le jeton natif
+          # suffit et évite un échec lorsque le secret privé n'y est pas défini.
+          token: ${{ github.token }}
           path: public-repo
 
       - name: Sync public files only

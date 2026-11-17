@@ -14,6 +14,11 @@ permissions:
   contents: write # push des JSON
   issues: write # issue d’alerte si le pipeline échoue (job scraper-failure-alert)
 
+# Un seul run de mise à jour à la fois (évite deux consolidations simultanées)
+concurrency:
+  group: taleos-update-offers
+  cancel-in-progress: false
+
 on:
   schedule:
     # 6h00 Paris = 5h00 UTC (hiver) / 4h00 UTC (été). On utilise 5h00 UTC.
@@ -303,24 +308,54 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Fichiers par source (un par banque), live slim, summary
-          # scraped_jobs.json (sans underscore) volontairement exclus (trop grands, redondants)
-          # Ajouter les fichiers par source (un par banque) + summary
-          # scraped_jobs_live.json et scraped_jobs_full.json exclus (trop grands pour GitHub)
-          git add HTML/scraped_jobs_summary.json scraped_jobs_summary.json 2>/dev/null || true
-          for f in HTML/scraped_jobs_credit_agricole.json HTML/scraped_jobs_societe_generale.json \
-                   HTML/scraped_jobs_deloitte.json HTML/scraped_jobs_bnp_paribas.json \
-                   HTML/scraped_jobs_bpce.json HTML/scraped_jobs_bpifrance.json \
-                   HTML/scraped_jobs_credit_mutuel.json HTML/scraped_jobs_oddo_bhf.json \
-                   HTML/scraped_jobs_jp_morgan.json HTML/scraped_jobs_goldman_sachs.json \
-                   HTML/scraped_jobs_kpmg.json HTML/scraped_jobs_axa.json \
-                   HTML/scraped_jobs_hsbc.json HTML/scraped_jobs_ey.json \
-                   HTML/scraped_jobs_la_banque_postale.json; do
-            [ -f "$f" ] && git add "$f" 2>/dev/null || true
+
+          # Fichiers générés par ce run : summary + un JSON par banque
+          # (scraped_jobs.json / _live / _full volontairement exclus : trop grands)
+          FILES="HTML/scraped_jobs_summary.json scraped_jobs_summary.json \
+                 HTML/scraped_jobs_credit_agricole.json HTML/scraped_jobs_societe_generale.json \
+                 HTML/scraped_jobs_deloitte.json HTML/scraped_jobs_bnp_paribas.json \
+                 HTML/scraped_jobs_bpce.json HTML/scraped_jobs_bpifrance.json \
+                 HTML/scraped_jobs_credit_mutuel.json HTML/scraped_jobs_oddo_bhf.json \
+                 HTML/scraped_jobs_jp_morgan.json HTML/scraped_jobs_goldman_sachs.json \
+                 HTML/scraped_jobs_kpmg.json HTML/scraped_jobs_axa.json \
+                 HTML/scraped_jobs_hsbc.json HTML/scraped_jobs_ey.json \
+                 HTML/scraped_jobs_la_banque_postale.json"
+
+          # Sauvegarde des fichiers générés (hors du dépôt)
+          rm -rf /tmp/generated && mkdir -p /tmp/generated
+          for f in $FILES; do
+            if [ -f "$f" ]; then
+              mkdir -p "/tmp/generated/$(dirname "$f")"
+              cp "$f" "/tmp/generated/$f"
+            fi
           done
-          git commit -m "chore: mise à jour quotidienne des offres (pipeline parallèle)"
-          git pull --rebase --autostash origin main
-          git push origin main
+
+          # Ces fichiers sont régénérés intégralement à chaque run : on repart toujours
+          # de origin/main puis on réapplique nos fichiers (aucun rebase / conflit possible).
+          for i in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            for f in $FILES; do
+              if [ -f "/tmp/generated/$f" ]; then
+                mkdir -p "$(dirname "$f")"
+                cp "/tmp/generated/$f" "$f"
+                git add "$f"
+              fi
+            done
+            if git diff --cached --quiet; then
+              echo "Aucun changement à publier."
+              exit 0
+            fi
+            git commit -m "chore: mise à jour quotidienne des offres (pipeline parallèle)"
+            if git push origin HEAD:main; then
+              echo "✅ Push réussi (tentative $i)"
+              exit 0
+            fi
+            echo "⚠️ Push refusé (tentative $i/5), main a avancé — nouvel essai"
+            sleep $((i * 5))
+          done
+          echo "::error::Impossible de pousser les JSON après 5 tentatives"
+          exit 1
 
   # S’exécute si au moins un scraper échoue (la consolidation tourne quand même).
   scraper-failure-alert:

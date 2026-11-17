@@ -3,6 +3,10 @@ name: Publish Public Site
 permissions:
   contents: write
 
+concurrency:
+  group: taleos-publish-site
+  cancel-in-progress: false
+
 on:
   workflow_dispatch:
   push:
@@ -58,8 +62,16 @@ jobs:
             [ -f "public-repo/$f" ] && cp "public-repo/$f" "/tmp/public-data/${bak_name}.bak" && echo "💾 Sauvegardé: $f" || true
           done
 
+          # Idem pour les JSON par source (scraped_jobs_<banque>.json) : sans cette
+          # protection, ce workflow les réécrivait avec une version potentiellement
+          # plus ancienne que main et entrait en conflit avec update-job-offers.yml.
+          mkdir -p /tmp/public-data/HTML
+          cp public-repo/HTML/scraped_jobs_*.json /tmp/public-data/HTML/ 2>/dev/null || true
+
           rm -rf public-repo/HTML
           cp -R HTML public-repo/HTML
+
+          cp /tmp/public-data/HTML/scraped_jobs_*.json public-repo/HTML/ 2>/dev/null || true
 
           cp index.html public-repo/index.html
           cp landing_page_finance.html public-repo/landing_page_finance.html
@@ -92,4 +104,11 @@ jobs:
           fi
           git add .
           git commit -m "chore: publish public site from private source"
-          git push origin main
+          # main peut avoir avancé pendant le run (mise à jour quotidienne) : rebase + retry
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin main
+            if git push origin HEAD:main; then exit 0; fi
+            echo "Push refusé (tentative $i/5), nouvel essai"
+            sleep $((i * 5))
+          done
+          exit 1
